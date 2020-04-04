@@ -1,6 +1,7 @@
 import Layout from '../components/Layout';
 import Link from 'next/link';
 import fetch from 'isomorphic-unfetch';
+import { apiBaseUrl } from '../constants';
 
 const Users = props => (
   <Layout>
@@ -54,7 +55,7 @@ const Users = props => (
 );
 
 Users.getInitialProps = async function() {
-  const res = await fetch('http://localhost:3022/users');
+  const res = await fetch(apiBaseUrl + '/users');
   const data = await res.json();
 
   console.log(`Users fetched. Count: ${data.length}`);

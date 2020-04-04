@@ -1,4 +1,5 @@
 import Layout from '../../components/Layout.js'
+import { apiBaseUrl } from '../../constants';
 
 const User = props => (
   <Layout>
@@ -54,7 +55,7 @@ const User = props => (
 
 User.getInitialProps = async function(context) {
   const { id } = context.query;
-  const res = await fetch(`http://localhost:3022/users/${id}`);
+  const res = await fetch(apiBaseUrl + `/users/${id}`);
   const user = await res.json();
 
   console.log(`Fetched user: ${user.username}`);
