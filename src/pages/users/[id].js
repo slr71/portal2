@@ -14,7 +14,11 @@ const User = props => (
     </ul>
 
     <h2>Mailing List Subscriptions</h2>
-    <div>TODO</div>
+   <ul>
+   {props.user.emails[0].mailing_lists.map(mailingList => (
+     <li>{mailingList.name}</li>
+   ))}
+   </ul>
 
     <h2>Institution</h2>
     <ul>
@@ -43,10 +47,18 @@ const User = props => (
     </ul>
 
     <h2>Preferences</h2>
-    <div>TODO</div>
+    <ul>
+   <li>How did you hear about us? {props.user.aware_channel.name}</li>
+      <li>Receive the CyVerse Newsletter? {props.user.subscribe_to_newsletter ? 'Yes' : 'No'}</li>
+      <li>Participate in a research study about your use of CyVerse applications and services? {props.user.participate_in_study ? 'Yes' : 'No'}</li>
+    </ul>
 
     <h2>Services</h2>
-    <div>TODO</div>
+    <ul>
+    {props.user.services.map(service => (
+      <li>{service.name} - {service.api_accessrequest.message}</li>
+    ))}      
+    </ul>
 
     <h2>Delete User</h2>
     <div>TODO</div>
