@@ -1,9 +1,9 @@
-import Layout from '../components/Layout';
+import Dashboard from '../components/Dashboard';
 
 const Index = props => (
-  <Layout>
-    <p>Hello World!</p>
-  </Layout>
+  <div>
+    <Dashboard />
+  </div>
 );
 
 export default Index;
