@@ -1,5 +1,5 @@
 import Layout from '../../components/Layout.js'
-import { apiBaseUrl } from '../../constants';
+import { apiBaseUrl } from '../../config.json';
 
 const User = props => (
   <Layout>

@@ -1,24 +1,26 @@
 import Layout from '../components/Layout';
 import Link from 'next/link';
 import fetch from 'isomorphic-unfetch';
-import { apiBaseUrl } from '../constants';
+import { apiBaseUrl } from '../config';
 
 const Users = props => (
   <Layout>
     <h1>Users</h1>
     <div>
-      <input type="search" placeholder="Search for ..." value={props.keyword} />
+      <input type="search" placeholder="Search for ..." />
     </div>
     <div>
       <table>
         <thead>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>Username</th>
-          <th>Institution</th>
-          <th>Occupation</th>
-          <th>Region</th>
-          <th>Country</th>
+          <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Username</th>
+            <th>Institution</th>
+            <th>Occupation</th>
+            <th>Region</th>
+            <th>Country</th>
+          </tr>
         </thead>
         <tbody>
           {props.users.map(user => (
@@ -54,8 +56,15 @@ const Users = props => (
   </Layout>
 );
 
-Users.getInitialProps = async function() {
-  const res = await fetch(apiBaseUrl + '/users');
+Users.getInitialProps = async context => {
+  const req = context.req;
+  const token = ( req && req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.token : null );
+
+  const res = await fetch(apiBaseUrl + '/users', {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token}` } //FIXME add middleware to do this like Sonora
+  });
+
   const data = await res.json();
 
   console.log(`Users fetched. Count: ${data.length}`);
