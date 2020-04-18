@@ -22,11 +22,11 @@ export default function SideBar() {
 
   return (
     <div>
-        <ListItem>
-        <ListItemIcon>
+        <ListItem button>
+          <ListItemIcon>
             <DashboardIcon />
-        </ListItemIcon>
-        <ListItemText primary="Services" />
+          </ListItemIcon>
+          <ListItemText primary="Services" />
         </ListItem>
         <List component="div">
           <ListItem button className={classes.nested}>
