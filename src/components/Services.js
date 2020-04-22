@@ -7,10 +7,14 @@ const Services = props => (
     <h2>My Services</h2>
     <Grid container spacing={3}>
         {props.user.services.map(service => (
-          <Grid item xs>
+          <Grid item xs={4}>
             <Card>
               <Paper> {/*className={fixedHeightPaper}>*/}
-              {service.name}
+                <div>{service.name}</div>
+                <br />
+                <div>{service.description}</div>
+                <br />
+                <a href={service.service_url} target="_blank">LAUNCH</a>
               </Paper>
             </Card>
           </Grid>
@@ -18,17 +22,41 @@ const Services = props => (
     </Grid>
     <h2>Available</h2>
     <Grid container spacing={3}>
-        {props.services.map(service => (
-          <Grid item xs>
-            <Card>
-              <Paper> {/*className={fixedHeightPaper}>*/}
-              {service.name}
-              </Paper>
-            </Card>
-          </Grid>
-        ))}
+        {props.services
+          .filter(service => service.approval_key != '')
+          .filter(service => !props.user.services.map(service => service.id).includes(service.id))
+          .map(service => (
+            <Grid item xs={4}>
+              <Card>
+                <Paper> {/*className={fixedHeightPaper}>*/}
+                  <div>{service.name}</div>
+                  <br />
+                  <div>{service.description}</div>
+                  <br />
+                  <a href={service.service_url} target="_blank">LAUNCH</a>
+                </Paper>
+              </Card>
+            </Grid>
+          ))}
     </Grid>
     <h2>Powered by CyVerse</h2>
+    <Grid container spacing={4}>
+        {props.services
+          .filter(service => service.powered_services.length > 0)
+          .map(service => (
+            <Grid item xs={4}>
+              <Card>
+                <Paper> {/*className={fixedHeightPaper}>*/}
+                  <div>{service.name}</div>
+                  <br />
+                  <div>{service.description}</div>
+                  <br />
+                  <a href={service.service_url} target="_blank">LAUNCH</a>
+                </Paper>
+              </Card>
+            </Grid>
+          ))}
+    </Grid>
   </div>
 );
 
