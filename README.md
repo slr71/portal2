@@ -12,6 +12,9 @@ These instructions assume Node is already installed.
 npm install
 ```
 
+### Configure
+Copy src/config-default.json to src/config.json and add Keycloak secret.
+
 ### Run server
 ```
 npm run dev
