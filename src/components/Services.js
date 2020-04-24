@@ -7,7 +7,7 @@ const Services = props => (
     <h2>My Services</h2>
     <Grid container spacing={3}>
         {props.user.services.map(service => (
-          <Grid item xs={4}>
+          <Grid item xs={4} key={service.id}>
             <Card>
               <Paper> {/*className={fixedHeightPaper}>*/}
                 <div>{service.name}</div>
@@ -26,14 +26,14 @@ const Services = props => (
           .filter(service => service.approval_key != '')
           .filter(service => !props.user.services.map(service => service.id).includes(service.id))
           .map(service => (
-            <Grid item xs={4}>
+            <Grid item xs={4} key={service.id}>
               <Card>
                 <Paper> {/*className={fixedHeightPaper}>*/}
                   <div>{service.name}</div>
                   <br />
                   <div>{service.description}</div>
                   <br />
-                  <a href={service.service_url} target="_blank">LAUNCH</a>
+                  <a href={service.service_url} target="_blank">REQUEST ACCESS</a>
                 </Paper>
               </Card>
             </Grid>
@@ -44,7 +44,7 @@ const Services = props => (
         {props.services
           .filter(service => service.powered_services.length > 0)
           .map(service => (
-            <Grid item xs={4}>
+            <Grid item xs={4} key={service.id}>
               <Card>
                 <Paper> {/*className={fixedHeightPaper}>*/}
                   <div>{service.name}</div>

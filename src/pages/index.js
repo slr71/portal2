@@ -4,7 +4,7 @@ import { apiBaseUrl } from '../config.json';
 
 const Index = props => (
   <div>
-    <Dashboard user={props.user} services={props.services}/>
+    <Dashboard {...props}/>
   </div>
 );
 
@@ -15,10 +15,14 @@ export async function getServerSideProps() {
   res = await fetch(apiBaseUrl + `/services`);
   const services = await res.json();
 
+  res = await fetch(apiBaseUrl + `/workshops`);
+  const workshops = await res.json();
+
   return { 
     props: { 
       user: user,
-      services: services
+      services: services,
+      workshops: workshops
     } 
   };
 };
