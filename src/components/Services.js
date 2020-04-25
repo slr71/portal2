@@ -2,62 +2,94 @@ import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import Paper from '@material-ui/core/Paper';
 
+const LAUNCH = 'LAUNCH'
+const REQUEST_ACCESS = 'REQUEST ACCESS';
+
 const Services = props => (
   <div>
     <h2>My Services</h2>
-    <Grid container spacing={3}>
-        {props.user.services.map(service => (
-          <Grid item xs={4} key={service.id}>
-            <Card>
-              <Paper> {/*className={fixedHeightPaper}>*/}
-                <div>{service.name}</div>
-                <br />
-                <div>{service.description}</div>
-                <br />
-                <a href={service.service_url} target="_blank">LAUNCH</a>
-              </Paper>
-            </Card>
-          </Grid>
-        ))}
-    </Grid>
+    <MyServices {...props} action={LAUNCH} />
     <h2>Available</h2>
-    <Grid container spacing={3}>
-        {props.services
-          .filter(service => service.approval_key != '')
-          .filter(service => !props.user.services.map(service => service.id).includes(service.id))
-          .map(service => (
-            <Grid item xs={4} key={service.id}>
-              <Card>
-                <Paper> {/*className={fixedHeightPaper}>*/}
-                  <div>{service.name}</div>
-                  <br />
-                  <div>{service.description}</div>
-                  <br />
-                  <a href={service.service_url} target="_blank">REQUEST ACCESS</a>
-                </Paper>
-              </Card>
-            </Grid>
-          ))}
-    </Grid>
+    <AvailableServices {...props} action={REQUEST_ACCESS} />
     <h2>Powered by CyVerse</h2>
-    <Grid container spacing={4}>
-        {props.services
-          .filter(service => service.powered_services.length > 0)
-          .map(service => (
-            <Grid item xs={4} key={service.id}>
-              <Card>
-                <Paper> {/*className={fixedHeightPaper}>*/}
-                  <div>{service.name}</div>
-                  <br />
-                  <div>{service.description}</div>
-                  <br />
-                  <a href={service.service_url} target="_blank">LAUNCH</a>
-                </Paper>
-              </Card>
-            </Grid>
-          ))}
-    </Grid>
+    <PoweredServices {...props} action={LAUNCH} />
   </div>
 );
+
+function MyServices(props) {
+  const services = props.user.services;
+
+  if (services.length > 0) {
+    return <ServiceGrid services={services} action={props.action} />;
+  }
+
+  return (
+    <p>
+    Looks like you don't have access to any services.
+    If you request access to one, you'll find it here.
+    </p>
+  )
+}
+
+function AvailableServices(props) {
+  const services = props.services
+    .filter(service => service.approval_key != '')
+    .filter(service => !props.user.services.map(service => service.id).includes(service.id));
+
+  if (services.length > 0) {
+    return <ServiceGrid services={services} action={props.action} />;
+  }
+
+  return (
+    <p>
+    There are no additional services available.
+    </p>
+  )
+}
+
+function PoweredServices(props) {
+  const services = props.services
+    .filter(service => service.powered_services.length > 0);
+
+  if (services.length > 0) {
+    return <ServiceGrid services={services} action={props.action} />;
+  }
+
+  return (
+    <p>
+    There are no additional services available.
+    </p>
+  )
+}
+
+function ServiceGrid(props) {
+  const services = props.services;
+
+  return (
+    <Grid container spacing={4}>
+      {services.map(service =>
+        <Service service={service} action={props.action} />
+      )}
+    </Grid>
+  );
+}
+
+function Service(props) {
+  const service = props.service;
+
+  return (
+    <Grid item xs={4} key={service.id}>
+      <Card>
+        <Paper> {/*className={fixedHeightPaper}>*/}
+          <div>{service.name}</div>
+          <br />
+          <div>{service.description}</div>
+          <br />
+          <a href={service.service_url} target="_blank">{props.action}</a>
+        </Paper>
+      </Card>
+    </Grid>
+  )
+}
 
 export default Services;
