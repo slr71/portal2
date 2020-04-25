@@ -63,20 +63,20 @@ export default function SideBar() {
           <ListItemIcon>
             <ListIcon />
           </ListItemIcon>
-          <ListItemText primary="Forms" />
+          <ListItemText primary="Requests" />
         </ListItem>
         <List component="div">
           <ListItem button className={classes.nested}>
-            <ListItemText primary="Resource Increase Request" />
+            <ListItemText primary="Resource Increase" />
           </ListItem>
           <ListItem button className={classes.nested}>
             <ListItemText primary="Data Store Allocation Increase" />
           </ListItem>
           <ListItem button className={classes.nested}>
-            <ListItemText primary="Request for Community Released Data Folders" />
+            <ListItemText primary="Community Released Data Folders" />
           </ListItem>
           <ListItem button className={classes.nested}>
-            <ListItemText primary="ALL FORMS" />
+            <ListItemText primary="ALL REQUESTS" />
           </ListItem>
         </List>
         <ListItem button>

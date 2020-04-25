@@ -18,11 +18,15 @@ export async function getServerSideProps() {
   res = await fetch(apiBaseUrl + `/workshops`);
   const workshops = await res.json();
 
+  res = await fetch(apiBaseUrl + `/requests`);
+  const requests = await res.json();
+
   return { 
     props: { 
       user: user,
       services: services,
-      workshops: workshops
+      workshops: workshops,
+      requests: requests
     } 
   };
 };

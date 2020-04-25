@@ -18,6 +18,7 @@ import NotificationsIcon from '@material-ui/icons/Notifications';
 import SideBar from './SideBar';
 import Services from './Services';
 import Workshops from './Workshops';
+import Requests from './Requests';
 
 
 function Copyright() {
