@@ -1,10 +1,10 @@
-import fetch from 'isomorphic-unfetch';
-import Grid from '@material-ui/core/Grid';
-import Card from '@material-ui/core/Card';
-import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
-import Layout from '../components/Layout';
-import { apiBaseUrl } from '../config.json';
+import fetch from 'isomorphic-unfetch'
+import Grid from '@material-ui/core/Grid'
+import Link from '@material-ui/core/Link'
+import Button from '@material-ui/core/Button'
+import Layout from '../components/Layout'
+import SummaryCard from '../components/SummaryCard'
+import { apiBaseUrl } from '../config.json'
 
 const Workshops = props => (
   <Layout>
@@ -17,13 +17,13 @@ const Workshops = props => (
     <h2>Past Workshops</h2>
     <PastWorkshops {...props} />
   </Layout>
-);
+)
 
 function MyWorkshops(props) {
-  const workshops = props.user.workshops.filter(workshop => workshop.creator_id != props.user.id);
+  const workshops = props.user.workshops.filter(workshop => workshop.creator_id != props.user.id)
 
   if (workshops.length > 0) {
-    return <WorkshopGrid workshops={workshops} />;
+    return <WorkshopGrid workshops={workshops} />
   }
 
   return (
@@ -35,8 +35,8 @@ function MyWorkshops(props) {
 }
 
 function HostedWorkshops(props) {
-  const workshops = props.user.workshops.filter(workshop => workshop.creator_id == props.user.id);
-  const button = <Button variant="contained" color="primary">Host A Workshop</Button>;
+  const workshops = props.user.workshops.filter(workshop => workshop.creator_id == props.user.id)
+  const button = <Button variant="contained" color="primary">Host A Workshop</Button>
 
   if (props.user.workshops.length > 0) {
     return (
@@ -44,7 +44,7 @@ function HostedWorkshops(props) {
         {button}
         <WorkshopGrid workshops={workshops} />
       </div>
-    );
+    )
   }
 
   return (
@@ -59,15 +59,15 @@ function HostedWorkshops(props) {
 }
 
 function UpcomingWorkshops(props) {
-  const timeNow = Date.now();
+  const timeNow = Date.now()
 
   const workshops = props.workshops.filter(workshop => {
-    const date = new Date(workshop.start_date);
-    return date.getTime() > timeNow;
-  });
+    const date = new Date(workshop.start_date)
+    return date.getTime() > timeNow
+  })
 
   if (workshops.length > 0) {
-    return <WorkshopGrid workshops={workshops} />;
+    return <WorkshopGrid workshops={workshops} />
   }
 
   return (
@@ -78,15 +78,15 @@ function UpcomingWorkshops(props) {
 }
 
 function PastWorkshops(props) {
-  const timeNow = Date.now();
+  const timeNow = Date.now()
 
   const workshops = props.workshops.filter(workshop => {
-    const date = new Date(workshop.start_date);
-    return date.getTime() < timeNow;
-  });
+    const date = new Date(workshop.start_date)
+    return date.getTime() < timeNow
+  })
 
   if (workshops.length > 0) {
-    return <WorkshopGrid workshops={workshops} />;
+    return <WorkshopGrid workshops={workshops} />
   }
 
   return (
@@ -97,58 +97,61 @@ function PastWorkshops(props) {
 }
 
 function WorkshopGrid(props) {
-  const workshops = props.workshops;
+  const workshops = props.workshops
 
   return (
     <Grid container spacing={3}>
       {workshops.map(workshop =>
-        <Workshop key={workshop.id} workshop={workshop} />
+        <Grid item xs={6} key={workshop.id}>
+          <Workshop workshop={workshop} />
+        </Grid>
       )}
-    </Grid>
-  );
-}
-
-function Workshop(props) {
-  const workshop = props.workshop;
-
-  return (
-    <Grid item xs={6}>
-      <Card>
-        <Paper> {/*className={fixedHeightPaper}>*/}
-          <div>{workshop.title}</div>
-          <div>
-            Enrollment: <DateString date={workshop.enrollment_begins} /> - <DateString date={workshop.enrollment_ends} />
-          </div>
-          <br />
-          <div>{workshop.description}</div>
-        </Paper>
-      </Card>
     </Grid>
   )
 }
 
-function DateString(props) {
-    const d = new Date(props.date);
-    const month = d.toLocaleString('default', { month: 'short' });
-    const day = d.getDate();
-    const year = d.getFullYear();
+function Workshop(props) {
+  const workshop = props.workshop
 
-  return <span>{month} {day}, {year}</span>;
+  const dateRange = (
+    <div>
+    Enrollment: <DateString date={workshop.enrollment_begins} /> - <DateString date={workshop.enrollment_ends} />
+    </div>
+  )
+
+  return (
+    <Link underline='none' href={`workshops/${workshop.id}`}>
+      <SummaryCard 
+      title={workshop.title} 
+      subtitle={dateRange} 
+      description={workshop.description} 
+      />
+    </Link>
+  )
+}
+
+function DateString(props) {
+    const d = new Date(props.date)
+    const month = d.toLocaleString('default', { month: 'short' })
+    const day = d.getDate()
+    const year = d.getFullYear()
+
+  return <span>{month} {day}, {year}</span>
 }
 
 export async function getServerSideProps() {
-  let res = await fetch(apiBaseUrl + `/users/mine`);
-  const user = await res.json();
+  let res = await fetch(apiBaseUrl + `/users/mine`)
+  const user = await res.json()
 
-  res = await fetch(apiBaseUrl + `/workshops`);
-  const workshops = await res.json();
+  res = await fetch(apiBaseUrl + `/workshops`)
+  const workshops = await res.json()
 
   return { 
     props: { 
-      user: user,
-      workshops: workshops
+      user,
+      workshops
     } 
-  };
-};
+  }
+}
 
-export default Workshops;
+export default Workshops

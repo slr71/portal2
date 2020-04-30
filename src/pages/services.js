@@ -1,12 +1,12 @@
-import fetch from 'isomorphic-unfetch';
-import Grid from '@material-ui/core/Grid';
-import Card from '@material-ui/core/Card';
-import Paper from '@material-ui/core/Paper';
-import Layout from '../components/Layout';
-import { apiBaseUrl } from '../config.json';
+import fetch from 'isomorphic-unfetch'
+import Link from '@material-ui/core/Link'
+import Grid from '@material-ui/core/Grid'
+import Layout from '../components/Layout'
+import SummaryCard from '../components/SummaryCard'
+import { apiBaseUrl } from '../config.json'
 
 const LAUNCH = 'LAUNCH'
-const REQUEST_ACCESS = 'REQUEST ACCESS';
+const REQUEST_ACCESS = 'REQUEST ACCESS'
 
 const Services = props => (
   <Layout>
@@ -17,13 +17,13 @@ const Services = props => (
     <h2>Powered by CyVerse</h2>
     <PoweredServices {...props} action={LAUNCH} />
   </Layout>
-);
+)
 
 function MyServices(props) {
-  const services = props.user.services;
+  const services = props.user.services
 
   if (services.length > 0) {
-    return <ServiceGrid services={services} action={props.action} />;
+    return <ServiceGrid services={services} action={props.action} />
   }
 
   return (
@@ -37,10 +37,10 @@ function MyServices(props) {
 function AvailableServices(props) {
   const services = props.services
     .filter(service => service.approval_key != '')
-    .filter(service => !props.user.services.map(service => service.id).includes(service.id));
+    .filter(service => !props.user.services.map(service => service.id).includes(service.id))
 
   if (services.length > 0) {
-    return <ServiceGrid services={services} action={props.action} />;
+    return <ServiceGrid services={services} action={props.action} />
   }
 
   return (
@@ -52,10 +52,10 @@ function AvailableServices(props) {
 
 function PoweredServices(props) {
   const services = props.services
-    .filter(service => service.powered_services.length > 0);
+    .filter(service => service.powered_services.length > 0)
 
   if (services.length > 0) {
-    return <ServiceGrid services={services} action={props.action} />;
+    return <ServiceGrid services={services} action={props.action} />
   }
 
   return (
@@ -66,48 +66,48 @@ function PoweredServices(props) {
 }
 
 function ServiceGrid(props) {
-  const services = props.services;
+  const services = props.services
 
   return (
     <Grid container spacing={4}>
       {services.map(service =>
-        <Service key={service.id} service={service} action={props.action} />
+        <Grid item xs={4} key={service.id}>
+          <Service service={service} action={props.action} />
+        </Grid>
       )}
-    </Grid>
-  );
-}
-
-function Service(props) {
-  const service = props.service;
-
-  return (
-    <Grid item xs={4}>
-      <Card>
-        <Paper> {/*className={fixedHeightPaper}>*/}
-          <div>{service.name}</div>
-          <br />
-          <div>{service.description}</div>
-          <br />
-          <a href={service.service_url} target="_blank">{props.action}</a>
-        </Paper>
-      </Card>
     </Grid>
   )
 }
 
-export async function getServerSideProps() {
-  let res = await fetch(apiBaseUrl + `/users/mine`);
-  const user = await res.json();
+function Service(props) {
+  const service = props.service
 
-  res = await fetch(apiBaseUrl + `/services`);
-  const services = await res.json();
+  return (
+    <Link underline='none' href={`services/${service.id}`}>
+      <SummaryCard 
+      title={service.name} 
+      description={service.description} 
+      iconUrl={service.icon_url}
+      actionLabel={props.action}
+      actionUrl={service.service_url}
+      />
+    </Link>
+  )
+}
+
+export async function getServerSideProps() {
+  let res = await fetch(apiBaseUrl + `/users/mine`)
+  const user = await res.json()
+
+  res = await fetch(apiBaseUrl + `/services`)
+  const services = await res.json()
 
   return { 
     props: { 
-      user: user,
-      services: services
+      user,
+      services
     } 
-  };
-};
+  }
+}
 
-export default Services;
+export default Services

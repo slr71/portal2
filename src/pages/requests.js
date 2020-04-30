@@ -1,9 +1,11 @@
-import fetch from 'isomorphic-unfetch';
-import Grid from '@material-ui/core/Grid';
-import Card from '@material-ui/core/Card';
-import Paper from '@material-ui/core/Paper';
-import Layout from '../components/Layout';
-import { apiBaseUrl } from '../config.json';
+import fetch from 'isomorphic-unfetch'
+import Link from '@material-ui/core/Link'
+import Grid from '@material-ui/core/Grid'
+import Card from '@material-ui/core/Card'
+import Paper from '@material-ui/core/Paper'
+import Layout from '../components/Layout'
+import SummaryCard from '../components/SummaryCard'
+import { apiBaseUrl } from '../config.json'
 
 const Requests = props => (
   <Layout>
@@ -18,49 +20,48 @@ const Requests = props => (
         </div>
     ))}
   </Layout>
-);
+)
 
 function RequestGrid(props) {
-  const forms = props.forms;
+  const forms = props.forms
 
   return (
     <Grid container spacing={3}>
       {forms.map(form =>
-        <Request key={form.id} form={form} />
+        <Grid item xs={6} key={form.id}>
+          <Request form={form} />
+        </Grid>
       )}
-    </Grid>
-  );
-}
-
-function Request(props) {
-  const form = props.form;
-
-  return (
-    <Grid item xs={6}>
-      <Card>
-        <Paper> {/*className={fixedHeightPaper}>*/}
-          <div>{form.name}</div>
-          <br />
-          <div>{form.description}</div>
-        </Paper>
-      </Card>
     </Grid>
   )
 }
 
-export async function getServerSideProps() {
-  let res = await fetch(apiBaseUrl + `/users/mine`);
-  const user = await res.json();
+function Request(props) {
+  const form = props.form
 
-  res = await fetch(apiBaseUrl + `/requests`);
-  const requests = await res.json();
+  return (
+    <Link underline='none' href={`requests/${form.id}`}>
+      <SummaryCard 
+      title={form.name} 
+      description={form.description} 
+      />
+    </Link>
+  )
+}
+
+export async function getServerSideProps() {
+  let res = await fetch(apiBaseUrl + `/users/mine`)
+  const user = await res.json()
+
+  res = await fetch(apiBaseUrl + `/requests`)
+  const requests = await res.json()
 
   return { 
     props: { 
-      user: user,
-      requests: requests
+      user,
+      requests
     } 
-  };
-};
+  }
+}
 
-export default Requests;
+export default Requests
