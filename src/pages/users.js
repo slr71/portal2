@@ -1,7 +1,7 @@
-import Layout from '../components/Layout';
-import Link from 'next/link';
-import fetch from 'isomorphic-unfetch';
-import { apiBaseUrl } from '../config';
+import Layout from '../components/Layout'
+import Link from 'next/link'
+import fetch from 'isomorphic-unfetch'
+import { apiBaseUrl } from '../config'
 
 const Users = props => (
   <Layout>
@@ -54,25 +54,25 @@ const Users = props => (
       </table>
     </div>
   </Layout>
-);
+)
 
 Users.getInitialProps = async context => {
-  const req = context.req;
-  const token = ( req && req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.token : null );
+  const req = context.req
+  const token = ( req && req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.token : null )
 
   const res = await fetch(apiBaseUrl + '/users', {
     method: 'GET',
     headers: { Authorization: `Bearer ${token}` } //FIXME add middleware to do this like Sonora
-  });
+  })
 
-  const data = await res.json();
+  const users = await res.json()
 
-  console.log(`Users fetched. Count: ${data.length}`);
+  console.log(`Users fetched. Count: ${data.length}`)
 
   return {
-    users: data,
+    users,
     keyword: ""
-  };
-};
+  }
+}
 
-export default Users;
+export default Users

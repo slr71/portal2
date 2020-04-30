@@ -1,7 +1,7 @@
-import Dashboard from './Dashboard';
+import Dashboard from './Dashboard'
 
 const Layout = (props) => (
-    <Dashboard {...props} />
-);
+  <Dashboard {...props} />
+)
 
-export default Layout;
+export default Layout
