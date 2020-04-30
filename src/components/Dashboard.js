@@ -16,9 +16,6 @@ import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import NotificationsIcon from '@material-ui/icons/Notifications';
 import SideBar from './SideBar';
-import Services from './Services';
-import Workshops from './Workshops';
-import Requests from './Requests';
 
 
 function Copyright() {
@@ -168,7 +165,7 @@ export default function Dashboard(props) {
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <Container maxWidth="lg" className={classes.container}>
-          <Workshops {...props}/>
+          {props.children}
           <Box pt={4}>
             <Copyright />
           </Box>

@@ -1,10 +1,13 @@
+import fetch from 'isomorphic-unfetch';
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
 import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
+import Layout from '../components/Layout';
+import { apiBaseUrl } from '../config.json';
 
 const Workshops = props => (
-  <div>
+  <Layout>
     <h2>My Workshops</h2>
     <MyWorkshops {...props} />
     <h2>Hosted</h2>
@@ -13,7 +16,7 @@ const Workshops = props => (
     <UpcomingWorkshops {...props} />
     <h2>Past Workshops</h2>
     <PastWorkshops {...props} />
-  </div>
+  </Layout>
 );
 
 function MyWorkshops(props) {
@@ -99,7 +102,7 @@ function WorkshopGrid(props) {
   return (
     <Grid container spacing={3}>
       {workshops.map(workshop =>
-        <Workshop workshop={workshop} />
+        <Workshop key={workshop.id} workshop={workshop} />
       )}
     </Grid>
   );
@@ -109,7 +112,7 @@ function Workshop(props) {
   const workshop = props.workshop;
 
   return (
-    <Grid item xs={6} key={workshop.id}>
+    <Grid item xs={6}>
       <Card>
         <Paper> {/*className={fixedHeightPaper}>*/}
           <div>{workshop.title}</div>
@@ -132,5 +135,20 @@ function DateString(props) {
 
   return <span>{month} {day}, {year}</span>;
 }
+
+export async function getServerSideProps() {
+  let res = await fetch(apiBaseUrl + `/users/mine`);
+  const user = await res.json();
+
+  res = await fetch(apiBaseUrl + `/workshops`);
+  const workshops = await res.json();
+
+  return { 
+    props: { 
+      user: user,
+      workshops: workshops
+    } 
+  };
+};
 
 export default Workshops;
