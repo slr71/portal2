@@ -20,7 +20,8 @@ const SummaryCard = (props) => (
     </Typography>
     </CardContent>
     <CardActions disableSpacing>
-      <a href={props.actionUrl} target='_blank'>{props.actionLabel}</a>
+    {/*<a href={props.actionUrl} target='_blank'>{props.actionLabel}</a> */}
+    {props.actionLabel}
     </CardActions>
   </Card>
 )

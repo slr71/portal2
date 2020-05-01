@@ -46,8 +46,7 @@ const navButtons = [
     items: [
       { label: "Resource Increase", path: "requests/resource" },
       { label: "Data Store Allocation Increase", path: "requests/allocation" },
-      { label: "Community Released Data Folders", path: "requests/community_data" },
-      { label: "ALL REQUESTS", path: "requests/all" }
+      { label: "Community Released Data Folders", path: "requests/community_data" }
     ]
   },
   {
