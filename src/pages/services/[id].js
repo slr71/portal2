@@ -3,6 +3,7 @@ import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import Container from '@material-ui/core/Container'
 import Grid from '@material-ui/core/Grid'
+import Link from '@material-ui/core/Link'
 import Box from '@material-ui/core/Box'
 import Divider from '@material-ui/core/Divider'
 import Button from '@material-ui/core/Button'
@@ -14,6 +15,7 @@ import ListItemAvatar from '@material-ui/core/ListItemAvatar'
 import Avatar from '@material-ui/core/Avatar'
 import Typography from '@material-ui/core/Typography'
 import PersonIcon from '@material-ui/icons/Person'
+import ListIcon from '@material-ui/icons/List'
 import Layout from '../../components/Layout.js'
 import { apiBaseUrl } from '../../config.json'
 
@@ -62,14 +64,16 @@ const Service = props => {
                 <Typography color="textSecondary">Contact(s) for questions or problems.</Typography>
                 <List>
                   {service.contacts.map(contact => (
-                    <ListItem key={contact.id}>
-                      <ListItemAvatar>
-                        <Avatar>
-                          <PersonIcon />
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText primary={contact.name} />
-                    </ListItem>
+                    <Link key={contact.id} underline='none' href={`mailto:${contact.email}`}>
+                      <ListItem>
+                        <ListItemAvatar>
+                          <Avatar>
+                            <PersonIcon />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText primary={contact.name} />
+                      </ListItem>
+                    </Link>
                   ))}
                 </List>
               </Box>
@@ -86,6 +90,20 @@ const Service = props => {
               <Box>
                 <Typography component="div" variant="h5">Requests</Typography>
                 <Typography color="textSecondary">Requests you can submit related to this service.</Typography>
+                <List>
+                  {service.forms.map(form => (
+                    <Link key={form.id} underline='none' href={`/requests/${form.id}`}>
+                      <ListItem>
+                        <ListItemAvatar>
+                          <Avatar>
+                            <ListIcon />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText primary={form.name} />
+                      </ListItem>
+                    </Link>
+                  ))}
+                </List>
               </Box>
             </Grid>
           </Grid>
