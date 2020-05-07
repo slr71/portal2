@@ -6,6 +6,7 @@ import { apiBaseUrl } from '../config.json'
 
 const Requests = props => (
   <Layout>
+    <h1>Requests</h1>
     {props.requests
       .filter(request => request.forms.length > 0)
       .map(request => (

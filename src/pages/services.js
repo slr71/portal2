@@ -9,6 +9,7 @@ const REQUEST_ACCESS = 'REQUEST ACCESS'
 
 const Services = props => (
   <Layout>
+    <h1>Services</h1>
     <h2>My Services</h2>
     <MyServices {...props} action={LAUNCH} />
     <h2>Available</h2>

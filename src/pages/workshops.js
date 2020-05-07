@@ -6,6 +6,7 @@ import { apiBaseUrl } from '../config.json'
 
 const Workshops = props => (
   <Layout>
+    <h1>Workshops</h1>
     <h2>My Workshops</h2>
     <MyWorkshops {...props} />
     <h2>Hosted</h2>
