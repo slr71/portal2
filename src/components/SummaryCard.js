@@ -12,7 +12,7 @@ const SummaryCard = (props) => (
       props.iconUrl ? <Avatar alt={props.title} src={props.iconUrl} /> : null
     }
     title={props.title}
-    subheader='Subtitle'
+    subheader={props.subtitle}
     />
     <CardContent>
     <Typography variant="body2" color="textSecondary" component="p">
