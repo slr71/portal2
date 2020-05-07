@@ -1,15 +1,8 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Link from "next/link"
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemIcon from '@material-ui/core/ListItemIcon'
-import ListItemText from '@material-ui/core/ListItemText'
-import DashboardIcon from '@material-ui/icons/Dashboard'
-import MenuBookIcon from '@material-ui/icons/MenuBook'
-import ListIcon from '@material-ui/icons/List'
-import EventIcon from '@material-ui/icons/Event'
-import HelpIcon from '@material-ui/icons/Help'
+import { List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core'
+import { Dashboard as DashboardIcon, MenuBook as MenuBookIcon, List as ListIcon, Event as EventIcon, Help as HelpIcon } from '@material-ui/icons'
 
 const useStyles = makeStyles((theme) => ({
   nested: {
