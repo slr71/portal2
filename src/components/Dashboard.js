@@ -1,8 +1,9 @@
 import React from 'react';
 import clsx from 'clsx';
+import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles';
-import { Container, Box, Link, Badge, Divider, IconButton, Typography, Toolbar, AppBar, Drawer, CssBaseline } from '@material-ui/core';
-import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Notifications as NotificationsIcon } from '@material-ui/icons';
+import { Container, Box, Button, Divider, IconButton, Typography, Toolbar, AppBar, Drawer, CssBaseline } from '@material-ui/core';
+import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Person as PersonIcon } from '@material-ui/icons';
 import SideBar from './SideBar';
 
 
@@ -10,9 +11,8 @@ function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
       {'Copyright © '}
-      <Link color="inherit" href="https://material-ui.com/">
-        CyVerse
-      </Link>{' '}
+      CyVerse
+      {' '}
       {new Date().getFullYear()}
       {'.'}
     </Typography>
@@ -129,11 +129,15 @@ export default function Dashboard(props) {
           <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
             CyVerse User Portal
           </Typography>
-          <IconButton color="inherit">
-            <Badge badgeContent={4} color="secondary">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
+          <Link href="/account">
+            <Button
+              variant="text"
+              color="inherit"
+              startIcon={<PersonIcon />}
+            >
+              My Account
+            </Button>
+          </Link>
         </Toolbar>
       </AppBar>
       <Drawer
