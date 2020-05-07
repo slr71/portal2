@@ -49,18 +49,18 @@ const useStyles = makeStyles((theme) => ({
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
+    // transition: theme.transitions.create(['width', 'margin'], {
+      // easing: theme.transitions.easing.sharp,
+      // duration: theme.transitions.duration.leavingScreen,
+    // }),
   },
   appBarShift: {
     marginLeft: drawerWidth,
     width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
+    // transition: theme.transitions.create(['width', 'margin'], {
+      // easing: theme.transitions.easing.sharp,
+      // duration: theme.transitions.duration.enteringScreen,
+    // }),
   },
   menuButton: {
     marginRight: 36,
@@ -75,17 +75,17 @@ const useStyles = makeStyles((theme) => ({
     position: 'relative',
     whiteSpace: 'nowrap',
     width: drawerWidth,
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
+    // transition: theme.transitions.create('width', {
+      // easing: theme.transitions.easing.sharp,
+      // duration: theme.transitions.duration.enteringScreen,
+    // }),
   },
   drawerPaperClose: {
     overflowX: 'hidden',
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
+    // transition: theme.transitions.create('width', {
+      // easing: theme.transitions.easing.sharp,
+      // duration: theme.transitions.duration.leavingScreen,
+    // }),
     width: theme.spacing(7),
     [theme.breakpoints.up('sm')]: {
       width: theme.spacing(9),
@@ -161,7 +161,7 @@ export default function Dashboard(props) {
           </IconButton>
         </div>
         <Divider />
-        <SideBar />
+        <SideBar open={open}/>
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />

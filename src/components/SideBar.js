@@ -24,7 +24,6 @@ const navButtons = [
     path: "/services",
     items: [
       { label: "Manage Service Quotas", path: "services/quotas" },
-      { label: "Tool Updates", path: "services/updates" },
       { label: "Maintenance Calendar", path: "services/calendar" }
     ]
   },
@@ -53,10 +52,7 @@ const navButtons = [
     label: "Workshops",
     icon: <EventIcon />,
     path: "/workshops",
-    items: [
-      { label: "View Workshops", path: "workshops/all" },
-      { label: "Create/Manage Workshop", path: "workshops/manage" }
-    ]
+    items: []
   },
   {
     label: "Resources",
@@ -73,6 +69,21 @@ const navButtons = [
 const NavButton = props => {
   const classes = useStyles()
 
+  let subMenu = <></> 
+  if (props.open) {
+    subMenu = (
+      <List component="div">
+        {props.items.map(item => (
+          <Link key={item.path} href={item.path}>
+            <ListItem button className={classes.nested}>
+              <ListItemText primary={item.label} />
+            </ListItem>
+          </Link>
+        ))}
+      </List>
+    )
+  }
+
   return (
     <div>
       <Link href={props.path}>
@@ -83,24 +94,16 @@ const NavButton = props => {
           <ListItemText primary={props.label} />
         </ListItem>
       </Link>
-      <List component="div">
-        {props.items.map(item => (
-          <Link key={item.path} href={item.path}>
-            <ListItem button className={classes.nested}>
-              <ListItemText primary={item.label} />
-            </ListItem>
-          </Link>
-        ))}
-      </List>
+      {subMenu}
     </div>
   )
 }
 
-export default function SideBar() {
+export default function SideBar(props) {
   return (
     <div>
       {navButtons.map(b =>
-        <NavButton key={b.path} {...b} />
+        <NavButton key={b.path} {...props} {...b} />
       )}
     </div>
   )
