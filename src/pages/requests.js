@@ -1,7 +1,6 @@
 import fetch from 'isomorphic-unfetch'
 import { Link, Grid } from '@material-ui/core'
-import Layout from '../components/Layout'
-import SummaryCard from '../components/SummaryCard'
+import { Layout, SummaryCard } from '../components'
 import { apiBaseUrl } from '../config.json'
 
 const Requests = props => (

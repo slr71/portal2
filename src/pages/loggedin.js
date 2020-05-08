@@ -1,4 +1,4 @@
-import Layout from '../components/Layout';
+import Layout from '../components/Layout'
 
 const Login = props => (
   <Layout>
@@ -7,6 +7,6 @@ const Login = props => (
     You are now logged in!
     </div>
   </Layout>
-);
+)
 
-export default Login;
+export default Login

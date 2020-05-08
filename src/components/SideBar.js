@@ -35,11 +35,7 @@ const navButtons = [
     label: "Requests",
     icon: <ListIcon />,
     path: "/requests",
-    items: [
-      { label: "Resource Increase", path: "requests/resource" },
-      { label: "Data Store Allocation Increase", path: "requests/allocation" },
-      { label: "Community Released Data Folders", path: "requests/community_data" }
-    ]
+    items: []
   },
   {
     label: "Workshops",
