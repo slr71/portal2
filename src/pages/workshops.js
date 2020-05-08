@@ -1,7 +1,6 @@
 import fetch from 'isomorphic-unfetch'
 import { Grid, Link, Button } from '@material-ui/core'
-import Layout from '../components/Layout'
-import SummaryCard from '../components/SummaryCard'
+import { DateRange, Layout, SummaryCard } from '../components'
 import { apiBaseUrl } from '../config.json'
 
 const Workshops = props => (
@@ -112,30 +111,15 @@ function WorkshopGrid(props) {
 function Workshop(props) {
   const workshop = props.workshop
 
-  const dateRange = (
-    <div>
-    Enrollment: <DateString date={workshop.enrollment_begins} /> - <DateString date={workshop.enrollment_ends} />
-    </div>
-  )
-
   return (
     <Link underline='none' href={`workshops/${workshop.id}`}>
       <SummaryCard 
       title={workshop.title} 
-      subtitle={dateRange} 
+      subtitle={<DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />}
       description={workshop.description} 
       />
     </Link>
   )
-}
-
-function DateString(props) {
-    const d = new Date(props.date)
-    const month = d.toLocaleString('default', { month: 'short' })
-    const day = d.getDate()
-    const year = d.getFullYear()
-
-  return <span>{month} {day}, {year}</span>
 }
 
 export async function getServerSideProps() {
