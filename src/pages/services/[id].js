@@ -2,7 +2,7 @@ import fetch from 'isomorphic-unfetch'
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Link, Box, Divider, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography } from '@material-ui/core'
-import { Person as PersonIcon, List as ListIcon } from '@material-ui/icons'
+import { Person as PersonIcon, List as ListIcon, Help as HelpIcon } from '@material-ui/icons'
 import Layout from '../../components/Layout.js'
 import { apiBaseUrl } from '../../config.json'
 
@@ -70,6 +70,20 @@ const Service = props => {
               <Box>
                 <Typography component="div" variant="h5">Resources</Typography>
                 <Typography color="textSecondary">Where you can find support.</Typography>
+                <List>
+                  {service.resources.map(resource => (
+                    <Link key={resource.id} underline='none' href={resource.url}>
+                      <ListItem>
+                        <ListItemAvatar>
+                          <Avatar>
+                            <HelpIcon />
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText primary={resource.name} />
+                      </ListItem>
+                    </Link>
+                  ))}
+                </List>
               </Box>
             </Grid>
             <Grid item xs={12}>
