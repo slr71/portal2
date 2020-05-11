@@ -1,0 +1,19 @@
+{
+    "port": 3000,
+    "apiBaseUrl": "http://localhost:3022",
+    "db": {
+        "connection": "postgresql://mgwall@localhost:5432/portal",
+        "table": "session"
+    },
+    "session": {
+        "secret": "keyboard cat",
+        "secure_cookie": false,
+        "ttl": 8
+    },
+    "keycloak": {
+        "serverUrl": "http://localhost:9090/auth",
+        "realm": "cyverse",
+        "clientId": "portal-frontend",
+        "secret": "d25ddd33-2db6-442c-b8aa-fecedab3aa34"
+    }
+}
