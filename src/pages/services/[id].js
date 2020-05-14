@@ -9,7 +9,7 @@ import { apiBaseUrl } from '../../config.json'
 const useStyles = makeStyles((theme) => ({
   paper: {
     padding: '4em'
-  }
+  },
 }))
 
 const Service = props => {

@@ -1,7 +1,14 @@
 import { Card, CardHeader, CardContent, CardActions, Typography, Avatar } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
+
+const useStyles = makeStyles((theme) => ({
+  card: {
+    minHeight: '10em',
+  },
+}))
 
 const SummaryCard = (props) => (
-  <Card>
+  <Card className="card">
     <CardHeader
     avatar={
       props.iconUrl ? <Avatar alt={props.title} src={props.iconUrl} /> : null

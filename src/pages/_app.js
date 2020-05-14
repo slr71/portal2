@@ -6,6 +6,7 @@ import Head from 'next/head';
 import { ThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import theme from '../theme';
+//import styles from '/Users/mgwall/Documents/portal2-ui/src/css/custom.css';//pulling in custom style sheet from css/card.css
 
 export default function MyApp(props) {
   const { Component, pageProps } = props;
