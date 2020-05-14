@@ -3,12 +3,12 @@ import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles((theme) => ({
   card: {
-    minHeight: '10em',
+    minHeight: '13em',
   },
 }))
 
 const SummaryCard = (props) => (
-  <Card className="card">
+  <Card className={useStyles().card}>
     <CardHeader
     avatar={
       props.iconUrl ? <Avatar alt={props.title} src={props.iconUrl} /> : null
