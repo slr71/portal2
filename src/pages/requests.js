@@ -4,7 +4,7 @@ import { Layout, SummaryCard } from '../components'
 import { apiBaseUrl } from '../config.json'
 
 const Requests = props => (
-  <Layout>
+  <Layout {...props}>
     <h1>Requests</h1>
     {props.requests
       .filter(request => request.forms.length > 0)
