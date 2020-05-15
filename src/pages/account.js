@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-unfetch'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Paper, Grid, List, ListItem, Typography } from '@material-ui/core'
+import { Container, Box, Paper, Grid, Switch, Typography, Divider } from '@material-ui/core'
 import { Layout, FormField } from '../components'
 import { apiBaseUrl } from '../config.json'
 
@@ -30,27 +30,36 @@ const Account = props => {
 }
 
 const EmailForm = props => (
-  <List>
+  <div>
     {props.user.emails.map(email => (
-      <ListItem>
-        {email.email} - {[email.verified ? 'Verified' : '', email.primary ? 'Primary' : ''].join(', ')}
-      </ListItem>
+      <div key={email.email}>
+        <Divider />
+        <Typography>{email.email}</Typography>
+        <Typography color="textSecondary" gutterBottom>
+          {[email.verified ? 'Verified' : '', email.primary ? 'Primary' : ''].join(', ')}
+        </Typography>
+      </div>
     ))}
-  </List>
+  </div>
 )
 
 const MailingListForm = props => (
-  <Box>
+  <div>
     {props.user.emails.map(email => (
-      <Box>
+      <div key={email.email}>
+        <Divider />
         {email.mailing_lists.map(list => (
-          <Box>
-            {list.name}
+          <Box display='flex' key={list.id}>
+            <Typography color="textSecondary" gutterBottom>{list.name}</Typography>
+            <Switch
+              checked={true}
+              name="checkedA"
+            />
           </Box>
         ))}
-      </Box>
+      </div>
     ))}
-  </Box>
+  </div>
 )
 
 const Form = props => (
@@ -193,8 +202,8 @@ const forms = props => ([ // expects { user, properties }
   }
 ])
 
-//FIXME duplicated elsewhere
 export async function getServerSideProps() {
+  //FIXME move user request into Express middleware
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
 
