@@ -71,6 +71,7 @@ const Workshop = props => {
 Workshop.getInitialProps = async function(context) {
   const { id } = context.query
 
+  //FIXME move user request into Express middleware
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
 

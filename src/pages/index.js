@@ -8,8 +8,8 @@ const Index = props => (
   </div>
 )
 
-//FIXME duplicated elsewhere
 export async function getServerSideProps() {
+  //FIXME move user request into Express middleware
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
 

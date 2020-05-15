@@ -2,7 +2,7 @@ import fetch from 'isomorphic-unfetch'
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Link, Box, Divider, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography } from '@material-ui/core'
-import { Person as PersonIcon, List as ListIcon, Help as HelpIcon } from '@material-ui/icons'
+import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
 import Layout from '../../components/Layout.js'
 import { apiBaseUrl } from '../../config.json'
 
@@ -17,7 +17,7 @@ const Service = props => {
   const classes = useStyles()
 
   return ( //FIXME break into pieces
-    <Layout>
+    <Layout {...props}>
       <Container maxWidth='md'>
         <Paper elevation={3} className={classes.paper}>
           <Grid container spacing={4}>
@@ -76,7 +76,7 @@ const Service = props => {
                       <ListItem>
                         <ListItemAvatar>
                           <Avatar>
-                            <HelpIcon />
+                            <MenuBookIcon />
                           </Avatar>
                         </ListItemAvatar>
                         <ListItemText primary={resource.name} />
@@ -116,10 +116,15 @@ const Service = props => {
 
 Service.getInitialProps = async function(context) {
   const { id } = context.query
-  const res = await fetch(apiBaseUrl + `/services/${id}`)
+
+  //FIXME move user request into Express middleware
+  let res = await fetch(apiBaseUrl + `/users/mine`)
+  const user = await res.json()
+
+  res = await fetch(apiBaseUrl + `/services/${id}`)
   const service = await res.json()
 
-  return { service }
+  return { user, service }
 }
 
 export default Service
