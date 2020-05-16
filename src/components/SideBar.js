@@ -16,8 +16,8 @@ const publicNavItems = [
     icon: <DashboardIcon />,
     path: "/services",
     items: [
-      { label: "Manage Service Quotas", path: "services/quotas" },
-      { label: "Maintenance Calendar", path: "services/calendar" }
+      { label: "Manage Service Quotas", path: "/services/quotas" },
+      { label: "Maintenance Calendar", path: "/services/calendar" }
     ]
   },
   {
@@ -25,10 +25,10 @@ const publicNavItems = [
     icon: <MenuBookIcon />,
     path: "/learning",
     items: [
-      { label: "CyVerse Learning", path: "learning/cyverse"  },
-      { label: "Getting Started", path: "learning/getting_started"  },
-      { label: "Tutorials", path: "learning/tutorials"  },
-      { label: "Focus Forum Webinars", path: "learning/webinars"  }
+      { label: "CyVerse Learning", path: "/learning/cyverse"  },
+      { label: "Getting Started", path: "/learning/getting_started"  },
+      { label: "Tutorials", path: "/learning/tutorials"  },
+      { label: "Focus Forum Webinars", path: "/learning/webinars"  }
     ]
   },
   {
@@ -48,9 +48,9 @@ const publicNavItems = [
     icon: <HelpIcon />,
     path: "/resources",
     items: [
-      { label: "Policies", path: "resources/policies" },
-      { label: "Wiki", path: "resources/wiki" },
-      { label: "FAQ", path: "resources/faq" }
+      { label: "Policies", path: "/resources/policies" },
+      { label: "Wiki", path: "/resources/wiki" },
+      { label: "FAQ", path: "/resources/faq" }
     ]
   }
 ]
@@ -61,10 +61,10 @@ const staffNavItems = [
     icon: <LockIcon />,
     path: "/admin",
     items: [
-      { label: "Users", path: "admin/users" },
-      { label: "Restricted Usernames", path: "admin/restricted" },
-      { label: "Request History", path: "admin/requests" },
-      { label: "Forms", path: "admin/forms" },
+      { label: "Users", path: "/admin/users" },
+      { label: "Restricted Usernames", path: "/admin/usernames" },
+      { label: "Request History", path: "/admin/requests" },
+      { label: "Forms", path: "/admin/forms" },
     ]
   }
 ]
