@@ -62,7 +62,7 @@ const staffNavItems = [
     path: "/admin",
     items: [
       { label: "Users", path: "admin/users" },
-      { label: "Blacklist", path: "admin/blacklist" },
+      { label: "Restricted Usernames", path: "admin/restricted" },
       { label: "Request History", path: "admin/requests" },
       { label: "Forms", path: "admin/forms" },
     ]
