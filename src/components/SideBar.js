@@ -2,7 +2,7 @@ import React from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import Link from "next/link"
 import { List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core'
-import { Dashboard as DashboardIcon, MenuBook as MenuBookIcon, List as ListIcon, Event as EventIcon, Help as HelpIcon } from '@material-ui/icons'
+import { Dashboard as DashboardIcon, MenuBook as MenuBookIcon, List as ListIcon, Event as EventIcon, Help as HelpIcon, Lock as LockIcon } from '@material-ui/icons'
 
 const useStyles = makeStyles((theme) => ({
   nested: {
@@ -10,14 +10,14 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const navButtons = [
+const publicNavItems = [
   {
     label: "Services",
     icon: <DashboardIcon />,
     path: "/services",
     items: [
-      { label: "Manage Service Quotas", path: "services/quotas" },
-      { label: "Maintenance Calendar", path: "services/calendar" }
+      { label: "Manage Service Quotas", path: "/services/quotas" },
+      { label: "Maintenance Calendar", path: "/services/calendar" }
     ]
   },
   {
@@ -25,10 +25,10 @@ const navButtons = [
     icon: <MenuBookIcon />,
     path: "/learning",
     items: [
-      { label: "CyVerse Learning", path: "learning/cyverse"  },
-      { label: "Getting Started", path: "learning/getting_started"  },
-      { label: "Tutorials", path: "learning/tutorials"  },
-      { label: "Focus Forum Webinars", path: "learning/webinars"  }
+      { label: "CyVerse Learning", path: "/learning/cyverse"  },
+      { label: "Getting Started", path: "/learning/getting_started"  },
+      { label: "Tutorials", path: "/learning/tutorials"  },
+      { label: "Focus Forum Webinars", path: "/learning/webinars"  }
     ]
   },
   {
@@ -48,9 +48,23 @@ const navButtons = [
     icon: <HelpIcon />,
     path: "/resources",
     items: [
-      { label: "Policies", path: "resources/policies" },
-      { label: "Wiki", path: "resources/wiki" },
-      { label: "FAQ", path: "resources/faq" }
+      { label: "Policies", path: "/resources/policies" },
+      { label: "Wiki", path: "/resources/wiki" },
+      { label: "FAQ", path: "/resources/faq" }
+    ]
+  }
+]
+
+const staffNavItems = [
+  {
+    label: "Administrative",
+    icon: <LockIcon />,
+    path: "/admin",
+    items: [
+      { label: "Users", path: "/admin/users" },
+      { label: "Restricted Usernames", path: "/admin/usernames" },
+      { label: "Request History", path: "/admin/requests" },
+      { label: "Forms", path: "/admin/forms" },
     ]
   }
 ]
@@ -89,9 +103,13 @@ const NavButton = props => {
 }
 
 export default function SideBar(props) {
+  let navItems = publicNavItems
+  if (props.isStaff)
+    navItems = navItems.concat(staffNavItems)
+
   return (
     <div>
-      {navButtons.map(b =>
+      {navItems.map(b =>
         <NavButton key={b.path} {...props} {...b} />
       )}
     </div>

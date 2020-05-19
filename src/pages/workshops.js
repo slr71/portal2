@@ -4,7 +4,7 @@ import { DateRange, Layout, SummaryCard } from '../components'
 import { apiBaseUrl } from '../config.json'
 
 const Workshops = props => (
-  <Layout>
+  <Layout {...props}>
     <h1>Workshops</h1>
     <h2>My Workshops</h2>
     <MyWorkshops {...props} />
@@ -123,6 +123,7 @@ function Workshop(props) {
 }
 
 export async function getServerSideProps() {
+  //FIXME move user request into Express middleware
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
 

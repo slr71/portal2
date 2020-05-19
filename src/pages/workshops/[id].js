@@ -16,7 +16,7 @@ const Workshop = props => {
   const classes = useStyles()
 
   return ( //FIXME break into pieces
-    <Layout>
+    <Layout {...props}>
       <Container maxWidth='md'>
       <Paper elevation={3} className={classes.paper}>
           <Grid container spacing={4}>
@@ -70,10 +70,15 @@ const Workshop = props => {
 
 Workshop.getInitialProps = async function(context) {
   const { id } = context.query
-  const res = await fetch(apiBaseUrl + `/workshops/${id}`)
+
+  //FIXME move user request into Express middleware
+  let res = await fetch(apiBaseUrl + `/users/mine`)
+  const user = await res.json()
+
+  res = await fetch(apiBaseUrl + `/workshops/${id}`)
   const workshop = await res.json()
 
-  return { workshop }
+  return { user, workshop }
 }
 
 export default Workshop

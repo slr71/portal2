@@ -7,7 +7,7 @@ const LAUNCH = 'LAUNCH'
 const REQUEST_ACCESS = 'REQUEST ACCESS'
 
 const Services = props => (
-  <Layout>
+  <Layout {...props}>
     <h1>Services</h1>
     <h2>My Services</h2>
     <MyServices {...props} action={LAUNCH} />
@@ -95,6 +95,7 @@ function Service(props) {
 }
 
 export async function getServerSideProps() {
+  //FIXME move user request into Express middleware
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
 
