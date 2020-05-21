@@ -15,4 +15,4 @@ const DateSpan = (props) => {
   return <span>{month} {day}, {year}</span>
 }
 
-export default DateRange
+export { DateSpan, DateRange }
