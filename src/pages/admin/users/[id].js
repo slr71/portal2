@@ -2,8 +2,8 @@ import fetch from 'isomorphic-unfetch'
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper } from '@material-ui/core'
-import Layout from '../../components/Layout.js'
-import { apiBaseUrl } from '../../config.json'
+import Layout from '../../../components/Layout.js'
+import { apiBaseUrl } from '../../../config.json'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
