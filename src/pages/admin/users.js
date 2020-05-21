@@ -17,7 +17,7 @@ const Users = props => (
       <Paper elevation={3} className={useStyles().paper}>
         <Box display="flex">
           <Typography component="h1" variant="h4" gutterBottom>Users</Typography>
-          <TextField fulllWidth placeholder="Search ..." />
+          <TextField placeholder="Search ..." />
         </Box>
         <UserTable {...props} />
       </Paper>
