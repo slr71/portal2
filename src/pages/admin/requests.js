@@ -1,7 +1,7 @@
 import fetch from 'isomorphic-unfetch'
+import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
-import OpenInNewIcon from '@material-ui/icons/OpenInNew';
 import { Layout, DateSpan } from '../../components'
 import { apiBaseUrl } from '../../config'
 
@@ -60,26 +60,22 @@ const RequestTable = props => {
               <TableCell>Country</TableCell>
               <TableCell>Date</TableCell>
               <TableCell>Status</TableCell>
-              <TableCell></TableCell>
             </TableRow>
           </TableHead>
         <TableBody>
           {rows.map(request => (
-            <TableRow key={request.id}>
-              <TableCell>{request.service.name}</TableCell>
-              <TableCell>{request.user.username}</TableCell>
-              <TableCell>{request.user.email}</TableCell>
-              <TableCell>{request.user.region.country.name}</TableCell>
-              <TableCell>
-                <DateSpan date={request.updated_at} />
-              </TableCell>
-              <TableCell>{request.status}</TableCell>
-              <TableCell align="right">
-                <IconButton>
-                  <OpenInNewIcon />
-                </IconButton>
-              </TableCell>
-            </TableRow>
+            <Link key={request.id} href={`/admin/requests/${request.id}`}>
+              <TableRow hover style={{cursor: 'pointer'}}>
+                <TableCell>{request.service.name}</TableCell>
+                <TableCell>{request.user.username}</TableCell>
+                <TableCell>{request.user.email}</TableCell>
+                <TableCell>{request.user.region.country.name}</TableCell>
+                <TableCell>
+                  <DateSpan date={request.updated_at} />
+                </TableCell>
+                <TableCell>{request.status}</TableCell>
+              </TableRow>
+            </Link>
           ))}
         </TableBody>
         <TableFooter>
