@@ -1,5 +1,4 @@
 import fetch from 'isomorphic-unfetch'
-import { makeStyles } from '@material-ui/core/styles'
 import { Container } from '@material-ui/core'
 import { Layout, User as UserComponent } from '../../../components'
 import { apiBaseUrl } from '../../../config.json'
@@ -7,7 +6,10 @@ import { apiBaseUrl } from '../../../config.json'
 const User = props => (
   <Layout {...props}>
     <Container maxWidth='lg'>
-        <UserComponent user={props.targetUser} />
+        <UserComponent 
+          user={props.targetUser}
+          allSections
+        />
     </Container>
   </Layout>
 )
