@@ -64,8 +64,8 @@ const staffNavItems = [
       { label: "Users", path: "/admin/users" },
       { label: "Restricted Usernames", path: "/admin/usernames" },
       { label: "Access Requests", path: "/admin/requests" },
-      { label: "Form Submissions", path: "/admin/forms" },
-      { label: "Manage Forms", path: "/admin/manage_forms" }
+      { label: "Form Submissions", path: "/admin/submissions" },
+      { label: "Manage Forms", path: "/admin/forms" }
     ]
   }
 ]
