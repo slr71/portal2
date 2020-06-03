@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-unfetch'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Typography, Button, Card, CardHeader, CardContent, CardActions, Divider } from '@material-ui/core'
+import { Container, Grid, Card, CardHeader, CardContent, FormControlLabel, TextField, Checkbox } from '@material-ui/core'
 import { Layout, User } from '../../../components'
 import { apiBaseUrl } from '../../../config.json'
 
@@ -28,7 +28,8 @@ const FormSubmission = props => (
               />
               <CardContent>
                 {props.submission.fields.map(field =>
-                  <Typography>{field.name}: {field.api_formfieldsubmission.value_text}</Typography>
+                  // <Typography>{field.name}: {field.api_formfieldsubmission.value_text}</Typography>
+                  <FormField {...field}></FormField>
                 )}
               </CardContent>
             </Card>
@@ -45,6 +46,40 @@ const FormSubmission = props => (
     </Container>
   </Layout>
 )
+
+const FormField = props => {
+  if (props.api_formfieldsubmission.value_boolean != null) {
+    return (
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={false}
+            name={props.id}
+            color="primary"
+          />
+        }
+        label={props.name}
+      />
+    )
+  }
+
+  const key = ["value_string", "value_text", "value_number", "value_select_id", "value_email", "value_date"]
+    .find(key => typeof(props.api_formfieldsubmission[key]) !== "undefined")
+  const value = props.api_formfieldsubmission[key]
+
+  return ( // type is 'char', 'text', or 'select'
+    <TextField 
+      disabled={true}
+      fullWidth
+      margin="normal" 
+      id={props.id} 
+      label={props.name} 
+      helperText={props.description}
+      defaultValue={value}
+    >
+    </TextField>
+  )
+}
 
 FormSubmission.getInitialProps = async function(context) {
   const { id } = context.query
