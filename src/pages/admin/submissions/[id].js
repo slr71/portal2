@@ -63,12 +63,16 @@ const FormField = props => {
     )
   }
 
+  // Get value based on field type
   const key = ["value_string", "value_text", "value_number", "value_select_id", "value_email", "value_date"]
     .find(key => typeof(props.api_formfieldsubmission[key]) !== "undefined")
-  const value = props.api_formfieldsubmission[key]
+  let value = props.api_formfieldsubmission[key]
+  if (value == null)
+    value = ""
 
   return ( // type is 'char', 'text', or 'select'
     <TextField 
+      required={props.is_required}
       disabled={true}
       fullWidth
       margin="normal" 
