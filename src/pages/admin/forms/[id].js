@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-unfetch'
 import PropTypes from 'prop-types';
-import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, makeStyles } from '@material-ui/core'
+import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, FormControlLabel, Checkbox, makeStyles } from '@material-ui/core'
 import { Layout } from '../../../components'
 import { apiBaseUrl } from '../../../config.json'
 
@@ -26,7 +26,7 @@ const Form = props => {
     setValue(newValue)
   }
 
-  const height = props.form.sections[value].fields.length * 22 + 37
+  const height = props.form.sections[value].fields.length * 32 + 37
   console.log("foo", props.form.sections[value].fields.length)
 
   return (
@@ -117,7 +117,14 @@ const FormField = props => (
     <TextField fullWidth margin="normal" label="Name" defaultValue={props.name} />
     <TextField fullWidth margin="normal" label="Type" defaultValue={props.type} />
     <TextField fullWidth margin="normal" label="Description" defaultValue={props.description} />
-    
+    <FormControlLabel
+      control={
+        <Checkbox checked={props.is_required} name={props.id} color="primary" />
+      }
+      label="Required"
+      style={{marginTop: "1.5em"}}
+    />
+    <TextField fullWidth margin="normal" label="Conversion Key" defaultValue={props.conversion_key} />
   </Box>
 )
 
