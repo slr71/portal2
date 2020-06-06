@@ -2,9 +2,7 @@ import Layout from '../components/Layout'
 import { apiBaseUrl } from '../config.json'
 
 const Resources = props => (
-  <Layout {...props}>
-    <h1>Resources</h1>
-  </Layout>
+  <Layout title="Resources" {...props} />
 )
 
 Resources.getInitialProps = async function(context) {

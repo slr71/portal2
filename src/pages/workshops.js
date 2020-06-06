@@ -4,8 +4,7 @@ import { DateRange, Layout, SummaryCard } from '../components'
 import { apiBaseUrl } from '../config.json'
 
 const Workshops = props => (
-  <Layout {...props}>
-    <h1>Workshops</h1>
+  <Layout title="Workshops" {...props}>
     <h2>My Workshops</h2>
     <MyWorkshops {...props} />
     <h2>Hosted</h2>
