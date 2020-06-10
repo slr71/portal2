@@ -17,7 +17,7 @@ const TabBar = props => {
 
   return (
     <Box display="flex" p={1} className={useStyles().box}>
-      {menuItem.icon}
+      {menuItem && menuItem.icon}
       <Typography className={useStyles().title}>{props.title}</Typography>
       <Tabs
         value={0}
@@ -26,8 +26,8 @@ const TabBar = props => {
         aria-label="disabled tabs example"
         centered
       >
-        {menuItem.items && menuItem.items.map(item => (
-          <Tab label={item.label} value={item.path} />
+        {menuItem && menuItem.items && menuItem.items.map(item => (
+          <Tab key={item.label} label={item.label} value={item.path} />
         ))}
       </Tabs>
     </Box>
