@@ -1,7 +1,8 @@
 import React from 'react'
 // import { makeStyles } from '@material-ui/core/styles'
 import Link from "next/link"
-import { List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core'
+import { useRouter } from 'next/router'
+import { ListItem, ListItemIcon, ListItemText } from '@material-ui/core'
 import menuItems from '../menuItems.js'
 
 // const useStyles = makeStyles((theme) => ({
@@ -31,7 +32,7 @@ const NavButton = props => {
   return (
     <div>
       <Link href={props.path}>
-        <ListItem button>
+        <ListItem button selected={props.selected}>
           <ListItemIcon>
             {props.icon}
           </ListItemIcon>
@@ -44,12 +45,13 @@ const NavButton = props => {
 }
 
 export default function SideBar(props) {
-  let navItems = menuItems.filter(item => !item.restricted || props.isStaff)
+  const route = useRouter().route
+  const navItems = menuItems.filter(item => !item.restricted || props.isStaff)
 
   return (
     <div>
-      {navItems.map(b =>
-        <NavButton key={b.path} {...props} {...b} />
+      {navItems.map(item =>
+        <NavButton key={item.path} {...props} {...item} selected={route.startsWith(item.path)} />
       )}
     </div>
   )
