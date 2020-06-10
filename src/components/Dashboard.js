@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Button, Divider, IconButton, Typography, Toolbar, AppBar, Drawer, CssBaseline } from '@material-ui/core'
 import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Person as PersonIcon } from '@material-ui/icons'
 import SideBar from './SideBar'
-import TabBar from './TabBar'
+import TopBar from './TopBar'
 
 
 function Copyright() {
@@ -158,7 +158,7 @@ export default function Dashboard(props) {
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
-        <TabBar title={props.title} tabs={props.tabs} />
+        <TopBar title={props.title} />
         <Container maxWidth="lg" className={classes.container}>
           {props.children}
           <Box pt={10}>
