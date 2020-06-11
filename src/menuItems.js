@@ -46,13 +46,13 @@ const menuItems = [
   {
     label: "Administrative",
     icon: <LockIcon />,
-    path: "/admin",
+    path: "/administrative",
     items: [
-      { label: "Users", path: "/admin/users" },
-      { label: "Restricted Usernames", path: "/admin/usernames" },
-      { label: "Access Requests", path: "/admin/requests" },
-      { label: "Form Submissions", path: "/admin/submissions" },
-      { label: "Manage Forms", path: "/admin/forms" }
+      { label: "Users", path: "/administrative/users" },
+      { label: "Restricted Usernames", path: "/administrative/usernames" },
+      { label: "Access Requests", path: "/administrative/requests" },
+      { label: "Form Submissions", path: "/administrative/submissions" },
+      { label: "Manage Forms", path: "/administrative/forms" }
     ],
     restricted: true
   }

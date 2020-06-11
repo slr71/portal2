@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-unfetch'
-import { Box, Link } from '@material-ui/core'
+import { Box, Link, Typography } from '@material-ui/core'
 import Layout from '../components/Layout'
 import menuItems from '../menuItems.js'
 import { apiBaseUrl } from '../config.json'
@@ -13,7 +13,7 @@ const Resources = props => {
       {menuItem.items.map((item, index) => (
         <Box key={index}>
           <Link href={item.path}>
-            {item.label}
+            <Typography component="h1" variant="h5">{item.label}</Typography>
           </Link>
         </Box>
       ))}

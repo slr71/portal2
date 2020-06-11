@@ -1,10 +1,10 @@
 import fetch from 'isomorphic-unfetch'
-import { Box, Link } from '@material-ui/core'
+import { Box, Link, Typography } from '@material-ui/core'
 import Layout from '../components/Layout'
 import menuItems from '../menuItems.js'
 import { apiBaseUrl } from '../config.json'
 
-const Admin = props => {
+const Administrative = props => {
   const title = "Administrative"
   const menuItem = menuItems.filter(item => item.label === title)[0]
 
@@ -13,7 +13,7 @@ const Admin = props => {
       {menuItem.items.map((item, index) => (
         <Box key={index}>
           <Link href={item.path}>
-            {item.label}
+            <Typography component="h1" variant="h5">{item.label}</Typography>
           </Link>
         </Box>
       ))}
@@ -33,4 +33,4 @@ export async function getServerSideProps() {
   }
 }
 
-export default Admin
+export default Administrative

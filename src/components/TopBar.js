@@ -41,7 +41,7 @@ const BreadcrumbsMenu = () => {
   return (
     <Breadcrumbs>
       {parts.slice(0, -1).map((part, index) => (
-        <Link key={index} color="inherit" href={"/" + parts.slice(0,index-1).join("/")}>
+        <Link key={index} color="inherit" href={"/" + parts.slice(0,index+1).join("/")}>
           {capitalize(part)}
         </Link>
       ))}
