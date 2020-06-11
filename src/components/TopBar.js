@@ -17,23 +17,23 @@ const useStyles = makeStyles((theme) => ({
 const TabMenu = props => {
   return (
     <Tabs
-      value={0}
+      value={props.value}
       indicatorColor="primary"
       textColor="primary"
       aria-label="disabled tabs example"
       centered
     >
-      {props.items.map(item => (
-        <Tab key={item.label} label={item.label} value={item.path} />
+      {props.items.map((item, index) => (
+        <Link key={index} href={item.path}>
+          <Tab label={item.label} value={item.path} />
+        </Link>
       ))}
     </Tabs>
   )
 }
 
-const BreadcrumbsMenu = props => {
+const BreadcrumbsMenu = () => {
   const parts = useRouter().asPath.split("/").filter(s => s)
-  console.log(parts)
-
   if (parts.length <= 1) {
     return <></>
   }
@@ -57,7 +57,7 @@ const TopBar = props => {
     <Box display="flex" p={1} className={useStyles().box}>
       {menuItem && menuItem.icon}
       <Typography className={useStyles().title}>{props.title}</Typography>
-      {menuItem && menuItem.items ? <TabMenu items={menuItem.items}/> : <></>}
+      {/* {menuItem && menuItem.items ? <TabMenu items={menuItem.items}/> : <></>} */}
       <BreadcrumbsMenu />
     </Box>
   )

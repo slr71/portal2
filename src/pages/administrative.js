@@ -4,8 +4,8 @@ import Layout from '../components/Layout'
 import menuItems from '../menuItems.js'
 import { apiBaseUrl } from '../config.json'
 
-const Resources = props => {
-  const title = "Resources"
+const Admin = props => {
+  const title = "Administrative"
   const menuItem = menuItems.filter(item => item.label === title)[0]
 
   return (
@@ -21,12 +21,16 @@ const Resources = props => {
   )
 }
 
-Resources.getInitialProps = async function(context) {
+export async function getServerSideProps() {
   //FIXME move user request into Express middleware
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
 
-  return { user }
+  return { 
+    props: { 
+      user
+    } 
+  }
 }
 
-export default Resources
+export default Admin
