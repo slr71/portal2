@@ -63,7 +63,7 @@ const FormRequestTable = props => {
           </TableHead>
         <TableBody>
           {rows.map(submission => (
-            <Link key={submission.id} href={`/admin/submissions/${submission.id}`}>
+            <Link key={submission.id} href={`/administrative/submissions/${submission.id}`}>
               <TableRow hover style={{cursor: 'pointer'}}>
                 <TableCell>{submission.form.name}</TableCell>
                 <TableCell>{submission.user.username}</TableCell>

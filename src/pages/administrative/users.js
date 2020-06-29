@@ -66,7 +66,7 @@ const UserTable = props => {
         </TableHead>
         <TableBody>
           {rows.map(user => (
-            <Link key={user.id} href={`/admin/users/${user.id}`}>
+            <Link key={user.id} href={`/administrative/users/${user.id}`}>
               <TableRow hover style={{cursor: 'pointer'}}>
                 <TableCell>{user.first_name}</TableCell>
                 <TableCell align="right">{user.last_name}</TableCell>

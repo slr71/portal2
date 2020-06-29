@@ -4,8 +4,7 @@ import { Layout, SummaryCard } from '../components'
 import { apiBaseUrl } from '../config.json'
 
 const Requests = props => (
-  <Layout {...props}>
-    <h1>Requests</h1>
+  <Layout title="Requests" {...props} >
     {props.requests
       .filter(request => request.forms.length > 0)
       .map(request => (

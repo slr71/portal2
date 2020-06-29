@@ -64,7 +64,7 @@ const RequestTable = props => {
           </TableHead>
         <TableBody>
           {rows.map(request => (
-            <Link key={request.id} href={`/admin/requests/${request.id}`}>
+            <Link key={request.id} href={`/administrative/requests/${request.id}`}>
               <TableRow hover style={{cursor: 'pointer'}}>
                 <TableCell>{request.service.name}</TableCell>
                 <TableCell>{request.user.username}</TableCell>

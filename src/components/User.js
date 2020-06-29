@@ -28,8 +28,8 @@ const User = (props) => (
         // subheader={props.subtitle}
       />
       <CardContent>
-        {props.user.emails.map(email => (
-          <div>{email.email} - {[email.verified ? 'Verified' : '', email.primary ? 'Primary' : ''].join(', ')}</div>
+        {props.user.emails.map((email, index) => (
+          <div key={index}>{email.email} - {[email.verified ? 'Verified' : '', email.primary ? 'Primary' : ''].join(', ')}</div>
         ))}
       </CardContent>
     </Card>
@@ -41,8 +41,8 @@ const User = (props) => (
         // subheader={props.subtitle}
       />
       <CardContent>
-        {props.user.emails[0].mailing_lists.map(mailingList => (
-        <div>{mailingList.name}</div>
+        {props.user.emails[0].mailing_lists.map((mailingList, index) => (
+          <div key={index}>{mailingList.name}</div>
         ))}
       </CardContent>
       </Card>
@@ -116,8 +116,8 @@ const User = (props) => (
           // subheader={props.subtitle}
         />
         <CardContent>
-          {props.user.services.map(service => (
-              <div>{service.name} - {service.api_accessrequest.message}</div>
+          {props.user.services.map((service, index) => (
+              <div key={index}>{service.name} - {service.api_accessrequest.message}</div>
           ))}      
         </CardContent>
       </Card>

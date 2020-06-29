@@ -1,10 +1,11 @@
-import React from 'react';
-import clsx from 'clsx';
+import React from 'react'
+import clsx from 'clsx'
 import Link from "next/link"
-import { makeStyles } from '@material-ui/core/styles';
-import { Container, Box, Button, Divider, IconButton, Typography, Toolbar, AppBar, Drawer, CssBaseline } from '@material-ui/core';
-import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Person as PersonIcon } from '@material-ui/icons';
-import SideBar from './SideBar';
+import { makeStyles } from '@material-ui/core/styles'
+import { Container, Box, Button, Divider, IconButton, Typography, Toolbar, AppBar, Drawer, CssBaseline } from '@material-ui/core'
+import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Person as PersonIcon } from '@material-ui/icons'
+import SideBar from './SideBar'
+import TopBar from './TopBar'
 
 
 function Copyright() {
@@ -16,10 +17,10 @@ function Copyright() {
       {new Date().getFullYear()}
       {'.'}
     </Typography>
-  );
+  )
 }
 
-const drawerWidth = 250;
+const drawerWidth = 200
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -37,18 +38,18 @@ const useStyles = makeStyles((theme) => ({
   },
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
-    // transition: theme.transitions.create(['width', 'margin'], {
-      // easing: theme.transitions.easing.sharp,
-      // duration: theme.transitions.duration.leavingScreen,
-    // }),
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
   },
   appBarShift: {
     marginLeft: drawerWidth,
     width: `calc(100% - ${drawerWidth}px)`,
-    // transition: theme.transitions.create(['width', 'margin'], {
-      // easing: theme.transitions.easing.sharp,
-      // duration: theme.transitions.duration.enteringScreen,
-    // }),
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
   },
   menuButton: {
     marginRight: 36,
@@ -86,8 +87,8 @@ const useStyles = makeStyles((theme) => ({
     overflow: 'auto',
   },
   container: {
-    paddingTop: theme.spacing(4),
-    paddingBottom: theme.spacing(4),
+    paddingTop: theme.spacing(3),
+    paddingBottom: theme.spacing(5),
     backgroundColor: '#EEEEEE'
   },
   paper: {
@@ -99,18 +100,18 @@ const useStyles = makeStyles((theme) => ({
   fixedHeight: {
     height: 240,
   },
-}));
+}))
 
 export default function Dashboard(props) {
-  const classes = useStyles();
-  const [open, setOpen] = React.useState(true);
+  const classes = useStyles()
+  const [open, setOpen] = React.useState(true)
   const handleDrawerOpen = () => {
-    setOpen(true);
-  };
+    setOpen(true)
+  }
   const handleDrawerClose = () => {
-    setOpen(false);
-  };
-  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+    setOpen(false)
+  }
+  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight)
 
   return (
     <div className={classes.root}>
@@ -157,13 +158,14 @@ export default function Dashboard(props) {
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
+        <TopBar title={props.title} />
         <Container maxWidth="lg" className={classes.container}>
           {props.children}
-          <Box pt={4}>
+          <Box pt={10}>
             <Copyright />
           </Box>
         </Container>
       </main>
     </div>
-  );
+  )
 }
