@@ -125,7 +125,7 @@ AccessRequest.getInitialProps = async function(context) {
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
 
-  res = await fetch(apiBaseUrl + `/requests/history/${id}`)
+  res = await fetch(apiBaseUrl + `/services/requests/${id}`)
   const request = await res.json()
 
   return { user, request }

@@ -116,7 +116,7 @@ const fetchRequests = (offset, limit) => {
     .map(key => key + '=' + opts[key])
     .reduce((acc, s) => acc + '&' + s, '')
 
-  return fetch(apiBaseUrl + `/requests/history?${queryStr}`)
+  return fetch(apiBaseUrl + `/services/requests?${queryStr}`)
 }
 
 export default AccessRequests
