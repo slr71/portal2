@@ -27,7 +27,6 @@ const Form = props => {
   }
 
   const height = props.form.sections[value].fields.length * 32 + 37
-  console.log("foo", props.form.sections[value].fields.length)
 
   return (
     <Layout {...props}>
