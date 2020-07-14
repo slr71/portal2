@@ -127,7 +127,7 @@ const FormField = props => (
   </Box>
 )
 
-Form.getInitialProps = async function(context) {
+export async function getServerSideProps(context) {
   const { id } = context.query
 
   //FIXME move user request into Express middleware
@@ -137,7 +137,7 @@ Form.getInitialProps = async function(context) {
   res = await fetch(apiBaseUrl + `/requests/${id}`)
   const form = await res.json()
 
-  return { user, form }
+  return { props: { user, form } }
 }
 
 export default Form

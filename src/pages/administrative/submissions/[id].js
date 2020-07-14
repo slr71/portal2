@@ -85,7 +85,7 @@ const FormField = props => {
   )
 }
 
-FormSubmission.getInitialProps = async function(context) {
+export async function getServerSideProps(context) {
   const { id } = context.query
 
   //FIXME move user request into Express middleware
@@ -95,7 +95,7 @@ FormSubmission.getInitialProps = async function(context) {
   res = await fetch(apiBaseUrl + `/requests/submissions/${id}`)
   const submission = await res.json()
 
-  return { user, submission }
+  return { props: { user, submission } }
 }
 
 export default FormSubmission

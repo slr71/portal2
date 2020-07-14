@@ -118,7 +118,7 @@ const RequestHistory = props => (
   </Card>
 )
 
-AccessRequest.getInitialProps = async function(context) {
+export async function getServerSideProps(context) {
   const { id } = context.query
 
   //FIXME move user request into Express middleware
@@ -128,7 +128,7 @@ AccessRequest.getInitialProps = async function(context) {
   res = await fetch(apiBaseUrl + `/services/requests/${id}`)
   const request = await res.json()
 
-  return { user, request }
+  return { props: { user, request } }
 }
 
 export default AccessRequest
