@@ -72,6 +72,10 @@ app.prepare()
         //     app.render(req, res, "/users")
         // })
 
+        server.get("/", (req, res) => {
+          app.render(req, res, "/services")
+        })
+
         server.get("*", (req, res) => {
             return nextHandler(req, res)
         })

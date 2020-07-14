@@ -5,5 +5,8 @@ import SideBar from './SideBar'
 import SummaryCard from './SummaryCard'
 import { FormStepper, FormField, FormControls } from './Form'
 import User from './User'
+import ServiceActionButton from './ServiceActionButton'
 
-export { Dashboard, DateRange, DateSpan, Layout, SideBar, SummaryCard, FormStepper, FormField, FormControls, User }
+export { 
+  Dashboard, DateRange, DateSpan, Layout, SideBar, SummaryCard, FormStepper, FormField, FormControls, User, ServiceActionButton
+}
