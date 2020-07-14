@@ -68,7 +68,7 @@ const Workshop = props => {
   )
 }
 
-Workshop.getInitialProps = async function(context) {
+export async function getServerSideProps(context) {
   const { id } = context.query
 
   //FIXME move user request into Express middleware
@@ -78,7 +78,7 @@ Workshop.getInitialProps = async function(context) {
   res = await fetch(apiBaseUrl + `/workshops/${id}`)
   const workshop = await res.json()
 
-  return { user, workshop }
+  return { props: { user, workshop } }
 }
 
 export default Workshop

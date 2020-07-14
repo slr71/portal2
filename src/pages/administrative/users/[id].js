@@ -14,7 +14,7 @@ const User = props => (
   </Layout>
 )
 
-User.getInitialProps = async function(context) {
+export async function getServerSideProps(context) {
   const { id } = context.query
 
   //FIXME move user request into Express middleware
@@ -24,7 +24,7 @@ User.getInitialProps = async function(context) {
   res = await fetch(apiBaseUrl + `/users/${id}`)
   const targetUser = await res.json()
 
-  return { user, targetUser }
+  return { props: { user, targetUser } }
 }
 
 export default User

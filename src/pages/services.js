@@ -1,27 +1,25 @@
-import fetch from 'isomorphic-unfetch'
 import { Link, Grid } from '@material-ui/core'
 import { Layout, SummaryCard } from '../components'
-import { apiBaseUrl } from '../config.json'
+import api from '../api'
 
-const LAUNCH = 'LAUNCH'
-const REQUEST_ACCESS = 'REQUEST ACCESS'
 
 const Services = props => (
   <Layout title="Services" {...props}>
     <h2>My Services</h2>
-    <MyServices {...props} action={LAUNCH} />
+    <MyServices {...props} />
     <h2>Available</h2>
-    <AvailableServices {...props} action={REQUEST_ACCESS} />
+    <AvailableServices {...props} />
     <h2>Powered by CyVerse</h2>
-    <PoweredServices {...props} action={LAUNCH} />
+    <PoweredServices {...props} />
   </Layout>
 )
 
 function MyServices(props) {
+  const user = props.user
   const services = props.user.services
 
   if (services.length > 0) {
-    return <ServiceGrid services={services} action={props.action} />
+    return <ServiceGrid services={services} user={user} />
   }
 
   return (
@@ -33,12 +31,13 @@ function MyServices(props) {
 }
 
 function AvailableServices(props) {
+  const user = props.user
   const services = props.services
     .filter(service => service.approval_key != '')
     .filter(service => !props.user.services.map(service => service.id).includes(service.id))
 
   if (services.length > 0) {
-    return <ServiceGrid services={services} action={props.action} />
+    return <ServiceGrid services={services} user={user} />
   }
 
   return (
@@ -50,10 +49,10 @@ function AvailableServices(props) {
 
 function PoweredServices(props) {
   const services = props.services
-    .filter(service => service.powered_services.length > 0)
+    .filter(service => service.is_powered)
 
   if (services.length > 0) {
-    return <ServiceGrid services={services} action={props.action} />
+    return <ServiceGrid services={services} user={props.user} />
   }
 
   return (
@@ -64,13 +63,13 @@ function PoweredServices(props) {
 }
 
 function ServiceGrid(props) {
-  const services = props.services
+  const { user, services } = props
 
   return (
     <Grid container spacing={4}>
       {services.map(service =>
         <Grid item xs={4} key={service.id}>
-          <Service service={service} action={props.action} />
+          <Service service={service} user={user} />
         </Grid>
       )}
     </Grid>
@@ -86,27 +85,19 @@ function Service(props) {
       title={service.name} 
       description={service.description} 
       iconUrl={service.icon_url}
-      actionLabel={props.action}
+      actionLabel='TODO'
       actionUrl={service.service_url}
       />
     </Link>
   )
 }
 
-export async function getServerSideProps() {
+Services.getInitialProps = async (context) => {
   //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
+  const user = await api.user()
+  const services = await api.services()
 
-  res = await fetch(apiBaseUrl + `/services`)
-  const services = await res.json()
-
-  return { 
-    props: { 
-      user,
-      services
-    } 
-  }
+  return { user, services }
 }
 
 export default Services

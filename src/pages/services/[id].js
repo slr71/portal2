@@ -1,10 +1,9 @@
-import fetch from 'isomorphic-unfetch'
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Link, Box, Divider, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography } from '@material-ui/core'
+import { Container, Grid, Link, Box, Divider, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
-import Layout from '../../components/Layout.js'
-import { apiBaseUrl } from '../../config.json'
+import { Layout, ServiceActionButton } from '../../components'
+import api from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -15,6 +14,21 @@ const useStyles = makeStyles((theme) => ({
 const Service = props => {
   const service = props.service
   const classes = useStyles()
+
+  const [open, setOpen] = React.useState(false)
+
+  const handleOpen = () => {
+    setOpen(true);
+  }
+
+  const handleClose = () => {
+    setOpen(false);
+  }
+
+  const handleSubmit = async () => {
+    const response = await api.createServiceRequest(service.id)
+    //console.log(response)
+  }
 
   return ( //FIXME break into pieces
     <Layout {...props}>
@@ -29,11 +43,12 @@ const Service = props => {
                 </Box>
               </Grid>
               <Grid item>
-                <Button variant="contained" color="primary" size="medium">LAUNCH</Button>
+                <ServiceActionButton {...props} requestAccessHandler={handleOpen}/>
               </Grid>
               <Grid item xs={12}>
                 <Box>
                   <Typography color="textSecondary">{service.description}</Typography>
+                  <Link href={service.service_url}>{service.service_url}</Link>
                 </Box>
               </Grid>
             </Grid>
@@ -110,19 +125,48 @@ const Service = props => {
           </Grid>
         </Paper>
       </Container>
+      <RequestAccessDialog {...props} open={open} handleClose={handleClose} handleSubmit={handleSubmit}/>
     </Layout>
   )
 }
 
-Service.getInitialProps = async function(context) {
+const RequestAccessDialog = props => {
+  const questionText = props.service.questions && props.service.questions.length > 0 ?
+    props.service.questions[0].question :
+    `Would you like to request access to {props.service.name}?`
+
+  return (
+    <Dialog open={props.open} onClose={props.handleClose} fullWidth={true} aria-labelledby="form-dialog-title">
+      <DialogTitle id="form-dialog-title">Request Access</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          {questionText}
+        </DialogContentText>
+        <TextField
+          autoFocus
+          margin="dense"
+          id="name"
+          fullWidth
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.handleClose} color="primary">
+          Cancel
+        </Button>
+        <Button onClick={props.handleClose} color="primary" onClick={props.handleSubmit}>
+          Submit
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
+Service.getInitialProps = async (context) => {
   const { id } = context.query
 
   //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
-
-  res = await fetch(apiBaseUrl + `/services/${id}`)
-  const service = await res.json()
+  const user = await api.user()
+  const service = await api.service(id)
 
   return { user, service }
 }

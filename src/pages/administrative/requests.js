@@ -94,7 +94,7 @@ const RequestTable = props => {
   )
 }
 
-AccessRequests.getInitialProps = async context => {
+export async function getServerSideProps(context) {
   //FIXME move user request into Express middleware
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
@@ -103,9 +103,11 @@ AccessRequests.getInitialProps = async context => {
   const { count, results } = await res.json()
 
   return {
-    user,
-    count,
-    results
+    props: {
+      user,
+      count,
+      results
+    }
   }
 }
 
@@ -116,7 +118,7 @@ const fetchRequests = (offset, limit) => {
     .map(key => key + '=' + opts[key])
     .reduce((acc, s) => acc + '&' + s, '')
 
-  return fetch(apiBaseUrl + `/requests/history?${queryStr}`)
+  return fetch(apiBaseUrl + `/services/requests?${queryStr}`)
 }
 
 export default AccessRequests

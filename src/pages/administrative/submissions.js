@@ -92,7 +92,7 @@ const FormRequestTable = props => {
   )
 }
 
-FormRequests.getInitialProps = async context => {
+export async function getServerSideProps(context) {
   //FIXME move user request into Express middleware
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
@@ -101,9 +101,11 @@ FormRequests.getInitialProps = async context => {
   const { count, results } = await res.json()
 
   return {
-    user,
-    count,
-    results
+    props: {
+      user,
+      count,
+      results
+    }
   }
 }
 

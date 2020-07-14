@@ -44,7 +44,7 @@ const UsernameTable = props => (
   </TableContainer>
 )
 
-RestrictedUsernames.getInitialProps = async context => {
+export async function getServerSideProps(context) {
   //FIXME move user request into Express middleware
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
@@ -53,9 +53,11 @@ RestrictedUsernames.getInitialProps = async context => {
   const usernames = await res.json()
 
   return {
-    user,
-    usernames,
-    keyword: ""
+    props: {
+      user,
+      usernames,
+      keyword: ""
+    }
   }
 }
 

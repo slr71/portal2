@@ -95,7 +95,7 @@ const UserTable = props => {
   )
 }
 
-Users.getInitialProps = async context => {
+export async function getServerSideProps(context) {
   //FIXME move user request into Express middleware
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
@@ -109,9 +109,11 @@ Users.getInitialProps = async context => {
   const { count, results } = await res.json()
 
   return {
-    user,
-    count,
-    results
+    props: {
+      user,
+      count,
+      results
+    }
   }
 }
 

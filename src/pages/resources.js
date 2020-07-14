@@ -21,12 +21,12 @@ const Resources = props => {
   )
 }
 
-Resources.getInitialProps = async function(context) {
+export async function getServerSideProps(context) {
   //FIXME move user request into Express middleware
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
 
-  return { user }
+  return { props: { user } }
 }
 
 export default Resources

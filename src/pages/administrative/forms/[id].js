@@ -27,7 +27,6 @@ const Form = props => {
   }
 
   const height = props.form.sections[value].fields.length * 32 + 37
-  console.log("foo", props.form.sections[value].fields.length)
 
   return (
     <Layout {...props}>
@@ -128,7 +127,7 @@ const FormField = props => (
   </Box>
 )
 
-Form.getInitialProps = async function(context) {
+export async function getServerSideProps(context) {
   const { id } = context.query
 
   //FIXME move user request into Express middleware
@@ -138,7 +137,7 @@ Form.getInitialProps = async function(context) {
   res = await fetch(apiBaseUrl + `/requests/${id}`)
   const form = await res.json()
 
-  return { user, form }
+  return { props: { user, form } }
 }
 
 export default Form
