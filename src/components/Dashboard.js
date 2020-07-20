@@ -87,8 +87,10 @@ const useStyles = makeStyles((theme) => ({
     overflow: 'auto',
   },
   container: {
-    paddingTop: theme.spacing(3),
+    paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(5),
+    paddingLeft: theme.spacing(5),
+    paddingRight: theme.spacing(5),
     backgroundColor: '#EEEEEE'
   },
   paper: {
@@ -159,7 +161,7 @@ export default function Dashboard(props) {
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <TopBar title={props.title} />
-        <Container maxWidth="lg" className={classes.container}>
+        <Container maxWidth="auto" className={classes.container}>
           {props.children}
           <Box pt={10}>
             <Copyright />
