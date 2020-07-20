@@ -1,0 +1,23 @@
+{ 
+    "port": 3000,
+
+    "apiBaseUrl": "http://localhost:3022",
+
+    "db": {
+        "connection": "postgresql://localhost:5432/portal",
+        "table": "session"
+    },
+
+    "session": {
+        "secret": "keyboard cat",
+        "secure_cookie": false,
+        "ttl": 8
+    },
+
+    "keycloak": {
+        "serverUrl": "http://localhost:9090/auth",
+        "realm": "cyverse",
+        "clientId": "portal-frontend",
+        "secret": "<SECRET>"
+    }
+}
