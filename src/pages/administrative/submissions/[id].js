@@ -11,41 +11,45 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const FormSubmission = props => (
-  <Layout {...props}>
-    <Container maxWidth='lg'>
-        <h1>Form Submission</h1>
-        <Grid container spacing={4}>
-          <Grid item xs={6}>
-            <User 
-              user={props.submission.user}
-              institution research
-            />
-            <Card className={useStyles().box}>
-              <CardHeader
-                title="Form"
-                subheader={props.submission.form.name}
+const FormSubmission = props => {
+  const classes = useStyles()
+
+  return (
+    <Layout {...props}>
+      <Container maxWidth='lg'>
+          <h1>Form Submission</h1>
+          <Grid container spacing={4}>
+            <Grid item xs={6}>
+              <User 
+                user={props.submission.user}
+                institution research
               />
-              <CardContent>
-                {props.submission.fields.map(field =>
-                  // <Typography>{field.name}: {field.api_formfieldsubmission.value_text}</Typography>
-                  <FormField {...field}></FormField>
-                )}
-              </CardContent>
-            </Card>
+              <Card className={classes.box}>
+                <CardHeader
+                  title="Form"
+                  subheader={props.submission.form.name}
+                />
+                <CardContent>
+                  {props.submission.fields.map(field =>
+                    // <Typography>{field.name}: {field.api_formfieldsubmission.value_text}</Typography>
+                    <FormField {...field}></FormField>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid item xs={6}>
+              <Card className={classes.box}>
+                <CardHeader
+                  title="Conversations"
+                  subheader="TODO"
+                />
+              </Card>
+            </Grid>
           </Grid>
-          <Grid item xs={6}>
-            <Card className={useStyles().box}>
-              <CardHeader
-                title="Conversations"
-                subheader="TODO"
-              />
-            </Card>
-          </Grid>
-        </Grid>
-    </Container>
-  </Layout>
-)
+      </Container>
+    </Layout>
+  )
+}
 
 const FormField = props => {
   if (props.api_formfieldsubmission.value_boolean != null) {

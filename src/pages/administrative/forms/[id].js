@@ -20,6 +20,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const Form = props => {
+  const classes = useStyles()
   const [value, setValue] = React.useState(0)
 
   const handleChange = (event, newValue) => {
@@ -31,21 +32,21 @@ const Form = props => {
   return (
     <Layout {...props}>
       <Container maxWidth='lg'>
-        <Paper elevation={3} className={useStyles().paper} style={{height: height + "em"}}>
+        <Paper elevation={3} className={classes.paper} style={{height: height + "em"}}>
           <Box display='flex' ml={4} mb={2}>
             <Typography component="h1" variant="h4" gutterBottom>Form: </Typography>
             <Typography component="h1" variant="h4" color="secondary" gutterBottom>{props.form.name}</Typography>
             <Button variant="contained" color="primary">Edit Name</Button>
             <Button variant="contained" color="secondary">Delete Form</Button>
           </Box>
-          <div className={useStyles().root}>
+          <div className={classes.root}>
             <Tabs 
               orientation="vertical"
               variant="scrollable"
               value={value}
               onChange={handleChange}
               aria-label="Vertical tabs example"
-              className={useStyles().tabs}
+              className={classes.tabs}
             >
               {props.form.sections.map((section, index) => (
                 <Tab key={section.id} label={section.name} />

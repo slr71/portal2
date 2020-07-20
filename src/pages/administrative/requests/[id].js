@@ -11,35 +11,41 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const AccessRequest = props => (
-  <Layout {...props}>
-    <Container maxWidth='lg'>
-        <h1>Access Request</h1>
-        <Grid container spacing={4}>
-          <Grid item xs={6}>
-            <User 
-              user={props.request.user}
-              institution research
-            />
-            <QuestionAnswer question={props.request.question} answer={props.request.answer} />
-          </Grid>
-          <Grid item xs={6}>
-            <Actions {...props} />
-            <RequestHistory {...props} />
-            <Card className={useStyles().box}>
-              <CardHeader
-                title="Conversations"
-                subheader="TODO"
+const AccessRequest = props => {
+  const classes = useStyles()
+
+  return (
+    <Layout {...props}>
+      <Container maxWidth='lg'>
+          <h1>Access Request</h1>
+          <Grid container spacing={4}>
+            <Grid item xs={6}>
+              <User 
+                user={props.request.user}
+                institution research
               />
-            </Card>
+              <QuestionAnswer question={props.request.question} answer={props.request.answer} />
+            </Grid>
+            <Grid item xs={6}>
+              <Actions {...props} />
+              <RequestHistory {...props} />
+              <Card className={classes.box}>
+                <CardHeader
+                  title="Conversations"
+                  subheader="TODO"
+                />
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
-    </Container>
-  </Layout>
-)
+      </Container>
+    </Layout>
+  )
+}
 
 const QuestionAnswer = props => (
-  <Card className={useStyles().box}>
+  const classes = useStyles()
+
+  <Card className={classes.box}>
     <CardHeader
       title="Questions"
       // subheader={props.subtitle}
@@ -57,6 +63,7 @@ const QuestionAnswer = props => (
 )
 
 const Actions = props => {
+  const classes = useStyles()
   const approveButton = <Button color="primary" size="small">APPROVE</Button>
   const denyButton = <Button color="secondary" size="small">DENY</Button>
 
@@ -80,7 +87,7 @@ const Actions = props => {
   }
 
   return (
-    <Card className={useStyles().box}>
+    <Card className={classes.box}>
       <CardHeader
         title="Actions"
         // subheader={props.subtitle}
@@ -100,23 +107,27 @@ const Actions = props => {
   )
 }
 
-const RequestHistory = props => (
-  <Card className={useStyles().box}>
-    <CardHeader
-      title="History"
-      // subheader={props.subtitle}
-    />
-    <CardContent>
-      {props.request.logs.map(log => (
-        <React.Fragment key={log.id}>
-          <Typography>{log.message}</Typography>
-          <Typography>{log.created_at}</Typography>
-          <Divider />
-        </React.Fragment>
-      ))}
-    </CardContent>
-  </Card>
-)
+const RequestHistory = props => {
+  const classes = useStyles()
+
+  return (
+    <Card className={classes.box}>
+      <CardHeader
+        title="History"
+        // subheader={props.subtitle}
+      />
+      <CardContent>
+        {props.request.logs.map(log => (
+          <React.Fragment key={log.id}>
+            <Typography>{log.message}</Typography>
+            <Typography>{log.created_at}</Typography>
+            <Divider />
+          </React.Fragment>
+        ))}
+      </CardContent>
+    </Card>
+  )
+}
 
 export async function getServerSideProps(context) {
   const { id } = context.query

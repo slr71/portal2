@@ -12,18 +12,22 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const AccessRequests = props => (
-  <Layout {...props}>
-    <Container maxWidth='lg'>
-      <Paper elevation={3} className={useStyles().paper}>
-        <Typography component="h1" variant="h4">Access Requests</Typography>
-        <Typography color="textSecondary" gutterBottom>Search across username, first name, last name, institution, department, country, region and research area</Typography>
-        <TextField placeholder="Search ..." />
-        <RequestTable {...props} />
-      </Paper>
-    </Container>
-  </Layout>
-)
+const AccessRequests = props => {
+  const classes = useStyles()
+
+  return (
+    <Layout {...props}>
+      <Container maxWidth='lg'>
+        <Paper elevation={3} className={classes.paper}>
+          <Typography component="h1" variant="h4">Access Requests</Typography>
+          <Typography color="textSecondary" gutterBottom>Search across username, first name, last name, institution, department, country, region and research area</Typography>
+          <TextField placeholder="Search ..." />
+          <RequestTable {...props} />
+        </Paper>
+      </Container>
+    </Layout>
+  )
+}
 
 const RequestTable = props => {
   const [page, setPage] = React.useState(0)

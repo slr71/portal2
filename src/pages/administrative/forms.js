@@ -12,16 +12,20 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const Forms = props => (
-  <Layout {...props}>
-    <Container maxWidth='lg'>
-      <Paper elevation={3} className={useStyles().paper}>
-        <Typography component="h1" variant="h4" gutterBottom>Forms</Typography>
-        <FormTable {...props} />
-      </Paper>
-    </Container>
-  </Layout>
-)
+const Forms = props => {
+  const classes = useStyles()
+
+  return (
+    <Layout {...props}>
+      <Container maxWidth='lg'>
+        <Paper elevation={3} className={classes.paper}>
+          <Typography component="h1" variant="h4" gutterBottom>Forms</Typography>
+          <FormTable {...props} />
+        </Paper>
+      </Container>
+    </Layout>
+  )
+}
 
 const FormTable = props => (
   <TableContainer component={Paper}>

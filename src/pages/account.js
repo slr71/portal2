@@ -15,12 +15,14 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const Account = props => {
+  const classes = useStyles()
+
   return (
     <Layout {...props}>
       <h1>Account</h1>
       <Container maxWidth='md'>
           {forms({...props}).map(form =>
-            <Box key={form.title} className={useStyles().box}>
+            <Box key={form.title} className={classes.box}>
               <Form {...form}></Form>
             </Box>
           )}
@@ -62,22 +64,26 @@ const MailingListForm = props => (
   </div>
 )
 
-const Form = props => (
-  <Paper elevation={3} className={useStyles().paper}>
-    <Typography component="div" variant="h5">{props.title}</Typography>
-    <Typography color="textSecondary">{props.subtitle}</Typography>
-    {props.render ?
-      props.render :
-      <Grid container spacing={4}>
-        {props.fields.map(field =>
-          <Grid item key={field.id} xs={field.width ? field.width : 12}>
-            <FormField {...field}></FormField>
-          </Grid>
-        )}
-      </Grid>
-    }
-  </Paper>
-)
+const Form = props => {
+  const classes = useStyles()
+
+  return (
+    <Paper elevation={3} className={classes.paper}>
+      <Typography component="div" variant="h5">{props.title}</Typography>
+      <Typography color="textSecondary">{props.subtitle}</Typography>
+      {props.render ?
+        props.render :
+        <Grid container spacing={4}>
+          {props.fields.map(field =>
+            <Grid item key={field.id} xs={field.width ? field.width : 12}>
+              <FormField {...field}></FormField>
+            </Grid>
+          )}
+        </Grid>
+      }
+    </Paper>
+  )
+}
 
 const forms = props => ([ // expects { user, properties }
   { title: "Identification",
