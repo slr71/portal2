@@ -1,8 +1,7 @@
-import fetch from 'isomorphic-unfetch'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Typography, Button, Card, CardHeader, CardContent, CardActions, Divider } from '@material-ui/core'
 import { Layout, User } from '../../../components'
-import { apiBaseUrl } from '../../../config.json'
+import api from '../../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -42,30 +41,45 @@ const AccessRequest = props => {
   )
 }
 
-const QuestionAnswer = props => (
+const QuestionAnswer = props => {
   const classes = useStyles()
 
-  <Card className={classes.box}>
-    <CardHeader
-      title="Questions"
-      // subheader={props.subtitle}
+  return (
+    <Card className={classes.box}>
+      <CardHeader
+        title="Questions"
       />
-    <CardContent>
-      {props.question ?
-        <div>
-            <Typography>{props.question.question}</Typography>
-            <Typography>{props.answer.value_text}</Typography>
-        </div>
-        : <Typography>None</Typography>
-      }
-    </CardContent>
-  </Card>
-)
+      <CardContent>
+        {props.question ?
+          <div>
+              <Typography>{props.question.question}</Typography>
+              <Typography>{props.answer ? props.answer.value_text : '<No answer>'}</Typography>
+          </div>
+          : <Typography>None</Typography>
+        }
+      </CardContent>
+    </Card>
+  )
+}
 
 const Actions = props => {
+  const user = props.user
+  const request = props.request
   const classes = useStyles()
-  const approveButton = <Button color="primary" size="small">APPROVE</Button>
-  const denyButton = <Button color="secondary" size="small">DENY</Button>
+
+  const handleApprove = async () => {
+    const response = await api.updateServiceRequest(request.service.id, 'approved', 'Request approved by ' + user.username)
+    console.log(response.data)
+    props.request = response.data
+  }
+
+  const handleDeny = async () => {
+    const response = await api.updateServiceRequest(request.service.id, 'denied', 'Request denied by ' + user.username)
+    console.log(response.data)
+  }
+
+  const approveButton = <Button key="approve" color="primary" size="medium" onClick={handleApprove}>APPROVE</Button>
+  const denyButton = <Button key="deny" color="secondary" size="medium" onClick={handleDeny}>DENY</Button>
 
   let buttons, text
   switch (props.request.status) {
@@ -74,7 +88,7 @@ const Actions = props => {
       break
 
     case "approved":
-      text = 'User has been approved for access, but access has not yet been granted. This is due to one of two things; either this statement is inaccurate, and a product of missing data from the migration, or this request is currently being processed, and the state of this request should change to "granted" shortly.'
+      text = 'User has been approved for access, but access has not yet been granted. The request is currently being processed and should change to "granted" shortly.'
       break
 
     case "granted":
@@ -133,11 +147,8 @@ export async function getServerSideProps(context) {
   const { id } = context.query
 
   //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
-
-  res = await fetch(apiBaseUrl + `/services/requests/${id}`)
-  const request = await res.json()
+  const user = await api.user()
+  const request = await api.serviceRequest(id)
 
   return { props: { user, request } }
 }

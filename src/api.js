@@ -1,5 +1,6 @@
 const axios = require('axios')
 const config = require('./config.json')
+const { Minimize } = require('@material-ui/icons')
 
 // Proxy to backend API -- based on Sonora
 // module.exports = function() {
@@ -22,8 +23,10 @@ class PortalApi {
     this.baseUrl = params && params.baseUrl ? params.baseUrl : config.apiBaseUrl
   }
 
-  async user() {
-    const res = await axios.get(`${this.baseUrl}/users/mine`)
+  async user(id) {
+    if (!id)
+      id = 'mine'
+    const res = await axios.get(`${this.baseUrl}/users/${id}`)
     return res.data
   }
 
@@ -37,8 +40,23 @@ class PortalApi {
     return res.data
   }
 
+  async serviceRequests() {
+    const res = await axios.get(`${this.baseUrl}/services/requests`)
+    return res.data
+  }
+
+  async serviceRequest(id) {
+    const res = await axios.get(`${this.baseUrl}/services/requests/${id}`)
+    return res.data
+  }
+
   async createServiceRequest(serviceId, answers) {
-    const res = await axios.put(`${this.baseUrl}/services/${serviceId}/requests`)
+    const res = await axios.put(`${this.baseUrl}/services/${serviceId}/requests`, { answers })
+    return res
+  }
+
+  async updateServiceRequest(serviceId, status, message) {
+    const res = await axios.post(`${this.baseUrl}/services/${serviceId}/requests`, { status, message })
     return res
   }
 }
