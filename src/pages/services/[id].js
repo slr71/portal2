@@ -32,7 +32,7 @@ const Service = props => {
 
   return ( //FIXME break into pieces
     <Layout {...props}>
-      <Container maxWidth='md'>
+      <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper}>
           <Grid container spacing={4}>
             <Grid container item xs={12} justify="space-between">
@@ -53,14 +53,12 @@ const Service = props => {
               </Grid>
             </Grid>
             <Grid item xs={12}>
-              <Divider />
               <Box>
                 <Typography component="div" variant="h5">Details</Typography>
                 <Typography color="textSecondary"><Markdown>{service.about}</Markdown></Typography>
               </Box>
             </Grid>
             <Grid item xs={12}>
-              <Divider />
               <Box>
                 <Typography component="div" variant="h5">Contacts</Typography>
                 <Typography color="textSecondary">Contact(s) for questions or problems.</Typography>
@@ -81,7 +79,6 @@ const Service = props => {
               </Box>
             </Grid>
             <Grid item xs={12}>
-              <Divider />
               <Box>
                 <Typography component="div" variant="h5">Resources</Typography>
                 <Typography color="textSecondary">Where you can find support.</Typography>
@@ -102,7 +99,6 @@ const Service = props => {
               </Box>
             </Grid>
             <Grid item xs={12}>
-              <Divider />
               <Box>
                 <Typography component="div" variant="h5">Requests</Typography>
                 <Typography color="textSecondary">Requests you can submit related to this service.</Typography>

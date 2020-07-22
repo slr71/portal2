@@ -3,7 +3,7 @@ import { Dashboard as DashboardIcon, MenuBook as MenuBookIcon, List as ListIcon,
 const menuItems = [
   {
     label: "Services",
-    icon: <DashboardIcon fontSize="large" />,
+    icon: <DashboardIcon fontSize="large"/>,
     path: "/services",
     items: []
     // items: [
