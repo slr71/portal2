@@ -17,7 +17,7 @@ const SummaryCard = (props) => (
     subheader={props.subtitle}
     />
     <CardContent>
-    <Typography variant="body2" color="textSecondary" component="p">
+    <Typography variant="body2" color="textPrimary" component="p" gutterBottom>
       {props.description}
     </Typography>
     </CardContent>
