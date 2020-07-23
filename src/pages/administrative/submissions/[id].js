@@ -96,7 +96,7 @@ export async function getServerSideProps(context) {
   let res = await fetch(apiBaseUrl + `/users/mine`)
   const user = await res.json()
 
-  res = await fetch(apiBaseUrl + `/requests/submissions/${id}`)
+  res = await fetch(apiBaseUrl + `/forms/submissions/${id}`)
   const submission = await res.json()
 
   return { props: { user, submission } }

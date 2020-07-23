@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import { Layout, DateSpan } from '../../components'
 import { apiBaseUrl } from '../../config'
+import api from '../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -100,10 +101,9 @@ const RequestTable = props => {
 
 export async function getServerSideProps(context) {
   //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
+  const user = await api.user()
 
-  res = await fetchRequests()
+  const res = await fetchRequests()
   const { count, results } = await res.json()
 
   return {

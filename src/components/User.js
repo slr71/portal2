@@ -1,5 +1,5 @@
 import { makeStyles } from '@material-ui/core/styles'
-import { Card, CardHeader, CardContent, Typography, Button, Avatar } from '@material-ui/core'
+import { Card, CardHeader, CardContent, Button } from '@material-ui/core'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -119,7 +119,7 @@ const User = (props) => {
           />
           <CardContent>
             {props.user.services.map((service, index) => (
-                <div key={index}>{service.name} - {service.api_accessrequest.message}</div>
+                <div key={index}>{service.name} - {service.request.message}</div>
             ))}      
           </CardContent>
         </Card>

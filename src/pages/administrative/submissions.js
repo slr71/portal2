@@ -120,7 +120,7 @@ const fetchFormRequests = (offset, limit) => {
     .map(key => key + '=' + opts[key])
     .reduce((acc, s) => acc + '&' + s, '')
 
-  return fetch(apiBaseUrl + `/requests/submissions?${queryStr}`)
+  return fetch(apiBaseUrl + `/forms/submissions?${queryStr}`)
 }
 
 export default FormRequests
