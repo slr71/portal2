@@ -1,5 +1,7 @@
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Typography, Button, Card, CardHeader, CardContent, CardActions, Divider } from '@material-ui/core'
+import Markdown from 'markdown-to-jsx'
+import { Container, Grid, Typography, Button, Card, CardHeader, CardContent, CardActions, Divider, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@material-ui/core'
+import { Person as PersonIcon } from '@material-ui/icons'
 import { Layout, User } from '../../../components'
 import api from '../../../api'
 
@@ -28,12 +30,7 @@ const AccessRequest = props => {
             <Grid item xs={6}>
               <Actions {...props} />
               <RequestHistory {...props} />
-              <Card className={classes.box}>
-                <CardHeader
-                  title="Conversations"
-                  subheader="TODO"
-                />
-              </Card>
+              <Conversations {...props} />
             </Grid>
           </Grid>
       </Container>
@@ -92,7 +89,7 @@ const Actions = props => {
       break
 
     case "granted":
-      text = 'No actions can be performed on requests that have been granted.'
+      text = 'No further actions can be performed on requests that have been granted.'
       break
 
     case "denied":
@@ -140,6 +137,54 @@ const RequestHistory = props => {
         ))}
       </CardContent>
     </Card>
+  )
+}
+
+const Conversations = props => {
+  const conversation = props.request.conversation
+  const classes = useStyles()
+
+  return (
+    <Card className={classes.box}>
+      <CardHeader title="Conversations" />
+      <CardContent>
+        <Conversation conversation={conversation} />
+      </CardContent>
+    </Card>
+  )
+}
+
+const Conversation = props => {
+  const conversation = props.conversation
+
+  return (
+    <List>
+      {conversation.parts.map(part => (<ConversationPart part={part} />))}
+    </List>
+  )
+}
+
+const ConversationPart = props => {
+  const part = props.part
+
+  let content
+  if (part.part_type == 'assignment')
+    content = `Assigned to ${part.assigned_to.id} (${part.assigned_to.type})`
+  else // assume part_type is "note" or "comment"
+    content = (<Markdown>{part.body}</Markdown>)
+
+  return (
+    <ListItem alignItems="flex-start">
+      <ListItemAvatar>
+        <Avatar>
+          <PersonIcon />
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText
+        primary={part.author.name}
+        secondary={content}
+      />
+    </ListItem>
   )
 }
 
