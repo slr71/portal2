@@ -159,6 +159,7 @@ const Conversation = props => {
 
   return (
     <List>
+      <ConversationPart part={conversation.source} />
       {conversation.parts.map(part => (<ConversationPart part={part} />))}
     </List>
   )
@@ -168,7 +169,7 @@ const ConversationPart = props => {
   const part = props.part
 
   let content
-  if (part.part_type == 'assignment')
+  if (part.part_type && part.part_type == 'assignment')
     content = `Assigned to ${part.assigned_to.id} (${part.assigned_to.type})`
   else // assume part_type is "note" or "comment"
     content = (<Markdown>{part.body}</Markdown>)
@@ -181,7 +182,7 @@ const ConversationPart = props => {
         </Avatar>
       </ListItemAvatar>
       <ListItemText
-        primary={part.author.name}
+        primary={`${part.author.name} (${part.author.type})`}
         secondary={content}
       />
     </ListItem>
