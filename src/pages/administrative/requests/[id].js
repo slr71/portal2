@@ -17,6 +17,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const AccessRequest = props => {
+  const request = props.request
   const classes = useStyles()
 
   return (
@@ -29,7 +30,7 @@ const AccessRequest = props => {
                 user={props.request.user}
                 institution research
               />
-              <Questions questions={props.request.service.questions} answers={props.request.answers} />
+              <Questions questions={request.service.questions} answers={request.answers} />
             </Grid>
             <Grid item xs={6}>
               <Actions {...props} />
