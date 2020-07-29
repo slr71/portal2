@@ -9,9 +9,9 @@ const Support = props => {
 
   return (
     <Layout title={title} {...props}>
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         {menuItem.items.map(item =>
-          <Grid item xs={6} key={item.path}>
+          <Grid item xs={4} key={item.path}>
             <Link underline='none' href={item.path}>
               <SummaryCard 
                 title={item.label} 
@@ -25,7 +25,7 @@ const Support = props => {
   )
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps() {
   //FIXME move user request into Express middleware
   const user = await api.user()
 
