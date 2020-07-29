@@ -3,8 +3,8 @@ import { Layout, SummaryCard } from '../components'
 import menuItems from '../menuItems.js'
 import api from '../api'
 
-const Administrative = props => {
-  const title = "Administrative"
+const Support = props => {
+  const title = "Support"
   const menuItem = menuItems.find(item => item.label === title)
 
   return (
@@ -25,11 +25,11 @@ const Administrative = props => {
   )
 }
 
-export async function getServerSideProps() {
+export async function getServerSideProps(context) {
   //FIXME move user request into Express middleware
   const user = await api.user()
 
   return { props: { user } }
 }
 
-export default Administrative
+export default Support

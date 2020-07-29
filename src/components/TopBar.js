@@ -52,7 +52,7 @@ const BreadcrumbsMenu = () => {
 
 const TopBar = props => {
   const classes = useStyles()
-  const menuItem = menuItems.filter(item => item.label === props.title)[0]
+  const menuItem = menuItems.find(item => item.label === props.title)
 
   return (
     <Box display="flex" p={1} className={classes.box}>
