@@ -18,8 +18,7 @@ const Account = props => {
   const classes = useStyles()
 
   return (
-    <Layout {...props}>
-      <h1>Account</h1>
+    <Layout title="Account" {...props}>
       <Container maxWidth='md'>
           {forms({...props}).map(form =>
             <Box key={form.title} className={classes.box}>
