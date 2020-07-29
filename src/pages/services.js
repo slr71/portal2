@@ -3,24 +3,28 @@ import { Layout, SummaryCard } from '../components'
 import api from '../api'
 
 
-const Services = props => (
-  <Layout title="Services" {...props}>
-    <h2>My Services</h2>
-    <MyServices {...props} />
-    <h2>Available</h2>
-    <AvailableServices {...props} />
-    <h2>Powered by CyVerse</h2>
-    <PoweredServices {...props} />
-  </Layout>
-)
+const Services = props => {
+  const userServices = props.user.services
+  const services = props.services
 
-function MyServices(props) {
-  const user = props.user
-  const services = props.user.services
+  const available = services.filter(s => s.approval_key != '' && !userServices.map(s => s.id).includes(s.id))
+  const powered = services.filter(s => s.is_powered)
 
-  if (services.length > 0) {
-    return <ServiceGrid services={services} user={user} />
-  }
+  return (
+    <Layout title="Services" {...props}>
+      <h2>My Services</h2>
+      <MyServices services={userServices} />
+      <h2>Available</h2>
+      <AvailableServices services={available} />
+      <h2>Powered by CyVerse</h2>
+      <PoweredServices services={powered} />
+    </Layout>
+  )
+}
+
+const MyServices = ({services}) => {
+  if (services && services.length > 0)
+    return (<ServiceGrid services={services} />)
 
   return (
     <p>
@@ -30,15 +34,9 @@ function MyServices(props) {
   )
 }
 
-function AvailableServices(props) {
-  const user = props.user
-  const services = props.services
-    .filter(service => service.approval_key != '')
-    .filter(service => !props.user.services.map(service => service.id).includes(service.id))
-
-  if (services.length > 0) {
-    return <ServiceGrid services={services} user={user} />
-  }
+const AvailableServices = ({services}) => {
+  if (services && services.length > 0)
+    return (<ServiceGrid services={services} />)
 
   return (
     <p>
@@ -47,13 +45,9 @@ function AvailableServices(props) {
   )
 }
 
-function PoweredServices(props) {
-  const services = props.services
-    .filter(service => service.is_powered)
-
-  if (services.length > 0) {
-    return <ServiceGrid services={services} user={props.user} />
-  }
+const PoweredServices = ({services}) => {
+  if (services && services.length > 0)
+    return (<ServiceGrid services={services} />)
 
   return (
     <p>
@@ -62,31 +56,25 @@ function PoweredServices(props) {
   )
 }
 
-function ServiceGrid(props) {
-  const { user, services } = props
+const ServiceGrid = ({ services }) => (
+  <Grid container spacing={4}>
+    {services.map(service =>
+      <Grid item xs={4} key={service.id}>
+        <Service service={service} />
+      </Grid>
+    )}
+  </Grid>
+)
 
-  return (
-    <Grid container spacing={4}>
-      {services.map(service =>
-        <Grid item xs={4} key={service.id}>
-          <Service service={service} user={user} />
-        </Grid>
-      )}
-    </Grid>
-  )
-}
-
-function Service(props) {
-  const service = props.service
-
+const Service = ({ service }) => {
   return (
     <Link underline='none' href={`services/${service.id}`}>
       <SummaryCard 
-      title={service.name} 
-      description={service.description} 
-      iconUrl={service.icon_url}
-      actionLabel='TODO'
-      actionUrl={service.service_url}
+        title={service.name} 
+        description={service.description} 
+        iconUrl={service.icon_url}
+        actionLabel='TODO'
+        actionUrl={service.service_url}
       />
     </Link>
   )

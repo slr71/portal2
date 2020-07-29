@@ -1,22 +1,19 @@
 import { Card, CardHeader, CardContent, CardActions, Typography, Avatar } from '@material-ui/core'
 
-const SummaryCard = (props) => (
+const SummaryCard = ({ title, subtitle, description, iconUrl, actionLabel }) => (
   <Card>
     <CardHeader
-    avatar={
-      props.iconUrl ? <Avatar alt={props.title} src={props.iconUrl} /> : null
-    }
-    title={props.title}
-    subheader={props.subtitle}
+      avatar={iconUrl ? <Avatar alt={title} src={iconUrl} /> : null}
+      title={title}
+      subheader={subtitle}
     />
     <CardContent>
     <Typography variant="body2" color="textSecondary" component="p">
-      {props.description}
+      {description}
     </Typography>
     </CardContent>
     <CardActions disableSpacing>
-    {/*<a href={props.actionUrl} target='_blank'>{props.actionLabel}</a> */}
-    {props.actionLabel}
+    {actionLabel}
     </CardActions>
   </Card>
 )
