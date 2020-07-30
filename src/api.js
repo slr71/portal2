@@ -1,22 +1,5 @@
 const axios = require('axios')
 const config = require('./config.json')
-const { Minimize } = require('@material-ui/icons')
-
-// Proxy to backend API -- based on Sonora
-// module.exports = function() {
-//   const api = express.Router()
-
-//   api.get(
-//       "/",
-//       //auth.authnTokenMiddleware,
-//       async (req, res) => {
-//         const response = await axios.get('http://localhost:3022/services/coge')
-//         res.send(response.data)
-//       }
-//   )
-
-//   return api
-// }
 
 class PortalApi {
   constructor(params) {
@@ -35,7 +18,7 @@ class PortalApi {
     return res.data
   }
 
-  async service(id) {
+  async service(id) { // id or name
     const res = await axios.get(`${this.baseUrl}/services/${id}`)
     return res.data
   }
@@ -50,14 +33,39 @@ class PortalApi {
     return res.data
   }
 
-  async createServiceRequest(serviceId, answers) {
-    const res = await axios.put(`${this.baseUrl}/services/${serviceId}/requests`, { answers })
+  async createServiceRequest(id, answers) {
+    const res = await axios.put(`${this.baseUrl}/services/${id}/requests`, { answers })
     return res
   }
 
-  async updateServiceRequest(serviceId, status, message) {
-    const res = await axios.post(`${this.baseUrl}/services/${serviceId}/requests`, { status, message })
+  async updateServiceRequest(id, status, message) {
+    const res = await axios.post(`${this.baseUrl}/services/${id}/requests`, { status, message })
     return res
+  }
+
+  async workshops() {
+    const res = await axios.get(`${this.baseUrl}/workshops`)
+    return res.data
+  }
+
+  async workshop(id) { 
+    const res = await axios.get(`${this.baseUrl}/workshops/${id}`)
+    return res.data
+  }
+
+  async createWorkshopRequest(id) {
+    const res = await axios.put(`${this.baseUrl}/workshops/${id}/requests`)
+    return res
+  }
+
+  async forms() {
+    const res = await axios.get(`${this.baseUrl}/forms`)
+    return res.data
+  }
+
+  async form(id) { // id or name
+    const res = await axios.get(`${this.baseUrl}/forms/${id}`)
+    return res.data
   }
 }
 
