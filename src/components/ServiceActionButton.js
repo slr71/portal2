@@ -1,8 +1,7 @@
 import { Button } from '@material-ui/core'
 
 
-const ServiceActionButton = props => {
-  const { user, service, requestAccessHandler } = props
+const ServiceActionButton = ({ user, service, requestAccessHandler }) => {
   let label, action, url
 
   // Request status can be: 'granted', 'denied', 'approved', 'pending'

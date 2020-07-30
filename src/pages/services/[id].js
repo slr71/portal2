@@ -15,19 +15,27 @@ const Service = props => {
   const service = props.service
   const classes = useStyles()
 
-  const [open, setOpen] = React.useState(false)
+  const question = service.questions && service.questions.length > 0 ? service.questions[0] : null // only Atmosphere has a question, and it has only one
 
-  const handleOpen = () => {
-    setOpen(true);
+  const [dialogOpen, setDialogOpen] = React.useState(false)
+  const [answer, setAnswer] = React.useState()
+
+  const handleOpenDialog = () => {
+    setDialogOpen(true)
   }
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleCloseDialog = () => {
+    setDialogOpen(false)
   }
 
   const handleSubmit = async () => {
-    const response = await api.createServiceRequest(service.id)
+    setDialogOpen(false)
+    const response = await api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }])
     //console.log(response)
+  }
+
+  const handleChangeAnswer = (e) => {
+    setAnswer(e.target.value)
   }
 
   return ( //FIXME break into pieces
@@ -43,7 +51,7 @@ const Service = props => {
                 </Box>
               </Grid>
               <Grid item>
-                <ServiceActionButton {...props} requestAccessHandler={handleOpen}/>
+                <ServiceActionButton {...props} requestAccessHandler={handleOpenDialog}/>
               </Grid>
               <Grid item xs={12}>
                 <Box>
@@ -121,35 +129,38 @@ const Service = props => {
           </Grid>
         </Paper>
       </Container>
-      <RequestAccessDialog {...props} open={open} handleClose={handleClose} handleSubmit={handleSubmit}/>
+      <RequestAccessDialog 
+        question={question ? question.question : `Would you like to request access to ${service.name}?`}
+        open={dialogOpen}
+        handleChange={handleChangeAnswer}
+        handleClose={handleCloseDialog} 
+        handleSubmit={handleSubmit}
+      />
     </Layout>
   )
 }
 
-const RequestAccessDialog = props => {
-  const questionText = props.service.questions && props.service.questions.length > 0 ?
-    props.service.questions[0].question :
-    `Would you like to request access to {props.service.name}?`
-
+const RequestAccessDialog = ({ question, open, handleChange, handleClose, handleSubmit }) => {
   return (
-    <Dialog open={props.open} onClose={props.handleClose} fullWidth={true} aria-labelledby="form-dialog-title">
+    <Dialog open={open} onClose={handleClose} fullWidth={true} aria-labelledby="form-dialog-title">
       <DialogTitle id="form-dialog-title">Request Access</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          {questionText}
+          {question}
         </DialogContentText>
         <TextField
           autoFocus
           margin="dense"
           id="name"
           fullWidth
+          onChange={handleChange}
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.handleClose} color="primary">
+        <Button onClick={handleClose} color="primary">
           Cancel
         </Button>
-        <Button onClick={props.handleClose} color="primary" onClick={props.handleSubmit}>
+        <Button onClick={handleClose} color="primary" onClick={handleSubmit}>
           Submit
         </Button>
       </DialogActions>

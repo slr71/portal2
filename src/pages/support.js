@@ -3,8 +3,8 @@ import { Layout, SummaryCard } from '../components'
 import menuItems from '../menuItems.js'
 import api from '../api'
 
-const Administrative = props => {
-  const title = "Administrative"
+const Support = props => {
+  const title = "Support"
   const menuItem = menuItems.find(item => item.label === title)
 
   return (
@@ -32,4 +32,4 @@ export async function getServerSideProps() {
   return { props: { user } }
 }
 
-export default Administrative
+export default Support

@@ -12,18 +12,22 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const RestrictedUsernames = props => (
-  <Layout {...props}>
-    <Container maxWidth='lg'>
-      <Paper elevation={3} className={useStyles().paper}>
-        <Typography component="h1" variant="h4">Restricted Usernames</Typography>
-        <Typography color="textSecondary" gutterBottom>Users will not be allowed to create an account using any of the usernames below</Typography>
-        <TextField placeholder="Search ..." />
-        <UsernameTable {...props} />
-      </Paper>
-    </Container>
-  </Layout>
-)
+const RestrictedUsernames = props => {
+  const classes = useStyles()
+
+  return (
+    <Layout {...props}>
+      <Container maxWidth='lg'>
+        <Paper elevation={3} className={classes.paper}>
+          <Typography component="h1" variant="h4">Restricted Usernames</Typography>
+          <Typography color="textSecondary" gutterBottom>Users will not be allowed to create an account using any of the usernames below</Typography>
+          <TextField placeholder="Search ..." />
+          <UsernameTable {...props} />
+        </Paper>
+      </Container>
+    </Layout>
+  )
+}
 
 const UsernameTable = props => (
   <TableContainer component={Paper}>

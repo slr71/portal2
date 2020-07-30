@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import { Layout, DateSpan } from '../../components'
 import { apiBaseUrl } from '../../config'
+import api from '../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -12,18 +13,22 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const AccessRequests = props => (
-  <Layout {...props}>
-    <Container maxWidth='lg'>
-      <Paper elevation={3} className={useStyles().paper}>
-        <Typography component="h1" variant="h4">Access Requests</Typography>
-        <Typography color="textSecondary" gutterBottom>Search across username, first name, last name, institution, department, country, region and research area</Typography>
-        <TextField placeholder="Search ..." />
-        <RequestTable {...props} />
-      </Paper>
-    </Container>
-  </Layout>
-)
+const AccessRequests = props => {
+  const classes = useStyles()
+
+  return (
+    <Layout {...props}>
+      <Container maxWidth='lg'>
+        <Paper elevation={3} className={classes.paper}>
+          <Typography component="h1" variant="h4">Access Requests</Typography>
+          <Typography color="textSecondary" gutterBottom>Search across username, first name, last name, institution, department, country, region and research area</Typography>
+          <TextField placeholder="Search ..." />
+          <RequestTable {...props} />
+        </Paper>
+      </Container>
+    </Layout>
+  )
+}
 
 const RequestTable = props => {
   const [page, setPage] = React.useState(0)
@@ -96,10 +101,9 @@ const RequestTable = props => {
 
 export async function getServerSideProps(context) {
   //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
+  const user = await api.user()
 
-  res = await fetchRequests()
+  const res = await fetchRequests()
   const { count, results } = await res.json()
 
   return {

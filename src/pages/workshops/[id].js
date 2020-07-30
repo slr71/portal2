@@ -1,9 +1,8 @@
-import fetch from 'isomorphic-unfetch'
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Box, Divider, Typography, Button, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@material-ui/core'
+import { Container, Paper, Grid, Box, Divider, Typography, Button, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
 import Layout from '../../components/Layout.js'
-import { apiBaseUrl } from '../../config.json'
+import api from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -14,6 +13,22 @@ const useStyles = makeStyles((theme) => ({
 const Workshop = props => {
   const workshop = props.workshop
   const classes = useStyles()
+
+  const [dialogOpen, setDialogOpen] = React.useState(false)
+
+  const handleOpenDialog = () => {
+    setDialogOpen(true)
+  }
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false)
+  }
+
+  const handleSubmit = async () => {
+    setDialogOpen(false)
+    const response = await api.createWorkshopRequest(workshop.id)
+    console.log(response)
+  }
 
   return ( //FIXME break into pieces
     <Layout {...props}>
@@ -27,7 +42,7 @@ const Workshop = props => {
                 </Box>
               </Grid>
               <Grid item>
-                <Button variant="contained" color="primary" size="medium">ENROLL</Button>
+                <Button variant="contained" color="primary" size="medium" onClick={handleOpenDialog}>ENROLL</Button>
               </Grid>
               <Grid item xs={12}>
                 <Box>
@@ -64,7 +79,49 @@ const Workshop = props => {
           </Grid>
         </Paper>
       </Container>
+      <RequestEnrollmentDialog 
+        open={dialogOpen}
+        workshop={workshop}
+        handleClose={handleCloseDialog}
+        handleSubmit={handleSubmit}
+      />
     </Layout>
+  )
+}
+
+const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) => {
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth={true} aria-labelledby="form-dialog-title">
+      <DialogTitle id="form-dialog-title">Request Access</DialogTitle>
+      <DialogContent>
+        <div style={{ fontSize: '16px', color: 'rgba(0, 0, 0, 0.6)' }}>
+          <p>
+            Clicking <strong>Enroll</strong> will submit a request to be enrolled in the workshop.
+            Upon enrollment, you will automatically be granted access to all services the workshop
+            will be using.
+          </p>
+          <p>
+            <strong>If you are in the list of pre-approved participants</strong>, this will happen
+            immediately, and you will recieve an email notifying you of your enrollment.
+          </p>
+          <p>
+            <strong>If you have not been pre-approved</strong>, a request will be created, and
+            the instructor will be emailed for manual approval.
+          </p>
+          <p>
+            Would you like to enroll in the <strong>{workshop.title}</strong> workshop?
+          </p>
+        </div>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color="primary">
+          Cancel
+        </Button>
+        <Button onClick={handleClose} color="primary" onClick={handleSubmit}>
+          Submit
+        </Button>
+      </DialogActions>
+    </Dialog>
   )
 }
 
@@ -72,11 +129,8 @@ export async function getServerSideProps(context) {
   const { id } = context.query
 
   //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
-
-  res = await fetch(apiBaseUrl + `/workshops/${id}`)
-  const workshop = await res.json()
+  const user = await api.user()
+  const workshop = await api.workshop(id)
 
   return { props: { user, workshop } }
 }

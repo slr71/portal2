@@ -1,9 +1,8 @@
-import fetch from 'isomorphic-unfetch'
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Divider, Paper, List, ListItem, Typography } from '@material-ui/core'
+import { Container, Box, Paper, List, ListItem, Typography } from '@material-ui/core'
 import { Layout, FormStepper, FormField, FormControls } from '../../components'
-import { apiBaseUrl } from '../../config.json'
+import api from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -12,7 +11,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const Request = props => {
-  const request = props.request
+  const form = props.form
   const classes = useStyles()
 
   const [activeStep, setActiveStep] = React.useState(0)
@@ -32,22 +31,21 @@ const Request = props => {
       <Container maxWidth='md'>
         <Paper elevation={3} className={classes.paper}>
           <Box>
-            <Typography component="h1" variant="h4" gutterBottom>{request.name}</Typography>
-            <Typography color="textSecondary" gutterBottom>{request.description}</Typography>
-            <Divider />
-            {request.explanation !== request.description ? (
+            <Typography component="h1" variant="h4" gutterBottom>{form.name}</Typography>
+            <Typography color="textSecondary" gutterBottom>{form.description}</Typography>
+            {form.explanation !== form.description ? (
               <Typography color="textSecondary">
                 <Markdown>
-                  {request.explanation}
+                  {form.explanation}
                 </Markdown>
               </Typography>
             ) : (
               <></>
             )}
           </Box>
-          {request.sections.length > 1 ? <FormStepper activeStep={activeStep} steps={request.sections}/> : <></>}
+          {form.sections.length > 1 ? <FormStepper activeStep={activeStep} steps={form.sections}/> : <></>}
           <List>
-            {request.sections[activeStep].fields.map(field => (
+            {form.sections[activeStep].fields.map(field => (
               <ListItem>
                 <FormField {...field} changeHandler={handleChange}/>
               </ListItem>
@@ -56,7 +54,7 @@ const Request = props => {
           <Box display="flex" justifyContent="flex-end">
             <FormControls 
               activeStep={activeStep} 
-              numSteps={request.sections.length} 
+              numSteps={form.sections.length} 
               nextHandler={handleNext}
               backHandler={handleBack}
             />
@@ -71,13 +69,10 @@ export async function getServerSideProps(context) {
   const { id } = context.query
 
   //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
+  const user = await api.user()
+  const form = await api.form(id)
 
-  res = await fetch(apiBaseUrl + `/requests/${id}`)
-  const request = await res.json()
-
-  return { props: { user, request } }
+  return { props: { user, form } }
 }
 
 export default Request

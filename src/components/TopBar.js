@@ -51,12 +51,13 @@ const BreadcrumbsMenu = () => {
 }
 
 const TopBar = props => {
-  const menuItem = menuItems.filter(item => item.label === props.title)[0]
+  const classes = useStyles()
+  const menuItem = menuItems.find(item => item.label === props.title)
 
   return (
-    <Box display="flex" p={1} className={useStyles().box}>
+    <Box display="flex" p={1} className={classes.box}>
       {menuItem && menuItem.icon}
-      <Typography className={useStyles().title}>{props.title}</Typography>
+      <Typography className={classes.title}>{props.title}</Typography>
       {/* {menuItem && menuItem.items ? <TabMenu items={menuItem.items}/> : <></>} */}
       <BreadcrumbsMenu />
     </Box>

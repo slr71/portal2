@@ -1,64 +1,91 @@
-import fetch from 'isomorphic-unfetch'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Typography, Button, Card, CardHeader, CardContent, CardActions, Divider } from '@material-ui/core'
+import Markdown from 'markdown-to-jsx'
+import { Container, Grid, Box, Typography, Button, Card, CardHeader, CardContent, CardActions, Divider, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@material-ui/core'
+import { Person as PersonIcon } from '@material-ui/icons'
 import { Layout, User } from '../../../components'
-import { apiBaseUrl } from '../../../config.json'
+import api from '../../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   box: {
     marginBottom: '2em'
+  },
+  divider: {
+    marginTop: '1em',
+    marginBottom: '1em'
   }
 }))
 
-const AccessRequest = props => (
-  <Layout {...props}>
-    <Container maxWidth='lg'>
-        <h1>Access Request</h1>
-        <Grid container spacing={4}>
-          <Grid item xs={6}>
-            <User 
-              user={props.request.user}
-              institution research
-            />
-            <QuestionAnswer question={props.request.question} answer={props.request.answer} />
-          </Grid>
-          <Grid item xs={6}>
-            <Actions {...props} />
-            <RequestHistory {...props} />
-            <Card className={useStyles().box}>
-              <CardHeader
-                title="Conversations"
-                subheader="TODO"
-              />
-            </Card>
-          </Grid>
-        </Grid>
-    </Container>
-  </Layout>
-)
+const AccessRequest = props => {
+  const request = props.request
+  const classes = useStyles()
 
-const QuestionAnswer = props => (
-  <Card className={useStyles().box}>
-    <CardHeader
-      title="Questions"
-      // subheader={props.subtitle}
-      />
-    <CardContent>
-      {props.question ?
-        <div>
-            <Typography>{props.question.question}</Typography>
-            <Typography>{props.answer.value_text}</Typography>
-        </div>
-        : <Typography>None</Typography>
-      }
-    </CardContent>
-  </Card>
-)
+  return (
+    <Layout {...props}>
+      <Container maxWidth='lg'>
+          <h1>Access Request</h1>
+          <Grid container spacing={4}>
+            <Grid item xs={6}>
+              <User 
+                user={props.request.user}
+                institution research
+              />
+              <Questions questions={request.service.questions} answers={request.answers} />
+            </Grid>
+            <Grid item xs={6}>
+              <Actions {...props} />
+              <History {...props} />
+              <Conversations {...props} />
+            </Grid>
+          </Grid>
+      </Container>
+    </Layout>
+  )
+}
+
+const Questions = ({ questions, answers }) => {
+  const classes = useStyles()
+
+  const answersByQuestionId = {}
+  answers.forEach(a => answersByQuestionId[a.access_request_question_id] = a)
+
+  return (
+    <Card className={classes.box}>
+      <CardHeader title="Questions" />
+      <CardContent>
+        <List>
+          {questions.map(question => (
+            <ListItem>
+              <ListItemText
+                primary={question.question}
+                secondary={question.id in answersByQuestionId ? answersByQuestionId[question.id].value_text : '<No answer>'}
+              />
+            </ListItem>
+          ))}
+        </List>
+      </CardContent>
+    </Card>
+  )
+}
 
 const Actions = props => {
-  const approveButton = <Button color="primary" size="small">APPROVE</Button>
-  const denyButton = <Button color="secondary" size="small">DENY</Button>
+  const user = props.user
+  const request = props.request
+  const classes = useStyles()
+
+  const handleApprove = async () => {
+    const response = await api.updateServiceRequest(request.service.id, 'approved', 'Request approved by ' + user.username)
+    console.log(response.data)
+    props.request = response.data
+  }
+
+  const handleDeny = async () => {
+    const response = await api.updateServiceRequest(request.service.id, 'denied', 'Request denied by ' + user.username)
+    console.log(response.data)
+  }
+
+  const approveButton = <Button key="approve" color="primary" size="medium" onClick={handleApprove}>APPROVE</Button>
+  const denyButton = <Button key="deny" color="secondary" size="medium" onClick={handleDeny}>DENY</Button>
 
   let buttons, text
   switch (props.request.status) {
@@ -67,11 +94,11 @@ const Actions = props => {
       break
 
     case "approved":
-      text = 'User has been approved for access, but access has not yet been granted. This is due to one of two things; either this statement is inaccurate, and a product of missing data from the migration, or this request is currently being processed, and the state of this request should change to "granted" shortly.'
+      text = 'User has been approved for access, but access has not yet been granted. The request is currently being processed and should change to "granted" shortly.'
       break
 
     case "granted":
-      text = 'No actions can be performed on requests that have been granted.'
+      text = 'No further actions can be performed on requests that have been granted.'
       break
 
     case "denied":
@@ -80,7 +107,7 @@ const Actions = props => {
   }
 
   return (
-    <Card className={useStyles().box}>
+    <Card className={classes.box}>
       <CardHeader
         title="Actions"
         // subheader={props.subtitle}
@@ -100,33 +127,84 @@ const Actions = props => {
   )
 }
 
-const RequestHistory = props => (
-  <Card className={useStyles().box}>
-    <CardHeader
-      title="History"
-      // subheader={props.subtitle}
-    />
-    <CardContent>
-      {props.request.logs.map(log => (
-        <React.Fragment key={log.id}>
-          <Typography>{log.message}</Typography>
-          <Typography>{log.created_at}</Typography>
-          <Divider />
-        </React.Fragment>
-      ))}
-    </CardContent>
-  </Card>
-)
+const History = props => {
+  const logs = props.request.logs
+  const classes = useStyles()
+
+  return (
+    <Card className={classes.box}>
+      <CardHeader
+        title="History"
+        // subheader={props.subtitle}
+      />
+      <CardContent>
+        {logs.map((log, i) => (
+          <Box key={log.id}>
+            <Typography>{log.message}</Typography>
+            <Typography variant='subtitle2' color='textSecondary'>{log.created_at}</Typography>
+            {i == logs.length - 1 ? <></> : <Divider className={classes.divider} />}
+          </Box>
+        ))}
+      </CardContent>
+    </Card>
+  )
+}
+
+const Conversations = props => {
+  const conversation = props.request.conversation
+  const classes = useStyles()
+
+  return (
+    <Card className={classes.box}>
+      <CardHeader title="Conversations" />
+      <CardContent>
+        <Conversation conversation={conversation} />
+      </CardContent>
+    </Card>
+  )
+}
+
+const Conversation = props => {
+  const conversation = props.conversation
+
+  return (
+    <List>
+      <ConversationPart part={conversation.source} />
+      {conversation.parts.map(part => (<ConversationPart key={part.id} part={part} />))}
+    </List>
+  )
+}
+
+const ConversationPart = props => {
+  const part = props.part
+
+  let content
+  if (part.part_type && part.part_type == 'assignment')
+    content = `Assigned to ${part.assigned_to.id} (${part.assigned_to.type})`
+  else // assume part_type is "note" or "comment"
+    content = (<Markdown>{part.body}</Markdown>)
+
+  return (
+    <ListItem alignItems="flex-start">
+      <ListItemAvatar>
+        <Avatar>
+          <PersonIcon />
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText
+        primary={`${part.author.name} (${part.author.type})`}
+        secondary={content}
+      />
+    </ListItem>
+  )
+}
 
 export async function getServerSideProps(context) {
   const { id } = context.query
 
   //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
-
-  res = await fetch(apiBaseUrl + `/services/requests/${id}`)
-  const request = await res.json()
+  const user = await api.user()
+  const request = await api.serviceRequest(id)
 
   return { props: { user, request } }
 }

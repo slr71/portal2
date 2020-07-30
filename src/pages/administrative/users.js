@@ -12,19 +12,23 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const Users = props => (
-  <Layout {...props}>
-    <Container maxWidth='lg'>
-      <Paper elevation={3} className={useStyles().paper}>
-        <Box display="flex">
-          <Typography component="h1" variant="h4" gutterBottom>Users</Typography>
-          <TextField placeholder="Search ..." />
-        </Box>
-        <UserTable {...props} />
-      </Paper>
-    </Container>
-  </Layout>
-)
+const Users = props => {
+  const classes = useStyles()
+
+  return (
+    <Layout {...props}>
+      <Container maxWidth='lg'>
+        <Paper elevation={3} className={classes.paper}>
+          <Box display="flex">
+            <Typography component="h1" variant="h4" gutterBottom>Users</Typography>
+            <TextField placeholder="Search ..." />
+          </Box>
+          <UserTable {...props} />
+        </Paper>
+      </Container>
+    </Layout>
+  )
+}
 
 const UserTable = props => {
   const [page, setPage] = React.useState(0)
