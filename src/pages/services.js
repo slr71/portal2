@@ -68,7 +68,7 @@ function ServiceGrid(props) {
   return (
     <Grid container spacing={4}>
       {services.map(service =>
-        <Grid item xs={4} key={service.id}>
+        <Grid item xs={12} sm={6} md={3} lg={4} xl={2} key={service.id}>
           <Service service={service} user={user} />
         </Grid>
       )}
