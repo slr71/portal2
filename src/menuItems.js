@@ -56,7 +56,7 @@ const menuItems = [
   },
   {
     label: "Administrative",
-    icon: <LockIcon />,
+    icon: <LockIcon fontSize="large" />,
     path: "/administrative",
     restricted: true,
     items: [
