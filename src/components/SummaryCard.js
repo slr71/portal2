@@ -8,9 +8,9 @@ const SummaryCard = ({ title, subtitle, description, iconUrl, actionLabel }) => 
       subheader={subtitle}
     />
     <CardContent>
-    <Typography variant="body2" color="textSecondary" component="p">
-      {description}
-    </Typography>
+      <Typography variant="body2" color="textSecondary" component="p">
+        {description}
+      </Typography>
     </CardContent>
     <CardActions disableSpacing>
     {actionLabel}
