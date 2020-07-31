@@ -2,7 +2,7 @@ import fetch from 'isomorphic-unfetch'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Card, CardHeader, CardContent, FormControlLabel, TextField, Checkbox } from '@material-ui/core'
 import { Layout, User } from '../../../components'
-import { apiBaseUrl } from '../../../config.json'
+import { apiBaseUrl } from '../../../config'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({

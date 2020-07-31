@@ -2,7 +2,7 @@ import fetch from 'isomorphic-unfetch'
 import PropTypes from 'prop-types';
 import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, FormControlLabel, Checkbox, makeStyles } from '@material-ui/core'
 import { Layout } from '../../../components'
-import { apiBaseUrl } from '../../../config.json'
+import { apiBaseUrl } from '../../../config'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
