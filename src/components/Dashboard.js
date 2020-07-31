@@ -156,7 +156,7 @@ export default function Dashboard(props) {
           </IconButton>
         </div>
         <Divider />
-        <SideBar open={open} isStaff={props.user.is_staff}/>
+        <SideBar open={open} isStaff={props.user && props.user.is_staff}/>
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
