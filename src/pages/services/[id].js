@@ -1,13 +1,14 @@
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Link, Box, Divider, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
+import { spacing } from '@material-ui/system';
+import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton } from '../../components'
 import api from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   },
 }))
 
@@ -43,10 +44,12 @@ const Service = props => {
       <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper}>
           <Grid container spacing={4}>
-            <Grid container item xs={12} justify="space-between">
-              <Grid item>
-                <Box display='flex'>
+            <Grid container item xs={12}  justify="space-between">
+              <Grid item wrap="wrap">
+                <Box display='flex' flexWrap="wrap" alignSelf="flex-end" >
+                <Box mr={2}>
                   <Avatar alt={service.name} src={service.icon_url} />
+                  </Box>
                   <Typography component="h1" variant="h4" gutterBottom>{service.name}</Typography>
                 </Box>
               </Grid>
@@ -54,8 +57,8 @@ const Service = props => {
                 <ServiceActionButton {...props} requestAccessHandler={handleOpenDialog}/>
               </Grid>
               <Grid item xs={12}>
-                <Box>
-                  <Typography color="textSecondary">{service.description}</Typography>
+                <Box my={1}>
+                  <Typography color="textPrimary">{service.description}</Typography>
                   <Link href={service.service_url}>{service.service_url}</Link>
                 </Box>
               </Grid>
@@ -63,7 +66,7 @@ const Service = props => {
             <Grid item xs={12}>
               <Box>
                 <Typography component="div" variant="h5">Details</Typography>
-                <Typography color="textSecondary"><Markdown>{service.about}</Markdown></Typography>
+                <Typography color="textPrimary"><Markdown>{service.about}</Markdown></Typography>
               </Box>
             </Grid>
             <Grid item xs={12}>
