@@ -161,7 +161,7 @@ export default function Dashboard(props) {
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <TopBar title={props.title} />
-        <Container maxWidth="auto" className={classes.container}>
+        <Container maxWidth="lg" className={classes.container}>
           {props.children}
           <Box pt={10}>
             <Copyright />
