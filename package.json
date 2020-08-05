@@ -14,7 +14,8 @@
   "license": "ISC",
   "nodemonConfig": {
     "watch": [
-      "src/server"
+      "src/",
+      "config.json"
     ],
     "ext": "js"
   },
@@ -35,12 +36,14 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
+    "express-winston": "^4.0.5",
     "isomorphic-unfetch": "^3.0.0",
     "keycloak-connect": "^9.0.3",
     "markdown-to-jsx": "^6.11.1",
     "next": "^9.4.0",
     "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react-dom": "^16.13.1",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "nodemon": "^2.0.3",
