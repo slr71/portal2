@@ -4,6 +4,9 @@ const session = require('express-session')
 const pgsimple = require('connect-pg-simple')
 const Keycloak = require('keycloak-connect')
 const next = require('next')
+const { getUserToken } = require('./auth')
+const { PortalApi } = require('./api')
+const { requestLogger, errorLogger } = require('./logging')
 const config = require('./config.json')
 
 
@@ -35,12 +38,15 @@ app.prepare()
     .then(() => {
         const server = express()
 
+        // Handle CORS requests
         server.use(cors())
 
-        // server.enable("trust proxy")
+        // Setup Express behind SSL proxy: https://expressjs.com/en/guide/behind-proxies.html 
+        server.set('trust proxy', true);
 
-        // server.use(errorLogger)
-        // server.use(requestLogger)
+        // Setup logging
+        server.use(errorLogger)
+        server.use(requestLogger)
 
         // Configure sessions
         server.use(
@@ -55,25 +61,27 @@ app.prepare()
             })
         )
 
+        // Handle Keycloak authorization flow
         server.use(keycloakClient.middleware())
 
-        server.get("/login", keycloakClient.protect(), (req, res) => {
-            const accessToken = ( req && req.kauth && req.kauth.grant ? req.kauth.grant.access_token : null )
-            console.log('token:', accessToken)
-
-            app.render(req, res, "/loggedin")
+        server.get("/login", keycloakClient.protect(), (req, res, next) => {
+            console.log('/login:', req.params)
+            res.redirect("/services")
         })
 
-        // server.get("/login/*", keycloakClient.protect(), (req, res) => {
-        //     res.redirect(req.url.replace(/^\/login/, ""))
-        // })
-
-        // server.get("/users", keycloakClient.checkSso(), (req, res) => {
-        //     app.render(req, res, "/users")
-        // })
-
-        server.get("/", (req, res) => {
-          app.render(req, res, "/services")
+        server.use(async (req, res, next) => {
+            const token = getUserToken(req)
+            if (token) {
+                if (!req.user) {
+                    req.api = new PortalApi({ baseUrl: config.apiBaseUrl, token: token.token })
+                    req.user = await req.api.user() //(null, { headers: { 'Authorization': `Bearer ${token}` }})
+                    console.log('user:', req.user.username)
+                    next()
+                }
+            }
+            else {
+                res.redirect("/login")
+            }
         })
 
         server.get("*", (req, res) => {
@@ -82,7 +90,7 @@ app.prepare()
 
         server.listen(config.port, (err) => {
             if (err) throw err
-            console.log(`Ready on http://localhost:${config.port}`)
+            console.log(`Ready on port ${config.port}`)
         })
     })
     .catch(exception => {
