@@ -25,9 +25,9 @@ const Support = props => {
   )
 }
 
-export async function getServerSideProps() {
+export async function getServerSideProps({ req }) {
   //FIXME move user request into Express middleware
-  const user = await api.user()
+  const user = await req.api.user()
 
   return { props: { user } }
 }

@@ -3,8 +3,6 @@ import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import { Layout, DateSpan } from '../../components'
-import { apiBaseUrl } from '../../config'
-import api from '../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -99,12 +97,10 @@ const RequestTable = props => {
   )
 }
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps({ req }) {
   //FIXME move user request into Express middleware
-  const user = await api.user()
-
-  const res = await fetchRequests()
-  const { count, results } = await res.json()
+  const user = await req.api.user()
+  const { count, results } = await req.api.serviceRequests()
 
   return {
     props: {
@@ -113,16 +109,6 @@ export async function getServerSideProps(context) {
       results
     }
   }
-}
-
-const fetchRequests = (offset, limit) => {
-  const opts = { offset, limit }
-  const queryStr = Object.keys(opts)
-    .filter(key => opts[key])
-    .map(key => key + '=' + opts[key])
-    .reduce((acc, s) => acc + '&' + s, '')
-
-  return fetch(apiBaseUrl + `/services/requests?${queryStr}`)
 }
 
 export default AccessRequests

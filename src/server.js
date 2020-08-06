@@ -9,12 +9,10 @@ const { PortalApi } = require('./api')
 const { requestLogger, errorLogger } = require('./logging')
 const config = require('./config.json')
 
-
 const app = next({
     dev: true //TODO load from ENV
 })
 const nextHandler = app.getRequestHandler()
-
 
 // Configure the session store
 const pgSession = pgsimple(session)
@@ -24,7 +22,6 @@ const sessionStore = new pgSession({
     ttl: config.session.ttl
 })
 
-
 // Configure the Keycloak client
 const keycloakClient = new Keycloak(
     {
@@ -32,7 +29,6 @@ const keycloakClient = new Keycloak(
     },
     config.keycloak
 )
-
 
 app.prepare()
     .then(() => {
@@ -42,6 +38,7 @@ app.prepare()
         server.use(cors())
 
         // Setup Express behind SSL proxy: https://expressjs.com/en/guide/behind-proxies.html 
+        // Also set "proxy_set_header X-Forwarded-Proto https;" in NGINX config
         server.set('trust proxy', true);
 
         // Setup logging
@@ -74,8 +71,8 @@ app.prepare()
             if (token) {
                 if (!req.user) {
                     req.api = new PortalApi({ baseUrl: config.apiBaseUrl, token: token.token })
-                    req.user = await req.api.user() //(null, { headers: { 'Authorization': `Bearer ${token}` }})
-                    console.log('user:', req.user.username)
+                    //req.user = await req.api.user() //(null, { headers: { 'Authorization': `Bearer ${token}` }})
+                    //console.log('user:', req.user.username)
                     next()
                 }
             }

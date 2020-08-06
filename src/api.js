@@ -17,7 +17,6 @@ class PortalApi {
   async user(id) {
     if (!id)
       id = 'mine'
-    console.log('api:user:', id)
     const res = await this.axios.get(`/users/${id}`)
     return res.data
   }
@@ -33,47 +32,47 @@ class PortalApi {
   }
 
   async serviceRequests() {
-    const res = await this.axios.get(`${this.baseUrl}/services/requests`)
+    const res = await this.axios.get(`/services/requests`)
     return res.data
   }
 
   async serviceRequest(id) {
-    const res = await this.axios.get(`${this.baseUrl}/services/requests/${id}`)
+    const res = await this.axios.get(`/services/requests/${id}`)
     return res.data
   }
 
   async createServiceRequest(id, answers) {
-    const res = await this.axios.put(`${this.baseUrl}/services/${id}/requests`, { answers })
+    const res = await this.axios.put(`/services/${id}/requests`, { answers })
     return res
   }
 
   async updateServiceRequest(id, status, message) {
-    const res = await this.axios.post(`${this.baseUrl}/services/${id}/requests`, { status, message })
+    const res = await this.axios.post(`/services/${id}/requests`, { status, message })
     return res
   }
 
   async workshops() {
-    const res = await this.axios.get(`${this.baseUrl}/workshops`)
+    const res = await this.axios.get(`/workshops`)
     return res.data
   }
 
   async workshop(id) { 
-    const res = await this.axios.get(`${this.baseUrl}/workshops/${id}`)
+    const res = await this.axios.get(`/workshops/${id}`)
     return res.data
   }
 
   async createWorkshopRequest(id) {
-    const res = await this.axios.put(`${this.baseUrl}/workshops/${id}/requests`)
+    const res = await this.axios.put(`/workshops/${id}/requests`)
     return res
   }
 
   async forms() {
-    const res = await this.axios.get(`${this.baseUrl}/forms`)
+    const res = await this.axios.get(`/forms`)
     return res.data
   }
 
   async form(id) { // id or name
-    const res = await this.axios.get(`${this.baseUrl}/forms/${id}`)
+    const res = await this.axios.get(`/forms/${id}`)
     return res.data
   }
 }

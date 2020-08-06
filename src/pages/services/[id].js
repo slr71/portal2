@@ -1,9 +1,8 @@
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Link, Box, Divider, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
+import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton } from '../../components'
-import api from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -168,14 +167,12 @@ const RequestAccessDialog = ({ question, open, handleChange, handleClose, handle
   )
 }
 
-Service.getInitialProps = async (context) => {
-  const { id } = context.query
-
+Service.getInitialProps = async ({req, query}) => {
   //FIXME move user request into Express middleware
-  const user = await api.user()
-  const service = await api.service(id)
+  const user = await req.api.user()
+  const service = await req.api.service(query.id)
 
-  return { user, service }
+  return { api: req.api, user, service }
 }
 
 export default Service

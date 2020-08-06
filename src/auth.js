@@ -2,15 +2,15 @@
 
 const getUserToken = (req) => {
   const keycloakToken = (req && req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token : null) //req?.kauth?.grant?.access_token;
-  const sessionToken = (req && req.session && req.session['keycloak-token'] ? req.session['keycloak-token'] : null)
+  // const sessionToken = (req && req.session && req.session['keycloak-token'] ? req.session['keycloak-token'] : null)
 
-  console.log('keycloak token:', keycloakToken)
-  console.log('session token:', sessionToken)
+  console.log('keycloak token:', keycloakToken != null)
+  // console.log('session token:', sessionToken != null)
 
   if (keycloakToken) 
     return keycloakToken
-  if (sessionToken)
-    return sessionToken
+  // if (sessionToken) // not sure this is encessary, keycloak middleware may use session token automatically
+  //   return sessionToken
   
   return null
 }

@@ -3,7 +3,6 @@ import Markdown from 'markdown-to-jsx'
 import { Container, Grid, Box, Typography, Button, Card, CardHeader, CardContent, CardActions, Divider, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@material-ui/core'
 import { Person as PersonIcon } from '@material-ui/icons'
 import { Layout, User } from '../../../components'
-import api from '../../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -74,13 +73,13 @@ const Actions = props => {
   const classes = useStyles()
 
   const handleApprove = async () => {
-    const response = await api.updateServiceRequest(request.service.id, 'approved', 'Request approved by ' + user.username)
+    const response = await props.api.updateServiceRequest(request.service.id, 'approved', 'Request approved by ' + user.username)
     console.log(response.data)
     props.request = response.data
   }
 
   const handleDeny = async () => {
-    const response = await api.updateServiceRequest(request.service.id, 'denied', 'Request denied by ' + user.username)
+    const response = await props.api.updateServiceRequest(request.service.id, 'denied', 'Request denied by ' + user.username)
     console.log(response.data)
   }
 
@@ -199,14 +198,12 @@ const ConversationPart = props => {
   )
 }
 
-export async function getServerSideProps(context) {
-  const { id } = context.query
-
+export async function getServerSideProps({ req, query }) {
   //FIXME move user request into Express middleware
-  const user = await api.user()
-  const request = await api.serviceRequest(id)
+  const user = await req.api.user()
+  const request = await req.api.serviceRequest(query.id)
 
-  return { props: { user, request } }
+  return { props: { api: req.api, user, request } }
 }
 
 export default AccessRequest

@@ -2,7 +2,6 @@ import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, List, ListItem, Typography } from '@material-ui/core'
 import { Layout, FormStepper, FormField, FormControls } from '../../components'
-import api from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -65,12 +64,10 @@ const Request = props => {
   )
 }
 
-export async function getServerSideProps(context) {
-  const { id } = context.query
-
+export async function getServerSideProps({ req, query }) {
   //FIXME move user request into Express middleware
-  const user = await api.user()
-  const form = await api.form(id)
+  const user = await req.api.user()
+  const form = await req.api.form(query.id)
 
   return { props: { user, form } }
 }

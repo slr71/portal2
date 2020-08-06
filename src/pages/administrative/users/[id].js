@@ -13,12 +13,10 @@ const User = props => (
   </Layout>
 )
 
-export async function getServerSideProps(context) {
-  const { id } = context.query
-
+export async function getServerSideProps({ req, query }) {
   //FIXME move user request into Express middleware
-  const user = await api.user()
-  const targetUser = await api.user(id)
+  const user = await req.api.user()
+  const targetUser = await req.api.user(query.id)
 
   return { props: { user, targetUser } }
 }
