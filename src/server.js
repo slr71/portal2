@@ -9,9 +9,7 @@ const { PortalApi } = require('./api')
 const { requestLogger, errorLogger } = require('./logging')
 const config = require('./config.json')
 
-const app = next({
-    dev: true //TODO load from ENV
-})
+const app = next({ dev: process.env.NODE_ENV != 'production' })
 const nextHandler = app.getRequestHandler()
 
 // Configure the session store
@@ -34,7 +32,7 @@ app.prepare()
     .then(() => {
         const server = express()
 
-        // Handle CORS requests
+        // Support CORS requests
         server.use(cors())
 
         // Setup Express behind SSL proxy: https://expressjs.com/en/guide/behind-proxies.html 
