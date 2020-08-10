@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "build": "next build",
-    "start": "next start",
+    "start": "NODE_ENV=production node src/server.js",
     "format": "prettier --write 'src/**/*.js'"
   },
   "keywords": [],
