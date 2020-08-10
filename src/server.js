@@ -16,15 +16,14 @@ const nextHandler = app.getRequestHandler()
 const pgSession = pgsimple(session)
 const sessionStore = new pgSession({
     conString: config.db.connection,
-    tableName: config.db.table,
-    ttl: config.session.ttl
+    tableName: config.db.sessionTable,
+    ttl: config.session.ttl,
+    //cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
 })
 
 // Configure the Keycloak client
 const keycloakClient = new Keycloak(
-    {
-        store: sessionStore
-    },
+    { store: sessionStore },
     config.keycloak
 )
 
@@ -59,25 +58,33 @@ app.prepare()
         // Handle Keycloak authorization flow
         server.use(keycloakClient.middleware())
 
-        server.get("/login", keycloakClient.protect(), (req, res, next) => {
-            console.log('/login:', req.params)
-            res.redirect("/services")
-        })
+        // server.get("/login", keycloakClient.protect(), (req, res, next) => {
+        //     console.log('/login:', req.params)
+        // })
 
-        server.use(async (req, res, next) => {
+        // server.get("/login/*", keycloakClient.protect(), (req, res) => {
+        //     res.redirect(req.url.replace(/^\/login/, ""));
+        // });
+
+        server.use(keycloakClient.protect(), async (req, res, next) => {
             const token = getUserToken(req)
             if (token) {
-                if (!req.user) {
+                if (!req.api || req.api.token != token) {
                     req.api = new PortalApi({ baseUrl: config.apiBaseUrl, token: token.token })
-                    //req.user = await req.api.user() //(null, { headers: { 'Authorization': `Bearer ${token}` }})
+                    // if (!req.user)
+                    //     req.user = await req.api.user() //(null, { headers: { 'Authorization': `Bearer ${token}` }})
                     //console.log('user:', req.user.username)
                     next()
                 }
             }
-            else {
-                res.redirect("/login")
-            }
+            // else {
+            //     res.redirect("/login")
+            // }
         })
+
+        server.get("/", (req, res) => {
+            app.render(req, res, "/services");
+        });
 
         server.get("*", (req, res) => {
             return nextHandler(req, res)
