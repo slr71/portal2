@@ -79,12 +79,12 @@ const Service = ({ service }) => {
   )
 }
 
-Services.getInitialProps = async ({ req }) => {
+export async function getServerSideProps({ req }) {
   //FIXME move user request into Express middleware
   const user = await req.api.user()
   const services = await req.api.services()
 
-  return { user, services }
+  return { props: { user, services } }
 }
 
 export default Services

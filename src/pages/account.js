@@ -205,12 +205,12 @@ const forms = props => ([ // expects { user, properties }
   }
 ])
 
-Account.getInitialProps = async ({ req }) => {
+export async function getServerSideProps({ req }) {
   //FIXME move user request into Express middleware
   const user = await req.api.user()
   const properties = await req.api.userProperties()
 
-  return { user, properties }
+  return { props: { user, properties } }
 }
 
 export default Account
