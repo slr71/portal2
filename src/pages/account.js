@@ -1,8 +1,6 @@
-import fetch from 'isomorphic-unfetch'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, Grid, Switch, Typography, Divider } from '@material-ui/core'
 import { Layout, FormField } from '../components'
-import { apiBaseUrl } from '../config.json'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -207,17 +205,12 @@ const forms = props => ([ // expects { user, properties }
   }
 ])
 
-export async function getServerSideProps() {
+Account.getInitialProps = async ({ req }) => {
   //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
+  const user = await req.api.user()
+  const properties = await req.api.userProperties()
 
-  res = await fetch(apiBaseUrl + `/users/properties`)
-  const properties = await res.json()
-
-  return { 
-    props: { user, properties }
-  }
+  return { user, properties }
 }
 
 export default Account
