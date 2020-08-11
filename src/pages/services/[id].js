@@ -167,12 +167,12 @@ const RequestAccessDialog = ({ question, open, handleChange, handleClose, handle
   )
 }
 
-Service.getInitialProps = async ({req, query}) => {
+export async function getServerSideProps({ req, query }) {
   //FIXME move user request into Express middleware
   const user = await req.api.user()
   const service = await req.api.service(query.id)
 
-  return { api: req.api, user, service }
+  return { props: { api: req.api, user, service } }
 }
 
 export default Service
