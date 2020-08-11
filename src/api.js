@@ -17,7 +17,12 @@ class PortalApi {
   async user(id) {
     if (!id)
       id = 'mine'
-    const res = await this.axios.get(`/users/${id}`)
+    const res = await this.axios.get(`/users/${id}`) // FIXME conflict if username is "mine"
+    return res.data
+  }
+
+  async userProperties() {
+    const res = await this.axios.get(`/users/properties`) // FIXME conflict if username is "properties"
     return res.data
   }
 

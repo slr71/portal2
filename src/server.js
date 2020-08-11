@@ -31,16 +31,12 @@ app.prepare()
     .then(() => {
         const server = express()
 
-        // Support CORS requests
-        server.use(cors())
-
-        // Setup Express behind SSL proxy: https://expressjs.com/en/guide/behind-proxies.html 
-        // Also set "proxy_set_header X-Forwarded-Proto https;" in NGINX config
-        server.set('trust proxy', true);
-
         // Setup logging
         server.use(errorLogger)
         server.use(requestLogger)
+
+        // Support CORS requests
+        server.use(cors())
 
         // Configure sessions
         server.use(
@@ -55,16 +51,12 @@ app.prepare()
             })
         )
 
+        // Setup Express behind SSL proxy: https://expressjs.com/en/guide/behind-proxies.html 
+        // Also set "proxy_set_header X-Forwarded-Proto https;" in NGINX config
+        server.set('trust proxy', true);
+
         // Handle Keycloak authorization flow
         server.use(keycloakClient.middleware())
-
-        // server.get("/login", keycloakClient.protect(), (req, res, next) => {
-        //     console.log('/login:', req.params)
-        // })
-
-        // server.get("/login/*", keycloakClient.protect(), (req, res) => {
-        //     res.redirect(req.url.replace(/^\/login/, ""));
-        // });
 
         server.use(keycloakClient.protect(), async (req, res, next) => {
             const token = getUserToken(req)
@@ -77,13 +69,10 @@ app.prepare()
                     next()
                 }
             }
-            // else {
-            //     res.redirect("/login")
-            // }
         })
 
         server.get("/", (req, res) => {
-            app.render(req, res, "/services");
+            res.redirect("/services") //app.render(req, res, "/services")
         });
 
         server.get("*", (req, res) => {
