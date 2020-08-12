@@ -26,6 +26,11 @@ class PortalApi {
     return res.data
   }
 
+  async restrictedUsernames() {
+    const res = await this.axios.get(`/users/restricted`) // FIXME conflict if username is "properties"
+    return res.data
+  }
+
   async services() {
     const res = await this.axios.get(`/services`)
     return res.data
@@ -78,6 +83,11 @@ class PortalApi {
 
   async form(id) { // id or name
     const res = await this.axios.get(`/forms/${id}`)
+    return res.data
+  }
+
+  async formSubmission(id) {
+    const res = await this.axios.get(`/forms/submissions/${id}`)
     return res.data
   }
 }

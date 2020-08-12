@@ -1,6 +1,5 @@
 import { Container } from '@material-ui/core'
 import { Layout, User as UserComponent } from '../../../components'
-import api from '../../../api'
 
 const User = props => (
   <Layout {...props}>

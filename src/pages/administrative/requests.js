@@ -1,4 +1,3 @@
-import fetch from 'isomorphic-unfetch'
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'

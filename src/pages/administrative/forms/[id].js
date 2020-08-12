@@ -1,8 +1,6 @@
-import fetch from 'isomorphic-unfetch'
 import PropTypes from 'prop-types';
 import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, FormControlLabel, Checkbox, makeStyles } from '@material-ui/core'
 import { Layout } from '../../../components'
-import { apiBaseUrl } from '../../../config'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -128,15 +126,10 @@ const FormField = props => (
   </Box>
 )
 
-export async function getServerSideProps(context) {
-  const { id } = context.query
-
+export async function getServerSideProps({ req, query }) {
   //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
-
-  res = await fetch(apiBaseUrl + `/forms/${id}`)
-  const form = await res.json()
+  const user = await req.api.user()
+  const form = await req.api.forms(query.id)
 
   return { props: { user, form } }
 }
