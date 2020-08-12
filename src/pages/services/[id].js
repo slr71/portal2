@@ -29,7 +29,7 @@ const Service = props => {
 
   const handleSubmit = async () => {
     setDialogOpen(false)
-    const response = await api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }])
+    const response = await props.api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }])
     //console.log(response)
   }
 
