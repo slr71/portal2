@@ -4,7 +4,6 @@ import { spacing } from '@material-ui/system';
 import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton } from '../../components'
-import api from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -31,7 +30,7 @@ const Service = props => {
 
   const handleSubmit = async () => {
     setDialogOpen(false)
-    const response = await api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }])
+    const response = await props.api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }])
     //console.log(response)
   }
 
@@ -171,14 +170,12 @@ const RequestAccessDialog = ({ question, open, handleChange, handleClose, handle
   )
 }
 
-Service.getInitialProps = async (context) => {
-  const { id } = context.query
-
+export async function getServerSideProps({ req, query }) {
   //FIXME move user request into Express middleware
-  const user = await api.user()
-  const service = await api.service(id)
+  const user = await req.api.user()
+  const service = await req.api.service(query.id)
 
-  return { user, service }
+  return { props: { api: req.api, user, service } }
 }
 
 export default Service

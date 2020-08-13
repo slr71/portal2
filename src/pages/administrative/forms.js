@@ -1,10 +1,7 @@
-import fetch from 'isomorphic-unfetch'
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import { Layout } from '../../components'
-import api from '../../api'
-import { apiBaseUrl } from '../../config'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -49,11 +46,11 @@ const FormTable = props => (
   </TableContainer>
 )
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps({ req }) {
   //FIXME move user request into Express middleware
-  const user = await api.user()
+  const user = await req.api.user()
 
-  const res = await fetch(apiBaseUrl + `/forms`)
+  const res = await req.api.forms()
   const sections = await res.json()
   const forms = sections
     .map(s => s.forms)

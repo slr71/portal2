@@ -36,10 +36,10 @@ const Request = ({ form }) => (
   </Link>
 )
 
-export async function getServerSideProps() {
+export async function getServerSideProps({ req }) {
   //FIXME move user request into Express middleware
-  const user = await api.user()
-  const forms = await api.forms()
+  const user = await req.api.user()
+  const forms = await req.api.forms()
 
   return { props: { user, forms } }
 }

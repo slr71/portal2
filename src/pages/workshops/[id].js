@@ -2,7 +2,6 @@ import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Grid, Box, Divider, Typography, Button, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
 import Layout from '../../components/Layout.js'
-import api from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -26,7 +25,7 @@ const Workshop = props => {
 
   const handleSubmit = async () => {
     setDialogOpen(false)
-    const response = await api.createWorkshopRequest(workshop.id)
+    const response = await props.api.createWorkshopRequest(workshop.id)
     console.log(response)
   }
 
@@ -125,14 +124,12 @@ const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) 
   )
 }
 
-export async function getServerSideProps(context) {
-  const { id } = context.query
-
+export async function getServerSideProps({ req, query }) {
   //FIXME move user request into Express middleware
-  const user = await api.user()
-  const workshop = await api.workshop(id)
+  const user = await req.api.user()
+  const workshop = await req.api.workshop(query.id)
 
-  return { props: { user, workshop } }
+  return { props: { api: req.api, user, workshop } }
 }
 
 export default Workshop

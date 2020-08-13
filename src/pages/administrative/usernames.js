@@ -1,9 +1,7 @@
-import fetch from 'isomorphic-unfetch'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableRow, TableCell } from '@material-ui/core'
 import DeleteIcon from '@material-ui/icons/Delete';
 import Layout from '../../components/Layout'
-import { apiBaseUrl } from '../../config'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -48,13 +46,10 @@ const UsernameTable = props => (
   </TableContainer>
 )
 
-export async function getServerSideProps(context) {
+export async function getServerSideProps() {
   //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
-
-  res = await fetch(apiBaseUrl + `/users/restricted`)
-  const usernames = await res.json()
+  const user = await req.api.user()
+  const usernames = await req.api.restrictedUsernames()
 
   return {
     props: {

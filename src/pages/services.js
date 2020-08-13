@@ -1,6 +1,5 @@
 import { Link, Grid } from '@material-ui/core'
 import { Layout, SummaryCard } from '../components'
-import api from '../api'
 
 
 const Services = props => {
@@ -80,12 +79,12 @@ const Service = ({ service }) => {
   )
 }
 
-Services.getInitialProps = async (context) => {
+export async function getServerSideProps({ req }) {
   //FIXME move user request into Express middleware
-  const user = await api.user()
-  const services = await api.services()
+  const user = await req.api.user()
+  const services = await req.api.services()
 
-  return { user, services }
+  return { props: { user, services } }
 }
 
 export default Services

@@ -95,10 +95,10 @@ const Workshop = ({ workshop }) => (
   </Link>
 )
 
-export async function getServerSideProps() {
+export async function getServerSideProps({ req }) {
   //FIXME move user request into Express middleware
-  const user = await api.user()
-  const workshops = await api.workshops()
+  const user = await req.api.user()
+  const workshops = await req.api.workshops()
 
   return { props: { user, workshops } }
 }
