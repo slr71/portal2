@@ -45,8 +45,8 @@ class PortalAPI {
     return axios.request(options)
   }
   
-  async get(path) {
-    const res = await this.request({ method: 'get', url: `${config.apiBaseUrl}${path}` })
+  async get(path, params) { // params can contain optional "offset" & "limit" properties
+    const res = await this.request({ method: 'get', url: `${config.apiBaseUrl}${path}`, params })
     return res.data
   }
 
@@ -66,7 +66,9 @@ class PortalAPI {
     return await this.get(`/users/${id}`) 
   }
 
-  async services() { return await this.get(`/services`) }
+  async users(params) { return await this.get(`/users`, params) }
+
+  async services(params) { return await this.get(`/services`, params) }
 
   async service(id) { return await this.get(`/services/${id}`) }
 
@@ -74,7 +76,7 @@ class PortalAPI {
 
   async restrictedUsernames() { return await this.get(`/users/restricted`) } // FIXME conflict if username is "restricted"
 
-  async serviceRequests() { return await this.get(`/services/requests`) }
+  async serviceRequests(params) { return await this.get(`/services/requests`, params) }
 
   async serviceRequest(id) { return await this.get(`/services/requests/${id}`) }
 
@@ -91,6 +93,8 @@ class PortalAPI {
   async forms() { return await this.get (`/forms`) }
 
   async form(id) {  return await this.get(`/forms/${id}`) } // id or name
+
+  async formSubmissions(params) { return await this.get(`/forms/submissions`, params) }
 
   async formSubmission(id) { return await this.get(`/forms/submissions/${id}`) }
 }

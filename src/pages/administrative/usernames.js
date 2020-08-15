@@ -47,7 +47,7 @@ const UsernameTable = props => (
   </TableContainer>
 )
 
-export async function getServerSideProps() {
+export async function getServerSideProps({ req }) {
   const api = new PortalAPI({req})
   const user = await api.user() //FIXME move user request into React context
   const usernames = await api.restrictedUsernames()

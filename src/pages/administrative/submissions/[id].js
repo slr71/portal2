@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Card, CardHeader, CardContent, FormControlLabel, TextField, Checkbox } from '@material-ui/core'
 import { Layout, User } from '../../../components'
+import PortalAPI from '../../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({

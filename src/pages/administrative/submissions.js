@@ -3,7 +3,7 @@ import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import { Layout, DateSpan } from '../../components'
-import { apiBaseUrl } from '../../config'
+import PortalAPI from '../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -12,7 +12,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const FormRequests = props => {
+const FormSubmissions = props => {
   const classes = useStyles()
 
   return (
@@ -22,14 +22,14 @@ const FormRequests = props => {
           <Typography component="h1" variant="h4">Form Submissions</Typography>
           <Typography color="textSecondary" gutterBottom>Search across username, first name, last name, institution, department, country, region and research area</Typography>
           <TextField placeholder="Search ..." />
-          <FormRequestTable {...props} />
+          <FormSubmissionTable {...props} />
         </Paper>
       </Container>
     </Layout>
   )
 }
 
-const FormRequestTable = props => {
+const FormSubmissionTable = props => {
   const [page, setPage] = React.useState(0)
   const [rowsPerPage, setRowsPerPage] = React.useState(10)
   const [rows, setRows] = React.useState(props.results)
@@ -47,10 +47,10 @@ const FormRequestTable = props => {
   }
 
   const updateTable = async (page, rowsPerPage) => {
-    const res = await fetchFormRequests(page * rowsPerPage, rowsPerPage)
-    const { count, results } = await res.json()
-    setCount(count)
-    setRows(results)
+    // const res = await fetchFormRequests(page * rowsPerPage, rowsPerPage)
+    // const { count, results } = await res.json()
+    // setCount(count)
+    // setRows(results)
   }
 
   return (
@@ -96,13 +96,10 @@ const FormRequestTable = props => {
   )
 }
 
-export async function getServerSideProps(context) {
-  //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
-
-  res = await fetchFormRequests()
-  const { count, results } = await res.json()
+export async function getServerSideProps({ req }) {
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
+  const { count, results } = await api.formSubmissions()
 
   return {
     props: {
@@ -113,14 +110,4 @@ export async function getServerSideProps(context) {
   }
 }
 
-const fetchFormRequests = (offset, limit) => {
-  const opts = { offset, limit }
-  const queryStr = Object.keys(opts)
-    .filter(key => opts[key])
-    .map(key => key + '=' + opts[key])
-    .reduce((acc, s) => acc + '&' + s, '')
-
-  return fetch(apiBaseUrl + `/forms/submissions?${queryStr}`)
-}
-
-export default FormRequests
+export default FormSubmissions

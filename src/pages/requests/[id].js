@@ -10,7 +10,9 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const Request = ({ api, form }) => {
+const Request = (props) => {
+  const form = props.form
+
   const classes = useStyles()
 
   const [activeStep, setActiveStep] = React.useState(0)
@@ -77,4 +79,4 @@ export async function getServerSideProps({ req, query }) {
   return { props: { user, form } }
 }
 
-export default withAPI(Request)
+export default Request
