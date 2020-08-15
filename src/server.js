@@ -4,12 +4,12 @@ const session = require('express-session')
 const pgsimple = require('connect-pg-simple')
 const Keycloak = require('keycloak-connect')
 const next = require('next')
-const { getUserToken } = require('./auth')
-const { PortalApi } = require('./api')
 const { requestLogger, errorLogger } = require('./logging')
 const config = require('./config.json')
+const api = require('./api')
+const { getUserToken } = require('./auth')
 
-const app = next({ dev: process.env.NODE_ENV != 'production' })
+const app = next({ dev: process.env.NODE_ENV !== 'production' })
 const nextHandler = app.getRequestHandler()
 
 // Configure the session store
@@ -51,29 +51,19 @@ app.prepare()
             })
         )
 
-        // Setup Express behind SSL proxy: https://expressjs.com/en/guide/behind-proxies.html 
+        // Configure Express behind SSL proxy: https://expressjs.com/en/guide/behind-proxies.html 
         // Also set "proxy_set_header X-Forwarded-Proto https;" in NGINX config
-        server.set('trust proxy', true);
+        server.set('trust proxy', true)
 
         // Handle Keycloak authorization flow
         server.use(keycloakClient.middleware())
 
-        server.use(keycloakClient.protect(), async (req, res, next) => {
-            const token = getUserToken(req)
-            if (token) {
-                if (!req.api || req.api.token != token) {
-                    req.api = new PortalApi({ baseUrl: config.apiBaseUrl, token: token.token })
-                    // if (!req.user)
-                    //     req.user = await req.api.user() //(null, { headers: { 'Authorization': `Bearer ${token}` }})
-                    //console.log('user:', req.user.username)
-                    next()
-                }
-            }
-        })
+        // Require authentication on all pages
+        server.use(keycloakClient.protect())
 
         server.get("/", (req, res) => {
-            res.redirect("/services") //app.render(req, res, "/services")
-        });
+            res.redirect("/services")
+        })
 
         server.get("*", (req, res) => {
             return nextHandler(req, res)

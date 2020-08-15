@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, FormControlLabel, Checkbox, makeStyles } from '@material-ui/core'
 import { Layout } from '../../../components'
+import PortalAPI from '../../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -127,9 +128,9 @@ const FormField = props => (
 )
 
 export async function getServerSideProps({ req, query }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-  const form = await req.api.forms(query.id)
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
+  const form = await api.form(query.id)
 
   return { props: { user, form } }
 }

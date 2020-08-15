@@ -2,6 +2,7 @@ import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, List, ListItem, Typography } from '@material-ui/core'
 import { Layout, FormStepper, FormField, FormControls } from '../../components'
+import PortalAPI from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -9,8 +10,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const Request = props => {
-  const form = props.form
+const Request = ({ api, form }) => {
   const classes = useStyles()
 
   const [activeStep, setActiveStep] = React.useState(0)
@@ -21,6 +21,10 @@ const Request = props => {
 
   const handleBack = () => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1)
+  }
+
+  const handleSubmit = () => {
+
   }
 
   const handleChange = () => {}
@@ -56,6 +60,7 @@ const Request = props => {
               numSteps={form.sections.length} 
               nextHandler={handleNext}
               backHandler={handleBack}
+              submitHandler={handleSubmit}
             />
           </Box>
         </Paper>
@@ -65,11 +70,11 @@ const Request = props => {
 }
 
 export async function getServerSideProps({ req, query }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-  const form = await req.api.form(query.id)
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
+  const form = await api.form(query.id)
 
   return { props: { user, form } }
 }
 
-export default Request
+export default withAPI(Request)

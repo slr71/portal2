@@ -2,6 +2,7 @@ import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import { Layout } from '../../components'
+import PortalAPI from '../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -47,10 +48,9 @@ const FormTable = props => (
 )
 
 export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-
-  const res = await req.api.forms()
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
+  const res = await api.forms()
   const sections = await res.json()
   const forms = sections
     .map(s => s.forms)

@@ -2,6 +2,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableRow, TableCell } from '@material-ui/core'
 import DeleteIcon from '@material-ui/icons/Delete';
 import Layout from '../../components/Layout'
+import PortalAPI from '../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -47,9 +48,9 @@ const UsernameTable = props => (
 )
 
 export async function getServerSideProps() {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-  const usernames = await req.api.restrictedUsernames()
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
+  const usernames = await api.restrictedUsernames()
 
   return {
     props: {

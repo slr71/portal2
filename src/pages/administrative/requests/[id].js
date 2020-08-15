@@ -3,6 +3,7 @@ import Markdown from 'markdown-to-jsx'
 import { Container, Grid, Box, Typography, Button, Card, CardHeader, CardContent, CardActions, Divider, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@material-ui/core'
 import { Person as PersonIcon } from '@material-ui/icons'
 import { Layout, User } from '../../../components'
+import PortalAPI from '../../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -199,11 +200,11 @@ const ConversationPart = props => {
 }
 
 export async function getServerSideProps({ req, query }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-  const request = await req.api.serviceRequest(query.id)
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
+  const request = await api.serviceRequest(query.id)
 
-  return { props: { api: req.api, user, request } }
+  return { props: { user, request } }
 }
 
 export default AccessRequest

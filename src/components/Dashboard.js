@@ -7,7 +7,6 @@ import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Person as PersonIcon 
 import SideBar from './SideBar'
 import TopBar from './TopBar'
 
-
 function Copyright() {
   return (
     <Typography variant="body2" color="textSecondary" align="center">
@@ -106,6 +105,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Dashboard(props) {
   const classes = useStyles()
+
   const [open, setOpen] = React.useState(true)
   const handleDrawerOpen = () => {
     setOpen(true)
@@ -113,6 +113,7 @@ export default function Dashboard(props) {
   const handleDrawerClose = () => {
     setOpen(false)
   }
+
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight)
 
   return (

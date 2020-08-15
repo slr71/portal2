@@ -1,6 +1,6 @@
 import { Grid, Button, Link } from '@material-ui/core'
 import { DateRange, Layout, SummaryCard } from '../components'
-import api from '../api'
+import PortalAPI from '../api'
 
 const Workshops = props => {
   const workshops = props.workshops
@@ -96,9 +96,9 @@ const Workshop = ({ workshop }) => (
 )
 
 export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-  const workshops = await req.api.workshops()
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
+  const workshops = await api.workshops()
 
   return { props: { user, workshops } }
 }

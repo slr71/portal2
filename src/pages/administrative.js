@@ -1,7 +1,7 @@
 import { Grid, Link } from '@material-ui/core'
 import { Layout, SummaryCard } from '../components'
 import menuItems from '../menuItems.js'
-import api from '../api'
+import PortalAPI from '../api'
 
 const Administrative = props => {
   const title = "Administrative"
@@ -26,8 +26,8 @@ const Administrative = props => {
 }
 
 export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
 
   return { props: { user } }
 }

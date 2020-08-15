@@ -4,7 +4,7 @@ const getUserToken = (req) => {
   const keycloakToken = (req && req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token : null) //req?.kauth?.grant?.access_token;
   // const sessionToken = (req && req.session && req.session['keycloak-token'] ? req.session['keycloak-token'] : null)
 
-  console.log('keycloak token:', keycloakToken != null)
+  // console.log('keycloak token:', keycloakToken != null)
   // console.log('session token:', sessionToken != null)
 
   if (keycloakToken) 
@@ -40,12 +40,12 @@ const getUserProfile = (req) => {
 /**
  * Adds the access token to the Authorization header if it's present in the request.
  */
-const authnTokenMiddleware = (req, res, next) => {
-  const token = getUserToken(req)
-  if (token) 
-    req.headers["Authorization"] = `Bearer ${token}`
-  next()
-}
+// const authTokenMiddleware = (req, res, next) => {
+//   const token = getUserToken(req)
+//   if (token) 
+//     req.headers["Authorization"] = `Bearer ${token}`
+//   next()
+// }
 
 /**
  * Returns the session store instance for the application.
@@ -64,7 +64,9 @@ const authnTokenMiddleware = (req, res, next) => {
 // }
 
 
-module.exports.getUserToken = getUserToken
-module.exports.getUserID = getUserID
-module.exports.getUserProfile = getUserProfile
-module.exports.authnTokenMiddleware = authnTokenMiddleware
+module.exports= {
+  getUserToken,
+  getUserID,
+  getUserProfile,
+  // authnTokenMiddleware
+}

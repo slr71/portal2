@@ -1,6 +1,6 @@
 import { Link, Grid } from '@material-ui/core'
 import { Layout, SummaryCard } from '../components'
-import api from '../api'
+import PortalAPI from '../api'
 
 const Requests = props => (
   <Layout title="Requests" {...props} >
@@ -37,9 +37,9 @@ const Request = ({ form }) => (
 )
 
 export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-  const forms = await req.api.forms()
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
+  const forms = await api.forms()
 
   return { props: { user, forms } }
 }

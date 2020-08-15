@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton } from '../../components'
+import PortalApi from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -29,7 +30,7 @@ const Service = props => {
 
   const handleSubmit = async () => {
     setDialogOpen(false)
-    const response = await props.api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }])
+    //const response = await props.api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }])
     //console.log(response)
   }
 
@@ -168,11 +169,11 @@ const RequestAccessDialog = ({ question, open, handleChange, handleClose, handle
 }
 
 export async function getServerSideProps({ req, query }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-  const service = await req.api.service(query.id)
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
+  const service = await api.service(query.id)
 
-  return { props: { api: req.api, user, service } }
+  return { props: { user, service } }
 }
 
 export default Service

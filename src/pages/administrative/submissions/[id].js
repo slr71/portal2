@@ -88,9 +88,9 @@ const FormField = props => {
 }
 
 export async function getServerSideProps({ req, query }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-  const submission = await req.api.formSubmission(query.id)
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
+  const submission = await api.formSubmission(query.id)
 
   return { props: { user, submission } }
 }

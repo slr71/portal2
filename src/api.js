@@ -1,95 +1,98 @@
 const axios = require('axios')
+const config = require('./config.json')
+const { getUserToken } = require('./auth');
 
-class PortalApi {
-  constructor(params) {
-    if (!params || !params.baseUrl) {
-      console.error('PortalApi: baseUrl param is missing')
-      return
-    }
+// const APIContext = React.createContext()
+// APIContext.displayName = 'API'
 
-    this.axios = axios.create({
-      baseURL: params.baseUrl,
-      timeout: 10*1000,
-      headers: params && params.token ? { 'Authorization': `Bearer ${params.token}` } : null
-    })
+// function useAPI() {
+//   const context = React.useContext(APIContext)
+//   if (!context) {
+//       throw new Error(`useAPI must be used within an APIProvider`)
+//   }
+//   return context
+// }
+
+// function withAPI() {
+//   return <ComposedComponent api={useAPI()} {...props} />
+// }
+
+// function APIProvider(props) {
+//   const [api, setAPI] = React.useState()
+//   const value = React.useMemo(() => [api, setAPI], [api])
+//   return <APIContext.Provider value={value} {...props} />
+// }
+
+// export { APIProvider, useAPI, withAPI };
+
+class PortalAPI {
+  constructor({ req, token }) {
+    if (req)
+      this.token = getUserToken(req).token
+    else
+      this.token = token
   }
 
-  async user(id) {
-    if (!id)
+  request(options) {
+    if (!options.headers)
+      options.headers = {}
+    options.headers['Content-Type'] = 'application/json'
+    if (this.token)
+      options.headers['Authorization'] = `Bearer ${this.token}`
+    
+    options.timeout = 30*1000
+
+    return axios.request(options)
+  }
+  
+  async get(path) {
+    const res = await this.request({ method: 'get', url: `${config.apiBaseUrl}${path}` })
+    return res.data
+  }
+
+  async put(path, data) {
+    const res = await this.request({ method: 'put', url: `${config.apiBaseUrl}${path}`, data })
+    return res.data
+  }
+
+  async post(path, data) {
+    const res = await this.request({ method: 'post', url: `${config.apiBaseUrl}${path}`, data })
+    return res.data   
+  }
+  
+  async user(id) { // FIXME conflict if username is "mine" -- is it a restricted username?
+    if (!id) 
       id = 'mine'
-    const res = await this.axios.get(`/users/${id}`) // FIXME conflict if username is "mine"
-    return res.data
+    return await this.get(`/users/${id}`) 
   }
 
-  async userProperties() {
-    const res = await this.axios.get(`/users/properties`) // FIXME conflict if username is "properties"
-    return res.data
-  }
+  async services() { return await this.get(`/services`) }
 
-  async restrictedUsernames() {
-    const res = await this.axios.get(`/users/restricted`) // FIXME conflict if username is "properties"
-    return res.data
-  }
+  async service(id) { return await this.get(`/services/${id}`) }
 
-  async services() {
-    const res = await this.axios.get(`/services`)
-    return res.data
-  }
+  async userProperties() { return await this.get(`/users/properties`) } // FIXME conflict if username is "properties"
 
-  async service(id) { // id or name
-    const res = await this.axios.get(`/services/${id}`)
-    return res.data
-  }
+  async restrictedUsernames() { return await this.get(`/users/restricted`) } // FIXME conflict if username is "restricted"
 
-  async serviceRequests() {
-    const res = await this.axios.get(`/services/requests`)
-    return res.data
-  }
+  async serviceRequests() { return await this.get(`/services/requests`) }
 
-  async serviceRequest(id) {
-    const res = await this.axios.get(`/services/requests/${id}`)
-    return res.data
-  }
+  async serviceRequest(id) { return await this.get(`/services/requests/${id}`) }
 
-  async createServiceRequest(id, answers) {
-    const res = await this.axios.put(`/services/${id}/requests`, { answers })
-    return res
-  }
+  async createServiceRequest(id, answers) { return await this.put(`/services/${id}/requests`, { answers })}
 
-  async updateServiceRequest(id, status, message) {
-    const res = await this.axios.post(`/services/${id}/requests`, { status, message })
-    return res
-  }
+  async updateServiceRequest(id, status, message) { return await this.post(`/services/${id}/requests`, { status, message }) }
 
-  async workshops() {
-    const res = await this.axios.get(`/workshops`)
-    return res.data
-  }
+  async workshops() { return await this.get(`/workshops`) }
 
-  async workshop(id) { 
-    const res = await this.axios.get(`/workshops/${id}`)
-    return res.data
-  }
+  async workshop(id) { return await this.get(`/workshops/${id}`) }
 
-  async createWorkshopRequest(id) {
-    const res = await this.axios.put(`/workshops/${id}/requests`)
-    return res
-  }
+  async createWorkshopRequest(id) { return await this.put(`/workshops/${id}/requests`) }
 
-  async forms() {
-    const res = await this.axios.get(`/forms`)
-    return res.data
-  }
+  async forms() { return await this.get (`/forms`) }
 
-  async form(id) { // id or name
-    const res = await this.axios.get(`/forms/${id}`)
-    return res.data
-  }
+  async form(id) {  return await this.get(`/forms/${id}`) } // id or name
 
-  async formSubmission(id) {
-    const res = await this.axios.get(`/forms/submissions/${id}`)
-    return res.data
-  }
+  async formSubmission(id) { return await this.get(`/forms/submissions/${id}`) }
 }
 
-module.exports.PortalApi = PortalApi
+module.exports = PortalAPI

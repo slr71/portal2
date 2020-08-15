@@ -52,13 +52,12 @@ const FormStepper = props => {
     )
   }
   
-  const FormControls = props => {
-    const activeStep = props.activeStep
-    const numSteps = props.numSteps
-  
+  const FormControls = ({ activeStep, numSteps, backHandler, nextHandler, submitHandler }) => {
+    const isLastStep = activeStep === numSteps - 1
+
     return (
       <div>
-        {activeStep === props.numSteps ? (
+        {activeStep === numSteps ? (
           <div>
             <Typography>
               All steps completed - you&apos;re finished
@@ -68,7 +67,7 @@ const FormStepper = props => {
           <div>
             <div>
               {numSteps > 1 ? (
-                <Button disabled={activeStep === 0} onClick={props.backHandler}>
+                <Button disabled={activeStep === 0} onClick={backHandler}>
                   Back
                 </Button> 
               ) : (
@@ -77,9 +76,9 @@ const FormStepper = props => {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={props.nextHandler}
+                onClick={isLastStep ? submitHandler : nextHandler}
               >
-                {activeStep === numSteps - 1 ? 'Submit' : 'Next'}
+                {isLastStep ? 'Submit' : 'Next'}
               </Button>
             </div>
           </div>

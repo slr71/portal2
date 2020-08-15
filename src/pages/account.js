@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, Grid, Switch, Typography, Divider } from '@material-ui/core'
 import { Layout, FormField } from '../components'
+import PortalAPI from '../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -206,9 +207,9 @@ const forms = props => ([ // expects { user, properties }
 ])
 
 export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-  const properties = await req.api.userProperties()
+  const api = new PortalAPI({req})
+  const user = await api.user() //FIXME move user request into React context
+  const properties = await api.userProperties()
 
   return { props: { user, properties } }
 }
