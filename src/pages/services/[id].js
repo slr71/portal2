@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton } from '../../components'
-import PortalAPI from '../../api'
+import { useAPI } from '../../contexts/api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -11,9 +11,10 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const Service = props => {
+const Service = (props) => {
   const service = props.service
   const classes = useStyles()
+  const api = useAPI()
 
   const question = service.questions && service.questions.length > 0 ? service.questions[0] : null // only Atmosphere has a question, and it has only one
 
@@ -31,7 +32,9 @@ const Service = props => {
   const handleSubmit = async () => {
     setDialogOpen(false)
     //const response = await props.api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }])
-    //console.log(response)
+    //const { isLoading, isError, data, error } = useQuery('todos', fetchTodoList)
+    const foo = await api.user()
+    console.log(foo)
   }
 
   const handleChangeAnswer = (e) => {
@@ -39,7 +42,7 @@ const Service = props => {
   }
 
   return ( //FIXME break into pieces
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper}>
           <Grid container spacing={4}>
@@ -169,11 +172,8 @@ const RequestAccessDialog = ({ question, open, handleChange, handleClose, handle
 }
 
 export async function getServerSideProps({ req, query }) {
-  const api = new PortalAPI({req})
-  const user = await api.user() //FIXME move user request into React context
-  const service = await api.service(query.id)
-
-  return { props: { user, service } }
+  const service = await req.api.service(query.id)
+  return { props: { user: req.user, service } }
 }
 
 export default Service

@@ -1,7 +1,6 @@
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Card, CardHeader, CardContent, FormControlLabel, TextField, Checkbox } from '@material-ui/core'
 import { Layout, User } from '../../../components'
-import PortalAPI from '../../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -14,7 +13,7 @@ const FormSubmission = props => {
   const classes = useStyles()
 
   return (
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='lg'>
           <h1>Form Submission</h1>
           <Grid container spacing={4}>
@@ -89,11 +88,9 @@ const FormField = props => {
 }
 
 export async function getServerSideProps({ req, query }) {
-  const api = new PortalAPI({req})
-  const user = await api.user() //FIXME move user request into React context
-  const submission = await api.formSubmission(query.id)
+  const submission = await req.api.formSubmission(query.id)
 
-  return { props: { user, submission } }
+  return { props: { submission } }
 }
 
 export default FormSubmission

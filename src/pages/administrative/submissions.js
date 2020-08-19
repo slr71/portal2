@@ -1,9 +1,7 @@
-import fetch from 'isomorphic-unfetch'
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
+import { Container, Paper, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import { Layout, DateSpan } from '../../components'
-import PortalAPI from '../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -16,7 +14,7 @@ const FormSubmissions = props => {
   const classes = useStyles()
 
   return (
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper}>
           <Typography component="h1" variant="h4">Form Submissions</Typography>
@@ -97,13 +95,10 @@ const FormSubmissionTable = props => {
 }
 
 export async function getServerSideProps({ req }) {
-  const api = new PortalAPI({req})
-  const user = await api.user() //FIXME move user request into React context
-  const { count, results } = await api.formSubmissions()
+  const { count, results } = await req.api.formSubmissions()
 
   return {
     props: {
-      user,
       count,
       results
     }

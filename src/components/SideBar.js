@@ -3,7 +3,7 @@ import React from 'react'
 import Link from "next/link"
 import { useRouter } from 'next/router'
 import { ListItem, ListItemIcon, ListItemText } from '@material-ui/core'
-import menuItems from '../menuItems.js'
+import { menuItems } from '../menuItems.js'
 
 // const useStyles = makeStyles((theme) => ({
 //   nested: {
@@ -46,7 +46,7 @@ const NavButton = props => {
 
 export default function SideBar(props) {
   const route = useRouter().route
-  const navItems = menuItems.filter(item => !item.restricted || props.isStaff)
+  const navItems = menuItems.filter(item => !item.restricted || props.showStaff)
 
   return (
     <div>

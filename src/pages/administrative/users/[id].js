@@ -1,9 +1,8 @@
 import { Container } from '@material-ui/core'
 import { Layout, User as UserComponent } from '../../../components'
-import PortalAPI from '../../../api'
 
 const User = props => (
-  <Layout {...props}>
+  <Layout>
     <Container maxWidth='lg'>
         <UserComponent 
           user={props.targetUser}
@@ -14,11 +13,9 @@ const User = props => (
 )
 
 export async function getServerSideProps({ req, query }) {
-  const api = new PortalAPI({req})
-  const user = await api.user() //FIXME move user request into React context
-  const targetUser = await api.user(query.id)
+  const targetUser = await req.api.user(query.id)
 
-  return { props: { user, targetUser } }
+  return { props: { targetUser } }
 }
 
 export default User

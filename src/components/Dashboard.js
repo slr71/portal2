@@ -6,6 +6,7 @@ import { Container, Box, Button, Divider, IconButton, Typography, Toolbar, AppBa
 import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Person as PersonIcon } from '@material-ui/icons'
 import SideBar from './SideBar'
 import TopBar from './TopBar'
+import { useUser } from '../contexts/user'
 
 function Copyright() {
   return (
@@ -105,6 +106,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Dashboard(props) {
   const classes = useStyles()
+  const user = useUser()
 
   const [open, setOpen] = React.useState(true)
   const handleDrawerOpen = () => {
@@ -157,7 +159,7 @@ export default function Dashboard(props) {
           </IconButton>
         </div>
         <Divider />
-        <SideBar open={open} isStaff={props.user && props.user.is_staff}/>
+        <SideBar open={open} showStaff={user && user.is_staff}/>
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />

@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, FormControlLabel, Checkbox, makeStyles } from '@material-ui/core'
 import { Layout } from '../../../components'
-import PortalAPI from '../../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -29,7 +28,7 @@ const Form = props => {
   const height = props.form.sections[value].fields.length * 32 + 37
 
   return (
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper} style={{height: height + "em"}}>
           <Box display='flex' ml={4} mb={2}>
@@ -128,11 +127,9 @@ const FormField = props => (
 )
 
 export async function getServerSideProps({ req, query }) {
-  const api = new PortalAPI({req})
-  const user = await api.user() //FIXME move user request into React context
-  const form = await api.form(query.id)
+  const form = await req.api.form(query.id)
 
-  return { props: { user, form } }
+  return { props: { form } }
 }
 
 export default Form

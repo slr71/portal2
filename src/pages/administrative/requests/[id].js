@@ -3,7 +3,7 @@ import Markdown from 'markdown-to-jsx'
 import { Container, Grid, Box, Typography, Button, Card, CardHeader, CardContent, CardActions, Divider, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@material-ui/core'
 import { Person as PersonIcon } from '@material-ui/icons'
 import { Layout, User } from '../../../components'
-import PortalAPI from '../../../api'
+import { useUser } from '../../../contexts/user'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -21,7 +21,7 @@ const AccessRequest = props => {
   const classes = useStyles()
 
   return (
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='lg'>
           <h1>Access Request</h1>
           <Grid container spacing={4}>
@@ -69,7 +69,7 @@ const Questions = ({ questions, answers }) => {
 }
 
 const Actions = props => {
-  const user = props.user
+  const user = useUser()
   const request = props.request
   const classes = useStyles()
 
@@ -200,11 +200,9 @@ const ConversationPart = props => {
 }
 
 export async function getServerSideProps({ req, query }) {
-  const api = new PortalAPI({req})
-  const user = await api.user() //FIXME move user request into React context
-  const request = await api.serviceRequest(query.id)
+  const request = await req.api.serviceRequest(query.id)
 
-  return { props: { user, request } }
+  return { props: { request } }
 }
 
 export default AccessRequest

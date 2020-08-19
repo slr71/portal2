@@ -1,11 +1,15 @@
 { 
     "port": 3000,
 
-    "apiBaseUrl": "http://localhost:3022",
+    "apiBaseUrl": "http://localhost:3000/api",
 
     "db": {
-        "connection": "postgresql://localhost:5432/portal",
-        "table": "session"
+        "host": "localhost",
+        "user": "",
+        "password": "",
+        "database": "portal",
+        "dialect": "postgres",
+        "sessionTable": "session"
     },
 
     "session": {
@@ -15,9 +19,26 @@
     },
 
     "keycloak": {
-        "serverUrl": "http://localhost:9090/auth",
-        "realm": "cyverse",
-        "clientId": "portal-frontend",
-        "secret": "<SECRET>"
+        "realm": "CyVerse",
+        "auth-server-url": "https://kc.cyverse.org/auth/",
+        "ssl-required": "all",
+        "resource": "portal-local",
+        "credentials": {
+            "secret": ""
+        },
+        "confidential-port": 0
+    },
+
+    "argo": {
+        "baseUrl": "http://localhost:2746/api/v1",
+        "workflowDefinitionPath": "../workflows/argo",
+        "disabled": true 
+    },
+  
+    "intercom": { 
+        "token": "", 
+        "adminBotId": "",
+        "adminTier1AtmosphereId": "", 
+        "adminTier1ScienceTeamId": "FIXME"
     }
 }

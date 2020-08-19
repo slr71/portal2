@@ -2,7 +2,6 @@ import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, List, ListItem, Typography } from '@material-ui/core'
 import { Layout, FormStepper, FormField, FormControls } from '../../components'
-import PortalAPI from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -32,7 +31,7 @@ const Request = (props) => {
   const handleChange = () => {}
 
   return (
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='md'>
         <Paper elevation={3} className={classes.paper}>
           <Box>
@@ -72,11 +71,9 @@ const Request = (props) => {
 }
 
 export async function getServerSideProps({ req, query }) {
-  const api = new PortalAPI({req})
-  const user = await api.user() //FIXME move user request into React context
-  const form = await api.form(query.id)
+  const form = await req.api.form(query.id)
 
-  return { props: { user, form } }
+  return { props: { form } }
 }
 
 export default Request

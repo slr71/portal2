@@ -1,0 +1,107 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: steps-
+spec:
+  templates:
+  - name: workshop-review-enrollment-request
+    steps:
+    - - name: email-review-workshop-enrollment-request
+        template: email-review-workshop-enrollment-request
+        arguments:
+          parameters:
+          - name: workshop_name
+            value: "{{workflow.parameters.workshop_name}}"
+          - name: full_name
+            value: "{{workflow.parameters.workshop_name}}"
+          - name: username
+            value: "{{workflow.parameters.workshop_name}}"
+          - name: email
+            value: "{{workflow.parameters.email}}"
+          - name: institution
+            value: "{{workflow.parameters.institution}}"
+          - name: country
+            value: "{{workflow.parameters.country}}"
+          - name: workshop_enrollment_request_url
+            value: "{{workflow.parameters.workshop_enrollment_request_url}}"
+  # - name: workshop-grant-enrollment-request
+  #   steps:
+  #   - - name: email-workshop-enrollment-message
+  #       template: email-workshop-enrollment-message
+  #       arguments:
+  #         parameters:
+  #         - name: workshop_name
+  #           value: "{{workflow.parameters.workshop_name}}"
+  #         - name: workshop_url
+  #           value: "{{workflow.parameters.portal_api_base_url}}/workshops/{{workflow.parameters.workshop_id}}"
+  #         - name: email
+  #           value: "{{workflow.parameters.email}}"
+  #   - - name: api-grant-enrollment-request
+  #       template: api-grant-enrollment-request
+  #       arguments:
+  #         parameters:
+  #         - name: workshop_id
+  #           value: "{{workflow.parameters.workshop_id}}"
+  #         - name: user_id
+  #           value: "{{workflow.parameters.user_id}}"
+
+# Tasks
+#######
+
+  - name: email-review-workshop-enrollment-request
+    inputs: 
+      parameters:
+      - name: workshop_name
+      - name: full_name
+      - name: username
+      - name: email
+      - name: institution
+      - name: country
+      - name: workshop_enrollment_request_url
+    container:
+      image: localhost:5000/portal2
+      env:
+      - name: WORKSHOP_NAME
+        value: "{{inputs.parameters.workshop_name}}"
+      - name: FULL_NAME
+        value: "{{inputs.parameters.full_name}}"
+      - name: USERNAME
+        value: "{{inputs.parameters.username}}" 
+      - name: EMAIL
+        value: "{{inputs.parameters.email}}"
+      - name: INSTITUTION
+        value: "{{inputs.parameters.institution}}"
+      - name: COUNTRY
+        value: "{{inputs.parameters.country}}"
+      - name: WORKSHOP_ENROLLMENT_REQUEST_URL
+        value: "{{inputs.parameters.workshop_enrollment_request_url}}"
+      command: [sh, -c]
+      args: ["cat /usr/src/app/templates/review_workshop_enrollment_request.txt | envsubst | ssmtp -vvv {{inputs.parameters.email}}"]
+
+  - name: email-workshop-enrollment-message
+    inputs: 
+      parameters:
+      - name: workshop_name
+      - name: workshop_url
+      - name: email
+    container:
+      image: localhost:5000/portal2
+      env:
+      - name: WORKSHOP_NAME
+        value: "{{inputs.parameters.workshop_name}}"
+      - name: WORKSHOP_URL
+        value: "{{inputs.parameters.workshop_url}}"
+      command: [sh, -c]
+      args: ["cat /usr/src/app/templates/workshop_enrollment_message.txt | envsubst | ssmtp -vvv {{inputs.parameters.email}}"]
+
+  - name: api-grant-enrollment-request
+    inputs:
+      parameters:
+      - name: workshop_id
+      - name: user_id
+    container:
+      image: localhost:5000/portal2
+      command: [curl]
+      #TODO add admin authorization header argument: "-H 'Authorization: foo'"
+      args: ["-v", "-X POST", "-H", "Content-Type: application/json", "-d", "{ \"status\": \"granted\", \"user_id\": \"{{inputs.parameters.user_id}}\" }", "{{workflow.parameters.portal_api_base_url}}/workflows/{{inputs.parameters.workshop_id}}/requests"]
+  

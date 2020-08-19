@@ -1,14 +1,12 @@
 import { Grid, Link } from '@material-ui/core'
 import { Layout, SummaryCard } from '../components'
-import menuItems from '../menuItems.js'
-import PortalAPI from '../api'
+import { getMenuItem } from '../menuItems.js'
 
-const Support = props => {
-  const title = "Support"
-  const menuItem = menuItems.find(item => item.label === title)
+const Support = () => {
+  const menuItem = getMenuItem('Support')
 
   return (
-    <Layout title={title} {...props}>
+    <Layout title='Support'>
       <Grid container spacing={4}>
         {menuItem.items.map(item =>
           <Grid item xs={4} key={item.path}>
@@ -25,11 +23,9 @@ const Support = props => {
   )
 }
 
-export async function getServerSideProps({ req }) {
-  const api = new PortalAPI({req})
-  const user = await api.user() //FIXME move user request into React context
-
-  return { props: { user } }
+//FIXME this is required to prevent "useUser must be used within a UserProvider" error, not sure why
+export async function getServerSideProps() {
+  return { props: {} }
 }
 
 export default Support

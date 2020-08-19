@@ -2,7 +2,6 @@ import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Grid, Box, Divider, Typography, Button, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
 import Layout from '../../components/Layout.js'
-import PortalAPI from '../../api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -31,7 +30,7 @@ const Workshop = props => {
   }
 
   return ( //FIXME break into pieces
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='md'>
       <Paper elevation={3} className={classes.paper}>
           <Grid container spacing={4}>
@@ -126,11 +125,9 @@ const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) 
 }
 
 export async function getServerSideProps({ req, query }) {
-  const api = new PortalAPI({req})
-  const user = await api.user() //FIXME move user request into React context
-  const workshop = await api.workshop(query.id)
+  const workshop = await req.api.workshop(query.id)
 
-  return { props: { user, workshop } }
+  return { props: { workshop } }
 }
 
 export default Workshop

@@ -1,36 +1,9 @@
 const axios = require('axios')
-const config = require('./config.json')
-const { getUserToken } = require('./auth');
-
-// const APIContext = React.createContext()
-// APIContext.displayName = 'API'
-
-// function useAPI() {
-//   const context = React.useContext(APIContext)
-//   if (!context) {
-//       throw new Error(`useAPI must be used within an APIProvider`)
-//   }
-//   return context
-// }
-
-// function withAPI() {
-//   return <ComposedComponent api={useAPI()} {...props} />
-// }
-
-// function APIProvider(props) {
-//   const [api, setAPI] = React.useState()
-//   const value = React.useMemo(() => [api, setAPI], [api])
-//   return <APIContext.Provider value={value} {...props} />
-// }
-
-// export { APIProvider, useAPI, withAPI };
 
 class PortalAPI {
-  constructor({ req, token }) {
-    if (req)
-      this.token = getUserToken(req).token
-    else
-      this.token = token
+  constructor(params) {
+      this.baseUrl = params ? params.baseUrl : '/api'
+      this.token = params ? params.token : null
   }
 
   request(options) {
@@ -42,21 +15,22 @@ class PortalAPI {
     
     options.timeout = 30*1000
 
+    console.log('axios request:', this.token != null, options.url)
     return axios.request(options)
   }
   
   async get(path, params) { // params can contain optional "offset" & "limit" properties
-    const res = await this.request({ method: 'get', url: `${config.apiBaseUrl}${path}`, params })
+    const res = await this.request({ method: 'get', url: `${this.baseUrl}${path}`, params })
     return res.data
   }
 
   async put(path, data) {
-    const res = await this.request({ method: 'put', url: `${config.apiBaseUrl}${path}`, data })
+    const res = await this.request({ method: 'put', url: `${this.baseUrl}${path}`, data })
     return res.data
   }
 
   async post(path, data) {
-    const res = await this.request({ method: 'post', url: `${config.apiBaseUrl}${path}`, data })
+    const res = await this.request({ method: 'post', url: `${this.baseUrl}${path}`, data })
     return res.data   
   }
   

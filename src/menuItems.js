@@ -84,4 +84,8 @@ const menuItems = [
   }
 ]
 
-export default menuItems
+const getMenuItem = (label) => {
+  return menuItems.find(item => item.label === label)
+}
+
+export { menuItems, getMenuItem }

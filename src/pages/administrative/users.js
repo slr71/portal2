@@ -2,7 +2,6 @@ import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import Layout from '../../components/Layout'
-import PortalAPI from '../../api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -15,7 +14,7 @@ const Users = props => {
   const classes = useStyles()
 
   return (
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper}>
           <Box display="flex">
@@ -99,13 +98,10 @@ const UserTable = props => {
 }
 
 export async function getServerSideProps({ req }) {
-  const api = new PortalAPI({req})
-  const user = await api.user() //FIXME move user request into React context
-  const { count, results } = await api.users()
+  const { count, results } = await req.api.users()
 
   return {
     props: {
-      user,
       count,
       results
     }
