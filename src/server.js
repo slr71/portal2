@@ -17,7 +17,7 @@ const nextHandler = app.getRequestHandler()
 // Configure the session store
 const pgSession = pgsimple(session)
 const sessionStore = new pgSession({
-    conString: `postgresql://${config.db.host}:5432/${config.db.database}`, 
+    conString: `postgresql://${config.db.user ? config.db.user + '@' : ''}${config.db.host}:5432/${config.db.database}`, 
     tableName: config.db.sessionTable,
     ttl: config.session.ttl,
     //cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
