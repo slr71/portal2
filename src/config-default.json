@@ -8,7 +8,6 @@
         "user": "",
         "password": "",
         "database": "portal",
-        "dialect": "postgres",
         "sessionTable": "session"
     },
 
