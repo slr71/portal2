@@ -20,9 +20,18 @@ function Copyright() {
   )
 }
 
+function Logo() {
+  return <img src="/cyverse_upLogo_white.svg" alt="CyVerse Logo" className={useStyles().mainLogo}/>
+}
+
+
 const drawerWidth = 200
 
 const useStyles = makeStyles((theme) => ({
+mainLogo: {
+  width:'13em',
+},
+
   root: {
     display: 'flex',
   },
@@ -59,6 +68,7 @@ const useStyles = makeStyles((theme) => ({
   },
   title: {
     flexGrow: 1,
+    visibility:'hidden',
   },
   drawerPaper: {
     position: 'relative',
@@ -132,6 +142,7 @@ export default function Dashboard(props) {
           >
             <MenuIcon />
           </IconButton>
+          <Logo />
           <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
             CyVerse User Portal
           </Typography>
