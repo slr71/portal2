@@ -15,7 +15,7 @@ class PortalAPI {
     
     options.timeout = 30*1000
 
-    console.log('axios request:', this.token != null, options.url)
+    console.log(`axios request: token ${this.token != null}, ${options.method} ${options.url}`)
     return axios.request(options)
   }
   

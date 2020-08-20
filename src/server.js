@@ -57,30 +57,41 @@ app.prepare()
         // Also set "proxy_set_header X-Forwarded-Proto https;" in NGINX config
         server.set('trust proxy', true)
 
-        // Handle Keycloak authorization flow
-        server.use(keycloakClient.middleware())
-
-        // Require authentication on all routes/pages
-        server.use(keycloakClient.protect())
-
-        // Middleware to add some global state
-        server.use(async (req, res, next) => {
-            // Prefetch user since used in almost all pages/endpoints
-            const id = getUserID(req)
-            if (id) {
-                const user = await User.findOne({ where: { username: id } })
+        if (config.debugUser) {
+            console.log('!!!!!!!!! RUNNING IN DEBUG MODE AS USER', config.debugUser, '!!!!!!!!!!')
+            server.use(async (req, res, next) => {
+                const user = await User.findOne({ where: { username: config.debugUser } })
                 req.user = JSON.parse(JSON.stringify(user.get({ plain: true })))
-                //if (!req.user) ... //TODO
-            }
+                req.api = new PortalAPI({ baseUrl: config.apiBaseUrl, token: null })
+                next()
+            })
+        }
+        else {
+            // Handle Keycloak authorization flow
+            server.use(keycloakClient.middleware())
 
-            // Setup an API client for use by getServerSideProps()
-            const token = getUserToken(req)
-            if (token) {
-                req.api = new PortalAPI({ baseUrl: config.apiBaseUrl, token: token.token })
-            }
+            // Require authentication on all routes/pages
+            server.use(keycloakClient.protect())
 
-            next()
-        })
+            // Middleware to add some global state
+            server.use(async (req, res, next) => {
+                // Prefetch user since used in almost all pages/endpoints
+                const id = getUserID(req)
+                if (id) {
+                    const user = await User.findOne({ where: { username: id } })
+                    req.user = JSON.parse(JSON.stringify(user.get({ plain: true })))
+                    //if (!req.user) ... //TODO
+                }
+
+                // Setup an API client for use by getServerSideProps()
+                const token = getUserToken(req)
+                if (token) {
+                    req.api = new PortalAPI({ baseUrl: config.apiBaseUrl, token: token.token })
+                }
+
+                next()
+            })
+        }
 
         // API routes
         server.use('/api/users', require('./api/users'))
