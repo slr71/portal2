@@ -1,19 +1,20 @@
 import { Grid, Button, Link } from '@material-ui/core'
 import { DateRange, Layout, SummaryCard } from '../components'
-import api from '../api'
+import { useUser } from '../contexts/user'
 
 const Workshops = props => {
+  const user = useUser()
   const workshops = props.workshops
-  const userWorkshops = props.user.workshops
+  const userWorkshops = user.workshops
 
   const timeNow = Date.now()
-  const mine = userWorkshops.filter(w => w.creator_id != props.user.id)
-  const hosted = userWorkshops.filter(w => w.creator_id == props.user.id)
+  const mine = userWorkshops.filter(w => w.creator_id != user.id)
+  const hosted = userWorkshops.filter(w => w.creator_id == user.id)
   const upcoming = workshops.filter(w => new Date(w.start_date).getTime() > timeNow)
   const past = workshops.filter(w => new Date(w.start_date).getTime() <= timeNow)
 
   return (
-    <Layout title="Workshops" {...props}>
+    <Layout title="Workshops">
       <h2>My Workshops</h2>
       <MyWorkshops workshops={mine} />
       <h2>Hosted</h2>
@@ -96,11 +97,9 @@ const Workshop = ({ workshop }) => (
 )
 
 export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
   const workshops = await req.api.workshops()
 
-  return { props: { user, workshops } }
+  return { props: { workshops } }
 }
 
 export default Workshops

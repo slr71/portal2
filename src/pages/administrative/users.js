@@ -1,9 +1,7 @@
-import fetch from 'isomorphic-unfetch'
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import Layout from '../../components/Layout'
-import { apiBaseUrl } from '../../config'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -16,7 +14,7 @@ const Users = props => {
   const classes = useStyles()
 
   return (
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper}>
           <Box display="flex">
@@ -48,10 +46,10 @@ const UserTable = props => {
   }
 
   const updateTable = async (page, rowsPerPage) => {
-    const res = await fetchUsers(page * rowsPerPage, rowsPerPage)
-    const { count, results } = await res.json()
-    setCount(count)
-    setRows(results)
+    // const res = await fetchUsers(page * rowsPerPage, rowsPerPage)
+    // const { count, results } = await res.json()
+    // setCount(count)
+    // setRows(results)
   }
 
   return (
@@ -99,36 +97,15 @@ const UserTable = props => {
   )
 }
 
-export async function getServerSideProps(context) {
-  //FIXME move user request into Express middleware
-  let res = await fetch(apiBaseUrl + `/users/mine`)
-  const user = await res.json()
-
-  const req = context.req
-  const token = ( req && req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token.token : null )
-  res = await fetch(apiBaseUrl + '/users', {
-    method: 'GET',
-    headers: { Authorization: `Bearer ${token}` } //FIXME add Express middleware to do this like Sonora
-  })
-  const { count, results } = await res.json()
+export async function getServerSideProps({ req }) {
+  const { count, results } = await req.api.users()
 
   return {
     props: {
-      user,
       count,
       results
     }
   }
-}
-
-const fetchUsers = (offset, limit) => {
-  const opts = { offset, limit }
-  const queryStr = Object.keys(opts)
-    .filter(key => opts[key])
-    .map(key => key + '=' + opts[key])
-    .reduce((acc, s) => acc + '&' + s, '')
-
-  return fetch(apiBaseUrl + `/users?${queryStr}`)
 }
 
 export default Users

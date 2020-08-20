@@ -9,8 +9,9 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const Request = props => {
+const Request = (props) => {
   const form = props.form
+
   const classes = useStyles()
 
   const [activeStep, setActiveStep] = React.useState(0)
@@ -23,10 +24,14 @@ const Request = props => {
     setActiveStep((prevActiveStep) => prevActiveStep - 1)
   }
 
+  const handleSubmit = () => {
+
+  }
+
   const handleChange = () => {}
 
   return (
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='md'>
         <Paper elevation={3} className={classes.paper}>
           <Box>
@@ -56,6 +61,7 @@ const Request = props => {
               numSteps={form.sections.length} 
               nextHandler={handleNext}
               backHandler={handleBack}
+              submitHandler={handleSubmit}
             />
           </Box>
         </Paper>
@@ -65,11 +71,9 @@ const Request = props => {
 }
 
 export async function getServerSideProps({ req, query }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
   const form = await req.api.form(query.id)
 
-  return { props: { user, form } }
+  return { props: { form } }
 }
 
 export default Request

@@ -1,14 +1,12 @@
 import { Grid, Link } from '@material-ui/core'
 import { Layout, SummaryCard } from '../components'
-import menuItems from '../menuItems.js'
-import api from '../api'
+import { getMenuItem } from '../menuItems.js'
 
-const Administrative = props => {
-  const title = "Administrative"
-  const menuItem = menuItems.find(item => item.label === title)
+const Administrative = () => {
+  const menuItem = getMenuItem('Administrative')
 
   return (
-    <Layout title={title} {...props}>
+    <Layout title='Administrative'>
       <Grid container spacing={4}>
         {menuItem.items.map(item =>
           <Grid item xs={4} key={item.path}>
@@ -25,11 +23,9 @@ const Administrative = props => {
   )
 }
 
-export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-
-  return { props: { user } }
+//FIXME this is required to prevent "useUser must be used within a UserProvider" error, not sure why
+export async function getServerSideProps() {
+  return { props: {} }
 }
 
 export default Administrative

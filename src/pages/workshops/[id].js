@@ -30,7 +30,7 @@ const Workshop = props => {
   }
 
   return ( //FIXME break into pieces
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='md'>
       <Paper elevation={3} className={classes.paper}>
           <Grid container spacing={4}>
@@ -125,11 +125,9 @@ const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) 
 }
 
 export async function getServerSideProps({ req, query }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
   const workshop = await req.api.workshop(query.id)
 
-  return { props: { api: req.api, user, workshop } }
+  return { props: { workshop } }
 }
 
 export default Workshop

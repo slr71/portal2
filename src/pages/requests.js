@@ -1,10 +1,9 @@
 import { Link, Grid } from '@material-ui/core'
 import { Layout, SummaryCard } from '../components'
-import api from '../api'
 
-const Requests = props => (
-  <Layout title="Requests" {...props} >
-    {props.forms
+const Requests = ({ forms }) => (
+  <Layout title="Requests">
+    {forms
       .filter(formGroup => formGroup.forms.length > 0)
       .map(formGroup => (
         <div key={formGroup.name}>
@@ -37,11 +36,8 @@ const Request = ({ form }) => (
 )
 
 export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
   const forms = await req.api.forms()
-
-  return { props: { user, forms } }
+  return { props: { forms } }
 }
 
 export default Requests

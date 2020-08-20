@@ -1,16 +1,17 @@
 import { Link, Grid } from '@material-ui/core'
 import { Layout, SummaryCard } from '../components'
+import { useUser } from '../contexts/user'
 
-
-const Services = props => {
-  const userServices = props.user.services
+const Services = (props) => {
+  const user = useUser()
+  const userServices = user.services
   const services = props.services
 
   const available = services.filter(s => s.approval_key != '' && !userServices.map(s => s.id).includes(s.id))
   const powered = services.filter(s => s.is_powered)
 
   return (
-    <Layout title="Services" {...props}>
+    <Layout title="Services">
       <h2>My Services</h2>
       <MyServices services={userServices} />
       <h2>Available</h2>
@@ -80,11 +81,8 @@ const Service = ({ service }) => {
 }
 
 export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
   const services = await req.api.services()
-
-  return { props: { user, services } }
+  return { props: { services } }
 }
 
 export default Services

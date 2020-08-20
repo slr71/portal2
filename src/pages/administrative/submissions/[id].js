@@ -13,7 +13,7 @@ const FormSubmission = props => {
   const classes = useStyles()
 
   return (
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='lg'>
           <h1>Form Submission</h1>
           <Grid container spacing={4}>
@@ -88,11 +88,9 @@ const FormField = props => {
 }
 
 export async function getServerSideProps({ req, query }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
   const submission = await req.api.formSubmission(query.id)
 
-  return { props: { user, submission } }
+  return { props: { submission } }
 }
 
 export default FormSubmission

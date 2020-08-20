@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Paper, Grid, Switch, Typography, Divider } from '@material-ui/core'
+import { Container, Box, Paper, Grid, Switch, Button, Typography, Divider } from '@material-ui/core'
 import { Layout, FormField } from '../components'
+import { useUser } from '../contexts/user'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -14,13 +15,17 @@ const useStyles = makeStyles((theme) => ({
 
 const Account = props => {
   const classes = useStyles()
+  const user = useUser()
 
   return (
-    <Layout title="Account" {...props}>
+    <Layout title="Account">
       <Container maxWidth='md'>
-          {forms({...props}).map(form =>
+          {forms({user, ...props}).map(form =>
             <Box key={form.title} className={classes.box}>
               <Form {...form}></Form>
+              <Button variant="contained" color="primary" size="medium">
+                Update
+              </Button> 
             </Box>
           )}
       </Container>
@@ -28,9 +33,9 @@ const Account = props => {
   )
 }
 
-const EmailForm = props => (
+const EmailForm = ({ user }) => (
   <div>
-    {props.user.emails.map(email => (
+    {user.emails.map(email => (
       <div key={email.email}>
         <Divider />
         <Typography>{email.email}</Typography>
@@ -42,9 +47,9 @@ const EmailForm = props => (
   </div>
 )
 
-const MailingListForm = props => (
+const MailingListForm = ({ user }) => (
   <div>
-    {props.user.emails.map(email => (
+    {user.emails.map(email => (
       <div key={email.email}>
         <Divider />
         {email.mailing_lists.map(list => (
@@ -82,31 +87,31 @@ const Form = props => {
   )
 }
 
-const forms = props => ([ // expects { user, properties }
+const forms = ({ user, properties }) => ([
   { title: "Identification",
     fields: [
       { id: "first_name",
         name: "First Name",
         required: true,
         width: 6,
-        value: props.user.first_name
+        value: user.first_name
       },
       { id: "last_name",
         name: "Last Name",
         required: true,
         width: 6,
-        value: props.user.last_name
+        value: user.last_name
       },
       { id: "username",
         name: "Username",
         description: "Your username cannot be changed",
-        value: props.user.username,
+        value: user.username,
         disabled: true
       },
       { id: "orcid",
         name: "ORCID",
         description: (<span>Persistent digital identifier that distinguishes you from every other researcher (<a href="https://orcid.org" target="_blank">https://orcid.org</a>)</span>),
-        value: props.user.orcid_id
+        value: user.orcid_id
       }
     ]
   },
@@ -128,11 +133,11 @@ const forms = props => ([ // expects { user, properties }
   },
   { title: "Email",
     subtitle: "Email addresses associated with this account",
-    render: <EmailForm user={props.user} />
+    render: <EmailForm user={user} />
   },
   { title: "Mailing List Subscriptions",
     subtitle: "Manage which services you would like to receive maintenance-related emails from",
-    render: <MailingListForm user={props.user} />
+    render: <MailingListForm user={user} />
   },
   { title: "Institution",
     fields: [
@@ -150,13 +155,13 @@ const forms = props => ([ // expects { user, properties }
         name: "Occupation",
         required: true,
         value: "Not Provided",
-        options: props.properties.occupations
+        options: properties.occupations
      },
       { id: "country",
         name: "Country",
         required: true,
         value: "Not Provided",
-        options: props.properties.countries
+        options: properties.countries
       },
       { id: "region",
         name: "Region",
@@ -171,13 +176,13 @@ const forms = props => ([ // expects { user, properties }
         name: "Research Area",
         required: true,
         value: "Not Provided",
-        options: props.properties.research_areas
+        options: properties.research_areas
       },
       { id: "funding_agency",
         name: "Funding Agency",
         required: true,
         value: "Not Provided",
-        options: props.properties.funding_agencies
+        options: properties.funding_agencies
       }
     ]
   },
@@ -187,30 +192,28 @@ const forms = props => ([ // expects { user, properties }
         name: "Gender Identity",
         required: true,
         value: "Not Provided",
-        options: props.properties.genders
+        options: properties.genders
       },
       { id: "ethnicity",
         name: "Ethnicity",
         required: true,
         value: "Not Provided",
-        options: props.properties.ethnicities
+        options: properties.ethnicities
       },
       { id: "aware",
         name: "How did you hear about us?",
         required: true,
         value: "Not Provided",
-        options: props.properties.aware_channels
+        options: properties.aware_channels
       }
     ]
   }
 ])
 
 export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
   const properties = await req.api.userProperties()
 
-  return { props: { user, properties } }
+  return { props: { properties } }
 }
 
 export default Account

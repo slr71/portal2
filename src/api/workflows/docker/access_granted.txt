@@ -1,0 +1,12 @@
+To: ${EMAIL_ADDRESS}
+Subject: ${SERVICE_NAME} Access Granted
+
+Your request for access to ${SERVICE_NAME} has been approved. You can now launch the service through the User Portal, by visiting the link below:
+
+${SERVICE_URL}
+
+If you encounter any issues, or have any questions, please contact support@cyverse.org.
+
+Happy Researching,
+
+The CyVerse Team

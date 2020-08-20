@@ -37,12 +37,18 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "express-winston": "^4.0.5",
+    "intercom-client": "^2.11.0",
     "isomorphic-unfetch": "^3.0.0",
+    "js-yaml": "^3.14.0",
     "keycloak-connect": "^9.0.3",
     "markdown-to-jsx": "^6.11.4",
     "next": "^9.5.2",
+    "pg": "^8.3.0",
+    "pg-hstore": "^2.3.3",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-query": "^2.5.14",
+    "sequelize": "^6.3.4",
     "winston": "^3.3.3"
   },
   "devDependencies": {

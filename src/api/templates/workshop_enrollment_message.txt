@@ -1,0 +1,11 @@
+${WORKSHOP_NAME} Enrollment Approved
+
+You are now enrolled in the ${WORKSHOP_NAME} workshop and have access to all required services. You can view details about the workshop by visiting the link below:
+
+${WORKSHOP_URL}
+
+If you encounter any issues, or have any questions, please contact support@cyverse.org.
+
+Happy Learning,
+
+The CyVerse Team

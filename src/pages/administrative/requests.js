@@ -14,7 +14,7 @@ const AccessRequests = props => {
   const classes = useStyles()
 
   return (
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper}>
           <Typography component="h1" variant="h4">Access Requests</Typography>
@@ -97,13 +97,10 @@ const RequestTable = props => {
 }
 
 export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
   const { count, results } = await req.api.serviceRequests()
 
   return {
     props: {
-      user,
       count,
       results
     }

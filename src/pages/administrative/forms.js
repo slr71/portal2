@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Typography, TextField, IconButton, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
+import { Container, Paper, Typography, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import { Layout } from '../../components'
 
 //FIXME duplicated elsewhere
@@ -14,7 +14,7 @@ const Forms = props => {
   const classes = useStyles()
 
   return (
-    <Layout {...props}>
+    <Layout>
       <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper}>
           <Typography component="h1" variant="h4" gutterBottom>Forms</Typography>
@@ -47,22 +47,13 @@ const FormTable = props => (
 )
 
 export async function getServerSideProps({ req }) {
-  //FIXME move user request into Express middleware
-  const user = await req.api.user()
-
-  const res = await req.api.forms()
-  const sections = await res.json()
-  const forms = sections
+  const formsByGroup = await req.api.forms()
+  const forms = formsByGroup
     .map(s => s.forms)
     .reduce((acc, forms) => acc.concat(forms))
     .sort((a, b) => (a.name > b.name) ? 1 : -1)
 
-  return {
-    props: {
-      user,
-      forms
-    }
-  }
+  return { props: { forms } }
 }
 
 export default Forms
