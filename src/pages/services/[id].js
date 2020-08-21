@@ -99,6 +99,7 @@ const Service = (props) => {
                 <List>
                   {service.resources.map(resource => (
                     <Link key={resource.id} underline='none' href={resource.url}>
+                    <Button color="primary">
                       <ListItem>
                         <ListItemAvatar>
                           <Avatar>
@@ -107,6 +108,7 @@ const Service = (props) => {
                         </ListItemAvatar>
                         <ListItemText primary={resource.name} />
                       </ListItem>
+                      </Button>
                     </Link>
                   ))}
                 </List>
@@ -119,7 +121,7 @@ const Service = (props) => {
                 <List>
                   {service.forms.map(form => (
                     <Link key={form.id} underline='none' href={`/requests/${form.id}`}>
-                      <ListItem>
+                    <Button color="primary"><ListItem>
                         <ListItemAvatar>
                           <Avatar>
                             <ListIcon />
@@ -127,6 +129,7 @@ const Service = (props) => {
                         </ListItemAvatar>
                         <ListItemText primary={form.name} />
                       </ListItem>
+                      </Button>
                     </Link>
                   ))}
                 </List>

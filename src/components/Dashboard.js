@@ -101,7 +101,8 @@ mainLogo: {
     paddingBottom: theme.spacing(5),
     paddingLeft: theme.spacing(5),
     paddingRight: theme.spacing(5),
-    backgroundColor: '#EEEEEE'
+    backgroundColor: '#EEEEEE',
+    maxWidth: '100%',
   },
   paper: {
     padding: theme.spacing(2),
