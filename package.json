@@ -17,6 +17,9 @@
       "src/",
       "config.json"
     ],
+    "ignore": [
+      ".next/"
+    ],
     "ext": "js"
   },
   "prettier": {
@@ -32,23 +35,26 @@
     "@material-ui/icons": "^4.9.1",
     "axios": "^0.19.2",
     "body-parser": "^1.19.0",
-    "connect-pg-simple": "^6.2.0",
+    "connect-pg-simple": "^6.2.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "express-winston": "^4.0.5",
+    "formik": "^2.1.5",
+    "formik-material-ui": "^3.0.0-alpha.0",
     "intercom-client": "^2.11.0",
     "isomorphic-unfetch": "^3.0.0",
     "js-yaml": "^3.14.0",
     "keycloak-connect": "^9.0.3",
     "markdown-to-jsx": "^6.11.4",
     "next": "^9.5.2",
-    "pg": "^8.3.0",
+    "pg": "^8.3.2",
     "pg-hstore": "^2.3.3",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-query": "^2.5.14",
+    "react-query": "^2.8.0",
     "sequelize": "^6.3.4",
+    "validator": "^13.1.1",
     "winston": "^3.3.3"
   },
   "devDependencies": {

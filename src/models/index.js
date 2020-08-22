@@ -94,7 +94,8 @@ models.api_formgroup.belongsToMany(models.api_form,
 models.api_form.hasMany(models.api_formsection, { as: 'sections', foreignKey: 'form_id' });
 models.api_formsection.hasMany(models.api_formfield, { as: 'fields', foreignKey: 'form_section_id' });
 models.api_formfield.hasMany(models.api_formfieldoption, { as: 'options', foreignKey: 'form_field_id' });
-models.api_form.hasMany(models.api_formintercomteam, { as: 'intercom_teams', foreignKey: 'form_id' });
+models.api_form.belongsToMany(models.api_intercomteam, 
+  { as: 'intercom_teams', through: models.api_formintercomteam, foreignKey: 'form_id', otherKey: 'intercom_team_id' });
 
 models.api_formsubmission.belongsTo(models.api_form, { as: 'form', foreignKey: 'form_id' } );
 models.api_formsubmission.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id'} );

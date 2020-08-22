@@ -1,90 +1,114 @@
-import { Button, Stepper, Step, StepLabel, FormControlLabel, TextField, MenuItem, Checkbox, Typography } from '@material-ui/core'
+import { makeStyles } from '@material-ui/core/styles'
+import { Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography } from '@material-ui/core'
+import { Field } from 'formik'
+import { CheckboxWithLabel } from "formik-material-ui"
 
-const FormStepper = props => {
-    const activeStep = props.activeStep
-    const steps = props.steps
-    console.log(activeStep)
-  
+const useStyles = makeStyles((theme) => ({
+  checkbox: {
+    paddingTop: '2em'
+  }
+}))
+
+const FormStepper = ({activeStep, steps}) => {
+  if (steps.length <= 1)
+    return (<></>)
+
+  return (
+    <Stepper>
+      {steps.map((title, index) => (
+        <Step key={title} completed={activeStep > index} active={activeStep == index}>
+          <StepLabel>{title}</StepLabel>
+        </Step>
+      ))}
+    </Stepper>
+  )
+}
+
+const FormField = props => {
+  const commonProps = {
+    id: props.id.toString(),
+    name: props.id.toString(),
+    label: props.name,
+    error: props.errorText != null,
+    helperText: props.errorText || props.description,
+    defaultValue: '',
+    type: props.type,
+    fullWidth: true, 
+    margin: "normal",
+    required: props.is_required || props.required,
+    disabled: props.disabled
+  }
+
+  if (props.type === 'boolean') {
     return (
-      <Stepper>
-        {steps.map(step => (
-          <Step key={step.id} completed={activeStep > step.index} active={activeStep == step.index}>
-            <StepLabel>{step.name}</StepLabel>
-          </Step>
-        ))}
-      </Stepper>
+      <Field
+        type="checkbox"
+        component={CheckboxWithLabel}
+        name={props.id.toString()}
+        color="primary"
+        onChange={props.onChange}
+        Label={{label: props.name, className: useStyles().checkbox}}
+      />
     )
   }
-  
-  const FormField = props => {
-    if (props.type === 'boolean') {
-      return (
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={false}
-              name={props.id}
-              color="primary"
-            />
-          }
-          label={field.name}
-        />
-      )
-    }
-  
-    return ( // type is 'char', 'text', or 'select'
-      <TextField 
-        required={props.is_required || props.required} 
-        disabled={props.disabled}
-        fullWidth autoFocus={props.index == 0} 
-        margin="normal" 
-        id={props.id} 
-        label={props.name} 
-        helperText={props.description}
-        defaultValue={props.value}
-        select={props.options && props.options.length > 0}
-        onChange={props.changeHandler}
+
+  if (props.type === 'select') {
+    return (
+      <Field
+        as="select"
+        component={TextField}
+        select
+        onChange={props.onChange(props.id.toString())} // workaround for "you didn't pass an id" error
+        {...commonProps}
       >
-        {props.options && props.options.map(option => (
-          <MenuItem key={option.id} value={option.name}>{option.name}</MenuItem>
+        {props.options.map(option => (
+          <MenuItem key={option.id} value={option.id.toString()}>{option.name}</MenuItem>
         ))}
-      </TextField>
+      </Field>
     )
   }
   
-  const FormControls = ({ activeStep, numSteps, backHandler, nextHandler, submitHandler }) => {
-    const isLastStep = activeStep === numSteps - 1
+  return ( // type is 'char' or 'text'
+    <Field
+      component={TextField}
+      autoFocus={props.index == 0} 
+      onChange={props.onChange}
+      onBlur={props.onBlur}
+      {...commonProps}
+    />
+  )
+}
+  
+const FormControls = ({ disabled, activeStep, numSteps, backHandler, nextHandler, submitHandler }) => {
+  const isLastStep = activeStep === numSteps - 1
 
-    return (
-      <div>
-        {activeStep === numSteps ? (
-          <div>
-            <Typography>
-              All steps completed - you&apos;re finished
-            </Typography>
-          </div>
-        ) : (
-          <div>
-            <div>
-              {numSteps > 1 ? (
-                <Button disabled={activeStep === 0} onClick={backHandler}>
-                  Back
-                </Button> 
-              ) : (
-                <></>
-              )}
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={isLastStep ? submitHandler : nextHandler}
-              >
-                {isLastStep ? 'Submit' : 'Next'}
-              </Button>
-            </div>
-          </div>
-        )}
-      </div>
-    )
-  }
+  return (
+    <div>
+      {activeStep === numSteps ? (
+        <div>
+          <Typography>
+            All steps completed - you&apos;re finished
+          </Typography>
+        </div>
+      ) : (
+        <div>
+          {numSteps > 1 && (
+            <Button disabled={activeStep === 0} onClick={backHandler}>
+              Back
+            </Button> 
+          )}
+          <Button
+            disabled={disabled}
+            variant="contained"
+            color="primary"
+            onClick={isLastStep ? submitHandler : nextHandler}
+          >
+            {isLastStep ? 'Submit' : 'Next'}
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
 
-  export { FormStepper, FormField, FormControls }
+export { FormStepper, FormField, FormControls }

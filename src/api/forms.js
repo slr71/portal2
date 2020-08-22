@@ -51,7 +51,8 @@ router.get('/submissions/:id(\\d+)', requireAdmin, async (req, res) => {
 // Create new form submission
 router.put('/:id(\\d+)/submissions', requireAdmin, async (req, res) => {
     const formId = req.params.id;
-    const fields = req.body.fields;
+    const fields = req.body;
+    console.log(fields)
 
     if (!fields || fields.length == 0)
         return res.send('Missing fields').status(400);
@@ -69,7 +70,8 @@ router.put('/:id(\\d+)/submissions', requireAdmin, async (req, res) => {
     if (!submission)
         return res.send('Failed to create form submission').status(500);
 
-    // Save field values
+    // Save field values 
+    //TODO check that submitted field IDs are valid for specified form
     for (const field of fields) {
         const fieldSubmission = await FormFieldSubmission.create({
             form_submission_id: submission.id,
@@ -78,7 +80,7 @@ router.put('/:id(\\d+)/submissions', requireAdmin, async (req, res) => {
             value_text: field.value_text,
             value_boolean: field.value_boolean,
             value_number: field.value_number,
-            value_select_id: null, //FIXME!!!
+            //value_select_id: null, //FIXME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             value_email: field.value_email,
             value_date: field.value_date
         });
@@ -91,7 +93,8 @@ router.put('/:id(\\d+)/submissions', requireAdmin, async (req, res) => {
         include: [ 
             'fields',
             { 
-                model: 'form',
+                model: Form,
+                as: 'form',
                 include: [ 'intercom_teams' ]
             }
         ]
@@ -101,7 +104,7 @@ router.put('/:id(\\d+)/submissions', requireAdmin, async (req, res) => {
     res.json(submission).status(200);
 
     // Send message via Intercom (do this after response as to not delay it)
-    intercom_send_form_submission_confirmation_message(submission);
+    //intercom_send_form_submission_confirmation_message(submission);
 });
 
 router.get('/:nameOrId([\\w\\%]+)', async (req, res) => {
