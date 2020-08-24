@@ -10,7 +10,10 @@ const useStyles = makeStyles((theme) => ({
   },
   box: {
     borderBottom: "1px solid lightgray",
-    minHeight: "4.5em"
+    minHeight: "3.75em"
+  },
+  breadcrumbs: {
+    paddingTop:'3px',
   }
 }))
 
@@ -39,7 +42,7 @@ const BreadcrumbsMenu = () => {
   }
 
   return (
-    <Breadcrumbs>
+    <Breadcrumbs className={useStyles().breadcrumbs}>
       {parts.slice(0, -1).map((part, index) => (
         <Link key={index} color="inherit" href={"/" + parts.slice(0,index+1).join("/")}>
           {capitalize(part)}
