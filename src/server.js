@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const bodyParser = require('body-parser');
 const session = require('express-session')
 const pgsimple = require('connect-pg-simple')
 const Keycloak = require('keycloak-connect')
@@ -39,6 +40,9 @@ app.prepare()
 
         // Support CORS requests -- needed for service icon image requests
         server.use(cors())
+
+        // Support JSON and XML encoded request bodies
+        server.use(bodyParser.json())
 
         // Configure sessions
         server.use(
