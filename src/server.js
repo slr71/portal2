@@ -78,7 +78,7 @@ app.prepare()
             server.use(keycloakClient.protect())
 
             // Middleware to add some global state
-            server.use(async (req, res, next) => {
+            server.use(async (req, _, next) => {
                 // Prefetch user since used in almost all pages/endpoints
                 const id = getUserID(req)
                 if (id) {
@@ -104,10 +104,10 @@ app.prepare()
         server.use('/api/forms', require('./api/forms'))
         server.use('/api/mailing-lists', require('./api/mailing_lists'))
         if (config.debug) server.use('/tests', require('./api/tests'))
-        server.use('/api/*', (req, res) => res.send('Resource not found').status(404))
+        server.use('/api/*', (_, res) => res.send('Resource not found').status(404))
 
         // Default to /services page
-        server.get("/", (req, res) => {
+        server.get("/", (_, res) => {
             res.redirect("/services")
         })
 
