@@ -1,8 +1,14 @@
 const router = require('express').Router();
-const { requireAdmin } = require('../auth');
+const { requireAdmin, isAdmin } = require('../auth');
 const models = require('../models');
 const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
+
+const SUPPORTED_FIELDS = [
+    'first_name', 'last_name', 'orcid_id', 'institution', 'department', 
+    'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id', 
+    'occupation_id', 'research_area_id', 'region_id'
+]
 
 router.get('/mine', (req, res) => {
     res.json(req.user).status(200);
@@ -25,6 +31,31 @@ router.get('/', requireAdmin, async (req, res) => {
 router.get('/:id(\\d+)', requireAdmin, async (req, res) => {
     const user = await User.findByPk(req.params.id);
 
+    res.json(user).status(200);
+});
+
+// Update user info
+router.post('/:id(\\d+)', async (req, res) => {
+    const id = req.params.id;
+    const fields = req.body;
+
+    // User can only update their own record unless admin
+    if (id != req.user.id && !isAdmin(req))
+        return res.send('Permission denied').status(403);
+
+    let user = await User.findByPk(id);
+    if (!user)
+        return res.send('User not found').status(404);
+
+    for (let key in fields) {
+        // Ignore any non-updateable fields
+        if (!SUPPORTED_FIELDS.includes(key))
+            continue;
+        console.log('setting', key, 'to', fields[key]);
+        user[key] = fields[key];
+    }
+    await user.save();
+    await user.reload();
     res.json(user).status(200);
 });
 

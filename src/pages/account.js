@@ -1,7 +1,9 @@
+import { useMutation } from "react-query"
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Paper, Grid, Switch, Button, Typography, Divider } from '@material-ui/core'
-import { Layout, FormField } from '../components'
+import { Container, Box, Paper, Switch, Typography, Button, Divider, List, ListItem, ListItemText, ListItemSecondaryAction } from '@material-ui/core'
+import { Layout, UpdateForm } from '../components'
 import { useUser } from '../contexts/user'
+import { useAPI } from '../contexts/api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -13,21 +15,62 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const Account = props => {
+const Account = ({ properties }) => {
   const classes = useStyles()
+  const api = useAPI()
   const user = useUser()
+  const forms = Forms(user, properties)
+
+  const initialValues = (form) =>
+      form.fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
+
+  const [submitFormMutation] = useMutation(
+    (submission) => api.updateUser(user.id, submission),
+    {
+        onSuccess: (resp, { onSuccess }) => {
+            console.log('SUCCESS')
+            // router.push(`/${NavigationConstants.ANALYSES}`);
+            // onSuccess(resp);
+        },
+        onError: (error, { onError }) => {
+          console.log('ERROR', error)
+            // onError(error);
+            // setSubmissionError(error);
+        },
+    }
+  )
+  
+  const formatSubmission = (values) => {
+    // return allFields.map(f => {
+    //   let val = { id: f.id }
+    //   val['value_' + f.type] = values[f.id]
+    //   return val
+    // })
+    return values
+  }
 
   return (
     <Layout title="Account">
       <Container maxWidth='md'>
-          {forms({user, ...props}).map(form =>
-            <Box key={form.title} className={classes.box}>
-              <Form {...form}></Form>
-              <Button variant="contained" color="primary" size="medium">
-                Update
-              </Button> 
-            </Box>
-          )}
+        {forms.map((form, index) => (
+          <Box key={index} className={classes.box}>
+            <Paper elevation={3} className={classes.paper}>
+              <Typography component="div" variant="h5">{form.title}</Typography>
+              <Typography color="textSecondary">{form.subtitle}</Typography>
+              {form.render ||
+                <UpdateForm 
+                  form={form} 
+                  initialValues={initialValues(form)} 
+                  onSubmit={(values, { setSubmitting }) => {
+                    console.log('Submit:', values)
+                    submitFormMutation(formatSubmission(values))
+                    setSubmitting(false)
+                  }}
+                />
+              }
+            </Paper>
+          </Box>
+        ))}
       </Container>
     </Layout>
   )
@@ -36,183 +79,204 @@ const Account = props => {
 const EmailForm = ({ user }) => (
   <div>
     {user.emails.map(email => (
-      <div key={email.email}>
+      <Box key={email.email} pt={2}>
         <Divider />
-        <Typography>{email.email}</Typography>
-        <Typography color="textSecondary" gutterBottom>
-          {[email.verified ? 'Verified' : '', email.primary ? 'Primary' : ''].join(', ')}
-        </Typography>
-      </div>
+        <List>
+          <ListItem>
+            <ListItemText 
+              primary={email.email} 
+              secondary={[email.verified ? 'Verified' : '', email.primary ? 'Primary' : ''].join(', ')} 
+            />
+          </ListItem>
+        </List>
+      </Box>
     ))}
+    <Divider />
+    <Box display="flex" justifyContent="flex-end" pt={2}>
+      <Button
+        variant="contained"
+        color="primary"
+      >
+        Add Email Address
+      </Button>
+    </Box>
   </div>
 )
 
 const MailingListForm = ({ user }) => (
   <div>
     {user.emails.map(email => (
-      <div key={email.email}>
+      <Box key={email.email} pt={2}>
         <Divider />
-        {email.mailing_lists.map(list => (
-          <Box display='flex' key={list.id}>
-            <Typography color="textSecondary" gutterBottom>{list.name}</Typography>
-            <Switch
-              checked={true}
-              name="checkedA"
-            />
-          </Box>
-        ))}
-      </div>
+        <List>
+          <ListItem>
+            <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
+          </ListItem>
+          {email.mailing_lists.map(list => (
+            <ListItem key={list.id}>
+              <ListItemText primary={list.name} />
+              <ListItemSecondaryAction>
+                <Switch
+                  checked={true}
+                  name="checkedA"
+                  color="primary"
+                  variant="caption"
+                  edge="end"
+                />
+              </ListItemSecondaryAction>
+            </ListItem>
+          ))}
+        </List>
+      </Box>
     ))}
   </div>
 )
 
-const Form = props => {
-  const classes = useStyles()
-
-  return (
-    <Paper elevation={3} className={classes.paper}>
-      <Typography component="div" variant="h5">{props.title}</Typography>
-      <Typography color="textSecondary">{props.subtitle}</Typography>
-      {props.render ?
-        props.render :
-        <Grid container spacing={4}>
-          {props.fields.map(field =>
-            <Grid item key={field.id} xs={field.width ? field.width : 12}>
-              <FormField {...field}></FormField>
-            </Grid>
-          )}
-        </Grid>
-      }
-    </Paper>
-  )
+const Forms = (user, properties) => {
+  return [ 
+    { title: "Identification",
+      fields: [
+        { id: "first_name",
+          name: "First Name",
+          type: "text",
+          required: true,
+          width: 6,
+          value: user.first_name
+        },
+        { id: "last_name",
+          name: "Last Name",
+          type: "text",
+          required: true,
+          width: 6,
+          value: user.last_name
+        },
+        { id: "username",
+          name: "Username",
+          description: "Your username cannot be changed",
+          type: "text",
+          value: user.username,
+          disabled: true
+        },
+        { id: "orcid_id",
+          name: "ORCID",
+          description: <span>Persistent digital identifier that distinguishes you from every other researcher (<a href="https://orcid.org" target="_blank">https://orcid.org</a>)</span>,
+          type: "text",
+          value: user.orcid_id
+        }
+      ]
+    },
+    { title: "Password",
+      fields: [
+        { id: "old_password",
+          name: "Old Password",
+          type: "password",
+          required: true
+        },
+        { id: "new_password",
+          name: "New Password",
+          type: "password",
+          required: true
+        },
+        { id: "confirm_password",
+          name: "Confirm New Password",
+          type: "password",
+          required: true
+        }
+      ]
+    },
+    { title: "Email",
+      subtitle: "Email addresses associated with this account",
+      render: <EmailForm user={user} />
+    },
+    { title: "Mailing List Subscriptions",
+      subtitle: "Manage which services you would like to receive maintenance-related emails from",
+      render: <MailingListForm user={user} />
+    },
+    { title: "Institution",
+      fields: [
+        { id: "institution",
+          name: "Company/Institution",
+          type: "text",
+          required: true,
+          value: user.institution,
+        },
+        { id: "department",
+          name: "Department",
+          type: "text",
+          required: true,
+          value: user.department
+        },
+        { id: "occupation_id",
+          name: "Occupation",
+          type: "select",
+          required: true,
+          value: user.occupation.id,
+          options: properties.occupations
+      },
+        { id: "country_id",
+          name: "Country",
+          type: "select",
+          required: true,
+          value: user.region.country_id,
+          options: properties.countries
+        },
+        { id: "region_id",
+          name: "Region",
+          type: "select",
+          required: true,
+          value: user.region.id,
+          options: properties.regions.filter(r => r.country_id == user.region.country_id)
+        }
+      ]
+    },
+    { title: "Research",
+      fields: [
+        { id: "research_area_id",
+          name: "Research Area",
+          type: "select",
+          required: true,
+          value: user.research_area.id,
+          options: properties.research_areas
+        },
+        { id: "funding_agency_id",
+          name: "Funding Agency",
+          type: "select",
+          required: true,
+          value: user.funding_agency.id,
+          options: properties.funding_agencies
+        }
+      ]
+    },
+    { title: "Demographics",
+      fields: [
+        { id: "gender_id",
+          name: "Gender Identity",
+          type: "select",
+          required: true,
+          value: user.gender.id,
+          options: properties.genders
+        },
+        { id: "ethnicity_id",
+          name: "Ethnicity",
+          type: "select",
+          required: true,
+          value: user.ethnicity.id,
+          options: properties.ethnicities
+        },
+        { id: "aware_channel_id",
+          name: "How did you hear about us?",
+          type: "select",
+          required: true,
+          value: user.aware_channel.id,
+          options: properties.aware_channels
+        }
+      ]
+    }
+  ]
 }
-
-const forms = ({ user, properties }) => ([
-  { title: "Identification",
-    fields: [
-      { id: "first_name",
-        name: "First Name",
-        required: true,
-        width: 6,
-        value: user.first_name
-      },
-      { id: "last_name",
-        name: "Last Name",
-        required: true,
-        width: 6,
-        value: user.last_name
-      },
-      { id: "username",
-        name: "Username",
-        description: "Your username cannot be changed",
-        value: user.username,
-        disabled: true
-      },
-      { id: "orcid",
-        name: "ORCID",
-        description: (<span>Persistent digital identifier that distinguishes you from every other researcher (<a href="https://orcid.org" target="_blank">https://orcid.org</a>)</span>),
-        value: user.orcid_id
-      }
-    ]
-  },
-  { title: "Password",
-    fields: [
-      { id: "old_password",
-        name: "Old Password",
-        required: true
-      },
-      { id: "new_password",
-        name: "New Password",
-        required: true
-      },
-      { id: "confirm_password",
-        name: "Confirm New Password",
-        required: true
-      }
-    ]
-  },
-  { title: "Email",
-    subtitle: "Email addresses associated with this account",
-    render: <EmailForm user={user} />
-  },
-  { title: "Mailing List Subscriptions",
-    subtitle: "Manage which services you would like to receive maintenance-related emails from",
-    render: <MailingListForm user={user} />
-  },
-  { title: "Institution",
-    fields: [
-      { id: "company",
-        name: "Company/Institution",
-        required: true,
-        value: "Not Provided"
-      },
-      { id: "department",
-        name: "Department",
-        required: true,
-        value: "Not Provided"
-      },
-      { id: "occupation",
-        name: "Occupation",
-        required: true,
-        value: "Not Provided",
-        options: properties.occupations
-     },
-      { id: "country",
-        name: "Country",
-        required: true,
-        value: "Not Provided",
-        options: properties.countries
-      },
-      { id: "region",
-        name: "Region",
-        required: true,
-        value: "Not Provided"
-      }
-    ]
-  },
-  { title: "Research",
-    fields: [
-      { id: "research_area",
-        name: "Research Area",
-        required: true,
-        value: "Not Provided",
-        options: properties.research_areas
-      },
-      { id: "funding_agency",
-        name: "Funding Agency",
-        required: true,
-        value: "Not Provided",
-        options: properties.funding_agencies
-      }
-    ]
-  },
-  { title: "Demographics",
-    fields: [
-      { id: "gender",
-        name: "Gender Identity",
-        required: true,
-        value: "Not Provided",
-        options: properties.genders
-      },
-      { id: "ethnicity",
-        name: "Ethnicity",
-        required: true,
-        value: "Not Provided",
-        options: properties.ethnicities
-      },
-      { id: "aware",
-        name: "How did you hear about us?",
-        required: true,
-        value: "Not Provided",
-        options: properties.aware_channels
-      }
-    ]
-  }
-])
 
 export async function getServerSideProps({ req }) {
   const properties = await req.api.userProperties()
-
   return { props: { properties } }
 }
 

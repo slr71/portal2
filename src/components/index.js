@@ -3,7 +3,7 @@ import { DateRange, DateSpan } from './DateRange'
 import Layout from './Layout'
 import SideBar from './SideBar'
 import SummaryCard from './SummaryCard'
-import { FormStepper, FormField, FormControls } from './Form'
+import { UpdateForm, Wizard, FormStepper, FormField, FormControls } from './Form'
 import User from './User'
 import ServiceActionButton from './ServiceActionButton'
 
@@ -14,6 +14,8 @@ export {
   Layout, 
   SideBar, 
   SummaryCard, 
+  UpdateForm,
+  Wizard,
   FormStepper, 
   FormField, 
   FormControls, 

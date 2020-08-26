@@ -33,6 +33,8 @@ const getUserID = (req) => {
 //   } 
 // }
 
+const isAdmin = (req) => req && req.user && req.user.is_staff
+
 const requireAdmin = async (req, res, next) => {
   if (!req.user || !req.user.is_staff)
     res.send('User not authorized').status(403);
@@ -44,5 +46,6 @@ module.exports= {
   getUserToken,
   getUserID,
   // getUserProfile,
+  isAdmin,
   requireAdmin
 }

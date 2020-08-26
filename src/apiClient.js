@@ -42,6 +42,8 @@ class PortalAPI {
 
   async users(params) { return await this.get(`/users`, params) }
 
+  async updateUser(id, params) { return await this.post(`/users/${id}`, params ) }
+
   async services(params) { return await this.get(`/services`, params) }
 
   async service(id) { return await this.get(`/services/${id}`) }
