@@ -8,7 +8,7 @@ import { useAPI } from '../contexts/api'
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   },
   box: {
     marginBottom: '4em'
@@ -21,8 +21,8 @@ const Account = ({ properties }) => {
   const user = useUser()
   const forms = Forms(user, properties)
 
-  const initialValues = (form) =>
-      form.fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
+  const initialValues = (fields) =>
+      fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
 
   const [submitFormMutation] = useMutation(
     (submission) => api.updateUser(user.id, submission),
@@ -40,15 +40,6 @@ const Account = ({ properties }) => {
     }
   )
   
-  const formatSubmission = (values) => {
-    // return allFields.map(f => {
-    //   let val = { id: f.id }
-    //   val['value_' + f.type] = values[f.id]
-    //   return val
-    // })
-    return values
-  }
-
   return (
     <Layout title="Account">
       <Container maxWidth='md'>
@@ -59,11 +50,11 @@ const Account = ({ properties }) => {
               <Typography color="textSecondary">{form.subtitle}</Typography>
               {form.render ||
                 <UpdateForm 
-                  form={form} 
-                  initialValues={initialValues(form)} 
+                  fields={form.fields} 
+                  initialValues={initialValues(form.fields)} 
                   onSubmit={(values, { setSubmitting }) => {
                     console.log('Submit:', values)
-                    submitFormMutation(formatSubmission(values))
+                    submitFormMutation(values)
                     setSubmitting(false)
                   }}
                 />

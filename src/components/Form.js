@@ -25,11 +25,11 @@ const validateField = (field, value) => {
     return 'A valid date value is required'
 }
 
-const UpdateForm = ({ form, initialValues, onSubmit }) => {
+const UpdateForm = ({ fields, initialValues, onSubmit }) => {
   const validate = (values) => {
     console.log('validate:', values)
     let errors = {}
-    for (let field of form.fields) {
+    for (let field of fields) {
       const id = field.id
       const value = new String(values[id])
       const error = validateField(field, value)
@@ -48,10 +48,9 @@ const UpdateForm = ({ form, initialValues, onSubmit }) => {
     >
       {({ handleChange, handleBlur, handleSubmit, isSubmitting, isValid, values, errors, touched }) => (
         <Form>
-          {form.fields && form.fields.map(field => (
+          {fields.map(field => (
               <div key={field.id}>
                 <FormField
-                  component={TextField}
                   onChange={handleChange}
                   onBlur={handleBlur}
                   errorText={touched[field.id] && errors[field.id]}

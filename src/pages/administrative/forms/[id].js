@@ -1,23 +1,23 @@
-import PropTypes from 'prop-types';
-import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, FormControlLabel, Checkbox, makeStyles } from '@material-ui/core'
-import { Layout } from '../../../components'
+import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, FormControlLabel, Checkbox, Grid, makeStyles } from '@material-ui/core'
+import { Layout, UpdateForm } from '../../../components'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
     display: 'flex',
-    height: 224
+    height: 224,
+    paddingTop: '2em'
   },
   paper: {
-    padding: '4em'
+    padding: '3em'
   },
   tabs: {
     borderRight: `1px solid ${theme.palette.divider}`
   }
 }))
 
-const Form = props => {
+const FormEditor = ({ form }) => {
   const classes = useStyles()
   const [value, setValue] = React.useState(0)
 
@@ -25,34 +25,36 @@ const Form = props => {
     setValue(newValue)
   }
 
-  const height = props.form.sections[value].fields.length * 32 + 37
+  const height = form.sections[value].fields.length * 32 + 37
 
   return (
     <Layout>
       <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper} style={{height: height + "em"}}>
-          <Box display='flex' ml={4} mb={2}>
-            <Typography component="h1" variant="h4" gutterBottom>Form: </Typography>
-            <Typography component="h1" variant="h4" color="secondary" gutterBottom>{props.form.name}</Typography>
-            <Button variant="contained" color="primary">Edit Name</Button>
-            <Button variant="contained" color="secondary">Delete Form</Button>
-          </Box>
+          <Grid container justify="space-between">
+            <Grid item>
+              <Typography component="h1" variant="h4">{form.name}</Typography>
+            </Grid>
+            <Grid item>
+              <Button variant="contained" color="primary">Edit Name</Button>
+              <Button variant="contained" color="secondary">Delete Form</Button>
+            </Grid>
+          </Grid>
           <div className={classes.root}>
             <Tabs 
               orientation="vertical"
               variant="scrollable"
               value={value}
               onChange={handleChange}
-              aria-label="Vertical tabs example"
               className={classes.tabs}
             >
-              {props.form.sections.map((section, index) => (
-                <Tab key={section.id} label={section.name} />
+              {form.sections.map((section, index) => (
+                <Tab key={index} label={section.name} />
               ))}
               <Tab label="＋ Add Section"></Tab>
             </Tabs>
-            {props.form.sections.map((section, index) => (
-              <TabPanel key={section.id} value={value} index={index} section={section} />
+            {form.sections.map((section, index) => (
+              <SectionTabPanel key={index} value={value} index={index} section={section} />
             ))}
           </div>
         </Paper>
@@ -61,11 +63,13 @@ const Form = props => {
   )
 }
 
-function TabPanel(props) {
-  const { section, value, index, ...other } = props
-
+const SectionTabPanel = ({ section, value, index, ...other }) => {
+  const classes = useStyles()
+  
   return (
-    <div
+    <Box
+      p={3}
+      flexGrow={1}
       role="tabpanel"
       hidden={value !== index}
       id={`vertical-tabpanel-${index}`}
@@ -73,13 +77,16 @@ function TabPanel(props) {
       {...other}
     >
       {value === index && (
-        <Box p={3}>
+        <div>
           <Box mb={5}>
-            <Box display="flex">
-              <Typography component="h1" variant="h5" gutterBottom>Section:</Typography>
-              <Typography component="h1" variant="h5" color="secondary" gutterBottom>{section.name}</Typography>
-              <Button variant="contained" color="secondary">Delete Section</Button>
-            </Box>
+            <Grid container justify="space-between" my={2}>
+              <Grid item>
+                <Typography component="h1" variant="h5" gutterBottom>Section</Typography>
+              </Grid>
+              <Grid item>
+                <Button variant="contained" color="secondary" size="small">Delete Section</Button>
+              </Grid>
+            </Grid>
             <TextField fullWidth margin="normal" id="name" label="Section Name" defaultValue={section.name} />
             <TextField fullWidth margin="normal" id="description" label="Section Description" defaultValue={section.description} />
           </Box>
@@ -87,49 +94,65 @@ function TabPanel(props) {
           <Divider style={{marginBottom: "2em"}}/>
           {section.fields.map(field => (
             <div key={field.id}>
-              <FormField {...field}></FormField>
+              <FieldEditor {...field} />
               <Divider />
             </div>
           ))}
           <Box mt={3}>
             <Button variant="contained" color="primary">＋ Add Field</Button>
           </Box>
-        </Box>
+        </div>
       )}
-    </div>
+    </Box>
   )
 }
   
-TabPanel.propTypes = {
-  index: PropTypes.any.isRequired,
-  value: PropTypes.any.isRequired,
-}
+const FieldEditor = props => {
+  const fields = [
+    { id: 'name', name: 'Name', type: 'text', required: true, value: props.name },
+    { id: 'type', name: 'Type', type: 'text', required: true, value: props.type },
+    { id: 'description', name: 'Description', type: 'text', value: props.description },
+    { id: 'conversion_ley', name: 'Conversion Key', type: 'text', value: props.conversion_key },
+    { id: 'is_required', name: 'Required', type: 'boolean', value: props.is_required },
+  ]
 
-const FormField = props => (
-  <Box my={3}>
-    <Box display="flex">
-      <Typography component="h1" variant="h6" gutterBottom>Field:</Typography>
-      <Typography component="h1" variant="h6" color="secondary" gutterBottom>{props.name}</Typography>
-      <Button variant="contained" color="secondary">Delete Field</Button>
+  const initialValues =
+      fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
+
+  const validate = () => {
+    return {}
+  }
+
+  const onSubmit = () => {
+    
+  }
+
+  return (
+    <Box my={3} flexGrow={1}>
+      <Grid container justify="space-between" my={2}>
+        <Grid item>
+          <Typography component="h1" variant="h6" gutterBottom>Field #{props.index+1}</Typography>
+        </Grid>
+        <Grid item>
+          <Button variant="contained" color="secondary" size="small">Delete Field</Button>
+        </Grid>
+      </Grid>
+      <UpdateForm 
+        fields={fields} 
+        initialValues={initialValues} 
+        onSubmit={(values, { setSubmitting }) => {
+          console.log('Submit:', values)
+          // submitFormMutation(values)
+          // setSubmitting(false)
+        }}
+      />
     </Box>
-    <TextField fullWidth margin="normal" label="Name" defaultValue={props.name} />
-    <TextField fullWidth margin="normal" label="Type" defaultValue={props.type} />
-    <TextField fullWidth margin="normal" label="Description" defaultValue={props.description} />
-    <FormControlLabel
-      control={
-        <Checkbox checked={props.is_required} name={props.id} color="primary" />
-      }
-      label="Required"
-      style={{marginTop: "1.5em"}}
-    />
-    <TextField fullWidth margin="normal" label="Conversion Key" defaultValue={props.conversion_key} />
-  </Box>
-)
+  )
+}
 
 export async function getServerSideProps({ req, query }) {
   const form = await req.api.form(query.id)
-
   return { props: { form } }
 }
 
-export default Form
+export default FormEditor
