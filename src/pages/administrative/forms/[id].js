@@ -1,12 +1,13 @@
+import { useMutation } from 'react-query'
 import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, FormControlLabel, Checkbox, Grid, makeStyles } from '@material-ui/core'
 import { Layout, UpdateForm } from '../../../components'
+import { useAPI } from '../../../contexts/api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
     display: 'flex',
-    height: 224,
     paddingTop: '2em'
   },
   paper: {
@@ -19,13 +20,31 @@ const useStyles = makeStyles((theme) => ({
 
 const FormEditor = ({ form }) => {
   const classes = useStyles()
-  const [value, setValue] = React.useState(0)
+  const api = useAPI()
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue)
+  const [tab, setTab] = React.useState(0)
+  const height = form.sections[tab].fields.length * 32 + 37
+
+  const handleTabChange = (event, newTab) => {
+    console.log(newTab)
+    setTab(newTab)
   }
 
-  const height = form.sections[value].fields.length * 32 + 37
+  // const [addSectionMutation] = useMutation(
+  //   (submission) => api.updateUser(user.id, submission),
+  //   {
+  //       onSuccess: (resp, { onSuccess }) => {
+  //           console.log('SUCCESS')
+  //           // router.push(`/${NavigationConstants.ANALYSES}`);
+  //           // onSuccess(resp);
+  //       },
+  //       onError: (error, { onError }) => {
+  //         console.log('ERROR', error)
+  //           // onError(error);
+  //           // setSubmissionError(error);
+  //       },
+  //   }
+  // )
 
   return (
     <Layout>
@@ -44,8 +63,8 @@ const FormEditor = ({ form }) => {
             <Tabs 
               orientation="vertical"
               variant="scrollable"
-              value={value}
-              onChange={handleChange}
+              value={tab}
+              onChange={handleTabChange}
               className={classes.tabs}
             >
               {form.sections.map((section, index) => (
@@ -54,7 +73,7 @@ const FormEditor = ({ form }) => {
               <Tab label="＋ Add Section"></Tab>
             </Tabs>
             {form.sections.map((section, index) => (
-              <SectionTabPanel key={index} value={value} index={index} section={section} />
+              <SectionTabPanel key={index} value={tab} index={index} section={section} />
             ))}
           </div>
         </Paper>
@@ -65,7 +84,24 @@ const FormEditor = ({ form }) => {
 
 const SectionTabPanel = ({ section, value, index, ...other }) => {
   const classes = useStyles()
+  const api = useAPI()
   
+  const [updateFieldMutation] = useMutation(
+    ({ id, values }) => api.updateFormField(id, values),
+    {
+        onSuccess: (resp, { onSuccess }) => {
+            console.log('SUCCESS')
+            // router.push(`/${NavigationConstants.ANALYSES}`);
+            // onSuccess(resp);
+        },
+        onError: (error, { onError }) => {
+          console.log('ERROR', error)
+            // onError(error);
+            // setSubmissionError(error);
+        },
+    }
+  )
+
   return (
     <Box
       p={3}
@@ -94,7 +130,7 @@ const SectionTabPanel = ({ section, value, index, ...other }) => {
           <Divider style={{marginBottom: "2em"}}/>
           {section.fields.map(field => (
             <div key={field.id}>
-              <FieldEditor {...field} />
+              <FieldEditor {...field} onSubmit={updateFieldMutation} />
               <Divider />
             </div>
           ))}
@@ -116,17 +152,6 @@ const FieldEditor = props => {
     { id: 'is_required', name: 'Required', type: 'boolean', value: props.is_required },
   ]
 
-  const initialValues =
-      fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
-
-  const validate = () => {
-    return {}
-  }
-
-  const onSubmit = () => {
-    
-  }
-
   return (
     <Box my={3} flexGrow={1}>
       <Grid container justify="space-between" my={2}>
@@ -139,11 +164,11 @@ const FieldEditor = props => {
       </Grid>
       <UpdateForm 
         fields={fields} 
-        initialValues={initialValues} 
+        autosave
         onSubmit={(values, { setSubmitting }) => {
           console.log('Submit:', values)
-          // submitFormMutation(values)
-          // setSubmitting(false)
+          props.onSubmit({ id: props.id, values })
+          setSubmitting(false)
         }}
       />
     </Box>

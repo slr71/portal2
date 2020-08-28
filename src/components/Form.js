@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography, LinearProgress } from '@material-ui/core'
-import { Formik, Form, Field } from 'formik'
+import { useFormikContext, Formik, Form, Field } from 'formik'
+import debounce from 'just-debounce-it'
 import { isEmail, isNumeric, isEmpty } from 'validator'
 import { CheckboxWithLabel } from "formik-material-ui"
 
@@ -14,8 +15,11 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
+const initialValues = (fields) =>
+  fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
+
 const validateField = (field, value) => {
-  if (field.is_required && isEmpty(value)) 
+  if ((field.is_required || field.required) && isEmpty(value)) 
     return 'This field is required'
   else if (field.type == 'email' && !isEmail(value))
     return 'A valid email address is required'
@@ -25,28 +29,53 @@ const validateField = (field, value) => {
     return 'A valid date value is required'
 }
 
-const UpdateForm = ({ fields, initialValues, onSubmit }) => {
-  const validate = (values) => {
-    console.log('validate:', values)
-    let errors = {}
-    for (let field of fields) {
-      const id = field.id
-      const value = new String(values[id])
-      const error = validateField(field, value)
-      if (error)
-        errors[id] = error
-    }
-    console.log('errors:', errors)
-    return errors;
+const validateFields = (fields, values) => {
+  console.log('validate:', values)
+  let errors = {}
+  for (let field of fields) {
+    const id = field.id
+    const value = new String(values[id])
+    const error = validateField(field, value)
+    if (error)
+      errors[id] = error
   }
+  console.log('errors:', errors)
+  return errors;
+}
+
+// From https://github.com/formium/formik/blob/e51f09a318cba216a1ba3932da0906202df0b979/examples/DebouncedAutoSave.js
+const AutoSave = ({ debounceMs }) => {
+  const formik = useFormikContext()
+  const debouncedSubmit = React.useCallback(
+    debounce(
+      formik.submitForm,
+      debounceMs
+    ),
+    [debounceMs, formik.submitForm]
+  )
+
+  React.useEffect(() => {
+    debouncedSubmit();
+  }, [debouncedSubmit, formik.values])
 
   return (
+    <>
+      {!!formik.isSubmitting
+        ? 'Saving...'
+        : null
+      }
+    </>
+  )
+}
+
+const UpdateForm = ({ fields, autosave, onSubmit }) => {
+  return (
     <Formik
-      initialValues={initialValues}
-      validate={validate}
+      initialValues={initialValues(fields)}
+      validate={(values) => validateFields(fields, values)}
       onSubmit={onSubmit}
     >
-      {({ handleChange, handleBlur, handleSubmit, isSubmitting, isValid, values, errors, touched }) => (
+      {({ handleChange, handleBlur, handleSubmit, isSubmitting, setSubmitting, isValid, values, errors, touched }) => (
         <Form>
           {fields.map(field => (
               <div key={field.id}>
@@ -59,17 +88,13 @@ const UpdateForm = ({ fields, initialValues, onSubmit }) => {
                 <br />
               </div>
           ))}
-          {isSubmitting && <LinearProgress />}
-          <br />
+          {/* {isSubmitting && <LinearProgress />}
+          <br /> */}
           <Box display="flex" justifyContent="flex-end">
-            <Button
-              variant="contained"
-              color="primary"
-              disabled={isSubmitting || !isValid}
-              onClick={handleSubmit}
-            >
-              Update
-            </Button>
+            {autosave
+              ? <AutoSave debounceMs={1000} />
+              : <Button variant="contained" color="primary" disabled={isSubmitting || !isValid} onClick={handleSubmit}>Update</Button>
+            } 
           </Box>
         </Form>
       )}

@@ -17,7 +17,7 @@
       "src/**/*"
     ],
     "ignore": [
-      "node_modules", 
+      "node_modules",
       ".next"
     ],
     "ext": "js json"
@@ -45,6 +45,7 @@
     "intercom-client": "^2.11.0",
     "isomorphic-unfetch": "^3.0.0",
     "js-yaml": "^3.14.0",
+    "just-debounce-it": "^1.1.0",
     "keycloak-connect": "^9.0.3",
     "markdown-to-jsx": "^6.11.4",
     "next": "^9.5.2",

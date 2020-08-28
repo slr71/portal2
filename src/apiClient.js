@@ -75,6 +75,10 @@ class PortalAPI {
   async formSubmissions(params) { return await this.get(`/forms/submissions`, params) }
 
   async formSubmission(id) { return await this.get(`/forms/submissions/${id}`) }
+
+  async createFormField(id) { return await this.post(`/forms/fields`) }
+
+  async updateFormField(id, field) { return await this.post(`/forms/fields/${id}`, field) }
 }
 
 module.exports = PortalAPI
