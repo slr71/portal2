@@ -33,6 +33,11 @@ class PortalAPI {
     const res = await this.request({ method: 'post', url: `${this.baseUrl}${path}`, data })
     return res.data   
   }
+
+  async delete(path) {
+    const res = await this.request({ method: 'delete', url: `${this.baseUrl}${path}` })
+    return res.data   
+  }
   
   async user(id) { // FIXME conflict if username is "mine" -- is it a restricted username?
     if (!id) 
@@ -76,9 +81,17 @@ class PortalAPI {
 
   async formSubmission(id) { return await this.get(`/forms/submissions/${id}`) }
 
-  async createFormField(id) { return await this.post(`/forms/fields`) }
+  async createFormSection(section) { return await this.put(`/forms/sections`, section) }
+
+  async updateFormSection(id, section) { return await this.post(`/forms/sections/${id}`, section) }
+
+  async deleteFormSection(id) { return await this.delete(`/forms/sections/${id}`) }
+
+  async createFormField(field) { return await this.put(`/forms/fields`, field) }
 
   async updateFormField(id, field) { return await this.post(`/forms/fields/${id}`, field) }
+
+  async deleteFormField(id) { return await this.delete(`/forms/fields/${id}`) }
 }
 
 module.exports = PortalAPI

@@ -128,12 +128,13 @@ router.get('/:nameOrId([\\w\\%]+)', async (req, res) => {
                         model: FormField, 
                         as: 'fields', 
                         include: [ 'options' ],
-                        order: [ ['index', 'ASC'] ]
+                        // order: [ ['index', 'ASC'] ] // not working, see order below
                     }
                 ],
                 order: [ ['index', 'ASC'] ]
             }
-        ]
+        ],
+        order: [ [ { model: FormSection, as: 'sections' }, { model: FormField, as: 'fields' }, 'index', 'asc' ] ]
     });
     if (!request)
         return res.send('Form not found').status(404);
@@ -208,7 +209,12 @@ router.put('/sections', async (req, res) => {
     const newSection = req.body;
     console.log(newSection)
 
+    if (!newSection || !newSection.name)
+        return res.send('Missing fields').status(400);
+
     const section = await FormSection.create(newSection);
+    if (!section)
+        return res.send('Failed to create section').status(500)
 
     return res.json(section).status(201);
 });
@@ -219,11 +225,26 @@ router.post('/sections/:id(\\d+)/', async (req, res) => {
     const newSection = req.body;
     console.log(newSection)
 
-    const section = await FormSection.udpate(newSection, 
-        { where: { id: sectionId }}
-    );
+    const section = await FormSection.udpate(newSection, { 
+        where: { id: sectionId },
+        fields: [ 'name', 'description', 'index' ],
+        returning: true
+    });
+    if (!section)
+        return res.send('Failed to update section').status(500)
 
     return res.json(section).status(200);
+});
+
+// Delete form section
+router.delete('/sections/:id(\\d+)/', async (req, res) => {
+    const section = await FormSection.findByPk(req.params.id);
+    if (!section)
+        return res.send('Section not found').status(404);
+
+    await section.destroy();
+
+    return res.send(req.params.id).status(200);
 });
 
 // Create form field
@@ -231,9 +252,14 @@ router.put('/fields', async (req, res) => {
     const newField = req.body;
     console.log(newField)
 
-    const section = await FormSection.create(newField);
+    if (!newField || !newField.name || !newField.type)
+        return res.send('Missing fields').status(400);
 
-    return res.json(form).status(201);
+    const field = await FormField.create(newField);
+    if (!field)
+        return res.send('Failed to create field').status(500)
+
+    return res.json(field).status(201);
 });
 
 // Update form field
@@ -242,11 +268,26 @@ router.post('/fields/:id(\\d+)/', async (req, res) => {
     const newField = req.body;
     console.log('update field:', newField)
 
-    const field = await FormField.update(newField, 
-        { where: { id: fieldId }}
-    );
+    const field = await FormField.update(newField, { 
+        where: { id: fieldId },
+        fields: [ 'name', 'type', 'description', 'index', 'conversion_key', 'is_required' ],
+        returning: true
+    });
+    if (!field)
+        return res.send('Failed to update field').status(500)
 
     return res.json(field).status(200);
+});
+
+// Delete form field
+router.delete('/fields/:id(\\d+)/', async (req, res) => {
+    const field = await FormField.findByPk(req.params.id);
+    if (!field)
+        return res.send('Field not found').status(404);
+
+    await field.destroy();
+
+    return res.send(req.params.id).status(200);
 });
 
 module.exports = router;

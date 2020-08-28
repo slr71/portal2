@@ -18,33 +18,100 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const FormEditor = ({ form }) => {
+const FormEditor = (props) => {
   const classes = useStyles()
   const api = useAPI()
 
   const [tab, setTab] = React.useState(0)
-  const height = form.sections[tab].fields.length * 32 + 37
+  const [form, setForm] = React.useState(props.form)
+
+  const height = Math.max(
+    form.sections.length * 1,
+    form.sections[tab] && form.sections[tab].fields ? form.sections[tab].fields.length * 32 : 0
+  ) + 37
 
   const handleTabChange = (event, newTab) => {
     console.log(newTab)
     setTab(newTab)
   }
 
-  // const [addSectionMutation] = useMutation(
-  //   (submission) => api.updateUser(user.id, submission),
-  //   {
-  //       onSuccess: (resp, { onSuccess }) => {
-  //           console.log('SUCCESS')
-  //           // router.push(`/${NavigationConstants.ANALYSES}`);
-  //           // onSuccess(resp);
-  //       },
-  //       onError: (error, { onError }) => {
-  //         console.log('ERROR', error)
-  //           // onError(error);
-  //           // setSubmissionError(error);
-  //       },
-  //   }
-  // )
+  const [addSectionMutation] = useMutation(
+    () =>
+      api.createFormSection({ 
+        form_id: form.id, 
+        name: 'New section', 
+        description: '',
+        index: form.sections.reduce((acc, s) => Math.max(acc, s.index + 1), 0)
+      }),
+    {
+        onSuccess: (resp) => {
+            console.log('createFormSection SUCCESS', resp)
+            setForm({...form,  sections: form.sections.concat(resp)})
+            setTab(resp.index)
+        },
+        onError: (error, { onError }) => {
+          console.log('createFormSection ERROR', error)
+        }
+    }
+  )
+
+  const [deleteSectionMutation] = useMutation(
+    (id) => api.deleteFormSection(id),
+    {
+        onSuccess: (resp, { onSuccess }) => {
+            console.log('deleteFormSection SUCCESS', resp)
+            const index = form.sections.findIndex(s => s.id == resp)
+            console.log('index', index)
+            setTab(index-1)
+            const sections = [...form.sections]
+            sections.splice(index, 1)
+            setForm({...form,  sections})
+        },
+        onError: (error, { onError }) => {
+          console.log('deleteFormSection ERROR', error)
+        },
+    }
+  )
+
+  const [updateFieldMutation] = useMutation(
+    ({ id, values }) => api.updateFormField(id, values),
+    {
+        onSuccess: (resp, { onSuccess }) => {
+            console.log('updateFormField SUCCESS', resp)
+            // router.push(`/${NavigationConstants.ANALYSES}`);
+            // onSuccess(resp);
+        },
+        onError: (error, { onError }) => {
+          console.log('updateFormField ERROR', error)
+            // onError(error);
+            // setSubmissionError(error);
+        },
+    }
+  )
+
+  const [addFieldMutation] = useMutation(
+    () =>
+      api.createFormField({ 
+        form_section_id: section.id, 
+        name: 'New field', 
+        type: 'text', 
+        is_required: true,
+        index: section.fields.reduce((acc, f) => Math.max(acc, f.index + 1), 0)
+      }),
+    {
+        onSuccess: (resp, { onSuccess }) => {
+            console.log('createFormField SUCCESS', resp)
+            setFields(fields.concat(resp))
+            // router.push(`/${NavigationConstants.ANALYSES}`);
+            // onSuccess(resp);
+        },
+        onError: (error, { onError }) => {
+          console.log('createFormField ERROR', error)
+            // onError(error);
+            // setSubmissionError(error);
+        },
+    }
+  )
 
   return (
     <Layout>
@@ -55,7 +122,7 @@ const FormEditor = ({ form }) => {
               <Typography component="h1" variant="h4">{form.name}</Typography>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="primary">Edit Name</Button>
+              <Button variant="contained" color="primary">Edit Name</Button>{' '}
               <Button variant="contained" color="secondary">Delete Form</Button>
             </Grid>
           </Grid>
@@ -70,10 +137,18 @@ const FormEditor = ({ form }) => {
               {form.sections.map((section, index) => (
                 <Tab key={index} label={section.name} />
               ))}
-              <Tab label="＋ Add Section"></Tab>
+              <Button color="primary" onClick={addSectionMutation}>+ Add Section</Button>
             </Tabs>
             {form.sections.map((section, index) => (
-              <SectionTabPanel key={index} value={tab} index={index} section={section} />
+              <SectionTabPanel 
+                key={index} 
+                value={tab} 
+                index={index} 
+                section={section} 
+                onDelete={deleteSectionMutation} 
+                onAddField={addFieldMutation} 
+                onUpdateField={updateFieldMutation}
+              />
             ))}
           </div>
         </Paper>
@@ -82,26 +157,7 @@ const FormEditor = ({ form }) => {
   )
 }
 
-const SectionTabPanel = ({ section, value, index, ...other }) => {
-  const classes = useStyles()
-  const api = useAPI()
-  
-  const [updateFieldMutation] = useMutation(
-    ({ id, values }) => api.updateFormField(id, values),
-    {
-        onSuccess: (resp, { onSuccess }) => {
-            console.log('SUCCESS')
-            // router.push(`/${NavigationConstants.ANALYSES}`);
-            // onSuccess(resp);
-        },
-        onError: (error, { onError }) => {
-          console.log('ERROR', error)
-            // onError(error);
-            // setSubmissionError(error);
-        },
-    }
-  )
-
+const SectionTabPanel = ({ section, value, index, onDelete, onAddField, onUpdateField }) => {
   return (
     <Box
       p={3}
@@ -110,7 +166,6 @@ const SectionTabPanel = ({ section, value, index, ...other }) => {
       hidden={value !== index}
       id={`vertical-tabpanel-${index}`}
       aria-labelledby={`vertical-tab-${index}`}
-      {...other}
     >
       {value === index && (
         <div>
@@ -120,7 +175,14 @@ const SectionTabPanel = ({ section, value, index, ...other }) => {
                 <Typography component="h1" variant="h5" gutterBottom>Section</Typography>
               </Grid>
               <Grid item>
-                <Button variant="contained" color="secondary" size="small">Delete Section</Button>
+                <Button 
+                  variant="contained" 
+                  color="secondary" 
+                  size="small" 
+                  onClick={() => onDelete(section.id)}
+                >
+                  Delete Section
+                </Button>
               </Grid>
             </Grid>
             <TextField fullWidth margin="normal" id="name" label="Section Name" defaultValue={section.name} />
@@ -128,14 +190,14 @@ const SectionTabPanel = ({ section, value, index, ...other }) => {
           </Box>
           <Typography component="h1" variant="h5" gutterBottom>Fields</Typography>
           <Divider style={{marginBottom: "2em"}}/>
-          {section.fields.map(field => (
+          {section.fields && section.fields.map(field => (
             <div key={field.id}>
-              <FieldEditor {...field} onSubmit={updateFieldMutation} />
+              <FieldEditor {...field} onSubmit={onUpdateField} />
               <Divider />
             </div>
           ))}
           <Box mt={3}>
-            <Button variant="contained" color="primary">＋ Add Field</Button>
+            <Button variant="contained" color="primary" onClick={onAddField}>＋ Add Field</Button>
           </Box>
         </div>
       )}
