@@ -54,8 +54,6 @@ router.get('/submissions/:id(\\d+)', requireAdmin, async (req, res) => {
 router.put('/:id(\\d+)/submissions', requireAdmin, async (req, res) => {
     const formId = req.params.id;
     const fields = req.body;
-    console.log(fields)
-
     if (!fields || fields.length == 0)
         return res.send('Missing fields').status(400);
 
@@ -146,7 +144,6 @@ router.get('/:nameOrId([\\w\\%]+)', async (req, res) => {
 router.post('/:id(\\d+)', requireAdmin, async (req, res) => {
     const formId = req.params.id;
     const newForm = req.body;
-    console.log(newForm)
 
     // Fetch form
     const form = await Form.findByPk(formId, {
@@ -170,8 +167,10 @@ router.post('/:id(\\d+)', requireAdmin, async (req, res) => {
         return res.send('Form not found').status(404);
 
     // Update form fields
-    form.name = newForm.name;
-    form.description = newForm.description;
+    if (newForm.name != null)
+        form.name = newForm.name;
+    if (newForm.description != null)
+        form.description = newForm.description;
     await form.save();
 
     // Update/create sections/fields
@@ -207,8 +206,6 @@ router.post('/:id(\\d+)', requireAdmin, async (req, res) => {
 // Create form section
 router.put('/sections', async (req, res) => {
     const newSection = req.body;
-    console.log(newSection)
-
     if (!newSection || !newSection.name)
         return res.send('Missing fields').status(400);
 
@@ -223,9 +220,8 @@ router.put('/sections', async (req, res) => {
 router.post('/sections/:id(\\d+)/', async (req, res) => {
     const sectionId = req.params.id;
     const newSection = req.body;
-    console.log(newSection)
 
-    const section = await FormSection.udpate(newSection, { 
+    const section = await FormSection.update(newSection, { 
         where: { id: sectionId },
         fields: [ 'name', 'description', 'index' ],
         returning: true
@@ -250,7 +246,6 @@ router.delete('/sections/:id(\\d+)/', async (req, res) => {
 // Create form field
 router.put('/fields', async (req, res) => {
     const newField = req.body;
-    console.log(newField)
 
     if (!newField || !newField.name || !newField.type)
         return res.send('Missing fields').status(400);
@@ -266,7 +261,6 @@ router.put('/fields', async (req, res) => {
 router.post('/fields/:id(\\d+)/', async (req, res) => {
     const fieldId = req.params.id;
     const newField = req.body;
-    console.log('update field:', newField)
 
     const field = await FormField.update(newField, { 
         where: { id: fieldId },

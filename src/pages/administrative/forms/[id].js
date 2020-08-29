@@ -1,5 +1,5 @@
 import { useMutation } from 'react-query'
-import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, FormControlLabel, Checkbox, Grid, makeStyles } from '@material-ui/core'
+import { Container, Box, Paper, Divider, Typography, Button, IconButton, Tab, Tabs, TextField, Checkbox, Grid, makeStyles } from '@material-ui/core'
 import { Layout, UpdateForm } from '../../../components'
 import { useAPI } from '../../../contexts/api'
 
@@ -15,7 +15,11 @@ const useStyles = makeStyles((theme) => ({
   },
   tabs: {
     borderRight: `1px solid ${theme.palette.divider}`
-  }
+  },
+  title: {
+    fontSize: 27,
+    color: 'black'
+  },
 }))
 
 const FormEditor = (props) => {
@@ -28,12 +32,21 @@ const FormEditor = (props) => {
   const height = Math.max(
     form.sections.length * 1,
     form.sections[tab] && form.sections[tab].fields ? form.sections[tab].fields.length * 32 : 0
-  ) + 37
+  ) + 150
 
-  const handleTabChange = (event, newTab) => {
-    console.log(newTab)
-    setTab(newTab)
-  }
+  const handleTabChange = (event, newTab) => setTab(newTab)
+
+  const [updateFormMutation] = useMutation(
+    (fields) => api.updateForm(form.id, fields),
+    {
+      onSuccess: (resp) => {
+        console.log('updateForm SUCCESS', resp)
+      },
+      onError: (error) => {
+        console.log('updateForm ERROR', error)
+      }
+    }
+  )
 
   const [addSectionMutation] = useMutation(
     () =>
@@ -42,74 +55,90 @@ const FormEditor = (props) => {
         name: 'New section', 
         description: '',
         index: form.sections.reduce((acc, s) => Math.max(acc, s.index + 1), 0)
-      }),
+      })
+      .then( () => api.form(form.id) ),
     {
-        onSuccess: (resp) => {
-            console.log('createFormSection SUCCESS', resp)
-            setForm({...form,  sections: form.sections.concat(resp)})
-            setTab(resp.index)
-        },
-        onError: (error, { onError }) => {
-          console.log('createFormSection ERROR', error)
-        }
+      onSuccess: (resp) => {
+        console.log('createFormSection SUCCESS', resp)
+        setForm(resp)
+        setTab(resp.sections[-1].index)
+      },
+      onError: (error) => {
+        console.log('createFormSection ERROR', error)
+      }
     }
   )
 
   const [deleteSectionMutation] = useMutation(
-    (id) => api.deleteFormSection(id),
+    (id) => api.deleteFormSection(id).then( () => api.form(form.id) ),
     {
-        onSuccess: (resp, { onSuccess }) => {
-            console.log('deleteFormSection SUCCESS', resp)
-            const index = form.sections.findIndex(s => s.id == resp)
-            console.log('index', index)
-            setTab(index-1)
-            const sections = [...form.sections]
-            sections.splice(index, 1)
-            setForm({...form,  sections})
-        },
-        onError: (error, { onError }) => {
-          console.log('deleteFormSection ERROR', error)
-        },
+      onSuccess: (resp) => {
+        console.log('deleteFormSection SUCCESS', resp)
+        const index = form.sections.findIndex(s => s.id == resp)
+        setTab(index-1)
+        setForm(resp)
+      },
+      onError: (error) => {
+        console.log('deleteFormSection ERROR', error)
+      }
     }
   )
 
-  const [updateFieldMutation] = useMutation(
-    ({ id, values }) => api.updateFormField(id, values),
+  const [updateSectionMutation] = useMutation(
+    (fields) => api.updateFormSection(form.sections[tab].id, fields),
     {
-        onSuccess: (resp, { onSuccess }) => {
-            console.log('updateFormField SUCCESS', resp)
-            // router.push(`/${NavigationConstants.ANALYSES}`);
-            // onSuccess(resp);
-        },
-        onError: (error, { onError }) => {
-          console.log('updateFormField ERROR', error)
-            // onError(error);
-            // setSubmissionError(error);
-        },
+      onSuccess: (resp) => {
+        console.log('updateFormSection SUCCESS', resp)
+      },
+      onError: (error) => {
+        console.log('updateFormSection ERROR', error)
+      }
     }
   )
 
   const [addFieldMutation] = useMutation(
     () =>
       api.createFormField({ 
-        form_section_id: section.id, 
+        form_section_id: form.sections[tab].id, 
         name: 'New field', 
         type: 'text', 
         is_required: true,
-        index: section.fields.reduce((acc, f) => Math.max(acc, f.index + 1), 0)
-      }),
+        index: form.sections[tab].fields ? form.sections[tab].fields.reduce((acc, f) => Math.max(acc, f.index + 1), 0) : 0,
+      })
+      .then( () => api.form(form.id) ),
     {
-        onSuccess: (resp, { onSuccess }) => {
-            console.log('createFormField SUCCESS', resp)
-            setFields(fields.concat(resp))
-            // router.push(`/${NavigationConstants.ANALYSES}`);
-            // onSuccess(resp);
-        },
-        onError: (error, { onError }) => {
-          console.log('createFormField ERROR', error)
-            // onError(error);
-            // setSubmissionError(error);
-        },
+      onSuccess: (resp) => {
+        console.log('createFormField SUCCESS', resp)
+        setForm(resp)
+      },
+      onError: (error) => {
+        console.log('createFormField ERROR', error)
+      }
+    }
+  )
+
+  const [deleteFieldMutation] = useMutation(
+    (id) => api.deleteFormField(id).then( () => api.form(form.id) ),
+    {
+      onSuccess: (resp) => {
+        console.log('deleteFormField SUCCESS', resp)
+        setForm(resp)
+      },
+      onError: (error, { onError }) => {
+        console.log('deleteFormSection ERROR', error)
+      }
+    }
+  )
+
+  const [updateFieldMutation] = useMutation(
+    ({ id, values }) => api.updateFormField(id, values).then( () => api.form(form.id) ),
+    {
+      onSuccess: (resp) => {
+        console.log('updateFormField SUCCESS', resp)
+      },
+      onError: (error) => {
+        console.log('updateFormField ERROR', error)
+      }
     }
   )
 
@@ -117,15 +146,38 @@ const FormEditor = (props) => {
     <Layout>
       <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper} style={{height: height + "em"}}>
-          <Grid container justify="space-between">
-            <Grid item>
-              <Typography component="h1" variant="h4">{form.name}</Typography>
+          <Box m={3}>
+            <Grid container justify="space-between">
+              <Grid item>
+                <TextField 
+                  margin="none" 
+                  style={{width: "50vw"}}
+                  id="name" 
+                  label="Name"
+                  InputProps={{
+                    classes: {
+                      input: classes.title,
+                    }
+                  }} 
+                  defaultValue={form.name} 
+                  onChange={(e) => updateFormMutation({ name: e.target.value })}
+                />
+              </Grid>
+              <Grid item>
+                <Button variant="contained" color="secondary">Delete Form</Button>
+              </Grid>
             </Grid>
-            <Grid item>
-              <Button variant="contained" color="primary">Edit Name</Button>{' '}
-              <Button variant="contained" color="secondary">Delete Form</Button>
-            </Grid>
-          </Grid>
+            <TextField 
+              margin="normal" 
+              style={{width: "50vw"}}
+              multiline
+              rows={2}
+              id="description" 
+              label="Description"
+              defaultValue={form.description} 
+              onChange={(e) => updateFormMutation({ description: e.target.value })}
+            />
+          </Box>
           <div className={classes.root}>
             <Tabs 
               orientation="vertical"
@@ -145,8 +197,10 @@ const FormEditor = (props) => {
                 value={tab} 
                 index={index} 
                 section={section} 
+                onUpdate={updateSectionMutation}
                 onDelete={deleteSectionMutation} 
                 onAddField={addFieldMutation} 
+                onDeleteField={deleteFieldMutation}
                 onUpdateField={updateFieldMutation}
               />
             ))}
@@ -157,7 +211,7 @@ const FormEditor = (props) => {
   )
 }
 
-const SectionTabPanel = ({ section, value, index, onDelete, onAddField, onUpdateField }) => {
+const SectionTabPanel = ({ section, value, index, onUpdate, onDelete, onAddField, onDeleteField, onUpdateField }) => {
   return (
     <Box
       p={3}
@@ -185,14 +239,30 @@ const SectionTabPanel = ({ section, value, index, onDelete, onAddField, onUpdate
                 </Button>
               </Grid>
             </Grid>
-            <TextField fullWidth margin="normal" id="name" label="Section Name" defaultValue={section.name} />
-            <TextField fullWidth margin="normal" id="description" label="Section Description" defaultValue={section.description} />
+            <TextField 
+              fullWidth 
+              margin="normal" 
+              id="name" 
+              label="Section Name" 
+              required
+              defaultValue={section.name} 
+              onChange={(e) => onUpdate({ name: e.target.value })}
+            />
+            <TextField 
+              fullWidth 
+              margin="normal" 
+              id="description" 
+              label="Section Description" 
+              required
+              defaultValue={section.description} 
+              onChange={(e) => onUpdate({ description: e.target.value })}
+            />
           </Box>
           <Typography component="h1" variant="h5" gutterBottom>Fields</Typography>
           <Divider style={{marginBottom: "2em"}}/>
           {section.fields && section.fields.map(field => (
             <div key={field.id}>
-              <FieldEditor {...field} onSubmit={onUpdateField} />
+              <FieldEditor {...field} onDelete={() => onDeleteField(field.id)} onSubmit={onUpdateField} />
               <Divider />
             </div>
           ))}
@@ -221,7 +291,7 @@ const FieldEditor = props => {
           <Typography component="h1" variant="h6" gutterBottom>Field #{props.index+1}</Typography>
         </Grid>
         <Grid item>
-          <Button variant="contained" color="secondary" size="small">Delete Field</Button>
+          <Button variant="contained" color="secondary" size="small" onClick={props.onDelete}>Delete Field</Button>
         </Grid>
       </Grid>
       <UpdateForm 
