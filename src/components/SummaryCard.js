@@ -2,27 +2,36 @@ import { Card, CardHeader, CardContent, CardActions, Typography, Avatar } from '
 import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles((theme) => ({
-  card: {
-    minHeight: '13em',
+  header: {
+    height: '5em'
+  },
+  content: {
+    height: '6em'
   },
 }))
 
-const SummaryCard = ({ title, subtitle, description, iconUrl, actionLabel }) => (
-  <Card className={useStyles().card}>
-    <CardHeader
-      avatar={iconUrl ? <Avatar alt={title} src={iconUrl} /> : null}
-      title={title}
-      subheader={subtitle}
-    />
-    <CardContent>
-      <Typography variant="body2" color="textSecondary" component="p">
-        {description}
-      </Typography>
-    </CardContent>
-    <CardActions disableSpacing>
-      {actionLabel}
-    </CardActions>
-  </Card>
-)
+const SummaryCard = ({ title, subtitle, description, iconUrl, action }) => {
+  const classes = useStyles()
+
+  return (
+    <Card>
+      <CardHeader
+        className={classes.header}
+        avatar={iconUrl ? <Avatar alt={title} src={iconUrl} /> : null}
+        title={title}
+        subheader={subtitle}
+        titleTypographyProps={{variant: 'h6'}}
+      />
+      <CardContent className={classes.content}>
+        <Typography variant="body2" color="textSecondary" component="p">
+          {description.length > 130 ? description.substring(0, 130) + ' ...' : description}
+        </Typography>
+      </CardContent>
+      <CardActions>
+        {action}
+      </CardActions>
+    </Card>
+  )
+}
 
 export default SummaryCard

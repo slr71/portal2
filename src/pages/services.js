@@ -1,4 +1,5 @@
-import { Link, Grid } from '@material-ui/core'
+import { Link, Grid, Button } from '@material-ui/core'
+import { Launch as LaunchIcon } from '@material-ui/icons'
 import { Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
 
@@ -14,8 +15,10 @@ const Services = (props) => {
     <Layout title="Services">
       <h2>My Services</h2>
       <MyServices services={userServices} />
+      <br />
       <h2>Available</h2>
       <AvailableServices services={available} />
+      <br />
       <h2>Powered by CyVerse</h2>
       <PoweredServices services={powered} />
     </Layout>
@@ -24,7 +27,7 @@ const Services = (props) => {
 
 const MyServices = ({services}) => {
   if (services && services.length > 0)
-    return (<ServiceGrid services={services} />)
+    return (<ServiceGrid services={services} launch={true} />)
 
   return (
     <p>
@@ -36,7 +39,7 @@ const MyServices = ({services}) => {
 
 const AvailableServices = ({services}) => {
   if (services && services.length > 0)
-    return (<ServiceGrid services={services} />)
+    return (<ServiceGrid services={services} launch={false} />)
 
   return (
     <p>
@@ -47,7 +50,7 @@ const AvailableServices = ({services}) => {
 
 const PoweredServices = ({services}) => {
   if (services && services.length > 0)
-    return (<ServiceGrid services={services} />)
+    return (<ServiceGrid services={services} launch={true} />)
 
   return (
     <p>
@@ -56,25 +59,34 @@ const PoweredServices = ({services}) => {
   )
 }
 
-const ServiceGrid = ({ services }) => (
+const ServiceGrid = ({ services, launch }) => (
   <Grid container spacing={4}>
     {services.map(service =>
-      <Grid item xs={12} sm={6} md={3} lg={4} xl={2} key={service.id}>
-        <Service service={service} />
+      <Grid item key={service.id} xs={12} sm={6} md={3} lg={4} xl={2}>
+        <Service {...service} launch={launch} />
       </Grid>
     )}
   </Grid>
 )
 
-const Service = ({ service }) => {
+const Service = ({ id, name, description, icon_url, service_url, launch }) => {
+  const action = 
+    launch
+      ? <Button size="small" color="primary" onClick={(e) => { window.open(`${service_url}`); e.preventDefault() }}>
+          LAUNCH
+          <LaunchIcon style={{ fontSize: '1em', marginLeft: '0.5em' }} />
+        </Button>
+      : <Button size="small" color="primary" href={`services/${id}`}>
+          REQUEST ACCESS 
+        </Button>
+
   return (
-    <Link underline='none' href={`services/${service.id}`}>
+    <Link underline='none' href={`services/${id}`}>
       <SummaryCard 
-        title={service.name} 
-        description={service.description} 
-        iconUrl={service.icon_url}
-        actionLabel='TODO'
-        actionUrl={service.service_url}
+        title={name} 
+        description={description} 
+        iconUrl={icon_url}
+        action={action}
       />
     </Link>
   )
