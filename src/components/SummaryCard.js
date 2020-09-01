@@ -10,14 +10,19 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const SummaryCard = ({ title, subtitle, description, iconUrl, action }) => {
+const SummaryCard = ({ title, subtitle, description, iconUrl, icon, action }) => { // use icon or iconUrl but not both
   const classes = useStyles()
 
   return (
     <Card>
       <CardHeader
         className={classes.header}
-        avatar={iconUrl ? <Avatar alt={title} src={iconUrl} /> : null}
+        avatar={
+          (icon || iconUrl) &&
+          <Avatar alt={title} src={iconUrl}>
+            {icon}
+          </Avatar>
+        }
         title={title}
         subheader={subtitle}
         titleTypographyProps={{variant: 'h6'}}
