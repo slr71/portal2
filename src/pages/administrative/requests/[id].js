@@ -154,6 +154,9 @@ const Conversations = props => {
   const conversation = props.request.conversation
   const classes = useStyles()
 
+  if (!conversation)
+    return <></>
+
   return (
     <Card className={classes.box}>
       <CardHeader title="Conversations" />
@@ -201,7 +204,6 @@ const ConversationPart = props => {
 
 export async function getServerSideProps({ req, query }) {
   const request = await req.api.serviceRequest(query.id)
-
   return { props: { request } }
 }
 
