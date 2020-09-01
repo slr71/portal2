@@ -52,6 +52,7 @@ const Account = ({ properties }) => {
                 <UpdateForm 
                   fields={form.fields} 
                   initialValues={initialValues(form.fields)} 
+                  autosave={form.autosave}
                   onSubmit={(values, { setSubmitting }) => {
                     console.log('Submit:', values)
                     submitFormMutation(values)
@@ -126,6 +127,7 @@ const MailingListForm = ({ user }) => (
 const Forms = (user, properties) => {
   return [ 
     { title: "Identification",
+      autosave: true,
       fields: [
         { id: "first_name",
           name: "First Name",
@@ -157,6 +159,7 @@ const Forms = (user, properties) => {
       ]
     },
     { title: "Password",
+      autosave: false,
       fields: [
         { id: "old_password",
           name: "Old Password",
@@ -184,6 +187,7 @@ const Forms = (user, properties) => {
       render: <MailingListForm user={user} />
     },
     { title: "Institution",
+      autosave: true,
       fields: [
         { id: "institution",
           name: "Company/Institution",
@@ -221,6 +225,7 @@ const Forms = (user, properties) => {
       ]
     },
     { title: "Research",
+      autosave: true,
       fields: [
         { id: "research_area_id",
           name: "Research Area",
@@ -239,6 +244,7 @@ const Forms = (user, properties) => {
       ]
     },
     { title: "Demographics",
+      autosave: true,
       fields: [
         { id: "gender_id",
           name: "Gender Identity",
