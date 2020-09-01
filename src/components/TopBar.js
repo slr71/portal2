@@ -10,7 +10,7 @@ const useStyles = makeStyles((theme) => ({
   },
   box: {
     borderBottom: "1px solid lightgray",
-    height: "3.6em",
+    height: "3.75em",
   },
   breadcrumbs: {
     paddingTop:'3px',
