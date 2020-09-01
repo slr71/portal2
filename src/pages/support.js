@@ -1,4 +1,4 @@
-import { Grid, Link } from '@material-ui/core'
+import { Grid, Link, Box } from '@material-ui/core'
 import { Layout, SummaryCard } from '../components'
 import { getMenuItem } from '../menuItems.js'
 
@@ -7,18 +7,20 @@ const Support = () => {
 
   return (
     <Layout title='Support'>
-      <Grid container spacing={4}>
-        {menuItem.items.map(item =>
-          <Grid item xs={4} key={item.path}>
-            <Link underline='none' href={item.path}>
-              <SummaryCard 
-                title={item.label} 
-                description={item.description} 
-              />
-            </Link>
-          </Grid>
-        )}
-      </Grid>
+      <Box mt={4}>
+        <Grid container spacing={4}>
+          {menuItem.items.map(item =>
+            <Grid item xs={4} key={item.path}>
+              <Link underline='none' href={item.path}>
+                <SummaryCard 
+                  title={item.label} 
+                  description={item.description} 
+                />
+              </Link>
+            </Grid>
+          )}
+        </Grid>
+      </Box>
     </Layout>
   )
 }

@@ -6,11 +6,11 @@ import { menuItems } from '../menuItems.js'
 const useStyles = makeStyles((theme) => ({
   title: {
     fontSize: "1.5em",
-    marginLeft: ".5em"
+    marginLeft: "0.5em"
   },
   box: {
     borderBottom: "1px solid lightgray",
-    minHeight: "3.75em"
+    height: "3.6em",
   },
   breadcrumbs: {
     paddingTop:'3px',
@@ -36,13 +36,15 @@ const TabMenu = props => {
 }
 
 const BreadcrumbsMenu = () => {
+  const classes = useStyles()
+
   const parts = useRouter().asPath.split("/").filter(s => s)
   if (parts.length <= 1) {
     return <></>
   }
 
   return (
-    <Breadcrumbs className={useStyles().breadcrumbs}>
+    <Breadcrumbs className={classes.breadcrumbs}>
       {parts.slice(0, -1).map((part, index) => (
         <Link key={index} color="inherit" href={"/" + parts.slice(0,index+1).join("/")}>
           {capitalize(part)}
@@ -58,7 +60,7 @@ const TopBar = props => {
   const menuItem = menuItems.find(item => item.label === props.title)
 
   return (
-    <Box display="flex" p={1} className={classes.box}>
+    <Box display="flex" pl={4} p={1} className={classes.box}>
       {menuItem && menuItem.icon}
       <Typography className={classes.title}>{props.title}</Typography>
       {/* {menuItem && menuItem.items ? <TabMenu items={menuItem.items}/> : <></>} */}

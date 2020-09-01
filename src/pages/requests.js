@@ -1,4 +1,5 @@
 import { Link, Grid } from '@material-ui/core'
+import { List as ListIcon } from '@material-ui/icons'
 import { Layout, SummaryCard } from '../components'
 
 const Requests = ({ forms }) => (
@@ -11,6 +12,7 @@ const Requests = ({ forms }) => (
           <div>{formGroup.description}</div>
           <br />
           <RequestGrid forms={formGroup.forms} />
+          <br />
         </div>
     ))}
   </Layout>
@@ -31,6 +33,7 @@ const Request = ({ form }) => (
     <SummaryCard 
       title={form.name} 
       description={form.description} 
+      icon={<ListIcon />}
     />
   </Link>
 )

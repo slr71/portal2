@@ -164,7 +164,7 @@ const FormEditor = (props) => {
                 />
               </Grid>
               <Grid item>
-                <Button variant="contained" color="secondary">Delete Form</Button>
+                <Button variant="contained" color="warning">Delete Form</Button>
               </Grid>
             </Grid>
             <TextField 

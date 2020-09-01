@@ -1,6 +1,6 @@
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Box, Divider, Typography, Button, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
+import { Container, Paper, Grid, Box, Typography, Button, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
 import Layout from '../../components/Layout.js'
 
 const useStyles = makeStyles((theme) => ({
@@ -50,14 +50,12 @@ const Workshop = props => {
               </Grid>
             </Grid>
             <Grid item xs={12}>
-              <Divider />
               <Box>
                 <Typography component="div" variant="h5">Details</Typography>
                 <Typography color="textSecondary"><Markdown>{workshop.about}</Markdown></Typography>
               </Box>
             </Grid>
             <Grid item xs={12}>
-              <Divider />
               <Box>
                 <Typography component="div" variant="h5">Services</Typography>
                 <Typography color="textSecondary">Services used in the workshop.</Typography>

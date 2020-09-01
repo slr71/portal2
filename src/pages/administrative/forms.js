@@ -28,11 +28,6 @@ const Forms = props => {
 const FormTable = props => (
   <TableContainer component={Paper}>
     <Table>
-      <TableHead>
-          <TableRow>
-            <TableCell>Form</TableCell>
-          </TableRow>
-        </TableHead>
       <TableBody>
         {props.forms.map(form => (
           <Link key={form.id} href={`/administrative/forms/${form.id}`}>
