@@ -1,4 +1,5 @@
 const axios = require('axios')
+const qs = require('qs');
 
 class PortalAPI {
   constructor(params) {
@@ -14,6 +15,9 @@ class PortalAPI {
       options.headers['Authorization'] = `Bearer ${this.token}`
     
     options.timeout = 30*1000
+
+    // Add custom parameter serializer to encode spaces with %20 instead of '+' 
+    options.paramsSerializer = (params) => qs.stringify(params)
 
     console.log(`axios request: token ${this.token != null}, ${options.method} ${options.url}`)
     return axios.request(options)

@@ -1,7 +1,8 @@
 const router = require('express').Router();
 const models = require('../models');
-const sequelize = models.sequelize;
+const sequelize = require('sequelize');
 const Service = models.api_service;
+const User = models.account_user;
 const AccessRequest = models.request;
 const AccessRequestLog = models.api_accessrequestlog;
 const AccessRequestQuestion = models.api_accessrequestquestion;
@@ -12,16 +13,40 @@ const { requireAdmin } = require('../auth');
 
 const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api_poweredservice where service_ptr_id=id))'), 'is_powered' ];
 
+//TODO move into module
+const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
+
+
 router.get('/requests', requireAdmin, async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
-    //const search = req.query.search;
+    const keyword = req.query.keyword;
+
+    const where = 
+        keyword
+            ? { where:
+                    sequelize.or(
+                        { id: isNaN(keyword) ? 0 : keyword }, 
+                        like('status', keyword),
+                        like('service.name', keyword),
+                        like('user.username', keyword),
+                        like('user.email', keyword),
+                        like('user.region.country.name', keyword),
+                    ),
+                  subQuery: false
+                }
+            : {};
 
     const { count, rows } = await AccessRequest.findAndCountAll({
-        include: [ 'user', 'service' ],
+        ...where,
+        include: [ 
+            { model: User.scope('lite'), as: 'user' },
+            'service' 
+        ],
         order: [ ['updated_at', 'DESC'] ],
         offset: offset,
-        limit: limit
+        limit: limit,
+        distinct: true
     });
 
     return res.json({ count, results: rows }).status(200);

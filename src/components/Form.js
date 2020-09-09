@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography, LinearProgress } from '@material-ui/core'
+import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography, CircularProgress } from '@material-ui/core'
 import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
 import { isEmail, isNumeric, isEmpty } from 'validator'
@@ -12,7 +12,7 @@ const useStyles = makeStyles((theme) => ({
   },
   hidden: {
     display: 'none'
-  }
+  },
 }))
 
 const initialValues = (fields) =>
@@ -43,6 +43,26 @@ const validateFields = (fields, values) => {
   return errors;
 }
 
+function CircularProgressWithLabel(props) {
+  return (
+    <Box position="relative" display="inline-flex">
+      <CircularProgress variant="indeterminate" />
+      <Box
+        top={0}
+        left={0}
+        bottom={0}
+        right={0}
+        position="absolute"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Typography variant="caption" component="div" color="textSecondary" style={{fontSize: '0.7em'}}>{props.value}</Typography>
+      </Box>
+    </Box>
+  )
+}
+
 // From https://github.com/formium/formik/blob/e51f09a318cba216a1ba3932da0906202df0b979/examples/DebouncedAutoSave.js
 const AutoSave = ({ debounceMs }) => {
   const formik = useFormikContext()
@@ -54,45 +74,51 @@ const AutoSave = ({ debounceMs }) => {
     [debounceMs, formik.submitForm]
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     debouncedSubmit();
   }, [debouncedSubmit, formik.values])
 
   return (
-    <>
-      {!!formik.isSubmitting
-        ? 'Saving...'
-        : null
-      }
-    </>
-  )
+    <></>
+    // <div style={!!formik.isSubmitting ? null : {visibility: 'hidden'}}>
+    //   <CircularProgressWithLabel value='Saving' />
+    // </div>
+  ) 
 }
 
-const UpdateForm = ({ fields, autosave, onSubmit }) => {
+const UpdateForm = ({ title, subtitle, fields, autosave, onSubmit }) => {
+  //FIXME Formik is submitting the form on load, thus check for submitCount > 1 when showing update indicator
   return (
     <Formik
       initialValues={initialValues(fields)}
       validate={(values) => validateFields(fields, values)}
       onSubmit={onSubmit}
     >
-      {({ handleChange, handleBlur, handleSubmit, isSubmitting, setSubmitting, isValid, values, errors, touched }) => (
+      {({ handleChange, handleBlur, handleSubmit, submitCount, isSubmitting, isValid, values, errors, touched }) => (
         <Form>
+          <Grid container justify="space-between" style={{height: '3em'}}>
+            <Grid item>
+              <Typography component="div" variant="h5">{title}</Typography>
+            </Grid>
+            <Grid item>
+              {submitCount > 1 && isSubmitting && <CircularProgressWithLabel value='Saving' />}
+            </Grid>
+          </Grid>
+          {subtitle && <Typography color="textSecondary">{subtitle}</Typography>}
           {fields.map(field => (
-              <div key={field.id}>
-                <FormField
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  errorText={touched[field.id] && errors[field.id]}
-                  {...field}
-                />
-                <br />
-              </div>
+            <div key={field.id}>
+              <FormField
+                onChange={handleChange}
+                onBlur={handleBlur}
+                errorText={touched[field.id] && errors[field.id]}
+                {...field}
+              />
+              <br />
+            </div>
           ))}
-          {/* {isSubmitting && <LinearProgress />}
-          <br /> */}
           <Box display="flex" justifyContent="flex-end">
             {autosave
-              ? <AutoSave debounceMs={1000} />
+              ? <AutoSave debounceMs={500} />
               : <Button variant="contained" color="primary" disabled={isSubmitting || !isValid} onClick={handleSubmit}>Update</Button>
             } 
           </Box>
@@ -103,6 +129,7 @@ const UpdateForm = ({ fields, autosave, onSubmit }) => {
 }
 
 const Wizard = ({ form, initialValues, onSubmit }) => {
+  const classes = useStyles()
   const [stepNumber, setStepNumber] = useState(0)
   const [snapshot, setSnapshot] = useState(initialValues)
 
@@ -144,7 +171,7 @@ const Wizard = ({ form, initialValues, onSubmit }) => {
       {({ handleChange, handleBlur, handleSubmit, isSubmitting, isValid, values, errors, touched }) => (
         <Form>
           {form.sections.map((section, index) => (
-            <div key={index} className={index != stepNumber ? useStyles().hidden : ''}>
+            <div key={index} className={index != stepNumber ? classes.hidden : ''}>
               {section.fields.map(field => (
                   <div key={field.id}>
                     <FormField
@@ -192,6 +219,7 @@ const FormStepper = ({activeStep, steps}) => {
 }
 
 const FormField = props => {
+  const classes = useStyles()
   const commonProps = {
     id: props.id.toString(),
     name: props.id.toString(),
@@ -214,7 +242,7 @@ const FormField = props => {
         name={props.id.toString()}
         color="primary"
         onChange={props.onChange}
-        Label={{label: props.name, className: useStyles().checkbox}}
+        Label={{label: props.name, className: classes.checkbox}}
       />
     )
   }

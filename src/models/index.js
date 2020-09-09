@@ -20,7 +20,7 @@ const sequelize = new Sequelize(
   config.db.database, config.db.user, config.db.password,
   { host: config.db.host,
     dialect: 'postgres',
-    logging: false,
+    //logging: false,
     define: {
       timestamps: false,
       freezeTableName: true,
@@ -143,6 +143,36 @@ models.account_user.addScope('defaultScope',
       'aware_channel',
       'services',
       'workshops'
+    ]
+  }
+);
+
+models.account_user.addScope('lite',
+  {
+    // attributes: {
+    //   exclude: [
+    //     'is_active',
+    //     'ethnicity_id',
+    //     'funding_agency_id', 
+    //     'gender_id', 
+    //     'has_verified_email',
+    //     'occupation_id', 
+    //     'password',
+    //     'region_id', 
+    //     'research_area_id', 
+    //     'aware_channel_id', 
+    //     'user_institution_id'
+    //   ]
+    // },
+    include: [
+      'occupation',
+      { model: models.account_region, 
+        as: 'region',
+        include: [
+          'country'
+        ]
+      },
+      'research_area',
     ]
   }
 );

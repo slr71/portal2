@@ -164,7 +164,7 @@ const FormEditor = (props) => {
                 />
               </Grid>
               <Grid item>
-                <Button variant="contained" color="error">Delete Form</Button>
+                <Button variant="contained" color="primary">Delete Form</Button>
               </Grid>
             </Grid>
             <TextField 
@@ -231,7 +231,7 @@ const SectionTabPanel = ({ section, value, index, onUpdate, onDelete, onAddField
               <Grid item>
                 <Button 
                   variant="contained" 
-                  color="secondary" 
+                  color="primary" 
                   size="small" 
                   onClick={() => onDelete(section.id)}
                 >
@@ -291,7 +291,7 @@ const FieldEditor = props => {
           <Typography component="h1" variant="h6" gutterBottom>Field #{props.index+1}</Typography>
         </Grid>
         <Grid item>
-          <Button variant="contained" color="secondary" size="small" onClick={props.onDelete}>Delete Field</Button>
+          <Button variant="contained" color="primary" size="small" onClick={props.onDelete}>Delete Field</Button>
         </Grid>
       </Grid>
       <UpdateForm 
