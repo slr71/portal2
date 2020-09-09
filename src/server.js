@@ -41,7 +41,7 @@ app.prepare()
         // Support CORS requests -- needed for service icon image requests
         server.use(cors())
 
-        // Support JSON and XML encoded request bodies
+        // Support JSON encoded request bodies
         server.use(bodyParser.json())
 
         // Configure sessions

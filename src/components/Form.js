@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography, CircularProgress } from '@material-ui/core'
 import { useFormikContext, Formik, Form, Field } from 'formik'
@@ -74,7 +74,7 @@ const AutoSave = ({ debounceMs }) => {
     [debounceMs, formik.submitForm]
   )
 
-  React.useEffect(() => {
+  useEffect(() => {
     debouncedSubmit();
   }, [debouncedSubmit, formik.values])
 
