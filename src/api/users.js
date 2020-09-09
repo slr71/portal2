@@ -1,14 +1,18 @@
 const router = require('express').Router();
 const { requireAdmin, isAdmin } = require('../auth');
+const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
 
 const SUPPORTED_FIELDS = [
-    'first_name', 'last_name', 'orcid_id', 'institution', 'department', 
-    'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id', 
+    'first_name', 'last_name', 'orcid_id', 'institution', 'department',
+    'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id',
     'occupation_id', 'research_area_id', 'region_id'
 ]
+
+//TODO move into module
+const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
 
 router.get('/mine', (req, res) => {
     res.json(req.user).status(200);
@@ -17,12 +21,35 @@ router.get('/mine', (req, res) => {
 router.get('/', requireAdmin, async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
-    //const search = req.query.search;
+    const keyword = req.query.keyword;
 
-    const { count, rows } = await User.findAndCountAll({
+    const { count, rows } = await User.unscoped().findAndCountAll({
+        where: 
+            keyword
+                ? sequelize.or(
+                    { id: isNaN(keyword) ? 0 : keyword }, 
+                    like('first_name', keyword),
+                    like('last_name', keyword),
+                    like('username', keyword),
+                    like('institution', keyword),
+                    like('department', keyword),
+                    like('occupation.name', keyword),
+                    like('region.name', keyword),
+                    like('region.country.name', keyword),
+                  )
+                : null,
+        include: [
+            'occupation',
+            { model: models.account_region, 
+                as: 'region',
+                include: [ 'country' ]
+            }
+        ],
         order: [ ['id', 'DESC'] ],
         offset: offset,
-        limit: limit
+        limit: limit,
+        distinct: true,
+        subQuery: false
     });
 
     res.json({ count, results: rows }).status(200);
@@ -38,6 +65,7 @@ router.get('/:id(\\d+)', requireAdmin, async (req, res) => {
 router.post('/:id(\\d+)', async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
+    console.log(fields);
 
     // User can only update their own record unless admin
     if (id != req.user.id && !isAdmin(req))
@@ -49,13 +77,12 @@ router.post('/:id(\\d+)', async (req, res) => {
 
     for (let key in fields) {
         // Ignore any non-updateable fields
-        if (!SUPPORTED_FIELDS.includes(key))
-            continue;
-        console.log('setting', key, 'to', fields[key]);
-        user[key] = fields[key];
+        if (SUPPORTED_FIELDS.includes(key))
+            user[key] = fields[key];
     }
     await user.save();
     await user.reload();
+
     res.json(user).status(200);
 });
 

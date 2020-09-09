@@ -18,6 +18,7 @@ const Forms = props => {
       <Container maxWidth='lg'>
         <Paper elevation={3} className={classes.paper}>
           <Typography component="h1" variant="h4" gutterBottom>Forms</Typography>
+          <br />
           <FormTable {...props} />
         </Paper>
       </Container>
