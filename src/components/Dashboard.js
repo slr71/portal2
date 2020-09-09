@@ -45,6 +45,10 @@ mainLogo: {
     padding: '0 8px',
     ...theme.mixins.toolbar,
   },
+  ChevronLeftIcon: {
+    color:"white",
+  },
+
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(['width', 'margin'], {
@@ -74,6 +78,8 @@ mainLogo: {
     position: 'relative',
     whiteSpace: 'nowrap',
     width: drawerWidth,
+    color:'#ffffff',
+    backgroundColor: 'rgb(6, 20, 53)',
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
@@ -136,8 +142,8 @@ export default function Dashboard(props) {
         <Toolbar className={classes.toolbar}>
           <IconButton
             edge="start"
-            color="inherit"
             aria-label="open drawer"
+            color="inherit"
             onClick={handleDrawerOpen}
             className={clsx(classes.menuButton, open && classes.menuButtonHidden)}
           >
@@ -167,7 +173,7 @@ export default function Dashboard(props) {
       >
         <div className={classes.toolbarIcon}>
           <IconButton onClick={handleDrawerClose}>
-            <ChevronLeftIcon />
+            <ChevronLeftIcon className={classes.ChevronLeftIcon}/>
           </IconButton>
         </div>
         <Divider />

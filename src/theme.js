@@ -16,11 +16,15 @@ const palette = {
   },
 }
 
+
 const theme = createMuiTheme({
   palette: palette,
   overrides: {
     MuiListItem: {
       root: {
+        "& .MuiSvgIcon-root": {
+          fill: "white"
+        },
         "&$selected": {
           backgroundColor: palette.primary.main,
           color: "white",

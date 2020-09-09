@@ -8,6 +8,9 @@ const useStyles = makeStyles((theme) => ({
   content: {
     height: '6em'
   },
+  lineheightclass: {
+    lineHeight: '1.1',
+  }
 }))
 
 const SummaryCard = ({ title, subtitle, description, iconUrl, icon, action }) => { // use icon or iconUrl but not both
@@ -25,7 +28,7 @@ const SummaryCard = ({ title, subtitle, description, iconUrl, icon, action }) =>
         }
         title={title}
         subheader={subtitle}
-        titleTypographyProps={{variant: 'h6'}}
+        titleTypographyProps={{variant: 'h6', className: classes.lineheightclass}}
       />
       <CardContent className={classes.content}>
         <Typography variant="body2" color="textSecondary" component="p">
