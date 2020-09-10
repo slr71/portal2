@@ -1,7 +1,7 @@
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Grid, Box, Typography, Button, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
-import Layout from '../../components/Layout.js'
+import { Layout, DateRange } from '../../components'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -32,7 +32,8 @@ const Workshop = props => {
   return ( //FIXME break into pieces
     <Layout>
       <Container maxWidth='md'>
-      <Paper elevation={3} className={classes.paper}>
+        <br />
+        <Paper elevation={3} className={classes.paper}>
           <Grid container spacing={4}>
             <Grid container item xs={12} justify="space-between">
               <Grid item>
@@ -44,34 +45,35 @@ const Workshop = props => {
                 <Button variant="contained" color="primary" size="medium" /*onClick={handleOpenDialog}*/>ENROLL</Button>
               </Grid>
               <Grid item xs={12}>
-                <Box>
-                  <Typography color="textSecondary">{workshop.description}</Typography>
-                </Box>
+                <Typography color="textSecondary">
+                  Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
+                </Typography>
+                <Typography color="textSecondary">
+                  Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
+                </Typography>
+                <br />
+                <Typography color="textSecondary">{workshop.description}</Typography>
               </Grid>
             </Grid>
             <Grid item xs={12}>
-              <Box>
-                <Typography component="div" variant="h5">Details</Typography>
-                <Typography color="textSecondary"><Markdown>{workshop.about}</Markdown></Typography>
-              </Box>
+              <Typography component="div" variant="h5">Details</Typography>
+              <Typography color="textSecondary"><Markdown>{workshop.about}</Markdown></Typography>
             </Grid>
             <Grid item xs={12}>
-              <Box>
-                <Typography component="div" variant="h5">Services</Typography>
-                <Typography color="textSecondary">Services used in the workshop.</Typography>
-                <List>
-                  {workshop.services.map(service => (
-                    <Link key={service.id} underline='none' href={`/services/${service.id}`}>
-                      <ListItem>
-                        <ListItemAvatar>
-                          <Avatar alt={service.name} src={service.iconUrl} />
-                        </ListItemAvatar>
-                        <ListItemText primary={service.name} secondary={service.description}/>
-                      </ListItem>
-                    </Link>
-                  ))}
-                </List>
-              </Box>
+              <Typography component="div" variant="h5">Services</Typography>
+              <Typography color="textSecondary">Services used in the workshop.</Typography>
+              <List>
+                {workshop.services.map(service => (
+                  <Link key={service.id} underline='none' href={`/services/${service.id}`}>
+                    <ListItem>
+                      <ListItemAvatar>
+                        <Avatar alt={service.name} src={service.iconUrl} />
+                      </ListItemAvatar>
+                      <ListItemText primary={service.name} secondary={service.description}/>
+                    </ListItem>
+                  </Link>
+                ))}
+              </List>
             </Grid>
           </Grid>
         </Paper>
