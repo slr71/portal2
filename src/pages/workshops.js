@@ -96,7 +96,7 @@ const Workshop = ({ workshop }) => {
               Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
             </div>
             <div className={classes.noWrap}>
-              Workshop: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
+              Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
             </div>
           </>
         }
