@@ -20,7 +20,7 @@ const RestrictedUsernames = ({ usernames }) => {
   }
 
   return (
-    <Layout>
+    <Layout breadcrumbs>
       <Container maxWidth='lg'>
         <br />
         <Paper elevation={3} className={classes.paper}>

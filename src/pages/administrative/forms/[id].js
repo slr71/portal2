@@ -143,7 +143,7 @@ const FormEditor = (props) => {
   )
 
   return (
-    <Layout>
+    <Layout title={form.name} breadcrumbs>
       <Container maxWidth='lg'>
         <br />
         <Paper elevation={3} className={classes.paper} style={{height: height + "em"}}>

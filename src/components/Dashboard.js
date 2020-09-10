@@ -181,7 +181,7 @@ export default function Dashboard(props) {
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
-        <TopBar title={props.title} actions={props.actions} />
+        <TopBar title={props.title} breadcrumbs={props.breadcrumbs} back={props.back} actions={props.actions} />
         <Container maxWidth="lg" className={classes.container}>
           {props.children}
           <Box pt={10}>

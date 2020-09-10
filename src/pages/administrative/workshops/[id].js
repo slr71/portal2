@@ -12,7 +12,7 @@ const WorkshopEditor = (props) => {
   const classes = useStyles()
 
   return (
-    <Layout>
+    <Layout title={props.workshop.title} breadcrumbs>
       <Container maxWidth='lg'>
         <br />
         <Paper elevation={3} className={classes.paper}>

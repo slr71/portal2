@@ -21,7 +21,7 @@ const AccessRequest = props => {
   const classes = useStyles()
 
   return (
-    <Layout>
+    <Layout title={request.service.name} breadcrumbs>
       <Container maxWidth='lg'>
           <h1>Access Request</h1>
           <Grid container spacing={4}>

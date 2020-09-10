@@ -30,7 +30,7 @@ const Workshop = props => {
   }
 
   return ( //FIXME break into pieces
-    <Layout>
+    <Layout title={workshop.title} breadcrumbs>
       <Container maxWidth='md'>
         <br />
         <Paper elevation={3} className={classes.paper}>
@@ -45,14 +45,14 @@ const Workshop = props => {
                 <Button variant="contained" color="primary" size="medium" /*onClick={handleOpenDialog}*/>ENROLL</Button>
               </Grid>
               <Grid item xs={12}>
+                <Typography color="textSecondary">{workshop.description}</Typography>
+                <br />
                 <Typography color="textSecondary">
                   Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
                 </Typography>
                 <Typography color="textSecondary">
                   Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
                 </Typography>
-                <br />
-                <Typography color="textSecondary">{workshop.description}</Typography>
               </Grid>
             </Grid>
             <Grid item xs={12}>

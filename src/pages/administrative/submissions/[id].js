@@ -13,7 +13,7 @@ const FormSubmission = props => {
   const classes = useStyles()
 
   return (
-    <Layout>
+    <Layout title={props.submission.form.name} breadcrumbs>
       <Container maxWidth='lg'>
           <h1>Form Submission</h1>
           <Grid container spacing={4}>

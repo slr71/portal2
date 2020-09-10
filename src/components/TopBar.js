@@ -35,10 +35,9 @@ const TabMenu = props => {
   )
 }
 
-const BreadcrumbsMenu = () => {
+const BreadcrumbsMenu = ({ parts, title }) => {
   const classes = useStyles()
 
-  const parts = useRouter().asPath.split("/").filter(s => s)
   if (parts.length <= 1) {
     return <></>
   }
@@ -50,27 +49,31 @@ const BreadcrumbsMenu = () => {
           {capitalize(part)}
         </Link>
       ))}
-      <Typography color="textPrimary">{capitalize(parts.slice(-1)[0])}</Typography>
+      <Typography color="textPrimary">{title ? title : capitalize(parts.slice(-1)[0])}</Typography>
     </Breadcrumbs>
   )
 }
 
-const TopBar = props => {
+const TopBar = (props) => {
   const classes = useStyles()
   const menuItem = menuItems.find(item => item.label === props.title)
+
+  const parts = useRouter().asPath.split("/").filter(s => s)
+  const backUrl = "/" + parts.slice(0, -1).join("/")
 
   return (
     <Box pl={3} pr={4} p={1} className={classes.box}>
       <Grid container justify="space-between">
         <Grid item>
-        <div style={{
-            display: 'flex',
-            alignItems: 'center'
-        }}>
-          {menuItem && menuItem.icon}
-          <Typography className={classes.title} nowrap>{props.title}</Typography>
-          <BreadcrumbsMenu />
-        </div>
+          {props.back 
+            ? <Link color="inherit" href={backUrl}>Back</Link>
+            : props.breadcrumbs
+              ? <BreadcrumbsMenu parts={parts} title={props.title} />
+              : <div style={{display: 'flex', alignItems: 'center'}}>
+                  {menuItem && menuItem.icon}
+                  <Typography className={classes.title} nowrap>{props.title}</Typography>
+                </div>
+          }
         </Grid>
         <Grid item>
           {props.actions}

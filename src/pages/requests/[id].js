@@ -53,7 +53,7 @@ const Request = (props) => {
   }
 
   return (
-    <Layout>
+    <Layout title={form.name} breadcrumbs>
       <Container maxWidth='md'>
         <Paper elevation={3} className={classes.paper}>
           <Box>

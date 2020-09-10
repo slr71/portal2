@@ -43,8 +43,9 @@ const Service = (props) => {
   }
 
   return ( //FIXME break into pieces
-    <Layout>
+    <Layout title={service.name} breadcrumbs>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper}>
           <Grid container spacing={4}>
             <Grid container item xs={12}  justify="space-between">
