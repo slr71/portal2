@@ -72,7 +72,7 @@ app.prepare()
         }
         else {
             // Handle Keycloak authorization flow
-            server.use(keycloakClient.middleware())
+            server.use(keycloakClient.middleware({ logout: '/logout' }))
 
             // Require authentication on all routes/pages
             server.use(keycloakClient.protect())

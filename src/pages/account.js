@@ -1,6 +1,7 @@
 import { useMutation } from "react-query"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, Switch, Typography, Button, Divider, List, ListItem, ListItemText, ListItemSecondaryAction } from '@material-ui/core'
+import { Person as PersonIcon } from '@material-ui/icons'
 import { Layout, UpdateForm } from '../components'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
@@ -39,9 +40,18 @@ const Account = ({ properties }) => {
     }
   )
 
+  const title = 
+    <div style={{display: 'flex', alignItems: 'center'}}>
+      <PersonIcon fontSize="large" style={{marginRight: "0.25em"}}/>Account
+    </div>
+
+  const logoutButton =
+    <Button variant="contained" color="primary" href="/logout">Sign Out</Button>
+
   return (
-    <Layout title="Account">
+    <Layout title={title} actions={logoutButton}>
       <Container maxWidth='md'>
+        <br />
         {forms.map((form, index) => (
           <Box key={index} className={classes.box}>
             <Paper elevation={3} className={classes.paper}>

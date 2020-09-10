@@ -1,4 +1,4 @@
-import { Box, Tabs, Tab, Breadcrumbs, Link, Typography } from '@material-ui/core'
+import { Grid, Box, Tabs, Tab, Breadcrumbs, Link, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { useRouter } from 'next/router'
 import { menuItems } from '../menuItems.js'
@@ -60,11 +60,22 @@ const TopBar = props => {
   const menuItem = menuItems.find(item => item.label === props.title)
 
   return (
-    <Box display="flex" pl={4} p={1} className={classes.box}>
-      {menuItem && menuItem.icon}
-      <Typography className={classes.title}>{props.title}</Typography>
-      {/* {menuItem && menuItem.items ? <TabMenu items={menuItem.items}/> : <></>} */}
-      <BreadcrumbsMenu />
+    <Box pl={3} pr={4} p={1} className={classes.box}>
+      <Grid container justify="space-between">
+        <Grid item>
+        <div style={{
+            display: 'flex',
+            alignItems: 'center'
+        }}>
+          {menuItem && menuItem.icon}
+          <Typography className={classes.title} nowrap>{props.title}</Typography>
+          <BreadcrumbsMenu />
+        </div>
+        </Grid>
+        <Grid item>
+          {props.actions}
+        </Grid>
+      </Grid>
     </Box>
   )
 }
