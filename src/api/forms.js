@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { requireAdmin } = require('../auth');
 const sequelize = require('sequelize');
 const models = require('../models');
+const User = models.account_user;
 const FormGroup = models.api_formgroup;
 const Form = models.api_form;
 const FormSection = models.api_formsection;
