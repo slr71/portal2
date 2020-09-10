@@ -25,11 +25,11 @@ const Workshops = props => {
         <h2>My Workshops</h2>
         <MyWorkshops workshops={mine} />
       </Box>
-      <Box mt={4}>
+      <Box mt={5}>
         <h2>Upcoming Workshops</h2>
         <UpcomingWorkshops workshops={upcoming} />
       </Box>
-      <Box mt={4}>
+      <Box mt={5}>
         <h2>Past Workshops</h2>
         <PastWorkshops workshops={past} />
       </Box>
