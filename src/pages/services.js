@@ -1,5 +1,5 @@
-import { Link, Grid, Button } from '@material-ui/core'
-import { Launch as LaunchIcon } from '@material-ui/icons'
+import { Link, Grid, Button, IconButton } from '@material-ui/core'
+import { Launch as LaunchIcon, HelpOutlineOutlined as HelpIcon } from '@material-ui/icons'
 import { Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
 
@@ -11,6 +11,14 @@ const Services = (props) => {
   const available = services.filter(s => s.approval_key != '' && !userServices.map(s => s.id).includes(s.id))
   const powered = services.filter(s => s.is_powered)
 
+  const poweredByButton = 
+    <IconButton aria-label="delete">
+      <HelpIcon 
+        fontSize="small" 
+        onClick={(e) => { window.open("https://cyverse.org/powered-by-cyverse"); e.preventDefault() }} //FIXME hardcoded url
+      />
+    </IconButton>
+
   return (
     <Layout title="Services">
       <h2>My Services</h2>
@@ -19,7 +27,7 @@ const Services = (props) => {
       <h2>Available</h2>
       <AvailableServices services={available} />
       <br />
-      <h2>Powered by CyVerse</h2>
+      <h2>Powered by CyVerse{poweredByButton}</h2>
       <PoweredServices services={powered} />
     </Layout>
   )
