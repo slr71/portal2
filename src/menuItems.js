@@ -72,6 +72,10 @@ const menuItems = [
         path: "/administrative/requests",
         description: "Search across all access requests and view/deny/approve individual requests."
       },
+      { label: "Workshops", 
+        path: "/administrative/workshops",
+        description: "View, create, and modify workshops."
+      },
       { label: "Form Submissions", 
         path: "/administrative/submissions",
         description: "Search across all form submissions and view individual submissions."

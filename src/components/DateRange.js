@@ -1,8 +1,8 @@
 const DateRange = (props) => {
   return (
-    <div>
+    <>
       <DateSpan date={props.date1} /> - <DateSpan date={props.date2} />
-    </div>
+    </>
   )
 }
 
@@ -12,7 +12,7 @@ const DateSpan = (props) => {
   const day = d.getDate()
   const year = d.getFullYear()
 
-  return <span>{month} {day}, {year}</span>
+  return <>{month} {day}, {year}</>
 }
 
 export { DateSpan, DateRange }

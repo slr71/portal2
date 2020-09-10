@@ -1,22 +1,29 @@
-import { Grid, Link, Box } from '@material-ui/core'
+import { Grid, Link, Box, makeStyles } from '@material-ui/core'
 import { Event as EventIcon } from '@material-ui/icons'
 import { DateRange, Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
 
+const useStyles = makeStyles((theme) => ({
+  nowrap: {
+    whiteSpace: 'nowrap'
+  }
+}))
+
 const Workshops = props => {
   const user = useUser()
   const userWorkshops = user.workshops
-  const workshops = props.workshops.filter(w => !userWorkshops.find(uw => uw.id == w.id))
+  const otherWorkshops = props.workshops.filter(w => !userWorkshops.find(uw => uw.id == w.id))
 
   const timeNow = Date.now()
-  const upcoming = workshops.filter(w => new Date(w.start_date).getTime() > timeNow)
-  const past = workshops.filter(w => new Date(w.start_date).getTime() <= timeNow)
+  const mine = userWorkshops.filter(w => new Date(w.enrollment_ends).getTime() > timeNow)
+  const past = userWorkshops.filter(w => new Date(w.enrollment_ends).getTime() <= timeNow)
+  const upcoming = otherWorkshops.filter(w => new Date(w.enrollment_ends).getTime() > timeNow)
 
   return (
     <Layout title="Workshops">
       <Box>
         <h2>My Workshops</h2>
-        <MyWorkshops workshops={userWorkshops} />
+        <MyWorkshops workshops={mine} />
       </Box>
       <Box mt={4}>
         <h2>Upcoming Workshops</h2>
@@ -47,29 +54,6 @@ const MyWorkshops = ({ workshops }) => {
   )
 }
 
-// const HostedWorkshops = ({ workshops }) => {  
-//   const button = <Button variant="contained" color="primary" href="requests/8">Host A Workshop</Button> //FIXME hardcoded url
-
-//   if (workshops.length > 0) {
-//     return (
-//       <div>
-//         {button}
-//         <WorkshopGrid workshops={workshops} />
-//       </div>
-//     )
-//   }
-
-//   return (
-//     <div>
-//       <p>
-//         Looks like you aren't hosting any workshops.
-//         If you'd like to host one, click the button below to submit a request.
-//       </p>
-//       {button}
-//     </div>
-//   )
-// }
-
 const UpcomingWorkshops = ({ workshops }) => {
   if (workshops.length > 0)
     return (<WorkshopGrid workshops={workshops} />)
@@ -81,7 +65,7 @@ const PastWorkshops = ({ workshops }) => {
   if (workshops.length > 0)
     return (<WorkshopGrid workshops={workshops} />)
 
-  return (<p>No past workshops.</p>)
+  return (<p>Looks like you haven't attended any workshops.</p>)
 }
 
 const WorkshopGrid = ({ workshops }) => (
@@ -95,6 +79,7 @@ const WorkshopGrid = ({ workshops }) => (
 )
 
 const Workshop = ({ workshop }) => {
+  const classes = useStyles()
   const user = useUser()
   const action = 
     user.id == workshop.creator_id
@@ -105,7 +90,16 @@ const Workshop = ({ workshop }) => {
     <Link underline='none' href={`workshops/${workshop.id}`}>
       <SummaryCard 
         title={workshop.title} 
-        subtitle={<DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />}
+        subtitle={
+          <>
+            <div className={classes.noWrap}>
+              Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
+            </div>
+            <div className={classes.noWrap}>
+              Workshop: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
+            </div>
+          </>
+        }
         description={workshop.description} 
         icon={<EventIcon />}
         action={action}
