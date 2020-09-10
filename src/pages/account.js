@@ -79,10 +79,12 @@ const Account = ({ properties }) => {
   )
 }
 
-const EmailForm = ({ user }) => (
+const EmailForm = ({ user, title, subtitle }) => (
   <div>
     {user.emails.map(email => (
       <Box key={email.email} pt={2}>
+        <Typography component="div" variant="h5">{title}</Typography>
+        <Typography color="textSecondary">{subtitle}</Typography>
         <Divider />
         <List>
           <ListItem>
@@ -106,10 +108,12 @@ const EmailForm = ({ user }) => (
   </div>
 )
 
-const MailingListForm = ({ user }) => (
+const MailingListForm = ({ user, title, subtitle }) => (
   <div>
     {user.emails.map(email => (
       <Box key={email.email} pt={2}>
+        <Typography component="div" variant="h5">{title}</Typography>
+        <Typography color="textSecondary">{subtitle}</Typography>
         <Divider />
         <List>
           <ListItem>
@@ -189,13 +193,9 @@ const Forms = (user, properties) => {
         }
       ]
     },
-    { title: "Email",
-      subtitle: "Email addresses associated with this account",
-      render: <EmailForm user={user} />
+    { render: <EmailForm user={user} title="Email" subtitle="Email addresses associated with this account" />
     },
-    { title: "Mailing List Subscriptions",
-      subtitle: "Manage which services you would like to receive maintenance-related emails from",
-      render: <MailingListForm user={user} />
+    { render: <MailingListForm user={user} title="Mailing List Subscriptions" subtitle="Manage which services you would like to receive maintenance-related emails from" />
     },
     { title: "Institution",
       autosave: true,
