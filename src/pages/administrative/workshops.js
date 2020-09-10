@@ -6,7 +6,7 @@ import { Layout, DateRange } from '../../components'
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   }
 }))
 
@@ -16,6 +16,7 @@ const Workshops = props => {
   return (
     <Layout>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper}>
           <Grid container justify="space-between">
             <Grid item>
@@ -44,7 +45,7 @@ const WorkshopTable = ({ workshops }) => (
             <TableRow hover style={{cursor: 'pointer'}}>
               <TableCell>
                 <div>
-                  <Typography component="h1" variant="h6" gutterBottom>{workshop.title}</Typography>
+                  <b>{workshop.title}</b>
                 </div>
                 <div>
                   Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />

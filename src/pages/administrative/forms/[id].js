@@ -145,6 +145,7 @@ const FormEditor = (props) => {
   return (
     <Layout>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper} style={{height: height + "em"}}>
           <Box m={3}>
             <Grid container justify="space-between">

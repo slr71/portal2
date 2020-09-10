@@ -8,7 +8,7 @@ import { useAPI } from '../../contexts/api'
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   }
 }))
 
@@ -63,6 +63,7 @@ const AccessRequests = props => {
   return (
     <Layout>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper}>
           <Grid container justify="space-between">
             <Grid item>

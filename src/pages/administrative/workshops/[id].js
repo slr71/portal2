@@ -10,13 +10,14 @@ const useStyles = makeStyles((theme) => ({
 
 const WorkshopEditor = (props) => {
   const classes = useStyles()
-  
+
   return (
     <Layout>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper}>
           <Box m={3}>
-            UNDER CONSTRUCTION!
+            WORKSHOP CREATOR/EDITOR IS UNDER CONSTRUCTION!
           </Box>
         </Paper>
       </Container>

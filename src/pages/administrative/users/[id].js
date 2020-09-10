@@ -4,6 +4,7 @@ import { Layout, User as UserComponent } from '../../../components'
 const User = props => (
   <Layout>
     <Container maxWidth='lg'>
+        <br />
         <UserComponent 
           user={props.targetUser}
           allSections

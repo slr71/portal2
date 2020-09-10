@@ -7,7 +7,7 @@ import Layout from '../../components/Layout'
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   }
 }))
 
@@ -22,6 +22,7 @@ const RestrictedUsernames = ({ usernames }) => {
   return (
     <Layout>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper}>
           <Grid container justify="space-between">
             <Grid item>

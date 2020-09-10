@@ -6,7 +6,7 @@ import { Layout } from '../../components'
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   }
 }))
 
@@ -16,6 +16,7 @@ const Forms = props => {
   return (
     <Layout>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper}>
           <Typography component="h1" variant="h4" gutterBottom>Forms</Typography>
           <br />
