@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Typography, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, TablePagination } from '@material-ui/core'
+import { Container, Paper, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
 import { Layout } from '../../components'
 
 //FIXME duplicated elsewhere
