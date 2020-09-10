@@ -41,7 +41,7 @@ const Workshop = props => {
                 </Box>
               </Grid>
               <Grid item>
-                <Button variant="contained" color="primary" size="medium" onClick={handleOpenDialog}>ENROLL</Button>
+                <Button variant="contained" color="primary" size="medium" /*onClick={handleOpenDialog}*/>ENROLL</Button>
               </Grid>
               <Grid item xs={12}>
                 <Box>

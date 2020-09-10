@@ -57,7 +57,7 @@ const Service = (props) => {
                 </Box>
               </Grid>
               <Grid item>
-                <ServiceActionButton {...props} requestAccessHandler={handleOpenDialog}/>
+                <ServiceActionButton {...props} /*requestAccessHandler={handleOpenDialog}*//>
               </Grid>
               <Grid item xs={12}>
                 <Box my={1}>
