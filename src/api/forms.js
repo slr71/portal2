@@ -125,7 +125,7 @@ router.put('/:id(\\d+)/submissions', requireAdmin, async (req, res) => {
     });
     
     // Send response to client
-    res.json(submission).status(200);
+    res.json(submission).status(201);
 
     // Send message via Intercom (do this after response as to not delay it)
     //intercom_send_form_submission_confirmation_message(submission);

@@ -156,7 +156,7 @@ router.put('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
         return res.send('Failed to create access request log').status(500);
     
     // Send response to client
-    res.json(request).status(200);
+    res.json(request).status(201);
 
     // Call approver and granter (do this after response as to not delay it)
     if (created) // new request
