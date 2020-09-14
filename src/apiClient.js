@@ -43,11 +43,7 @@ class PortalAPI {
     return res.data   
   }
   
-  async user(id) { // FIXME conflict if username is "mine" -- is it a restricted username?
-    if (!id) 
-      id = 'mine'
-    return await this.get(`/users/${id}`) 
-  }
+  async user(id) { return await this.get(`/users/${id || 'mine'}`) } // FIXME conflict if username is "mine" -- is it a restricted username?
 
   async users(params) { return await this.get(`/users`, params) }
 
@@ -61,6 +57,10 @@ class PortalAPI {
 
   async restrictedUsernames() { return await this.get(`/users/restricted`) } // FIXME conflict if username is "restricted"
 
+  async createRestrictedUsername(username) { return await this.put(`/users/restricted/${username}`) }
+
+  async deleteRestrictedUsername(id) { return await this.delete(`/users/restricted/${id}`) }
+
   async serviceRequests(params) { return await this.get(`/services/requests`, params) }
 
   async serviceRequest(id) { return await this.get(`/services/requests/${id}`) }
@@ -72,6 +72,8 @@ class PortalAPI {
   async workshops() { return await this.get(`/workshops`) }
 
   async workshop(id) { return await this.get(`/workshops/${id}`) }
+
+  async updateWorkshop(id, workshop) { return await this.post(`/workshops/${id}`, workshop) }
 
   async createWorkshopRequest(id) { return await this.put(`/workshops/${id}/requests`) }
 
