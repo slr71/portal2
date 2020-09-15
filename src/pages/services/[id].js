@@ -167,10 +167,10 @@ const RequestAccessDialog = ({ question, open, handleChange, handleClose, handle
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
+        <Button color="primary" onClick={handleClose}>
           Cancel
         </Button>
-        <Button onClick={handleClose} color="primary" onClick={handleSubmit}>
+        <Button color="primary" onClick={handleSubmit}>
           Submit
         </Button>
       </DialogActions>

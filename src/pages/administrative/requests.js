@@ -86,15 +86,15 @@ const RequestTable = ({ rows, rowsPerPage, count, page, handleChangePage, handle
   <TableContainer component={Paper}>
     <Table size="small">
       <TableHead>
-          <TableRow>
-            <TableCell>Service</TableCell>
-            <TableCell>Username</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Country</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Status</TableCell>
-          </TableRow>
-        </TableHead>
+        <TableRow>
+          <TableCell>Service</TableCell>
+          <TableCell>Username</TableCell>
+          <TableCell>Email</TableCell>
+          <TableCell>Country</TableCell>
+          <TableCell>Date</TableCell>
+          <TableCell>Status</TableCell>
+        </TableRow>
+      </TableHead>
       <TableBody>
         {rows.map(request => (
           <Link key={request.id} href={`/administrative/requests/${request.id}`}>

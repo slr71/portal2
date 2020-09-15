@@ -96,14 +96,16 @@ const UpdateForm = ({ title, subtitle, fields, autosave, onSubmit }) => {
     >
       {({ handleChange, handleBlur, handleSubmit, submitCount, isSubmitting, isValid, values, errors, touched }) => (
         <Form>
-          <Grid container justify="space-between" style={{height: '3em'}}>
-            <Grid item>
-              <Typography component="div" variant="h5">{title}</Typography>
+          {title &&
+            <Grid container justify="space-between" style={{height: '3em'}}>
+              <Grid item>
+                <Typography component="div" variant="h5">{title}</Typography>
+              </Grid>
+              <Grid item>
+                {submitCount > 1 && isSubmitting && <CircularProgressWithLabel value='Saving' />}
+              </Grid>
             </Grid>
-            <Grid item>
-              {submitCount > 1 && isSubmitting && <CircularProgressWithLabel value='Saving' />}
-            </Grid>
-          </Grid>
+          }
           {subtitle && <Typography color="textSecondary">{subtitle}</Typography>}
           {fields.map(field => (
             <div key={field.id}>
