@@ -73,6 +73,8 @@ class PortalAPI {
 
   async workshop(id) { return await this.get(`/workshops/${id}`) }
 
+  async workshopParticipants(id) { return await this.get(`/workshops/${id}/participants`) }
+
   async updateWorkshop(id, workshop) { return await this.post(`/workshops/${id}`, workshop) }
 
   async createWorkshopRequest(id) { return await this.put(`/workshops/${id}/requests`) }

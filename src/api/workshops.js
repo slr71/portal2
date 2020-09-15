@@ -1,13 +1,14 @@
 const router = require('express').Router();
 const { requireAdmin } = require('../auth');
 const models = require('../models');
+const User = models.account_user;
 const Workshop = models.api_workshop;
 const WorkshopEnrollmentRequest = models.api_workshopenrollmentrequest;
 const WorkshopEnrollmentRequestLog = models.api_workshopenrollmentrequestlog;
 const { approveRequest, grantRequest } = require('./approvers/workshop');
 
 router.get('/', async (req, res) => {
-    let workshops = await Workshop.findAll({
+    const workshops = await Workshop.findAll({
         order: [ [ 'enrollment_begins', 'DESC' ] ]
     });
 
@@ -15,19 +16,69 @@ router.get('/', async (req, res) => {
 });
 
 router.get('/:id(\\d+)', async (req, res) => {
-    let workshop = await Workshop.findByPk(req.params.id, {
+    const workshop = await Workshop.findByPk(req.params.id, {
         include: [
-            { model: models.api_service, 
+            { 
+                model: User.unscoped(), 
+                as: 'owner',
+                attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ]
+            },
+            {
+                model: models.api_service, 
                 as: 'services', 
                 through: { attributes: [] } // remove connector table
-            }
+            },
+            {
+                model: User.unscoped(), 
+                as: 'organizers', 
+                through: { attributes: [] }, // remove connector table
+                attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ]
+            },
+            'contacts'
         ]
     });
 
     return res.json(workshop).status(200);
 });
 
-// Create new enrollment request
+// Update workshop (RESTRICTED TO STAFF)
+router.post('/:id(\\d+)', requireAdmin, async (req, res) => {
+    const id = req.params.id;
+    const fields = req.body;
+    console.log(fields);
+
+    let workshop = await Workshop.findByPk(id);
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    for (let key in fields) {
+        // Ignore any non-updateable fields
+        if (['title', 'description', 'about'].includes(key))
+            workshop[key] = fields[key];
+    }
+    await workshop.save();
+    await workshop.reload();
+
+    res.json(workshop).status(200);
+});
+
+// Get workshop enrollees (RESTRICTED TO STAFF)
+router.get('/:id(\\d+)/participants', requireAdmin, async (req, res) => {
+    const workshop = await Workshop.findByPk(req.params.id, {
+        include: [ 
+            {
+                model: User.unscoped(),
+                as: 'users',
+                attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ],
+                through: { attributes: [] } // remove connector table
+            }
+        ]
+    });
+
+    return res.json(workshop.users).status(200);
+});
+
+// Create new enrollment request (RESTRICTED TO STAFF)
 router.put('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
     const workshopId = req.params.id;
 
@@ -65,7 +116,7 @@ router.put('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
         return res.send('Failed to create enrollment request log').status(500);
     
     // Send response to client
-    res.json(request).status(200);
+    res.json(request).status(201);
 
     // Call approver and granter (do this after response as to not delay it)
     if (created) // new request
@@ -74,7 +125,7 @@ router.put('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
         await grantRequest(request);
 });
 
-// Update enrollment request status
+// Update enrollment request status (RESTRICTED TO STAFF)
 router.post('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
     const workshopId = req.params.id;
     const status = req.body.status;

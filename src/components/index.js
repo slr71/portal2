@@ -6,6 +6,7 @@ import SummaryCard from './SummaryCard'
 import { UpdateForm, Wizard, FormStepper, FormField, FormControls } from './Form'
 import User from './User'
 import ServiceActionButton from './ServiceActionButton'
+import TabPanel from './TabPanel'
 
 export { 
   Dashboard, 
@@ -20,5 +21,6 @@ export {
   FormField, 
   FormControls, 
   User, 
-  ServiceActionButton
+  ServiceActionButton,
+  TabPanel
 }

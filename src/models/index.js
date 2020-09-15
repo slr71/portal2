@@ -87,7 +87,15 @@ models.request.belongsTo(models.api_service, { as: 'service' });
 models.request.hasMany(models.api_accessrequestlog, { as: 'logs', foreignKey: 'access_request_id' });
 models.request.hasOne(models.api_accessrequestconversation, { as: 'conversation', foreignKey: 'access_request_id' });
 
+models.api_workshop.belongsTo(models.account_user, { as: 'owner', foreignKey: 'creator_id' });
 models.api_workshop.hasMany(models.api_workshopuseremail, { as: 'emails', foreignKey: 'workshop_id' });
+models.api_workshop.belongsToMany(models.api_service, 
+  { as: 'services', through: models.api_workshopservice, foreignKey: 'workshop_id', otherKey: 'service_id' });
+models.api_workshop.belongsToMany(models.account_user, 
+  { as: 'users', through: models.api_userworkshop, foreignKey: 'workshop_id', otherKey: 'user_id' });
+models.api_workshop.belongsToMany(models.account_user, 
+  { as: 'organizers', through: models.api_workshoporganizer, foreignKey: 'workshop_id', otherKey: 'organizer_id' });
+models.api_workshop.hasMany(models.api_workshopcontact, { as: 'contacts', foreignKey: 'workshop_id' });
 
 models.api_formgroup.belongsToMany(models.api_form, 
   { as: 'forms', through: models.api_formgroupform, foreignKey: 'form_group_id', otherKey: 'form_id' });
@@ -101,9 +109,6 @@ models.api_formsubmission.belongsTo(models.api_form, { as: 'form', foreignKey: '
 models.api_formsubmission.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id'} );
 models.api_formsubmission.belongsToMany(models.api_formfield, 
   { as: 'fields', through: models.api_formfieldsubmission, foreignKey: 'form_submission_id', otherKey: 'form_field_id' });
-
-models.api_workshop.belongsToMany(models.api_service, 
-  { as: 'services', through: models.api_workshopservice, foreignKey: 'workshop_id', otherKey: 'service_id' });
 
 
 /**
