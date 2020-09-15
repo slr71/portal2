@@ -6,32 +6,12 @@ import { Container, Box, Button, Divider, IconButton, Typography, Toolbar, AppBa
 import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Person as PersonIcon } from '@material-ui/icons'
 import SideBar from './SideBar'
 import TopBar from './TopBar'
+import MainLogo from './MainLogo'
 import { useUser } from '../contexts/user'
-
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {'Copyright © '}
-      CyVerse
-      {' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  )
-}
-
-function Logo() {
-  return <img src="/cyverse_upLogo_white.svg" alt="CyVerse Logo" className={useStyles().mainLogo}/>
-}
-
 
 const drawerWidth = 200
 
 const useStyles = makeStyles((theme) => ({
-mainLogo: {
-  width:'13em',
-},
-
   root: {
     display: 'flex',
   },
@@ -121,6 +101,18 @@ mainLogo: {
   },
 }))
 
+function Copyright() {
+  return (
+    <Typography variant="body2" color="textSecondary" align="center">
+      {'Copyright © '}
+      CyVerse
+      {' '}
+      {new Date().getFullYear()}
+      {'.'}
+    </Typography>
+  )
+}
+
 export default function Dashboard(props) {
   const classes = useStyles()
   const user = useUser()
@@ -149,7 +141,7 @@ export default function Dashboard(props) {
           >
             <MenuIcon />
           </IconButton>
-          <Logo />
+          <MainLogo size="medium" />
           <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
             CyVerse User Portal
           </Typography>

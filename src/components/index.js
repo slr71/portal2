@@ -7,6 +7,7 @@ import { UpdateForm, Wizard, FormStepper, FormField, FormControls } from './Form
 import User from './User'
 import ServiceActionButton from './ServiceActionButton'
 import TabPanel from './TabPanel'
+import MainLogo from './MainLogo'
 
 export { 
   Dashboard, 
@@ -22,5 +23,6 @@ export {
   FormControls, 
   User, 
   ServiceActionButton,
-  TabPanel
+  TabPanel,
+  MainLogo
 }
