@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography, CircularProgress, LinearProgress } from '@material-ui/core'
 import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
-import { isEmail, isNumeric, isEmpty } from 'validator'
+import { isEmail, isNumeric, isAlphanumeric, isLowercase, isEmpty } from 'validator'
 import { CheckboxWithLabel } from "formik-material-ui"
 
 const useStyles = makeStyles((theme) => ({
@@ -21,21 +21,34 @@ const initialValues = (fields) =>
 const validateField = (field, value) => {
   if ((field.is_required || field.required) && isEmpty(value)) 
     return 'This field is required'
-  else if (field.type == 'email' && !isEmail(value))
+  if (field.type == 'email' && !isEmail(value))
     return 'A valid email address is required'
-  else if (field.type == 'number' && (!isNumeric(value) || value <= 0))
+  if (field.type == 'number' && (!isNumeric(value) || value <= 0))
     return 'A valid numeric value is required'
-  else if (field.type == 'date' && !isDate(value))
+  if (field.type == 'date' && !isDate(value))
     return 'A valid date value is required'
+  if (field.type == 'username') {
+    if (value.length < 5)
+      return 'Usernames must be at least 5 characters long'
+    if (value.length > 150)
+      return 'Usernames must be less than 150 characters long'
+    if (!isAlphanumeric(value) || !isLowercase(value)) 
+      return 'Usernames must be all lowercase and only contain letters and numbers (a-z, 0-9)'
+  }
+
+  return null
 }
 
-const validateFields = (fields, values) => {
+const validateFields = async (fields, values, customValidator) => {
   console.log('validate:', values)
   let errors = {}
   for (let field of fields) {
     const id = field.id
-    const value = new String(values[id])
-    const error = validateField(field, value)
+    const value = id in values ? '' + values[id] : '' // force to string type
+
+    let error = validateField(field, value)
+    if (!error && customValidator) 
+      error = await customValidator(field, value)
     if (error)
       errors[id] = error
   }
@@ -91,7 +104,7 @@ const UpdateForm = ({ title, subtitle, fields, autosave, onSubmit }) => {
   return (
     <Formik
       initialValues={initialValues(fields)}
-      validate={(values) => validateFields(fields, values)}
+      validate={async (values) => await validateFields(fields, values)}
       onSubmit={onSubmit}
     >
       {({ handleChange, handleBlur, handleSubmit, submitCount, isSubmitting, isValid, values, errors, touched }) => (
@@ -130,8 +143,9 @@ const UpdateForm = ({ title, subtitle, fields, autosave, onSubmit }) => {
   )
 }
 
-const Wizard = ({ form, initialValues, onSubmit }) => {
+const Wizard = ({ form, initialValues, validate, onSubmit }) => {
   const classes = useStyles()
+
   const [stepNumber, setStepNumber] = useState(0)
   const [snapshot, setSnapshot] = useState(initialValues)
 
@@ -147,26 +161,12 @@ const Wizard = ({ form, initialValues, onSubmit }) => {
     setStepNumber((prevStep) => prevStep - 1)
   }
 
-  const validate = (values) => {
-    console.log('validate:', values)
-    let errors = {}
-    for (let field of form.sections[stepNumber].fields) {
-      const id = field.id
-      const value = new String(values[id])
-      const error = validateField(field, value)
-      if (error)
-        errors[id] = error
-    }
-    console.log('errors:', errors)
-    return errors;
-  }
-
   return (
     <div>
       <FormStepper activeStep={stepNumber} steps={form.sections.map(s => s.name)}/>
       <Formik
         initialValues={snapshot}
-        validate={validate}
+        validate={async (values) => await validateFields(form.sections[stepNumber].fields, values, validate)}
         validateOnMount
         onSubmit={onSubmit}
       >
@@ -187,10 +187,12 @@ const Wizard = ({ form, initialValues, onSubmit }) => {
               ))}
             </div>
           ))}
+          <br />
+          <br />
           {isSubmitting && <LinearProgress />}
           <Box display="flex" justifyContent="flex-end">
             <FormControls 
-              disabled={isSubmitting || !isValid || !validate(values)}
+              disabled={isSubmitting || !isValid}
               activeStep={stepNumber} 
               numSteps={form.sections.length} 
               nextHandler={handleNext.bind(null, values)}
@@ -212,7 +214,7 @@ const FormStepper = ({activeStep, steps}) => {
   return (
     <Stepper>
       {steps.map((title, index) => (
-        <Step key={title} completed={activeStep > index} active={activeStep == index}>
+        <Step key={index} completed={activeStep > index} active={activeStep == index}>
           <StepLabel>{title}</StepLabel>
         </Step>
       ))}
@@ -258,8 +260,8 @@ const FormField = props => {
         onChange={props.onChange && props.onChange(props.id.toString())} // workaround for "you didn't pass an id" error
         {...commonProps}
       >
-        {props.options.map(option => (
-          <MenuItem key={option.id} value={option.id.toString()}>{option.name}</MenuItem>
+        {props.options.map((option, index) => (
+          <MenuItem key={index} value={option.id.toString()}>{option.name}</MenuItem>
         ))}
       </Field>
     )
@@ -289,11 +291,11 @@ const FormControls = ({ disabled, activeStep, numSteps, backHandler, nextHandler
         </div>
       ) : (
         <div>
-          {numSteps > 1 && (
-            <Button disabled={activeStep === 0} onClick={backHandler}>
+          {numSteps > 1 && activeStep > 0 &&
+            <Button onClick={backHandler}>
               Back
             </Button> 
-          )}
+          }
           <Button
             disabled={disabled}
             variant="contained"

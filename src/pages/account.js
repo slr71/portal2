@@ -218,7 +218,7 @@ const Forms = (user, properties) => {
           required: true,
           value: user.occupation.id,
           options: properties.occupations
-      },
+        },
         { id: "country_id",
           name: "Country",
           type: "select",

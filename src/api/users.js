@@ -8,10 +8,12 @@ const RestrictedUsername = models.account_restrictedusername;
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
 
+// Get current user based on token
 router.get('/mine', (req, res) => {
     res.json(req.user).status(200);
 });
 
+// Get all users
 router.get('/', requireAdmin, async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
@@ -49,6 +51,19 @@ router.get('/', requireAdmin, async (req, res) => {
     res.json({ count, results: rows }).status(200);
 });
 
+// Validate username (for user creation)
+router.get('/:username(\\w+)/validate', async (req, res) => {
+    const username = req.params.username
+
+    const user = await User.findOne({ where: { username } });
+    const restricted = await RestrictedUsername.findOne({ where: { username } });
+    if (user || restricted)
+        return res.send('Username already taken').status(200);
+
+    res.send('success').status(200);
+});
+
+// Get individual user
 router.get('/:id(\\d+)', requireAdmin, async (req, res) => {
     const user = await User.findByPk(req.params.id);
 
