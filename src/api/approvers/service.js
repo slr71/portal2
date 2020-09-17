@@ -113,5 +113,4 @@ async function approveAtmosphere(request) {
     await request.approve();
 }
 
-module.exports.approveRequest = approveRequest;
-module.exports.grantRequest = grantRequest;
+module.exports = { approveRequest, grantRequest };
