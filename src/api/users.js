@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const { requireAdmin, isAdmin } = require('../auth');
-const { renderEmail } = require('./lib/email')
+const { renderEmail, generateHMAC } = require('./lib/email')
+const { email } = require('../config');
+const { UI_PASSWORD_SET_URL, UI_REQUESTS_URL } = require('../constants')
 const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
@@ -62,18 +64,54 @@ router.get('/:id(\\d+)', requireAdmin, async (req, res) => {
 
 // Create user //FIXME need to make this public or require API key
 router.put('/:username(\\w+)', async (req, res) => {
-    const fields = req.body; // null for username availability test
+    const username = req.params.username;
+    let fields = req.body; // null for username availability test
+    console.log("fields:", fields);
 
+    // Check for existing username
     const user = await User.findOne({ where: { username } });
     const restricted = await RestrictedUsername.findOne({ where: { username } });
     if (user || restricted)
         return res.send('Username already taken').status(400);
 
     // Empty body, just testing username for availability
-    if (!fields)
+    if (!fields || Object.keys(fields).length == 0)
         return res.send('success').status(200);
 
-    //TODO validate fields
+    // Validate fields
+    const REQUIRED_FIELDS = [
+        'first_name', 'last_name', 'email', 'institution', 'department',
+        'occupation_id', 'research_area_id', 'funding_agency_id',
+        'country_id', 'region_id', 'gender_id', 'ethnicity_id', 'aware_channel_id'
+    ];
+    if (!REQUIRED_FIELDS.every(f => fields[f]))
+        return res.send('Missing required field(s)').status(400);
+
+
+    //TODO move into module
+    const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase()); 
+
+    // Check for existing username
+    const user2 = await User.unscoped().findOne({ where: lowerEqualTo('email', fields['email']) });
+    const emails = await EmailAddress.findOne({ where: lowerEqualTo('email', fields['email']) });
+    if (user2 || emails)
+        return res.send('Email already in use').status(400);
+
+    // Generate HMAC for temp password and confirmation email code
+    const hmac = generateHMAC(fields['email']);
+
+    // Set defaults
+    fields['username'] = username;
+    fields['password'] = hmac; //FIXME is the correct/okay?
+    fields['is_superuser'] = false;
+    fields['is_staff'] = false;
+    fields['is_active'] = true;
+    fields['has_verified_email'] = false;
+    fields['participate_in_study'] = false; //FIXME should this be in sign-up form?
+    fields['subscribe_to_newsletter'] = true; 
+    fields['orcid_id'] = '';
+
+    // Create user and email address
     const newUser = await User.create(fields)
     if (!newUser)
         return res.send('Error creating user').status(500);
@@ -88,14 +126,15 @@ router.put('/:username(\\w+)', async (req, res) => {
     res.json(newUser).status(200);
 
     // Send confirmation email after response as to not delay it
+    const confirmationUrl = `${UI_PASSWORD_SET_URL}/${hmac}`;
     await renderEmail({
         to: newUser.email, 
-        bcc: null, //TODO bcc email addresses
+        bcc: email.bccNewAccountConfirmation,
         subject: 'Please Confirm Your E-Mail Address', //FIXME hardcoded
-        templatePath: './templates/email_confirmation_signup_message.txt',
+        templateName: 'email_confirmation_signup_message',
         fields: {
-            "ACTIVATE_URL": 'foo', //signup_confirmation_url, //FIXME!!!!
-            "FORMS_URL": 'foo' //settings.PORTAL_UI_SERVER_FORMS_URL //FIXME!!!!
+            "ACTIVATE_URL": confirmationUrl,
+            "FORMS_URL": UI_REQUESTS_URL
         }
     })
 });
