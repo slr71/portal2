@@ -1,9 +1,11 @@
 const router = require('express').Router();
 const { requireAdmin, isAdmin } = require('../auth');
+const { renderEmail } = require('./lib/email')
 const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
+const EmailAddress = models.account_emailaddress;
 
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
@@ -51,23 +53,51 @@ router.get('/', requireAdmin, async (req, res) => {
     res.json({ count, results: rows }).status(200);
 });
 
-// Validate username (for user creation)
-router.get('/:username(\\w+)/validate', async (req, res) => {
-    const username = req.params.username
-
-    const user = await User.findOne({ where: { username } });
-    const restricted = await RestrictedUsername.findOne({ where: { username } });
-    if (user || restricted)
-        return res.send('Username already taken').status(200);
-
-    res.send('success').status(200);
-});
-
-// Get individual user
+// Get individual user (ADMIN ONLY)
 router.get('/:id(\\d+)', requireAdmin, async (req, res) => {
     const user = await User.findByPk(req.params.id);
 
     res.json(user).status(200);
+});
+
+// Create user //FIXME need to make this public or require API key
+router.put('/:username(\\w+)', async (req, res) => {
+    const fields = req.body; // null for username availability test
+
+    const user = await User.findOne({ where: { username } });
+    const restricted = await RestrictedUsername.findOne({ where: { username } });
+    if (user || restricted)
+        return res.send('Username already taken').status(400);
+
+    // Empty body, just testing username for availability
+    if (!fields)
+        return res.send('success').status(200);
+
+    //TODO validate fields
+    const newUser = await User.create(fields)
+    if (!newUser)
+        return res.send('Error creating user').status(500);
+
+    await EmailAddress.create({
+        user_id: newUser.id,
+        email: newUser.email,
+        primary: true,
+        verified: false
+    });
+
+    res.json(newUser).status(200);
+
+    // Send confirmation email after response as to not delay it
+    await renderEmail({
+        to: newUser.email, 
+        bcc: null, //TODO bcc email addresses
+        subject: 'Please Confirm Your E-Mail Address', //FIXME hardcoded
+        templatePath: './templates/email_confirmation_signup_message.txt',
+        fields: {
+            "ACTIVATE_URL": 'foo', //signup_confirmation_url, //FIXME!!!!
+            "FORMS_URL": 'foo' //settings.PORTAL_UI_SERVER_FORMS_URL //FIXME!!!!
+        }
+    })
 });
 
 // Update user info
@@ -82,7 +112,7 @@ router.post('/:id(\\d+)', async (req, res) => {
         'occupation_id', 'research_area_id', 'region_id'
     ]
 
-    // User can only update their own record unless admin
+    // Check permission -- user can only update their own record unless admin
     if (id != req.user.id && !isAdmin(req))
         return res.send('Permission denied').status(403);
 

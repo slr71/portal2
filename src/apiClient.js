@@ -47,7 +47,9 @@ class PortalAPI {
 
   async users(params) { return await this.get(`/users`, params) }
 
-  async checkUsername(username) { return await this.get(`/users/${username}/validate`) }
+  async checkUsername(username) { return await this.put(`/users/${username}`) }
+
+  async createUser(username, params) { return await this.put(`/users/${username}`), params }
 
   async updateUser(id, params) { return await this.post(`/users/${id}`, params ) }
 
