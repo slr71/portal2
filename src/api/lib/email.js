@@ -9,7 +9,7 @@ function renderEmail({ to, bcc, subject, templateName, fields }) {
   const templatePath = path.join(__dirname, '..', 'templates', templateName + '.txt'); //TODO support htlm templates
   let body = fs.readFileSync(templatePath, 'utf8').toString(); 
   for (f in fields) {
-    const regex = new RegExp('${' + f + '}', 'gi');
+    const regex = new RegExp('\\$\\{' + f + '\\}', 'gi');
     body = body.replace(regex, fields[f]);
   }
 
