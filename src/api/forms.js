@@ -10,6 +10,10 @@ const FormSubmission = models.api_formsubmission;
 const FormFieldSubmission = models.api_formfieldsubmission;
 const { intercom_send_form_submission_confirmation_message } = require('../intercom');
 
+//TODO move into module
+const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
+
+
 router.get('/', async (req, res) => {
     let requests = await FormGroup.findAll({
         include: [ 
@@ -28,13 +32,32 @@ router.get('/', async (req, res) => {
 router.get('/submissions', requireAdmin, async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
-    const search = req.query.search;
+    const keyword = req.query.keyword;
+
+    const where = 
+        keyword
+            ? { where: 
+                    sequelize.or(
+                        { id: isNaN(keyword) ? 0 : keyword }, 
+                        like('form.name', keyword),
+                        like('user.username', keyword),
+                        like('user.email', keyword),
+                        like('user.region.country.name', keyword),
+                    ),
+                subQuery: false
+              }
+            : {};
 
     const { count, rows } = await models.api_formsubmission.findAndCountAll({
-        include: [ 'user', 'form' ],
+        ...where,
+        include: [ 
+            { model: User.scope('lite'), as: 'user' },
+            'form' 
+        ],
         order: [ ['updated_at', 'DESC'] ],
         offset: offset,
-        limit: limit
+        limit: limit,
+        distinct: true
     });
 
     return res.json({ count, results: rows }).status(200);

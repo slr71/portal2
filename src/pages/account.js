@@ -12,7 +12,7 @@ const useStyles = makeStyles((theme) => ({
   },
   box: {
     marginBottom: '4em'
-  }
+  },
 }))
 
 const Account = ({ properties }) => {
@@ -29,7 +29,6 @@ const Account = ({ properties }) => {
     {
         onSuccess: (resp, { onSuccess }) => {
             console.log('SUCCESS')
-            // router.push(`/${NavigationConstants.ANALYSES}`);
             // onSuccess(resp);
         },
         onError: (error, { onError }) => {
@@ -39,24 +38,26 @@ const Account = ({ properties }) => {
         },
     }
   )
-  
+
   return (
     <Layout title="Account">
       <Container maxWidth='md'>
         {forms.map((form, index) => (
           <Box key={index} className={classes.box}>
             <Paper elevation={3} className={classes.paper}>
-              <Typography component="div" variant="h5">{form.title}</Typography>
-              <Typography color="textSecondary">{form.subtitle}</Typography>
               {form.render ||
                 <UpdateForm 
+                  title={form.title}
+                  subtitle={form.subtitle}
                   fields={form.fields} 
                   initialValues={initialValues(form.fields)} 
                   autosave={form.autosave}
                   onSubmit={(values, { setSubmitting }) => {
-                    console.log('Submit:', values)
-                    submitFormMutation(values)
-                    setSubmitting(false)
+                    setTimeout(() => {
+                      console.log('Submit:', values)
+                      submitFormMutation(values)
+                      setSubmitting(false)
+                    }, 1000)
                   }}
                 />
               }
