@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { requireAdmin } = require('../auth');
+const { requireAdmin, getUser } = require('../auth');
 const models = require('../models');
 const User = models.account_user;
 const Workshop = models.api_workshop;
@@ -79,7 +79,7 @@ router.get('/:id(\\d+)/participants', requireAdmin, async (req, res) => {
 });
 
 // Create new enrollment request (RESTRICTED TO STAFF)
-router.put('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
+router.put('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
     const workshopId = req.params.id;
 
     // Fetch workshop
@@ -126,7 +126,7 @@ router.put('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
 });
 
 // Update enrollment request status (RESTRICTED TO STAFF)
-router.post('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
+router.post('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
     const workshopId = req.params.id;
     const status = req.body.status;
     const message = req.body.message;

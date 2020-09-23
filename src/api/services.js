@@ -9,7 +9,7 @@ const AccessRequestQuestion = models.api_accessrequestquestion;
 const AccessRequestAnswer = models.api_accessrequestanswer;
 const { approveRequest, grantRequest } = require('./approvers/service');
 const intercom = require('../intercom');
-const { requireAdmin } = require('../auth');
+const { getUser, requireAdmin } = require('../auth');
 
 const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api_poweredservice where service_ptr_id=id))'), 'is_powered' ];
 
@@ -91,7 +91,7 @@ router.get('/requests/:id(\\d+)', requireAdmin, async (req, res) => {
 });
 
 // Create new access request
-router.put('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
+router.put('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
     const serviceId = req.params.id;
     const answers = req.body.answers; // [ { questionId, value } ]
 
@@ -166,7 +166,7 @@ router.put('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
 });
 
 // Update request status
-router.post('/:nameOrId(\\w+)/requests', requireAdmin, async (req, res) => {
+router.post('/:nameOrId(\\w+)/requests', getUser, requireAdmin, async (req, res) => {
     const nameOrId = req.params.nameOrId;
 
     const status = req.body.status;

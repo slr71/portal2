@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { requireAdmin, isAdmin } = require('../auth');
+const { requireAdmin, isAdmin, getUser } = require('../auth');
 const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
@@ -9,7 +9,7 @@ const RestrictedUsername = models.account_restrictedusername;
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
 
 // Get current user based on token
-router.get('/mine', (req, res) => {
+router.get('/mine', getUser, (req, res) => {
     res.json(req.user).status(200);
 });
 
@@ -54,12 +54,11 @@ router.get('/', requireAdmin, async (req, res) => {
 // Get individual user (ADMIN ONLY)
 router.get('/:id(\\d+)', requireAdmin, async (req, res) => {
     const user = await User.findByPk(req.params.id);
-
     res.json(user).status(200);
 });
 
 // Update user info
-router.post('/:id(\\d+)', async (req, res) => {
+router.post('/:id(\\d+)', getUser, async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
     console.log(fields);
