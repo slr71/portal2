@@ -219,8 +219,8 @@ const Organizers = ({ organizers }) => {
       </Typography>
       <br />
       <List>
-        {organizers.map(organizer => (
-          <Grid container justify="space-between" alignItems="center">
+        {organizers.map((organizer, index) => (
+          <Grid container key={index} justify="space-between" alignItems="center">
             <Grid item>
               <Link key={organizer.id} href={`/administrative/users/${organizer.id}`}>
                 <ListItem>
@@ -257,8 +257,8 @@ const Contacts = ({ contacts }) => {
       <Typography color="textSecondary">Who participants should reach out to if they have questions.</Typography>
       <br />
       <List>
-        {contacts.map(contact => (
-          <Grid container justify="space-between" alignItems="center">
+        {contacts.map((contact, index) => (
+          <Grid container key={index} justify="space-between" alignItems="center">
             <Grid item>
               <ListItem>
                 <ListItemAvatar>
@@ -293,8 +293,8 @@ const Services = ({ services }) => {
       <Typography color="textSecondary">Services users need access to for this workshop.</Typography>
       <br />
       <List>
-        {services.map(service => (
-          <Grid container justify="space-between" alignItems="center">
+        {services.map((service, index) => (
+          <Grid container key={index} justify="space-between" alignItems="center">
             <Grid item>
               <Link key={service.id} href={service.service_url}>
                 <ListItem>

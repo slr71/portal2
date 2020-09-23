@@ -71,7 +71,7 @@ const TopBar = (props) => {
               ? <BreadcrumbsMenu parts={parts} title={props.title} />
               : <div style={{display: 'flex', alignItems: 'center'}}>
                   {menuItem && menuItem.icon}
-                  <Typography className={classes.title} nowrap>{props.title}</Typography>
+                  <Typography className={classes.title} nowrap='true'>{props.title}</Typography>
                 </div>
           }
         </Grid>

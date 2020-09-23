@@ -12,11 +12,11 @@ const Services = (props) => {
   const powered = services.filter(s => s.is_powered)
 
   const poweredByButton = 
-    <IconButton aria-label="delete">
-      <HelpIcon 
-        fontSize="small" 
-        onClick={(e) => { window.open("https://cyverse.org/powered-by-cyverse"); e.preventDefault() }} //FIXME hardcoded url
-      />
+    <IconButton 
+      aria-label="delete" 
+      onClick={(e) => { window.open("https://cyverse.org/powered-by-cyverse"); e.preventDefault() }} //FIXME hardcoded url
+    >
+      <HelpIcon fontSize="small" />
     </IconButton>
 
   return (
