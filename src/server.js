@@ -64,7 +64,17 @@ app.prepare()
         // Configure Keycloak
         server.use(keycloakClient.middleware({ logout: '/logout' }))
 
-        // Middleware to add some global state
+        // For "sign in" button on landing page
+        server.get("/login", keycloakClient.protect(), (_, res) => {
+            res.redirect("/")
+        })
+
+        // Public static files
+        server.get("/*.svg", (req, res) => {
+            return nextHandler(req, res)
+        })
+
+        // Add some global state for all routes/pages after this
         server.use(async (req, _, next) => {
             // Setup API client for use by getServerSideProps()
             const token = getUserToken(req)
@@ -86,21 +96,12 @@ app.prepare()
             next()
         })
 
-        server.get("/login", keycloakClient.protect(), (_, res) => {
-            res.redirect("/")
-        })
-
         // Default to landing page if not logged in
         server.get("/", keycloakClient.checkSso(), (req, res) => {
-            if (!req.user)
-                app.render(req, res, "/welcome")
-            else
+            if (req.user)
                 res.redirect("/services")
-        })
-
-        // Public static files
-        server.get("/:path(*.svg)", (req, res) => {
-            return nextHandler(req, res)
+            else
+                app.render(req, res, "/welcome")
         })
 
         // Public API routes
@@ -122,7 +123,7 @@ app.prepare()
         server.use('/api/mailing-lists', require('./api/mailing_lists'))
         server.use('/api/*', (_, res) => res.send('Resource not found').status(404))
 
-        // UI routes
+        // Restricted UI pages
         server.get("*", (req, res) => {
             return nextHandler(req, res)
         })
