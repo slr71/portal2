@@ -61,55 +61,66 @@ app.prepare()
         // Also set "proxy_set_header X-Forwarded-Proto https;" in NGINX config
         server.set('trust proxy', true)
 
-        if (config.debugUser) {
-            console.log('!!!!!!!!! RUNNING IN DEBUG MODE AS USER', config.debugUser, '!!!!!!!!!!')
-            server.use(async (req, res, next) => {
-                const user = await User.findOne({ where: { username: config.debugUser } })
+        // Configure Keycloak
+        server.use(keycloakClient.middleware({ logout: '/logout' }))
+
+        // Middleware to add some global state
+        server.use(async (req, _, next) => {
+            // Setup API client for use by getServerSideProps()
+            const token = getUserToken(req)
+            req.api = new PortalAPI({ 
+                baseUrl: config.apiBaseUrl, 
+                token: token ? token.token : null 
+            })
+
+            // Prefetch user from DB since used by almost all pages/endpoints
+            const userId = config.debugUser || getUserID(req)
+            if (userId) {
+                const user = await User.findOne({ where: { username: userId } })
                 req.user = JSON.parse(JSON.stringify(user.get({ plain: true })))
-                req.api = new PortalAPI({ baseUrl: config.apiBaseUrl, token: null })
-                next()
-            })
-        }
-        else {
-            // Handle Keycloak authorization flow
-            server.use(keycloakClient.middleware({ logout: '/logout' }))
+            }
 
-            // Require authentication on all routes/pages
-            server.use(keycloakClient.protect())
+            if (config.debugUser)
+                console.log('!!!!!!!!! RUNNING IN DEBUG MODE AS USER', config.debugUser, '!!!!!!!!!!')
 
-            // Middleware to add some global state
-            server.use(async (req, _, next) => {
-                // Prefetch user since used in almost all pages/endpoints
-                const id = getUserID(req)
-                if (id) {
-                    const user = await User.findOne({ where: { username: id } })
-                    req.user = JSON.parse(JSON.stringify(user.get({ plain: true })))
-                    //if (!req.user) ... //TODO
-                }
+            next()
+        })
 
-                // Setup an API client for use by getServerSideProps()
-                const token = getUserToken(req)
-                if (token) {
-                    req.api = new PortalAPI({ baseUrl: config.apiBaseUrl, token: token.token })
-                }
+        server.get("/login", keycloakClient.protect(), (_, res) => {
+            res.redirect("/")
+        })
 
-                next()
-            })
-        }
+        // Default to landing page if not logged in
+        server.get("/", keycloakClient.checkSso(), (req, res) => {
+            if (!req.user)
+                app.render(req, res, "/welcome")
+            else
+                res.redirect("/services")
+        })
 
-        // API routes
+        // Public static files
+        server.get("/:path(*.svg)", (req, res) => {
+            return nextHandler(req, res)
+        })
+
+        // Public API routes
+        server.use('/api', require('./api/public'))
+        if (config.debug) server.use('/tests', require('./api/tests'))
+
+        // Require auth on all routes/page after this
+        server.use((req, res, next) => {
+            if (!config.debugUser)
+                keycloakClient.protect()
+            next()
+        })
+
+        // Restricted API routes 
         server.use('/api/users', require('./api/users'))
         server.use('/api/services', require('./api/services'))
         server.use('/api/workshops', require('./api/workshops'))
         server.use('/api/forms', require('./api/forms'))
         server.use('/api/mailing-lists', require('./api/mailing_lists'))
-        if (config.debug) server.use('/tests', require('./api/tests'))
         server.use('/api/*', (_, res) => res.send('Resource not found').status(404))
-
-        // Default to /services page
-        server.get("/", (_, res) => {
-            res.redirect("/services")
-        })
 
         // UI routes
         server.get("*", (req, res) => {
