@@ -14,7 +14,8 @@
   "license": "ISC",
   "nodemonConfig": {
     "watch": [
-      "src/**/*"
+      "src/**/*",
+      "public/**/*"
     ],
     "ignore": [
       "node_modules",
