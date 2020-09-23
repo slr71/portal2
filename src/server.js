@@ -7,12 +7,14 @@ const Keycloak = require('keycloak-connect')
 const next = require('next')
 const { requestLogger, errorLogger } = require('./logging')
 const config = require('./config.json')
-const { getUserID, getUserToken } = require('./auth')
-const models = require('./models');
-const User = models.account_user;
+const { getUser, getUserToken } = require('./auth')
 const PortalAPI = require('./apiClient')
 
-const app = next({ dev: process.env.NODE_ENV !== 'production' })
+if (config.debugUser)
+      console.log('!!!!!!!!! RUNNING IN DEBUG MODE AS USER', config.debugUser, '!!!!!!!!!!')
+
+const isDevelopment = process.env.NODE_ENV !== 'production'
+const app = next({ dev: isDevelopment })
 const nextHandler = app.getRequestHandler()
 
 // Configure the session store
@@ -74,34 +76,27 @@ app.prepare()
             return nextHandler(req, res)
         })
 
-        // Add some global state for all routes/pages after this
+        // Setup API client for use by getServerSideProps()
         server.use(async (req, _, next) => {
-            // Setup API client for use by getServerSideProps()
             const token = getUserToken(req)
             req.api = new PortalAPI({ 
                 baseUrl: config.apiBaseUrl, 
                 token: token ? token.token : null 
             })
-
-            // Prefetch user from DB since used by almost all pages/endpoints
-            const userId = config.debugUser || getUserID(req)
-            if (userId) {
-                const user = await User.findOne({ where: { username: userId } })
-                req.user = JSON.parse(JSON.stringify(user.get({ plain: true })))
-            }
-
-            if (config.debugUser)
-                console.log('!!!!!!!!! RUNNING IN DEBUG MODE AS USER', config.debugUser, '!!!!!!!!!!')
-
             next()
         })
 
         // Default to landing page if not logged in
-        server.get("/", keycloakClient.checkSso(), (req, res) => {
-            if (req.user)
+        server.get("/", (req, res) => { //keycloakClient.checkSso(), (req, res) => {
+            if (req.api.token)
                 res.redirect("/services")
             else
                 app.render(req, res, "/welcome")
+        })
+
+        // Public UI pages
+        server.get("/password", (req, res) => { 
+            app.render(req, res, "/password")
         })
 
         // Public API routes
@@ -109,11 +104,7 @@ app.prepare()
         if (config.debug) server.use('/tests', require('./api/tests'))
 
         // Require auth on all routes/page after this
-        server.use((req, res, next) => {
-            if (!config.debugUser)
-                keycloakClient.protect()
-            next()
-        })
+        if (!config.debugUser) server.use(keycloakClient.protect())
 
         // Restricted API routes 
         server.use('/api/users', require('./api/users'))

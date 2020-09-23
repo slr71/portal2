@@ -25,7 +25,7 @@ const Administrative = () => {
   )
 }
 
-//FIXME this stub is required to prevent "useUser must be used within a UserProvider" error, not sure why
+//FIXME this is required to prevent "useUser must be used within a UserProvider" error, not sure why
 export async function getServerSideProps() {
   return { props: {} }
 }
