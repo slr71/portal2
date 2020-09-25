@@ -1,8 +1,9 @@
-import { useRouter } from 'next/router'
-import { Link, Box, Grid, Typography, Button, TextField, makeStyles } from '@material-ui/core'
+import { useState } from 'react'
+import { useMutation } from "react-query"
+import { useAPI } from '../contexts/api'
+import { Box, Grid, Typography, Button, TextField, makeStyles } from '@material-ui/core'
 import { isAscii } from 'validator'
 import { MainLogo } from '../components'
-import { useAPI } from '../contexts/api'
 
 //FIXME Duplicated in welcome.js
 const useStyles = makeStyles((theme) => ({
@@ -56,13 +57,17 @@ const Left = () => {
 
 const Right = (props) => {
   const classes = useStyles()
-  const router = useRouter()
-  const reset = 'reset' in router.query
+  const api = useAPI()
+  const reset = 'reset' in props
+  const hmac = props.code
+  const setLabel = reset ? 'Reset' : 'Set'
 
-  const [password1, setPassword1] = React.useState()
-  const [password2, setPassword2] = React.useState()
-  const [error1, setError1] = React.useState()
-  const [error2, setError2] = React.useState()
+  const [password1, setPassword1] = useState()
+  const [password2, setPassword2] = useState()
+  const [error1, setError1] = useState()
+  const [error2, setError2] = useState()
+  const [isSubmitting, setSubmitting] = useState(false)
+  const [isSubmitted, setSubmitted] = useState(false)
 
   const handleChangePassword1 = (e) => {
     setPassword1(e.target.value)
@@ -93,11 +98,50 @@ const Right = (props) => {
       return 'Passwords must match'
   }
 
-  return (
+  const [submitFormMutation] = useMutation(
+    (password) => api.updatePassword({ hmac, password }),
+    {
+      onSuccess: (resp, { onSuccess }) => {
+          console.log('SUCCESS')
+          setSubmitted(true)
+          // onSuccess(resp);
+      },
+      onError: (error, { onError }) => {
+        console.log('ERROR', error)
+          // onError(error);
+          // setSubmissionError(error);
+      }
+    }
+  )
+
+  if (isSubmitted) {
+    return (
+      <div>
+        <Box pt={"30vh"}>
+          <Typography variant="h4" className={classes.title}>
+            Your password was updated.<br />Please sign in to continue.
+          </Typography>
+        </Box>
+        <Box mt={5}>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            size="large" 
+            display="flex" 
+            href="/login"
+          >
+            Sign In
+          </Button>
+        </Box>
+      </div>
+    )
+  }
+
+  return ( //FIXME use column grid here instead
     <div>
       <Box pt={"30vh"}>
         <Typography variant="h4" className={classes.title}>
-          {reset ? 'Reset' : 'Set'} your password
+          {setLabel} your password
         </Typography>
       </Box>
       <Box mt={5}>
@@ -107,7 +151,7 @@ const Right = (props) => {
           required
           variant="outlined" 
           style={{width:'30vw'}} 
-          label="New Password" 
+          label="Password" 
           error={!!error1}
           helperText={error1}
           autoFocus 
@@ -127,8 +171,35 @@ const Right = (props) => {
           onChange={handleChangePassword2}
         />
       </Box>
+      <Box mt={4} style={{width:'30vw'}} display="flex" justifyContent="flex-end">
+        <Button 
+          variant="contained" 
+          color="primary" 
+          size="large" 
+          display="flex" 
+          disabled={isSubmitting || !!error1 || !!error2}
+          onClick={() => {
+            console.log('Submit')
+            setSubmitting(true)
+            submitFormMutation(password1)
+            //setSubmitting(false)
+          }}
+        >
+          {setLabel} Password
+        </Button>
+      </Box>
     </div>
   )
+}
+
+export async function getServerSideProps(context) {
+  const props = context.req.query
+
+  // Require "code" query param
+  if (!props.code)
+    context.res.redirect('/')
+
+  return { props }
 }
 
 export default PasswordReset

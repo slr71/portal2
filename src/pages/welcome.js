@@ -1,5 +1,7 @@
-import { Link, Box, Grid, Typography, Button, Dialog, DialogTitle, DialogContent, makeStyles } from '@material-ui/core'
-import { RssFeedOutlined } from '@material-ui/icons'
+import { useState } from 'react'
+import { useMutation } from "react-query"
+import { isEmpty, isEmail } from 'validator'
+import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, LinearProgress, makeStyles } from '@material-ui/core'
 import { MainLogo, Wizard } from '../components'
 import { useAPI } from '../contexts/api'
 
@@ -53,7 +55,15 @@ const Left = () => {
 
 const Right = (props) => {
   const classes = useStyles()
-  const [dialogOpen, setDialogOpen] = React.useState(false)
+  const api = useAPI()
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [forgotPassword, setForgotPassword] = useState(false)
+  const [email, setEmail] = useState()
+  const [error, setError] = useState()
+  const [isSubmitting, setSubmitting] = useState(false)
+  const [isSubmitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState()
 
   const handleOpenDialog = () => {
     setDialogOpen(true)
@@ -63,7 +73,121 @@ const Right = (props) => {
     setDialogOpen(false)
   }
 
-  return (
+  const handleChangeEmail = async (e) => {
+    setEmail(e.target.value)
+    setError(await validateEmail(e.target.value))
+  }
+
+  const validateEmail = async (value) => {
+    if (isEmpty(value))
+      return 'This field is required'
+    if (!isEmail(value))
+      return 'Please enter a valid email address'
+
+    const res = await api.checkEmail(value)
+    if (res && !res.email)
+      return 'Email address not associated with an account'
+
+    return null
+  }
+
+  const [submitFormMutation] = useMutation(
+    (email) => api.resetPassword({ email }),
+    {
+      onSuccess: (resp, { onSuccess }) => {
+          console.log('SUCCESS', resp)
+          setSubmitting(false)
+          setSubmitted(true)
+          if (resp !== 'success') 
+            setSubmitError(resp)
+      },
+      onError: (error, { onError }) => {
+        console.log('ERROR', error)
+          // onError(error);
+          // setSubmissionError(error);
+      }
+    }
+  )
+
+  //TODO move into separate component
+  if (forgotPassword) {
+    if (isSubmitted && !submitError) {
+      return (
+        <Box pt={"35vh"} style={{width:'30vw'}}>
+          <Typography variant="h5" className={classes.title}>
+            We sent an email containing a link to reset your password to
+          </Typography>
+          <br />
+          <Typography variant="h5">
+            {email}
+          </Typography>
+          <br />
+          <Typography variant="h5" className={classes.title}>
+            Please check your email now.
+          </Typography>
+          <Box mt={"25vh"}>
+            <Link onClick={() => setForgotPassword(false)}>Back to Sign-in/Sign-Up</Link>
+          </Box>
+        </Box>
+      )
+    }
+
+    return ( //FIXME use column grid here instead
+      <div>
+        <Box pt={"30vh"}>
+          <Typography variant="h4" className={classes.title}>
+            Reset Password
+          </Typography>
+        </Box>
+        <Box mt={4} style={{width:'30vw'}}>
+          <Typography variant="button" gutterBottom>
+            Enter your email address and we will send you a link to reset your password.
+          </Typography>
+        </Box>
+        <Box mt={4} style={{width:'30vw'}} >
+          <TextField 
+            id="email" 
+            type="email" 
+            label="Email" 
+            required
+            variant="outlined" 
+            fullWidth
+            error={!!error}
+            helperText={error}
+            onChange={handleChangeEmail}
+          />
+          {isSubmitting && <LinearProgress />}
+        </Box>
+        <Box mt={2} style={{width:'30vw'}}  display="flex" justifyContent="flex-end">
+          <Button 
+            variant="contained" 
+            color="primary" 
+            size="large"
+            disabled={isSubmitting || !!error}
+            onClick={() => {
+              console.log('Submit')
+              setSubmitting(true)
+              setSubmitted(false)
+              setSubmitError(false)
+              submitFormMutation(email)
+            }}
+          >
+            Submit
+          </Button>
+        </Box>
+        <Box mt={4}>
+          <Typography variant="button" color="error">
+            {submitError}
+          </Typography>
+        </Box>
+        <Box mt={"25vh"}>
+          <Link onClick={() => setForgotPassword(false)}>Back to Sign-in/Sign-Up</Link>
+        </Box>
+      </div>
+    )
+  }
+
+  return ( //FIXME use column grid here instead
     <div>
       <Box pt={"30vh"}>
         <Typography variant="h4" className={classes.title}>
@@ -86,47 +210,77 @@ const Right = (props) => {
         </Button>
       </Box>
       <Box pt={1}>
-        <Link href="">Forgot Password?</Link>
+        <Link onClick={() => setForgotPassword(true)}>Forgot Password?</Link>
       </Box>
       <SignUpDialog 
         open={dialogOpen}
         properties={props.properties}
-        // handleChange={handleChangeAnswer}
-        // handleClose={handleCloseDialog} 
+        handleClose={handleCloseDialog} 
         // handleSubmit={handleSubmit}
       />
     </div>
   )
 }
 
-const SignUpDialog = ({ open, properties, handleChange, handleClose, handleSubmit }) => {
+const SignUpDialog = ({ open, properties, handleClose }) => {
   const api = useAPI()
 
-  // Custom validator for username
-  const validate = async (field, value) => {
+  const form = getForm(properties)
+  const allFields = form.sections.reduce((acc, s) => acc.concat(s.fields), [])
+  const initialValues = 
+    allFields.reduce((acc, f) => 
+      { 
+        acc[f.id.toString()] = ''; 
+        return acc 
+      }, 
+      {}
+    )
+
+  // Custom validator
+  const validateUsernameAndEmail = async (field, value) => {
     if (field.type == 'username') {
       const res = await api.checkUsername(value)
       //TODO add error checking here
-      console.log('foo', res)
-      if (res && res != 'success')
-        return res
+      if (res && res.username)
+        return 'Username already taken'
+    }
+    else if (field.type == 'email') {
+      const res = await api.checkEmail(value)
+      //TODO add error checking here
+      if (res && res.email)
+        return 'Email already assigned to an account'
     }
 
     return null
   }
 
+  const [submitFormMutation] = useMutation(
+    (submission) => api.createUser(submission.username, submission),
+    {
+        onSuccess: (resp, { onSuccess }) => {
+            console.log('SUCCESS', resp)
+            // onSuccess(resp);
+        },
+        onError: (error, { onError }) => {
+          console.log('ERROR', error)
+            // onError(error);
+            // setSubmissionError(error);
+        }
+    }
+  )
+
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth aria-labelledby="form-dialog-title">
+    <Dialog open={open} onClose={handleClose} fullWidth>
       <Box p={3}>
         <DialogTitle id="form-dialog-title">Create your account</DialogTitle>
         <DialogContent>
           <Wizard
-            form={form(properties)}
-            initialValues={{}}
-            validate={validate}
+            form={form}
+            initialValues={initialValues}
+            validate={validateUsernameAndEmail}
             onSubmit={(values, { setSubmitting }) => {
-              console.log('Submit!!!')
-              //submitFormMutation(formatSubmission(values))
+              console.log('Submit', values)
+              submitFormMutation(values)
               setSubmitting(false)
             }}
           />
@@ -136,7 +290,7 @@ const SignUpDialog = ({ open, properties, handleChange, handleClose, handleSubmi
   )
 }
 
-const form = (properties) => {
+const getForm = (properties) => {
   return {
     sections: [
       { autosave: true,
