@@ -47,11 +47,17 @@ class PortalAPI {
 
   async users(params) { return await this.get(`/users`, params) }
 
-  async checkUsername(username) { return await this.put(`/users/${username}`) }
+  async checkUsername(username) { return await this.post(`/exists`, { username }) }
 
-  async createUser(username, params) { return await this.put(`/users/${username}`), params }
+  async checkEmail(email) { return await this.post(`/exists`, { email }) }
 
-  async updateUser(id, params) { return await this.post(`/users/${id}`, params ) }
+  async createUser(username, params) { return await this.put(`/users/${username}`, params) }
+
+  async updateUser(id, params) { return await this.post(`/users/${id}`, params) }
+
+  async updatePassword(params) { return await this.post(`/users/password`, params) } // FIXME conflict if username is "password"
+
+  async resetPassword(params) { return await this.post(`/users/reset_password`, params) } // FIXME conflict if username is "reset_password"
 
   async services(params) { return await this.get(`/services`, params) }
 
