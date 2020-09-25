@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useMutation } from "react-query"
 import { useAPI } from '../contexts/api'
 import { Box, Grid, Typography, Button, TextField, makeStyles } from '@material-ui/core'
-import { isAscii } from 'validator'
 import { MainLogo } from '../components'
+import { validatePassword } from '../misc'
 
 //FIXME Duplicated in welcome.js
 const useStyles = makeStyles((theme) => ({
@@ -71,26 +71,13 @@ const Right = (props) => {
 
   const handleChangePassword1 = (e) => {
     setPassword1(e.target.value)
-    setError1(validatePassword1(e.target.value))
+    setError1(validatePassword(e.target.value))
     setError2(validatePassword2(e.target.value, password2))
   }
 
   const handleChangePassword2 = (e) => {
     setPassword2(e.target.value)
-    setError2(validatePassword2(password1, e.target.value))
-  }
-
-  const validatePassword1 = (value) => {
-    if (value === null || value === undefined)
-      return null
-    if (String(value).length < 6)
-      return 'Passwords must be at least 6 characters long'
-    if (String(value).indexOf(' ') >= 0)
-      return 'Passwords may not contain spaces'
-    if (!isAscii(value))
-      return 'Passwords may not contain special characters such as symbols or accented letters'
-
-    return null
+    setError2(isMatching(password1, e.target.value))
   }
 
   const validatePassword2 = (value1, value2) => {

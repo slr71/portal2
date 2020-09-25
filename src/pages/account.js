@@ -25,17 +25,18 @@ const Account = ({ properties }) => {
   const initialValues = (fields) =>
       fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
 
+  // Default submit handler for forms
   const [submitFormMutation] = useMutation(
     (submission) => api.updateUser(user.id, submission),
     {
         onSuccess: (resp, { onSuccess }) => {
-            console.log('SUCCESS')
-            // onSuccess(resp);
+          console.log('SUCCESS')
+          // onSuccess(resp);
         },
         onError: (error, { onError }) => {
           console.log('ERROR', error)
-            // onError(error);
-            // setSubmissionError(error);
+          // onError(error);
+          // setSubmissionError(error);
         },
     }
   )
@@ -47,6 +48,11 @@ const Account = ({ properties }) => {
 
   const logoutButton =
     <Button variant="contained" color="primary" href="/logout">Sign Out</Button>
+
+  const validate = (field, value, values) => {
+    if (field.id == 'confirm_password' && value != values['new_password'])
+      return 'Passwords must match'
+  }
 
   return (
     <Layout title={title} actions={logoutButton}>
@@ -61,11 +67,15 @@ const Account = ({ properties }) => {
                   subtitle={form.subtitle}
                   fields={form.fields} 
                   initialValues={initialValues(form.fields)} 
+                  validate={validate}
                   autosave={form.autosave}
                   onSubmit={(values, { setSubmitting }) => {
                     setTimeout(() => {
                       console.log('Submit:', values)
-                      submitFormMutation(values)
+                      if (form.submitHandler)
+                        form.submitHandler(values)
+                      else
+                        submitFormMutation(values)
                       setSubmitting(false)
                     }, 1000)
                   }}
@@ -175,6 +185,23 @@ const Forms = (user, properties) => {
     },
     { title: "Password",
       autosave: false,
+      submitHandler: (values) => {
+        // const [submitPasswordMutation] = useMutation(
+        //   (submission) => api.updateUser(user.id, submission),
+        //   {
+        //       onSuccess: (resp, { onSuccess }) => {
+        //         console.log('SUCCESS')
+        //         // onSuccess(resp);
+        //       },
+        //       onError: (error, { onError }) => {
+        //         console.log('ERROR', error)
+        //         // onError(error);
+        //         // setSubmissionError(error);
+        //       },
+        //   }
+        // )
+        // return submitPasswordMutation;
+      },
       fields: [
         { id: "old_password",
           name: "Old Password",

@@ -4,6 +4,7 @@ import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typog
 import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
 import { isEmail, isNumeric, isAlphanumeric, isLowercase, isEmpty } from 'validator'
+import { validatePassword } from '../misc'
 import { CheckboxWithLabel } from "formik-material-ui"
 
 const useStyles = makeStyles((theme) => ({
@@ -27,6 +28,10 @@ const validateField = (field, value) => {
     return 'A valid numeric value is required'
   if (field.type == 'date' && !isDate(value))
     return 'A valid date value is required'
+  if (field.type == 'password') {
+    const error = validatePassword(value)
+    if (error) return error
+  }
   if (field.type == 'username') {
     if (value.length < 5)
       return 'Usernames must be at least 5 characters long'
@@ -48,7 +53,7 @@ const validateFields = async (fields, values, customValidator) => {
 
     let error = validateField(field, value)
     if (!error && customValidator) 
-      error = await customValidator(field, value)
+      error = await customValidator(field, value, values)
     if (error)
       errors[id] = error
   }
@@ -99,15 +104,16 @@ const AutoSave = ({ debounceMs }) => {
   ) 
 }
 
-const UpdateForm = ({ title, subtitle, fields, autosave, onSubmit }) => {
+const UpdateForm = ({ title, subtitle, fields, autosave, validate, onSubmit }) => {
   //FIXME Formik is submitting the form on load, thus check for submitCount > 1 when showing update indicator
   return (
     <Formik
       initialValues={initialValues(fields)}
-      validate={async (values) => await validateFields(fields, values)}
+      validate={async (values) => await validateFields(fields, values, validate)}
+      validateOnMount
       onSubmit={onSubmit}
     >
-      {({ handleChange, handleBlur, handleSubmit, submitCount, isSubmitting, isValid, values, errors, touched }) => (
+      {({ handleChange, handleBlur, handleSubmit, submitCount, isSubmitting, isValid, values, errors, touched, dirty }) => (
         <Form>
           {title &&
             <Grid container justify="space-between" style={{height: '3em'}}>
@@ -134,8 +140,15 @@ const UpdateForm = ({ title, subtitle, fields, autosave, onSubmit }) => {
           <Box display="flex" justifyContent="flex-end">
             {autosave
               ? <AutoSave debounceMs={500} />
-              : <Button variant="contained" color="primary" disabled={isSubmitting || !isValid} onClick={handleSubmit}>Update</Button>
-            } 
+              : <Button 
+                  variant="contained" 
+                  color="primary" 
+                  disabled={isSubmitting || !isValid || !dirty} 
+                  onClick={handleSubmit}
+                >
+                  Update
+                </Button>
+            }
           </Box>
         </Form>
       )}
