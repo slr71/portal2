@@ -10,9 +10,6 @@ const config = require('./config.json')
 const { getUser, getUserToken } = require('./auth')
 const PortalAPI = require('./apiClient')
 
-if (config.debugUser)
-      console.log('!!!!!!!!! RUNNING IN DEBUG MODE AS USER', config.debugUser, '!!!!!!!!!!')
-
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const app = next({ dev: isDevelopment })
 const nextHandler = app.getRequestHandler()
@@ -76,6 +73,10 @@ app.prepare()
             return nextHandler(req, res)
         })
 
+        server.get("/_next/*", (req, res) => {
+            return nextHandler(req, res)
+        })
+
         // Setup API client for use by getServerSideProps()
         server.use(async (req, _, next) => {
             const token = getUserToken(req)
@@ -87,8 +88,9 @@ app.prepare()
         })
 
         // Default to landing page if not logged in
-        server.get("/", (req, res) => { //keycloakClient.checkSso(), (req, res) => {
-            if (req.api.token)
+        server.get("/", (req, res) => {
+            const token = getUserToken(req)
+            if (token)
                 res.redirect("/services")
             else
                 app.render(req, res, "/welcome")
@@ -101,7 +103,7 @@ app.prepare()
 
         // Public API routes
         server.use('/api', require('./api/public'))
-        if (config.debug) server.use('/tests', require('./api/tests'))
+        if (isDevelopment) server.use('/tests', require('./api/tests'))
 
         // Require auth on all routes/page after this
         if (!config.debugUser) server.use(keycloakClient.protect())
@@ -121,6 +123,10 @@ app.prepare()
 
         server.listen(config.port, (err) => {
             if (err) throw err
+            if (isDevelopment)
+                console.log('!!!!!!!!! RUNNING IN DEV MODE !!!!!!!!!!')
+            if (config.debugUser)
+                console.log('!!!!!!!!! RUNNING IN DEBUG MODE AS USER', config.debugUser, '!!!!!!!!!!')
             console.log(`Ready on port ${config.port}`)
         })
     })

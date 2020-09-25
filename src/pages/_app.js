@@ -47,7 +47,7 @@ MyApp.propTypes = {
 MyApp.getInitialProps = async ({ Component, ctx }) => {
   return { //TODO use ctx?.req? syntax
     kauth: ctx && ctx.req ? ctx.req.kauth : null,
-    user: ctx && ctx.req && ctx.req.api ? await ctx.req.api.user() : null,
+    user: ctx && ctx.req && ctx.req.api && ctx.req.api.token ? await ctx.req.api.user() : null,
     baseUrl: ctx && ctx.req && ctx.req.api ? ctx.req.api.baseUrl : null, 
     token: ctx && ctx.req && ctx.req.api ? ctx.req.api.token : null,
     pageProps: Component.getInitialProps ? await Component.getInitialProps(ctx) : {},
