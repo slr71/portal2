@@ -13,15 +13,13 @@
   "author": "",
   "license": "ISC",
   "nodemonConfig": {
+    "delay": 500,
+    "ext": "js json",
     "watch": [
-      "src/**/*",
-      "public/**/*"
-    ],
-    "ignore": [
-      "node_modules",
-      ".next"
-    ],
-    "ext": "js json"
+      "src/*.js",
+      "src/api",
+      "src/models"
+    ]
   },
   "prettier": {
     "trailingComma": "es5",
