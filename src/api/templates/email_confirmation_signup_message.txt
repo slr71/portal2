@@ -4,7 +4,7 @@ Thanks for signing up. Please verify your email address by clicking the followin
 
 ${ACTIVATE_URL}
 
-You can read Getting Started with CyVerse (https://learning.cyverse.org/en/latest) to discover what your CyVerse account can do for you.
+You can read Getting Started with CyVerse (https://learning.cyverse.org) to discover what your CyVerse account can do for you.
 
 Your default storage allocation is 100GB. You may request additional resources via the Contact Forms page in the User Portal (${FORMS_URL}). Requests up to 10TB are usually approved within a few days.
 

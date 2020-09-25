@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { requireAdmin } = require('../auth');
 const util = require('util');
-const Argo = require('./workflows/argo');
+const Argo = require('../argo');
 
 router.post('/bisque', requireAdmin, async (req, res) => {
     console.log("BisQue test");
