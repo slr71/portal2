@@ -148,17 +148,20 @@ const Wizard = ({ form, initialValues, validate, onSubmit }) => {
 
   const [stepNumber, setStepNumber] = useState(0)
   const [snapshot, setSnapshot] = useState(initialValues)
+  const [isInitialValid, setInitialValid] = useState(false) // workaround for validateOnMount not working: https://github.com/formium/formik/issues/1950
 
   const handleNext = (values) => {
     console.log('next:', values)
     setSnapshot(values)
     setStepNumber((prevStep) => prevStep + 1)
+    setInitialValid(false)
   }
 
   const handleBack = (values) => {
     console.log('back:', values)
     setSnapshot(values)
     setStepNumber((prevStep) => prevStep - 1)
+    setInitialValid(true)
   }
 
   return (
@@ -167,24 +170,23 @@ const Wizard = ({ form, initialValues, validate, onSubmit }) => {
       <Formik
         initialValues={snapshot}
         validate={async (values) => await validateFields(form.sections[stepNumber].fields, values, validate)}
+        enableReinitialize
         validateOnMount
+        isInitialValid={isInitialValid}
         onSubmit={onSubmit}
       >
       {({ handleChange, handleBlur, handleSubmit, isSubmitting, isValid, values, errors, touched }) => (
         <Form>
-          {form.sections.map((section, index) => (
-            <div key={index} className={index != stepNumber ? classes.hidden : ''}>
-              {section.fields.map(field => (
-                  <div key={field.id}>
-                    <FormField
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      errorText={touched[field.id] && errors[field.id]}
-                      {...field}
-                    />
-                    <br />
-                  </div>
-              ))}
+          {form.sections[stepNumber].fields.map(field => (
+            <div key={field.id}>
+              <FormField
+                onChange={handleChange}
+                onBlur={handleBlur}
+                errorText={touched[field.id] && errors[field.id]}
+                value={values[field.id]}
+                {...field}
+              />
+              <br />
             </div>
           ))}
           <br />
