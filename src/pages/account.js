@@ -1,9 +1,10 @@
 import { useMutation } from "react-query"
 import { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Paper, Switch, Typography, Button, Divider, Avatar, List, ListItem, ListItemText, ListItemAvatar, ListItemSecondaryAction } from '@material-ui/core'
-import { Person as PersonIcon, Mail as MailIcon } from '@material-ui/icons'
+import { Container, Box, Paper, Switch, Typography, Link, Button, IconButton, TextField, Avatar, List, ListItem, ListItemText, ListItemAvatar, ListItemSecondaryAction, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
+import { Person as PersonIcon, Mail as MailIcon, Delete as DeleteIcon } from '@material-ui/icons'
 import { Layout, UpdateForm } from '../components'
+import { isEmail, isEmpty } from 'validator'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
 
@@ -90,45 +91,176 @@ const Account = ({ properties }) => {
   )
 }
 
-const EmailForm = ({ user, title, subtitle }) => (
-  <div>
-    {user.emails.map(email => (
-      <Box key={email.email}>
+const EmailForm = ({ user, title, subtitle }) => {
+  const api = useAPI()
+  const [emails, setEmails] = useState(user.emails)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [emailToAdd, setEmailToAdd] = useState('')
+  const [error, setError] = useState()
+
+  const handleChangeEmail = async (event) => {
+    setEmailToAdd(event.target.value)
+    setError(await validateEmail(event.target.value))
+  }
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false)
+  }
+
+  const validateEmail = async (value) => {
+    if (!isEmail(value))
+      return 'A valid email address is required'
+
+    const res = await api.checkEmail(value)
+    console.log(res)
+    //TODO add error checking here
+    if (res && res.email)
+      return 'Email already assigned to an account'
+
+    return null
+  }
+
+  const [handleSubmitEmail] = useMutation(
+    () => api.createEmailAddress({ email: emailToAdd }),
+    {
+        onSuccess: async (resp) => {
+          console.log('SUCCESS')
+          setEmails(emails.concat(resp))
+          handleCloseDialog()
+        },
+        onError: (error) => {
+          console.log('ERROR', error)
+        }
+    }
+  )
+
+  const [handleResendConfirmationEmail] = useMutation(
+    (email) => api.createEmailAddress({ email: email.email }),
+    {
+        onSuccess: async (resp, email) => {
+          console.log('SUCCESS')
+          const newEmails = emails.map(email2 => {
+              return {...email2, sent: (email2.email == email.email) } 
+          })
+          setEmails(newEmails)
+          handleCloseDialog()
+        },
+        onError: (error) => {
+          console.log('ERROR', error)
+        }
+    }
+  )
+
+  const [handleRemoveEmailAddress] = useMutation(
+    (id) => api.deleteEmailAddress(id),
+    {
+      onSuccess: async (resp, id) => {
+        console.log('SUCCESS')
+        const newEmails = emails.filter(email => email.id != id)
+        setEmails(newEmails)
+        handleCloseDialog()
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const statusMsg = (email) => email.verified 
+    ? 'Verified' + (email.primary ? ', Primary' : '')
+    : <>
+        A confirmation email has been sent. 
+        Click on the link in the email to verify that this is your address.<br />
+        {email.sent 
+          ? '[ Sent! ]'
+          : <Link onClick={() => handleResendConfirmationEmail(email)}>[ Resend Confirmation Email ]</Link>
+        }
+      </>
+
+  return (
+    <div>
+      <Box>
         <Typography component="div" variant="h5">{title}</Typography>
         <Typography color="textSecondary" gutterBottom>{subtitle}</Typography>
         <List>
-          <ListItem>
-            <ListItemAvatar>
-              <Avatar>
-                <MailIcon />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText 
-              primary={email.email} 
-              secondary={[email.verified ? 'Verified' : '', email.primary ? 'Primary' : ''].join(', ')} 
-            />
-          </ListItem>
+          {emails.map(email => (
+            <ListItem key={email.id}>
+              <ListItemAvatar>
+                <Avatar>
+                  <MailIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText 
+                primary={email.email} 
+                secondary={statusMsg(email)} 
+              />
+              {!email.primary &&
+                <ListItemSecondaryAction>
+                  <IconButton edge="end" aria-label="delete" onClick={() => handleRemoveEmailAddress(email.id)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </ListItemSecondaryAction>
+              }
+            </ListItem>
+          ))}
         </List>
       </Box>
-    ))}
-    <Box display="flex" justifyContent="flex-end">
-      <Button
-        variant="contained"
-        color="primary"
-      >
-        Add Email Address
+      <Box display="flex" justifyContent="flex-end">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setDialogOpen(true)}
+        >
+          Add Email Address
+        </Button>
+      </Box>
+      <AddEmailAddressDialog 
+        open={dialogOpen}
+        error={error}
+        handleChange={handleChangeEmail}
+        handleClose={handleCloseDialog} 
+        handleSubmit={!isEmpty(emailToAdd) && !error ? handleSubmitEmail : null}
+      />
+    </div>
+  )
+}
+
+const AddEmailAddressDialog = ({ open, error, handleChange, handleClose, handleSubmit }) => (
+  <Dialog open={open} onClose={handleClose} fullWidth aria-labelledby="form-dialog-title">
+    <DialogTitle id="form-dialog-title">Add Email Address</DialogTitle>
+    <DialogContent>
+      <DialogContentText>
+        Enter the email address to add to your account.
+      </DialogContentText>
+      <TextField
+        autoFocus
+        margin="dense"
+        fullWidth
+        id="name"
+        type="email"
+        error={!!error}
+        helperText={error}
+        onChange={handleChange}
+      />
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleClose} variant="outlined">
+        Cancel
       </Button>
-    </Box>
-  </div>
+      <Button onClick={handleSubmit} variant="contained" color="primary" disabled={!handleSubmit}>
+        Add
+      </Button>
+    </DialogActions>
+  </Dialog>
 )
 
 const MailingListForm = ({ user, title, subtitle }) => {
   return (
     <div>
+      <Typography component="div" variant="h5">{title}</Typography>
+      <Typography color="textSecondary" gutterBottom>{subtitle}</Typography>
       {user.emails.map(email => (
-        <Box key={email.email}>
-          <Typography component="div" variant="h5">{title}</Typography>
-          <Typography color="textSecondary" gutterBottom>{subtitle}</Typography>
+        <Box key={email.id}>
           <List>
             {user.emails.length > 1 &&
             <ListItem>
@@ -255,9 +387,19 @@ const Forms = (user, properties) => {
         }
       ]
     },
-    { render: <EmailForm user={user} title="Email" subtitle="Email addresses associated with this account" />
+    { render: 
+        <EmailForm 
+          user={user} 
+          title="Email" 
+          subtitle="Email addresses associated with this account" 
+        />
     },
-    { render: <MailingListForm user={user} title="Mailing List Subscriptions" subtitle="Manage which services you would like to receive maintenance-related emails from" />
+    { render: 
+        <MailingListForm 
+          user={user} 
+          title="Mailing List Subscriptions" 
+          subtitle="Manage which services you would like to receive maintenance-related emails from" 
+        />
     },
     { title: "Institution",
       autosave: true,

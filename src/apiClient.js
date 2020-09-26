@@ -55,11 +55,17 @@ class PortalAPI {
 
   async updateUser(id, params) { return await this.post(`/users/${id}`, params) }
 
-  async updatePassword(params) { return await this.post(`/users/password`, params) } // FIXME conflict if username is "password"
-
   async updateMailingListSubscription(params) { return await this.post(`/mailing_lists/subscriptions`, params) }
 
+  async updatePassword(params) { return await this.post(`/users/password`, params) } // FIXME conflict if username is "password"
+
   async resetPassword(params) { return await this.post(`/users/reset_password`, params) } // FIXME conflict if username is "reset_password"
+
+  async createEmailAddress(params) { return await this.put(`/mailing_lists/email_addresses`, params) }
+
+  async deleteEmailAddress(id) { return await this.delete(`/mailing_lists/email_addresses/${id}`) }
+
+  async confirmEmailAddress(hmac) { return await this.post(`/confirm_email`, { hmac }) }
 
   async services(params) { return await this.get(`/services`, params) }
 
