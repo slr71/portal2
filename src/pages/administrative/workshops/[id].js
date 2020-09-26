@@ -70,18 +70,7 @@ const GeneralSettings = (props) => {
   const api = useAPI()
 
   const [submitFormMutation] = useMutation(
-    (data) => api.updateWorkshop(workshop.id, data),
-    {
-        onSuccess: (resp, { onSuccess }) => {
-            console.log('SUCCESS')
-            // onSuccess(resp);
-        },
-        onError: (error, { onError }) => {
-          console.log('ERROR', error)
-            // onError(error);
-            // setSubmissionError(error);
-        },
-    }
+    (data) => api.updateWorkshop(workshop.id, data)
   )
 
   return (

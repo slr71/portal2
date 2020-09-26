@@ -94,17 +94,14 @@ const Right = (props) => {
   const [submitFormMutation] = useMutation(
     (email) => api.resetPassword({ email }),
     {
-      onSuccess: (resp, { onSuccess }) => {
-          console.log('SUCCESS', resp)
-          setSubmitting(false)
-          setSubmitted(true)
-          if (resp !== 'success') 
-            setSubmitError(resp)
+      onSuccess: (resp) => {
+        setSubmitting(false)
+        setSubmitted(true)
+        if (resp !== 'success') 
+          setSubmitError(resp)
       },
-      onError: (error, { onError }) => {
+      onError: (error) => {
         console.log('ERROR', error)
-          // onError(error);
-          // setSubmissionError(error);
       }
     }
   )
@@ -257,15 +254,10 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
   const [submitFormMutation] = useMutation(
     (submission) => api.createUser(submission.username, submission),
     {
-        onSuccess: (resp, { onSuccess }) => {
-            console.log('SUCCESS', resp)
-            // onSuccess(resp);
-        },
-        onError: (error, { onError }) => {
-          console.log('ERROR', error)
-            // onError(error);
-            // setSubmissionError(error);
-        }
+      //onSuccess: (resp) => {},
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
     }
   )
 

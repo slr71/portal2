@@ -31,15 +31,10 @@ const Account = ({ properties }) => {
   const [submitFormMutation] = useMutation(
     (submission) => api.updateUser(user.id, submission),
     {
-        onSuccess: (resp, { onSuccess }) => {
-          console.log('SUCCESS')
-          // onSuccess(resp);
-        },
-        onError: (error, { onError }) => {
-          console.log('ERROR', error)
-          // onError(error);
-          // setSubmissionError(error);
-        },
+      //onSuccess: (resp) => {},
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
     }
   )
 
@@ -123,31 +118,29 @@ const EmailForm = ({ user, title, subtitle }) => {
   const [handleSubmitEmail] = useMutation(
     () => api.createEmailAddress({ email: emailToAdd }),
     {
-        onSuccess: async (resp) => {
-          console.log('SUCCESS')
-          setEmails(emails.concat(resp))
-          handleCloseDialog()
-        },
-        onError: (error) => {
-          console.log('ERROR', error)
-        }
+      onSuccess: async (resp) => {
+        setEmails(emails.concat(resp))
+        handleCloseDialog()
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
     }
   )
 
   const [handleResendConfirmationEmail] = useMutation(
     (email) => api.createEmailAddress({ email: email.email }),
     {
-        onSuccess: async (resp, email) => {
-          console.log('SUCCESS')
-          const newEmails = emails.map(email2 => {
-              return {...email2, sent: (email2.email == email.email) } 
-          })
-          setEmails(newEmails)
-          handleCloseDialog()
-        },
-        onError: (error) => {
-          console.log('ERROR', error)
-        }
+      onSuccess: async (resp, email) => {
+        const newEmails = emails.map(email2 => {
+          return {...email2, sent: (email2.email == email.email) } 
+        })
+        setEmails(newEmails)
+        handleCloseDialog()
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
     }
   )
 
@@ -155,7 +148,6 @@ const EmailForm = ({ user, title, subtitle }) => {
     (id) => api.deleteEmailAddress(id),
     {
       onSuccess: async (resp, id) => {
-        console.log('SUCCESS')
         const newEmails = emails.filter(email => email.id != id)
         setEmails(newEmails)
         handleCloseDialog()
@@ -356,15 +348,11 @@ const Forms = (user, properties) => {
         // const [submitPasswordMutation] = useMutation(
         //   (submission) => api.updateUser(user.id, submission),
         //   {
-        //       onSuccess: (resp, { onSuccess }) => {
-        //         console.log('SUCCESS')
-        //         // onSuccess(resp);
-        //       },
-        //       onError: (error, { onError }) => {
-        //         console.log('ERROR', error)
-        //         // onError(error);
-        //         // setSubmissionError(error);
-        //       },
+        //     onSuccess: (resp) => {
+        //     },
+        //     onError: (error) => {
+        //       console.log('ERROR', error)
+        //     }
         //   }
         // )
         // return submitPasswordMutation;

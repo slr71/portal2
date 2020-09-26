@@ -23,20 +23,14 @@ const RestrictedUsernames = (props) => {
   const [usernameToAdd, setUsernameToAdd] = useState()
 
   const [deleteRestrictedUsername] = useMutation(
-    (username) => {
-      setUsernames(usernames.filter(u => u.username != username))
-      api.deleteRestrictedUsername(username)
-    },
+    (username) => api.deleteRestrictedUsername(username),
     {
-        onSuccess: (resp, { onSuccess }) => {
-            console.log('SUCCESS')
-            // onSuccess(resp);
-        },
-        onError: (error, { onError }) => {
-          console.log('ERROR', error)
-            // onError(error);
-            // setSubmissionError(error);
-        },
+      onSuccess: (resp, username) => {
+        setUsernames(usernames.filter(u => u.username != username))
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
     }
   )
 
@@ -59,17 +53,13 @@ const RestrictedUsernames = (props) => {
   const [handleSubmitUsername] = useMutation(
     () => api.createRestrictedUsername(usernameToAdd),
     {
-        onSuccess: async (resp, { onSuccess }) => {
-            console.log('SUCCESS')
-            handleCloseDialog()
-            setUsernames(await api.restrictedUsernames())
-            // onSuccess(resp);
-        },
-        onError: (error, { onError }) => {
-          console.log('ERROR', error)
-            // onError(error);
-            // setSubmissionError(error);
-        },
+      onSuccess: async (resp) => {
+        handleCloseDialog()
+        setUsernames(await api.restrictedUsernames())
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
     }
   )
 

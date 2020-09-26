@@ -88,15 +88,11 @@ const Right = (props) => {
   const [submitFormMutation] = useMutation(
     (password) => api.updatePassword({ hmac, password }),
     {
-      onSuccess: (resp, { onSuccess }) => {
-          console.log('SUCCESS')
-          setSubmitted(true)
-          // onSuccess(resp);
+      onSuccess: (resp) => {
+        setSubmitted(true)
       },
-      onError: (error, { onError }) => {
+      onError: (error) => {
         console.log('ERROR', error)
-          // onError(error);
-          // setSubmissionError(error);
       }
     }
   )
