@@ -113,7 +113,7 @@ app.prepare()
         server.use('/api/services', require('./api/services'))
         server.use('/api/workshops', require('./api/workshops'))
         server.use('/api/forms', require('./api/forms'))
-        server.use('/api/mailing-lists', require('./api/mailing_lists'))
+        server.use('/api/mailing_lists', require('./api/mailing_lists'))
         server.use('/api/*', (_, res) => res.send('Resource not found').status(404))
 
         // Restricted UI pages

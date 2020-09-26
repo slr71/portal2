@@ -197,7 +197,7 @@ models.account_emailaddress.addScope('defaultScope',
     include: [ 
       { model: models.api_mailinglist, 
         as: 'mailing_lists', 
-        through: { attributes: [] } // remove connector table
+        through: { attributes: [ 'is_subscribed' ] }
       } 
     ]
   }

@@ -329,4 +329,4 @@ spec:
       image: localhost:5000/portal2
       command: [curl]
       #TODO add authorization header argument: "-H 'Authorization: foo'"
-      args: ["-v", "-X POST", "-H", "Content-Type: application/json", "-d '{ email: {{inputs.parameters.email}}, subscribe: true }'", "{{workflow.parameters.portal_api_base_url}}/mailing-lists/{{inputs.parameters.list_name}}/subscriptions/"]
+      args: ["-v", "-X POST", "-H", "Content-Type: application/json", "-d '{ name: {{inputs.parameters.list_name}}, email: {{inputs.parameters.email}}, subscribe: true }'", "{{workflow.parameters.portal_api_base_url}}/mailing_lists/subscriptions/"]

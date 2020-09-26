@@ -1,7 +1,8 @@
 import { useMutation } from "react-query"
+import { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Paper, Switch, Typography, Button, Divider, List, ListItem, ListItemText, ListItemSecondaryAction } from '@material-ui/core'
-import { Person as PersonIcon } from '@material-ui/icons'
+import { Container, Box, Paper, Switch, Typography, Button, Divider, Avatar, List, ListItem, ListItemText, ListItemAvatar, ListItemSecondaryAction } from '@material-ui/core'
+import { Person as PersonIcon, Mail as MailIcon } from '@material-ui/icons'
 import { Layout, UpdateForm } from '../components'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
@@ -92,12 +93,16 @@ const Account = ({ properties }) => {
 const EmailForm = ({ user, title, subtitle }) => (
   <div>
     {user.emails.map(email => (
-      <Box key={email.email} pt={2}>
+      <Box key={email.email}>
         <Typography component="div" variant="h5">{title}</Typography>
-        <Typography color="textSecondary">{subtitle}</Typography>
-        <Divider />
+        <Typography color="textSecondary" gutterBottom>{subtitle}</Typography>
         <List>
           <ListItem>
+            <ListItemAvatar>
+              <Avatar>
+                <MailIcon />
+              </Avatar>
+            </ListItemAvatar>
             <ListItemText 
               primary={email.email} 
               secondary={[email.verified ? 'Verified' : '', email.primary ? 'Primary' : ''].join(', ')} 
@@ -106,8 +111,7 @@ const EmailForm = ({ user, title, subtitle }) => (
         </List>
       </Box>
     ))}
-    <Divider />
-    <Box display="flex" justifyContent="flex-end" pt={2}>
+    <Box display="flex" justifyContent="flex-end">
       <Button
         variant="contained"
         color="primary"
@@ -118,36 +122,67 @@ const EmailForm = ({ user, title, subtitle }) => (
   </div>
 )
 
-const MailingListForm = ({ user, title, subtitle }) => (
-  <div>
-    {user.emails.map(email => (
-      <Box key={email.email} pt={2}>
-        <Typography component="div" variant="h5">{title}</Typography>
-        <Typography color="textSecondary">{subtitle}</Typography>
-        <Divider />
-        <List>
-          <ListItem>
-            <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
-          </ListItem>
-          {email.mailing_lists.map(list => (
-            <ListItem key={list.id}>
-              <ListItemText primary={list.name} />
-              <ListItemSecondaryAction>
-                <Switch
-                  checked={true}
-                  name="checkedA"
-                  color="primary"
-                  variant="caption"
-                  edge="end"
-                />
-              </ListItemSecondaryAction>
+const MailingListForm = ({ user, title, subtitle }) => {
+  return (
+    <div>
+      {user.emails.map(email => (
+        <Box key={email.email}>
+          <Typography component="div" variant="h5">{title}</Typography>
+          <Typography color="textSecondary" gutterBottom>{subtitle}</Typography>
+          <List>
+            {user.emails.length > 1 &&
+            <ListItem>
+              <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
             </ListItem>
-          ))}
-        </List>
-      </Box>
-    ))}
-  </div>
-)
+            }
+            {email.mailing_lists.map(list => (
+              <MailingListItem key={list.id} email={email} list={list} />
+            ))}
+          </List>
+        </Box>
+      ))}
+    </div>
+  )
+}
+
+const MailingListItem = ({ email, list }) => {
+  const api = useAPI()
+
+  const [state, setState] = useState(list.api_emailaddressmailinglist.is_subscribed) //FIXME ugly, alias api_emailaddressmailinglist in api query
+
+  const handleChange = (event) => {
+    console.log(state, email.id, event.target.name, event.target.checked)
+    setState(event.target.checked)
+  }
+
+  useEffect(() => {
+      api.updateMailingListSubscription({ 
+        id: list.id,
+        email: email.email,
+        subscribe: state
+      }).then((resp) => {
+        console.log(resp)
+      })
+    },
+    [state]
+  )
+
+  return (
+    <ListItem key={list.id}>
+      <ListItemText primary={list.name} />
+      <ListItemSecondaryAction>
+        <Switch
+          checked={state} 
+          name={list.id.toString()}
+          color="primary"
+          variant="caption"
+          edge="end"
+          onChange={handleChange}
+        />
+      </ListItemSecondaryAction>
+    </ListItem>
+  )
+}
 
 const Forms = (user, properties) => {
   return [ 
