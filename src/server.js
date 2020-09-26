@@ -101,6 +101,10 @@ app.prepare()
             app.render(req, res, "/password")
         })
 
+        server.get("/confirm_email", (req, res) => { 
+            app.render(req, res, "/confirm_email")
+        })
+
         // Public API routes
         server.use('/api', require('./api/public'))
         if (isDevelopment) server.use('/tests', require('./api/tests'))
@@ -126,7 +130,7 @@ app.prepare()
             if (isDevelopment)
                 console.log('!!!!!!!!! RUNNING IN DEV MODE !!!!!!!!!!')
             if (config.debugUser)
-                console.log('!!!!!!!!! RUNNING IN DEBUG MODE AS USER', config.debugUser, '!!!!!!!!!!')
+                console.log('!!!!!!!!! EMULATING USER', config.debugUser, '!!!!!!!!!!')
             console.log(`Ready on port ${config.port}`)
         })
     })

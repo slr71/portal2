@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { renderEmail, generateHMAC, decodeHMAC } = require('./lib/email')
 const { email } = require('../config');
-const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants')
+const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants');
 const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
@@ -188,6 +188,29 @@ router.post('/users/reset_password', async (req, res) => {
             "USERNAME": emailAddress.user.username
         }
     })
+});
+
+router.post('/confirm_email', async (req, res) => {
+    const hmac = req.body.hmac
+    if (!hmac) 
+        return res.send('Missing hmac').status(400);
+
+    const decodedEmailId = decodeHMAC(hmac)
+    const emailId = parseInt(decodedEmailId)
+    if (isNaN(emailId))
+        return res.send('Invalid HMAC').status(400);
+
+    let emailAddress = await EmailAddress.findByPk(emailId, {
+        include: [ 'user']
+    });
+    if (!emailAddress)
+        return res.send('Email address not found').status(404);
+
+    // Confirm email address
+    emailAddress.verified = true
+    emailAddress.save()
+
+    res.send('success').status(200);
 });
 
 router.get('/users/properties', async (req, res) => {
