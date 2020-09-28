@@ -66,12 +66,14 @@ const Service = (props) => {
                 </Box>
               </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <Box>
-                <Typography component="div" variant="h5">Details</Typography>
-                <Typography color="textPrimary"><Markdown>{service.about}</Markdown></Typography>
-              </Box>
-            </Grid>
+            {service.about &&
+              <Grid item xs={12}>
+                <Box>
+                  <Typography component="div" variant="h5">Details</Typography>
+                  <Typography color="textPrimary"><Markdown>{service.about}</Markdown></Typography>
+                </Box>
+              </Grid>
+            }
             {service.contacts.length > 0 &&
               <Grid item xs={12}>
                 <Box>

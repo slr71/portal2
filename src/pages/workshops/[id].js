@@ -55,26 +55,30 @@ const Workshop = props => {
                 </Typography>
               </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <Typography component="div" variant="h5">Details</Typography>
-              <Typography color="textSecondary"><Markdown>{workshop.about}</Markdown></Typography>
-            </Grid>
-            <Grid item xs={12}>
-              <Typography component="div" variant="h5">Services</Typography>
-              <Typography color="textSecondary">Services used in the workshop.</Typography>
-              <List>
-                {workshop.services.map(service => (
-                  <Link key={service.id} underline='none' href={`/services/${service.id}`}>
-                    <ListItem>
-                      <ListItemAvatar>
-                        <Avatar alt={service.name} src={service.iconUrl} />
-                      </ListItemAvatar>
-                      <ListItemText primary={service.name} secondary={service.description}/>
-                    </ListItem>
-                  </Link>
-                ))}
-              </List>
-            </Grid>
+            {workshop.about &&
+              <Grid item xs={12}>
+                <Typography component="div" variant="h5">Details</Typography>
+                <Typography color="textSecondary"><Markdown>{workshop.about}</Markdown></Typography>
+              </Grid>
+            }
+            {workshop.services.length > 0 &&
+              <Grid item xs={12}>
+                <Typography component="div" variant="h5">Services</Typography>
+                <Typography color="textSecondary">Services used in the workshop.</Typography>
+                <List>
+                  {workshop.services.map(service => (
+                    <Link key={service.id} underline='none' href={`/services/${service.id}`}>
+                      <ListItem>
+                        <ListItemAvatar>
+                          <Avatar alt={service.name} src={service.iconUrl} />
+                        </ListItemAvatar>
+                        <ListItemText primary={service.name} secondary={service.description}/>
+                      </ListItem>
+                    </Link>
+                  ))}
+                </List>
+              </Grid>
+            }
           </Grid>
         </Paper>
       </Container>
