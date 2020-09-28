@@ -72,69 +72,75 @@ const Service = (props) => {
                 <Typography color="textPrimary"><Markdown>{service.about}</Markdown></Typography>
               </Box>
             </Grid>
-            <Grid item xs={12}>
-              <Box>
-                <Typography component="div" variant="h5">Contacts</Typography>
-                <Typography color="textSecondary">Contact(s) for questions or problems.</Typography>
-                <List>
-                  {service.contacts.map(contact => (
-                    <Link key={contact.id} underline='none' href={`mailto:${contact.email}`}>
-                      <ListItem>
-                        <ListItemAvatar>
-                          <Avatar>
-                            <PersonIcon />
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText primary={contact.name} />
-                      </ListItem>
-                    </Link>
-                  ))}
-                </List>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Box>
-                <Typography component="div" variant="h5">Resources</Typography>
-                <Typography color="textSecondary">Where you can find support.</Typography>
-                <List>
-                  {service.resources.map(resource => (
-                    <Link key={resource.id} underline='none' href={resource.url}>
-                    <Button color="primary">
-                      <ListItem>
-                        <ListItemAvatar>
-                          <Avatar>
-                            <MenuBookIcon />
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText primary={resource.name} />
-                      </ListItem>
-                      </Button>
-                    </Link>
-                  ))}
-                </List>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Box>
-                <Typography component="div" variant="h5">Requests</Typography>
-                <Typography color="textSecondary">Requests you can submit related to this service.</Typography>
-                <List>
-                  {service.forms.map(form => (
-                    <Link key={form.id} underline='none' href={`/requests/${form.id}`}>
-                    <Button color="primary"><ListItem>
-                        <ListItemAvatar>
-                          <Avatar>
-                            <ListIcon />
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText primary={form.name} />
-                      </ListItem>
-                      </Button>
-                    </Link>
-                  ))}
-                </List>
-              </Box>
-            </Grid>
+            {service.contacts.length > 0 &&
+              <Grid item xs={12}>
+                <Box>
+                  <Typography component="div" variant="h5">Contacts</Typography>
+                  <Typography color="textSecondary">Contact(s) for questions or problems.</Typography>
+                  <List>
+                    {service.contacts.map(contact => (
+                      <Link key={contact.id} underline='none' href={`mailto:${contact.email}`}>
+                        <ListItem>
+                          <ListItemAvatar>
+                            <Avatar>
+                              <PersonIcon />
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText primary={contact.name} />
+                        </ListItem>
+                      </Link>
+                    ))}
+                  </List>
+                </Box>
+              </Grid>
+            }
+            {service.resources.length > 0 &&
+              <Grid item xs={12}>
+                <Box>
+                  <Typography component="div" variant="h5">Resources</Typography>
+                  <Typography color="textSecondary">Where you can find support.</Typography>
+                  <List>
+                    {service.resources.map(resource => (
+                      <Link key={resource.id} underline='none' href={resource.url}>
+                      <Button color="primary">
+                        <ListItem>
+                          <ListItemAvatar>
+                            <Avatar>
+                              <MenuBookIcon />
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText primary={resource.name} />
+                        </ListItem>
+                        </Button>
+                      </Link>
+                    ))}
+                  </List>
+                </Box>
+              </Grid>
+            }
+            {service.forms.length > 0 &&
+              <Grid item xs={12}>
+                <Box>
+                  <Typography component="div" variant="h5">Requests</Typography>
+                  <Typography color="textSecondary">Requests you can submit related to this service.</Typography>
+                  <List>
+                    {service.forms.map(form => (
+                      <Link key={form.id} underline='none' href={`/requests/${form.id}`}>
+                      <Button color="primary"><ListItem>
+                          <ListItemAvatar>
+                            <Avatar>
+                              <ListIcon />
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText primary={form.name} />
+                        </ListItem>
+                        </Button>
+                      </Link>
+                    ))}
+                  </List>
+                </Box>
+              </Grid>
+            }
           </Grid>
         </Paper>
       </Container>
