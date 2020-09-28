@@ -1,23 +1,19 @@
 const router = require('express').Router();
-const { requireAdmin, isAdmin } = require('../auth');
+const { requireAdmin, isAdmin, getUser } = require('../auth');
 const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
 
-const SUPPORTED_FIELDS = [
-    'first_name', 'last_name', 'orcid_id', 'institution', 'department',
-    'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id',
-    'occupation_id', 'research_area_id', 'region_id'
-]
-
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
 
-router.get('/mine', (req, res) => {
+// Get current user based on token
+router.get('/mine', getUser, (req, res) => {
     res.json(req.user).status(200);
 });
 
+// Get all users
 router.get('/', requireAdmin, async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
@@ -55,19 +51,25 @@ router.get('/', requireAdmin, async (req, res) => {
     res.json({ count, results: rows }).status(200);
 });
 
+// Get individual user (ADMIN ONLY)
 router.get('/:id(\\d+)', requireAdmin, async (req, res) => {
     const user = await User.findByPk(req.params.id);
-
     res.json(user).status(200);
 });
 
 // Update user info
-router.post('/:id(\\d+)', async (req, res) => {
+router.post('/:id(\\d+)', getUser, async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
     console.log(fields);
 
-    // User can only update their own record unless admin
+    const SUPPORTED_FIELDS = [
+        'first_name', 'last_name', 'orcid_id', 'institution', 'department',
+        'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id',
+        'occupation_id', 'research_area_id', 'region_id'
+    ]
+
+    // Check permission -- user can only update their own record unless admin
     if (id != req.user.id && !isAdmin(req))
         return res.send('Permission denied').status(403);
 
@@ -96,24 +98,19 @@ router.get('/restricted', requireAdmin, async (req, res) => {
     res.json(usernames).status(200);
 });
 
-router.get('/properties', async (req, res) => {
-    const opts = { attributes: { exclude: [ 'created_at', 'updated_at' ] } };
-    const keys = [ 'funding_agencies', 'occupations', 'genders', 'ethnicities', 'countries', 'regions', 'research_areas', 'aware_channels' ];
+router.put('/restricted/:username(\\S+)', requireAdmin, async (req, res) => {
+    const [username, created] = await RestrictedUsername.findOrCreate({ where: { username: req.params.username } });
+    res.json(username).status(201);
+});
 
-    const results = {};
-    (await Promise.all([
-        models.account_fundingagency.findAll(opts),
-        models.account_occupation.findAll(opts),
-        models.account_gender.findAll(opts),
-        models.account_ethnicity.findAll(opts),
-        models.account_country.findAll(opts),
-        models.account_region.findAll(opts),
-        models.account_researcharea.findAll(opts),
-        models.account_awarechannel.findAll(opts)
-    ]))
-    .forEach((e, i) => results[keys[i]] = e);
+router.delete('/restricted/:username(\\S+)', requireAdmin, async (req, res) => {
+    const username = await RestrictedUsername.findOne({ where: { username: req.params.username } });
+    if (!username)
+        return res.send('Restricted username not found').status(404);
 
-    res.json(results).status(200);
+    await username.destroy();
+
+    res.send('success').status(200);
 });
 
 module.exports = router;

@@ -29,19 +29,7 @@ const Request = (props) => {
   console.log('initialValues:', initialValues)
   
   const [submitFormMutation] = useMutation(
-    (submission) => api.submitForm(form.id, submission),
-    {
-        onSuccess: (resp, { onSuccess }) => {
-            console.log('SUCCESS')
-            // router.push(`/${NavigationConstants.ANALYSES}`);
-            // onSuccess(resp);
-        },
-        onError: (error, { onError }) => {
-          console.log('ERROR', error)
-            // onError(error);
-            // setSubmissionError(error);
-        },
-    }
+    (submission) => api.submitForm(form.id, submission)
   )
 
   const formatSubmission = (values) => {
@@ -53,7 +41,7 @@ const Request = (props) => {
   }
 
   return (
-    <Layout>
+    <Layout title={form.name} breadcrumbs>
       <Container maxWidth='md'>
         <Paper elevation={3} className={classes.paper}>
           <Box>
@@ -74,7 +62,7 @@ const Request = (props) => {
             initialValues={initialValues}
             onSubmit={(values, { setSubmitting }) => {
               console.log('Submit!!!')
-              submitFormMutation(formatSubmission(values))
+              //submitFormMutation(formatSubmission(values))
               setSubmitting(false)
             }}
           />

@@ -1,31 +1,79 @@
+import { useMutation } from "react-query"
 import { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Typography, TextField, IconButton, TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
+import { Container, Paper, Grid, Typography, TextField, Button, IconButton, TableContainer, Table, TableBody, TableRow, TableCell, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
 import DeleteIcon from '@material-ui/icons/Delete';
 import Layout from '../../components/Layout'
+import { useAPI } from '../../contexts/api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   }
 }))
 
-const RestrictedUsernames = ({ usernames }) => {
+const RestrictedUsernames = (props) => {
   const classes = useStyles()
-  const [keyword, setKeyword] = useState()
+  const api = useAPI()
 
-  const handleChangeKeyword = async (event) => {
+  const [usernames, setUsernames] = useState(props.usernames)
+  const [keyword, setKeyword] = useState()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [usernameToAdd, setUsernameToAdd] = useState()
+
+  const [deleteRestrictedUsername] = useMutation(
+    (username) => api.deleteRestrictedUsername(username),
+    {
+      onSuccess: (resp, username) => {
+        setUsernames(usernames.filter(u => u.username != username))
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const handleChangeKeyword = (event) => {
     setKeyword(event.target.value)
   }
 
+  const handleOpenDialog = () => {
+    setDialogOpen(true)
+  }
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false)
+  }
+
+  const handleChangeUsername = (event) => {
+    setUsernameToAdd(event.target.value)
+  }
+
+  const [handleSubmitUsername] = useMutation(
+    () => api.createRestrictedUsername(usernameToAdd),
+    {
+      onSuccess: async (resp) => {
+        handleCloseDialog()
+        setUsernames(await api.restrictedUsernames())
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
   return (
-    <Layout>
+    <Layout breadcrumbs>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper}>
           <Grid container justify="space-between">
             <Grid item>
               <Typography component="h1" variant="h4">Restricted Usernames</Typography>
+            </Grid>
+            <Grid item>
+              <Button variant="contained" color="primary" onClick={handleOpenDialog}>Add Username</Button>
             </Grid>
             <Grid item>
               <TextField style={{width: '20em'}} placeholder="Search ..." onChange={handleChangeKeyword} />
@@ -33,30 +81,67 @@ const RestrictedUsernames = ({ usernames }) => {
           </Grid>
           <Typography color="textSecondary" gutterBottom>Users will not be allowed to create an account using any of the usernames below</Typography>
           <br />
-          <UsernameTable usernames={keyword ? usernames.filter(u => u.username.indexOf(keyword) >= 0) : usernames} />
+          <UsernameTable 
+            usernames={keyword && keyword.length >= 2 ? usernames.filter(u => u.username.indexOf(keyword) >= 0) : usernames} 
+            handleDelete={deleteRestrictedUsername}
+          />
         </Paper>
       </Container>
+      <AddUsernameDialog 
+        open={dialogOpen}
+        handleChange={handleChangeUsername}
+        handleClose={handleCloseDialog} 
+        handleSubmit={handleSubmitUsername}
+      />
     </Layout>
   )
 }
 
-const UsernameTable = ({ usernames }) => (
-  <TableContainer component={Paper}>
-    <Table size="small">
-      <TableBody>
-        {usernames.map(username => (
-          <TableRow key={username.id}>
-            <TableCell component="th" scope="row">{username.username}</TableCell>
-            <TableCell align="right">
-              <IconButton>
-                <DeleteIcon />
-              </IconButton>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  </TableContainer>
+const UsernameTable = ({ usernames, handleDelete }) => {
+  return (
+    <TableContainer component={Paper}>
+      <Table size="small">
+        <TableBody>
+          {usernames.map(({ id, username }) => (
+            <TableRow key={id}>
+              <TableCell component="th" scope="row">{username}</TableCell>
+              <TableCell align="right">
+                <IconButton onClick={() => handleDelete(username)}>
+                  <DeleteIcon />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  )
+}
+
+const AddUsernameDialog = ({ open, handleChange, handleClose, handleSubmit }) => (
+  <Dialog open={open} onClose={handleClose} fullWidth aria-labelledby="form-dialog-title">
+    <DialogTitle id="form-dialog-title">Add Restricted Username</DialogTitle>
+    <DialogContent>
+      <DialogContentText>
+        Username to add
+      </DialogContentText>
+      <TextField
+        autoFocus
+        margin="dense"
+        id="name"
+        fullWidth
+        onChange={handleChange}
+      />
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleClose} color="primary">
+        Cancel
+      </Button>
+      <Button onClick={handleSubmit} color="primary">
+        Add
+      </Button>
+    </DialogActions>
+  </Dialog>
 )
 
 export async function getServerSideProps({ req }) {

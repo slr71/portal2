@@ -39,9 +39,7 @@ const FormEditor = (props) => {
   const [updateFormMutation] = useMutation(
     (fields) => api.updateForm(form.id, fields),
     {
-      onSuccess: (resp) => {
-        console.log('updateForm SUCCESS', resp)
-      },
+      //onSuccess: (resp) => {},
       onError: (error) => {
         console.log('updateForm ERROR', error)
       }
@@ -59,7 +57,6 @@ const FormEditor = (props) => {
       .then( () => api.form(form.id) ),
     {
       onSuccess: (resp) => {
-        console.log('createFormSection SUCCESS', resp)
         setForm(resp)
         setTab(resp.sections[-1].index)
       },
@@ -73,7 +70,6 @@ const FormEditor = (props) => {
     (id) => api.deleteFormSection(id).then( () => api.form(form.id) ),
     {
       onSuccess: (resp) => {
-        console.log('deleteFormSection SUCCESS', resp)
         const index = form.sections.findIndex(s => s.id == resp)
         setTab(index-1)
         setForm(resp)
@@ -85,15 +81,7 @@ const FormEditor = (props) => {
   )
 
   const [updateSectionMutation] = useMutation(
-    (fields) => api.updateFormSection(form.sections[tab].id, fields),
-    {
-      onSuccess: (resp) => {
-        console.log('updateFormSection SUCCESS', resp)
-      },
-      onError: (error) => {
-        console.log('updateFormSection ERROR', error)
-      }
-    }
+    (fields) => api.updateFormSection(form.sections[tab].id, fields)
   )
 
   const [addFieldMutation] = useMutation(
@@ -108,7 +96,6 @@ const FormEditor = (props) => {
       .then( () => api.form(form.id) ),
     {
       onSuccess: (resp) => {
-        console.log('createFormField SUCCESS', resp)
         setForm(resp)
       },
       onError: (error) => {
@@ -121,7 +108,6 @@ const FormEditor = (props) => {
     (id) => api.deleteFormField(id).then( () => api.form(form.id) ),
     {
       onSuccess: (resp) => {
-        console.log('deleteFormField SUCCESS', resp)
         setForm(resp)
       },
       onError: (error, { onError }) => {
@@ -132,19 +118,12 @@ const FormEditor = (props) => {
 
   const [updateFieldMutation] = useMutation(
     ({ id, values }) => api.updateFormField(id, values).then( () => api.form(form.id) ),
-    {
-      onSuccess: (resp) => {
-        console.log('updateFormField SUCCESS', resp)
-      },
-      onError: (error) => {
-        console.log('updateFormField ERROR', error)
-      }
-    }
   )
 
   return (
-    <Layout>
+    <Layout title={form.name} breadcrumbs>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper} style={{height: height + "em"}}>
           <Box m={3}>
             <Grid container justify="space-between">

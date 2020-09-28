@@ -71,5 +71,4 @@ async function email_workshop_enrollment_confirmation(request) {
     );
 }
 
-module.exports.approveRequest = approveRequest;
-module.exports.grantRequest = grantRequest;
+module.exports = { approveRequest, grantRequest };

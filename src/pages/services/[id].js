@@ -1,10 +1,10 @@
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { spacing } from '@material-ui/system';
 import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton } from '../../components'
 import { useAPI } from '../../contexts/api'
+import { useUser } from '../../contexts/user'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -16,6 +16,7 @@ const Service = (props) => {
   const service = props.service
   const classes = useStyles()
   const api = useAPI()
+  const user = useUser()
 
   const question = service.questions && service.questions.length > 0 ? service.questions[0] : null // only Atmosphere has a question, and it has only one
 
@@ -34,8 +35,6 @@ const Service = (props) => {
     setDialogOpen(false)
     //const response = await props.api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }])
     //const { isLoading, isError, data, error } = useQuery('todos', fetchTodoList)
-    const foo = await api.user()
-    console.log(foo)
   }
 
   const handleChangeAnswer = (e) => {
@@ -43,12 +42,13 @@ const Service = (props) => {
   }
 
   return ( //FIXME break into pieces
-    <Layout>
+    <Layout title={service.name} breadcrumbs>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper}>
           <Grid container spacing={4}>
             <Grid container item xs={12}  justify="space-between">
-              <Grid item wrap="wrap">
+              <Grid item>
                 <Box display='flex' flexWrap="wrap" alignSelf="flex-end" >
                 <Box mr={2}>
                   <Avatar alt={service.name} src={service.icon_url} />
@@ -57,7 +57,7 @@ const Service = (props) => {
                 </Box>
               </Grid>
               <Grid item>
-                <ServiceActionButton {...props} requestAccessHandler={handleOpenDialog}/>
+                <ServiceActionButton user={user} service={service} /*requestAccessHandler={handleOpenDialog}*//>
               </Grid>
               <Grid item xs={12}>
                 <Box my={1}>
@@ -166,10 +166,10 @@ const RequestAccessDialog = ({ question, open, handleChange, handleClose, handle
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
+        <Button color="primary" onClick={handleClose}>
           Cancel
         </Button>
-        <Button onClick={handleClose} color="primary" onClick={handleSubmit}>
+        <Button color="primary" onClick={handleSubmit}>
           Submit
         </Button>
       </DialogActions>
@@ -179,7 +179,7 @@ const RequestAccessDialog = ({ question, open, handleChange, handleClose, handle
 
 export async function getServerSideProps({ req, query }) {
   const service = await req.api.service(query.id)
-  return { props: { user: req.user, service } }
+  return { props: { service } }
 }
 
 export default Service

@@ -53,8 +53,9 @@ const Users = props => {
   )
 
   return (
-    <Layout>
+    <Layout breadcrumbs>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper}>
           <Grid container justify="space-between">
             <Grid item>

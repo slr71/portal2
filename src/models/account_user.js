@@ -35,7 +35,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     date_joined: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: false,
+      defaultValue: sequelize.fn('NOW')
     },
     first_name: {
       type: DataTypes.STRING,

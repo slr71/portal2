@@ -1,0 +1,11 @@
+CyVerse Email Confirmation
+
+Someone has requested to link this email address to their CyVerse account. You can approve the request (and verify the email address) by clicking the following link:
+
+${ACTIVATE_URL}
+
+If you did NOT request having this email address linked to your account, please notify CyVerse Support at support@cyverse.org.
+
+Happy Researching,
+
+The CyVerse Team

@@ -43,15 +43,29 @@ class PortalAPI {
     return res.data   
   }
   
-  async user(id) { // FIXME conflict if username is "mine" -- is it a restricted username?
-    if (!id) 
-      id = 'mine'
-    return await this.get(`/users/${id}`) 
-  }
+  async user(id) { return await this.get(`/users/${id || 'mine'}`) } // FIXME conflict if username is "mine" -- is it a restricted username?
 
   async users(params) { return await this.get(`/users`, params) }
 
-  async updateUser(id, params) { return await this.post(`/users/${id}`, params ) }
+  async checkUsername(username) { return await this.post(`/exists`, { username }) }
+
+  async checkEmail(email) { return await this.post(`/exists`, { email }) }
+
+  async createUser(username, params) { return await this.put(`/users/${username}`, params) }
+
+  async updateUser(id, params) { return await this.post(`/users/${id}`, params) }
+
+  async updateMailingListSubscription(params) { return await this.post(`/mailing_lists/subscriptions`, params) }
+
+  async updatePassword(params) { return await this.post(`/users/password`, params) } // FIXME conflict if username is "password"
+
+  async resetPassword(params) { return await this.post(`/users/reset_password`, params) } // FIXME conflict if username is "reset_password"
+
+  async createEmailAddress(params) { return await this.put(`/mailing_lists/email_addresses`, params) }
+
+  async deleteEmailAddress(id) { return await this.delete(`/mailing_lists/email_addresses/${id}`) }
+
+  async confirmEmailAddress(hmac) { return await this.post(`/confirm_email`, { hmac }) }
 
   async services(params) { return await this.get(`/services`, params) }
 
@@ -60,6 +74,10 @@ class PortalAPI {
   async userProperties() { return await this.get(`/users/properties`) } // FIXME conflict if username is "properties"
 
   async restrictedUsernames() { return await this.get(`/users/restricted`) } // FIXME conflict if username is "restricted"
+
+  async createRestrictedUsername(username) { return await this.put(`/users/restricted/${username}`) }
+
+  async deleteRestrictedUsername(id) { return await this.delete(`/users/restricted/${id}`) }
 
   async serviceRequests(params) { return await this.get(`/services/requests`, params) }
 
@@ -72,6 +90,10 @@ class PortalAPI {
   async workshops() { return await this.get(`/workshops`) }
 
   async workshop(id) { return await this.get(`/workshops/${id}`) }
+
+  async workshopParticipants(id) { return await this.get(`/workshops/${id}/participants`) }
+
+  async updateWorkshop(id, workshop) { return await this.post(`/workshops/${id}`, workshop) }
 
   async createWorkshopRequest(id) { return await this.put(`/workshops/${id}/requests`) }
 

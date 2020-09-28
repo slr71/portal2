@@ -1,7 +1,10 @@
 import { useMutation } from "react-query"
+import { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Paper, Switch, Typography, Button, Divider, List, ListItem, ListItemText, ListItemSecondaryAction } from '@material-ui/core'
+import { Container, Box, Paper, Switch, Typography, Link, Button, IconButton, TextField, Avatar, List, ListItem, ListItemText, ListItemAvatar, ListItemSecondaryAction, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
+import { Person as PersonIcon, Mail as MailIcon, Delete as DeleteIcon } from '@material-ui/icons'
 import { Layout, UpdateForm } from '../components'
+import { isEmail, isEmpty } from 'validator'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
 
@@ -24,24 +27,34 @@ const Account = ({ properties }) => {
   const initialValues = (fields) =>
       fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
 
+  // Default submit handler for forms
   const [submitFormMutation] = useMutation(
     (submission) => api.updateUser(user.id, submission),
     {
-        onSuccess: (resp, { onSuccess }) => {
-            console.log('SUCCESS')
-            // onSuccess(resp);
-        },
-        onError: (error, { onError }) => {
-          console.log('ERROR', error)
-            // onError(error);
-            // setSubmissionError(error);
-        },
+      //onSuccess: (resp) => {},
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
     }
   )
 
+  const title = 
+    <div style={{display: 'flex', alignItems: 'center'}}>
+      <PersonIcon fontSize="large" style={{marginRight: "0.25em"}}/>Account
+    </div>
+
+  const logoutButton =
+    <Button variant="contained" color="primary" href="/logout">Sign Out</Button>
+
+  const validate = (field, value, values) => {
+    if (field.id == 'confirm_password' && value != values['new_password'])
+      return 'Passwords must match'
+  }
+
   return (
-    <Layout title="Account">
+    <Layout title={title} actions={logoutButton}>
       <Container maxWidth='md'>
+        <br />
         {forms.map((form, index) => (
           <Box key={index} className={classes.box}>
             <Paper elevation={3} className={classes.paper}>
@@ -51,11 +64,15 @@ const Account = ({ properties }) => {
                   subtitle={form.subtitle}
                   fields={form.fields} 
                   initialValues={initialValues(form.fields)} 
+                  validate={validate}
                   autosave={form.autosave}
                   onSubmit={(values, { setSubmitting }) => {
                     setTimeout(() => {
                       console.log('Submit:', values)
-                      submitFormMutation(values)
+                      if (form.submitHandler)
+                        form.submitHandler(values)
+                      else
+                        submitFormMutation(values)
                       setSubmitting(false)
                     }, 1000)
                   }}
@@ -69,61 +86,227 @@ const Account = ({ properties }) => {
   )
 }
 
-const EmailForm = ({ user }) => (
-  <div>
-    {user.emails.map(email => (
-      <Box key={email.email} pt={2}>
-        <Divider />
-        <List>
-          <ListItem>
-            <ListItemText 
-              primary={email.email} 
-              secondary={[email.verified ? 'Verified' : '', email.primary ? 'Primary' : ''].join(', ')} 
-            />
-          </ListItem>
-        </List>
-      </Box>
-    ))}
-    <Divider />
-    <Box display="flex" justifyContent="flex-end" pt={2}>
-      <Button
-        variant="contained"
-        color="primary"
-      >
-        Add Email Address
-      </Button>
-    </Box>
-  </div>
-)
+const EmailForm = ({ user, title, subtitle }) => {
+  const api = useAPI()
+  const [emails, setEmails] = useState(user.emails)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [emailToAdd, setEmailToAdd] = useState('')
+  const [error, setError] = useState()
 
-const MailingListForm = ({ user }) => (
-  <div>
-    {user.emails.map(email => (
-      <Box key={email.email} pt={2}>
-        <Divider />
+  const handleChangeEmail = async (event) => {
+    setEmailToAdd(event.target.value)
+    setError(await validateEmail(event.target.value))
+  }
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false)
+  }
+
+  const validateEmail = async (value) => {
+    if (!isEmail(value))
+      return 'A valid email address is required'
+
+    const res = await api.checkEmail(value)
+    console.log(res)
+    //TODO add error checking here
+    if (res && res.email)
+      return 'Email already assigned to an account'
+
+    return null
+  }
+
+  const [handleSubmitEmail] = useMutation(
+    () => api.createEmailAddress({ email: emailToAdd }),
+    {
+      onSuccess: async (resp) => {
+        setEmails(emails.concat(resp))
+        handleCloseDialog()
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [handleResendConfirmationEmail] = useMutation(
+    (email) => api.createEmailAddress({ email: email.email }),
+    {
+      onSuccess: async (resp, email) => {
+        const newEmails = emails.map(email2 => {
+          return {...email2, sent: (email2.email == email.email) } 
+        })
+        setEmails(newEmails)
+        handleCloseDialog()
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [handleRemoveEmailAddress] = useMutation(
+    (id) => api.deleteEmailAddress(id),
+    {
+      onSuccess: async (resp, id) => {
+        const newEmails = emails.filter(email => email.id != id)
+        setEmails(newEmails)
+        handleCloseDialog()
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const statusMsg = (email) => email.verified 
+    ? 'Verified' + (email.primary ? ', Primary' : '')
+    : <>
+        A confirmation email has been sent. 
+        Click on the link in the email to verify that this is your address.<br />
+        {email.sent 
+          ? '[ Sent! ]'
+          : <Link onClick={() => handleResendConfirmationEmail(email)}>[ Resend Confirmation Email ]</Link>
+        }
+      </>
+
+  return (
+    <div>
+      <Box>
+        <Typography component="div" variant="h5">{title}</Typography>
+        <Typography color="textSecondary" gutterBottom>{subtitle}</Typography>
         <List>
-          <ListItem>
-            <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
-          </ListItem>
-          {email.mailing_lists.map(list => (
-            <ListItem key={list.id}>
-              <ListItemText primary={list.name} />
-              <ListItemSecondaryAction>
-                <Switch
-                  checked={true}
-                  name="checkedA"
-                  color="primary"
-                  variant="caption"
-                  edge="end"
-                />
-              </ListItemSecondaryAction>
+          {emails.map(email => (
+            <ListItem key={email.id}>
+              <ListItemAvatar>
+                <Avatar>
+                  <MailIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText 
+                primary={email.email} 
+                secondary={statusMsg(email)} 
+              />
+              {!email.primary &&
+                <ListItemSecondaryAction>
+                  <IconButton edge="end" aria-label="delete" onClick={() => handleRemoveEmailAddress(email.id)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </ListItemSecondaryAction>
+              }
             </ListItem>
           ))}
         </List>
       </Box>
-    ))}
-  </div>
+      <Box display="flex" justifyContent="flex-end">
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setDialogOpen(true)}
+        >
+          Add Email Address
+        </Button>
+      </Box>
+      <AddEmailAddressDialog 
+        open={dialogOpen}
+        error={error}
+        handleChange={handleChangeEmail}
+        handleClose={handleCloseDialog} 
+        handleSubmit={!isEmpty(emailToAdd) && !error ? handleSubmitEmail : null}
+      />
+    </div>
+  )
+}
+
+const AddEmailAddressDialog = ({ open, error, handleChange, handleClose, handleSubmit }) => (
+  <Dialog open={open} onClose={handleClose} fullWidth aria-labelledby="form-dialog-title">
+    <DialogTitle id="form-dialog-title">Add Email Address</DialogTitle>
+    <DialogContent>
+      <DialogContentText>
+        Enter the email address to add to your account.
+      </DialogContentText>
+      <TextField
+        autoFocus
+        margin="dense"
+        fullWidth
+        id="name"
+        type="email"
+        error={!!error}
+        helperText={error}
+        onChange={handleChange}
+      />
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleClose} variant="outlined">
+        Cancel
+      </Button>
+      <Button onClick={handleSubmit} variant="contained" color="primary" disabled={!handleSubmit}>
+        Add
+      </Button>
+    </DialogActions>
+  </Dialog>
 )
+
+const MailingListForm = ({ user, title, subtitle }) => {
+  return (
+    <div>
+      <Typography component="div" variant="h5">{title}</Typography>
+      <Typography color="textSecondary" gutterBottom>{subtitle}</Typography>
+      {user.emails.map(email => (
+        <Box key={email.id}>
+          <List>
+            {user.emails.length > 1 &&
+            <ListItem>
+              <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
+            </ListItem>
+            }
+            {email.mailing_lists.map(list => (
+              <MailingListItem key={list.id} email={email} list={list} />
+            ))}
+          </List>
+        </Box>
+      ))}
+    </div>
+  )
+}
+
+const MailingListItem = ({ email, list }) => {
+  const api = useAPI()
+
+  const [state, setState] = useState(list.api_emailaddressmailinglist.is_subscribed) //FIXME ugly, alias api_emailaddressmailinglist in api query
+
+  const handleChange = (event) => {
+    console.log(state, email.id, event.target.name, event.target.checked)
+    setState(event.target.checked)
+  }
+
+  useEffect(() => {
+      api.updateMailingListSubscription({ 
+        id: list.id,
+        email: email.email,
+        subscribe: state
+      }).then((resp) => {
+        console.log(resp)
+      })
+    },
+    [state]
+  )
+
+  return (
+    <ListItem key={list.id}>
+      <ListItemText primary={list.name} />
+      <ListItemSecondaryAction>
+        <Switch
+          checked={state} 
+          name={list.id.toString()}
+          color="primary"
+          variant="caption"
+          edge="end"
+          onChange={handleChange}
+        />
+      </ListItemSecondaryAction>
+    </ListItem>
+  )
+}
 
 const Forms = (user, properties) => {
   return [ 
@@ -161,6 +344,19 @@ const Forms = (user, properties) => {
     },
     { title: "Password",
       autosave: false,
+      submitHandler: (values) => {
+        // const [submitPasswordMutation] = useMutation(
+        //   (submission) => api.updateUser(user.id, submission),
+        //   {
+        //     onSuccess: (resp) => {
+        //     },
+        //     onError: (error) => {
+        //       console.log('ERROR', error)
+        //     }
+        //   }
+        // )
+        // return submitPasswordMutation;
+      },
       fields: [
         { id: "old_password",
           name: "Old Password",
@@ -179,13 +375,19 @@ const Forms = (user, properties) => {
         }
       ]
     },
-    { title: "Email",
-      subtitle: "Email addresses associated with this account",
-      render: <EmailForm user={user} />
+    { render: 
+        <EmailForm 
+          user={user} 
+          title="Email" 
+          subtitle="Email addresses associated with this account" 
+        />
     },
-    { title: "Mailing List Subscriptions",
-      subtitle: "Manage which services you would like to receive maintenance-related emails from",
-      render: <MailingListForm user={user} />
+    { render: 
+        <MailingListForm 
+          user={user} 
+          title="Mailing List Subscriptions" 
+          subtitle="Manage which services you would like to receive maintenance-related emails from" 
+        />
     },
     { title: "Institution",
       autosave: true,
@@ -208,7 +410,7 @@ const Forms = (user, properties) => {
           required: true,
           value: user.occupation.id,
           options: properties.occupations
-      },
+        },
         { id: "country_id",
           name: "Country",
           type: "select",

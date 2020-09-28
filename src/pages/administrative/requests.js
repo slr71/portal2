@@ -8,7 +8,7 @@ import { useAPI } from '../../contexts/api'
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   }
 }))
 
@@ -61,8 +61,9 @@ const AccessRequests = props => {
   )
 
   return (
-    <Layout>
+    <Layout breadcrumbs>
       <Container maxWidth='lg'>
+        <br />
         <Paper elevation={3} className={classes.paper}>
           <Grid container justify="space-between">
             <Grid item>
@@ -85,15 +86,15 @@ const RequestTable = ({ rows, rowsPerPage, count, page, handleChangePage, handle
   <TableContainer component={Paper}>
     <Table size="small">
       <TableHead>
-          <TableRow>
-            <TableCell>Service</TableCell>
-            <TableCell>Username</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Country</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Status</TableCell>
-          </TableRow>
-        </TableHead>
+        <TableRow>
+          <TableCell>Service</TableCell>
+          <TableCell>Username</TableCell>
+          <TableCell>Email</TableCell>
+          <TableCell>Country</TableCell>
+          <TableCell>Date</TableCell>
+          <TableCell>Status</TableCell>
+        </TableRow>
+      </TableHead>
       <TableBody>
         {rows.map(request => (
           <Link key={request.id} href={`/administrative/requests/${request.id}`}>

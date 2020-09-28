@@ -13,14 +13,13 @@
   "author": "",
   "license": "ISC",
   "nodemonConfig": {
+    "delay": 500,
+    "ext": "js json",
     "watch": [
-      "src/**/*"
-    ],
-    "ignore": [
-      "node_modules",
-      ".next"
-    ],
-    "ext": "js json"
+      "src/*.js",
+      "src/api",
+      "src/models"
+    ]
   },
   "prettier": {
     "trailingComma": "es5",
@@ -31,12 +30,15 @@
     "singleQuote": true
   },
   "dependencies": {
+    "@date-io/date-fns": "^1.3.13",
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
+    "@material-ui/pickers": "^3.2.10",
     "axios": "^0.19.2",
     "body-parser": "^1.19.0",
     "connect-pg-simple": "^6.2.1",
     "cors": "^2.8.5",
+    "date-fns": "^2.16.1",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "express-winston": "^4.0.5",
@@ -55,6 +57,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-query": "^2.8.0",
+    "sendmail": "^1.6.1",
     "sequelize": "^6.3.4",
     "validator": "^13.1.1",
     "winston": "^3.3.3"

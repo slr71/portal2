@@ -1,7 +1,8 @@
 const router = require('express').Router();
-const { requireAdmin } = require('../auth');
+const { requireAdmin, getUser } = require('../auth');
 const sequelize = require('sequelize');
 const models = require('../models');
+const User = models.account_user;
 const FormGroup = models.api_formgroup;
 const Form = models.api_form;
 const FormSection = models.api_formsection;
@@ -12,7 +13,6 @@ const { intercom_send_form_submission_confirmation_message } = require('../inter
 
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
-
 
 router.get('/', async (req, res) => {
     let requests = await FormGroup.findAll({
@@ -74,7 +74,7 @@ router.get('/submissions/:id(\\d+)', requireAdmin, async (req, res) => {
 });
 
 // Create new form submission
-router.put('/:id(\\d+)/submissions', requireAdmin, async (req, res) => {
+router.put('/:id(\\d+)/submissions', getUser, requireAdmin, async (req, res) => {
     const formId = req.params.id;
     const fields = req.body;
     if (!fields || fields.length == 0)
@@ -124,7 +124,7 @@ router.put('/:id(\\d+)/submissions', requireAdmin, async (req, res) => {
     });
     
     // Send response to client
-    res.json(submission).status(200);
+    res.json(submission).status(201);
 
     // Send message via Intercom (do this after response as to not delay it)
     //intercom_send_form_submission_confirmation_message(submission);

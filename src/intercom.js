@@ -193,6 +193,4 @@ async function reply_to_conversation(conversationId, message) {
     });
 }
 
-module.exports.get_conversation = get_conversation;
-module.exports.intercom_atmosphere = intercom_atmosphere;
-module.exports.intercom_send_form_submission_confirmation_message = intercom_send_form_submission_confirmation_message;
+module.exports = { get_conversation, intercom_atmosphere, intercom_send_form_submission_confirmation_message };
