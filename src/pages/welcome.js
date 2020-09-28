@@ -160,7 +160,7 @@ const Right = (props) => {
             variant="contained" 
             color="primary" 
             size="large"
-            disabled={isSubmitting || !!error}
+            disabled={isSubmitting || !!error || !email}
             onClick={() => {
               console.log('Submit')
               setSubmitting(true)
