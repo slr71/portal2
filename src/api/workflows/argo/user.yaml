@@ -2,12 +2,11 @@ apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
   generateName: steps-
-#spec:
-#  entrypoint: bisque-grant-access
 
 # Workflows 
 ###########
-templates:
+spec:
+  templates:
   - name: create-user
     steps:
     - - name: ldap-create-user
@@ -97,13 +96,13 @@ templates:
           - name: user_id
             value: "{{workflow.parameters.user_id}}"
     - - name: grant-access-to-data-commons
-            template: api-grant-access-request
-            arguments:
-              parameters:
-              - name: service
-                value: "Data Commons"
-              - name: user_id
-                value: "{{workflow.parameters.user_id}}"
+        template: api-grant-access-request
+        arguments:
+          parameters:
+          - name: service
+            value: "Data Commons"
+          - name: user_id
+            value: "{{workflow.parameters.user_id}}"
 
 # Tasks
 #######
@@ -194,28 +193,4 @@ templates:
     container:
       image: localhost:5000/portal2
       command: [sh, -c]
-      args: [ |
-        echo "dn: uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org 
-        objectClass: posixAccount
-        objectClass: shadowAccount
-        objectClass: inetOrgPerson
-        givenName: {{inputs.parameters.first_name}}
-        sn: {{inputs.parameters.last_name}}
-        cn: {{inputs.parameters.first_name}} {{inputs.parameters.last_name}}
-        uid: {{inputs.parameters.uid}}
-        userPassword: {{inputs.parameters.password}}
-        mail: {{inputs.parameters.email}}
-        departmentNumber: {{inputs.parameters.department}}
-        o: {{inputs.parameters.organization}}
-        title: {{inputs.parameters.title}}
-        homeDirectory: /home/{{inputs.parameters.uid}}
-        loginShell: /bin/bash
-        gidNumber: 10013
-        uidNumber: {{inputs.parameters.uidNumber}}
-        shadowLastChange:
-        shadowMin: 1
-        shadowMax: 730
-        shadowInactive: 10
-        shadowWarning: 10"
-        | ldapadd -H {{workflow.parameters.ldap_host}} -D {{workflow.parameters.ldap_admin}} -w {{workflow.parameters.ldap_password}}
-      ]
+      args: [ 'echo "dn: uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: {{inputs.parameters.first_name}}\nsn: {{inputs.parameters.last_name}}\ncn: {{inputs.parameters.first_name}} {{inputs.parameters.last_name}}\nuid: {{inputs.parameters.uid}}\nuserPassword: {{inputs.parameters.password}}\nmail: {{inputs.parameters.email}}\ndepartmentNumber: {{inputs.parameters.department}}\no: {{inputs.parameters.organization}}\ntitle: {{inputs.parameters.title}}\nhomeDirectory: /home/{{inputs.parameters.uid}}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: {{inputs.parameters.uidNumber}}\nshadowLastChange:\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H {{workflow.parameters.ldap_host}} -D {{workflow.parameters.ldap_admin}} -w {{workflow.parameters.ldap_password}}' ]
