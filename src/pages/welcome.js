@@ -1,57 +1,60 @@
 import { useState } from 'react'
 import { useMutation } from "react-query"
 import { isEmpty, isEmail } from 'validator'
-import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, LinearProgress, makeStyles } from '@material-ui/core'
+import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, LinearProgress, makeStyles} from '@material-ui/core'
 import { MainLogo, Wizard } from '../components'
 import { useAPI } from '../contexts/api'
+import Animation from '../components/animation'
 
 const useStyles = makeStyles((theme) => ({
-  grid: {
-    height: "100vh",
-    width: "50vw",
-  },
-  button: {
-    width: "25vw"
-  },
+
+root: {
+    flexGrow: 1,
+    backgroundColor:"#0971ab"
+},
+
   title: {
     color: '#0971ab',
     fontWeight: "bold"
-  }
+  },
 }))
 
 const Welcome = (props) => {
   const classes = useStyles()
 
   return (
-    <div>
-      <Grid container direction="row">
-        <Grid item align="center" className={classes.grid} style={{backgroundColor: '#0971ab'}}>
+      <main>
+    <div className={classes.root}>
+      <Grid container spacing={0}>
+        <Grid item align="center" xs={12} sm={12} md={5} style={{backgroundColor: '#0971ab'}}>
           <Left {...props} />
         </Grid>
-        <Grid item align="center" className={classes.grid}>
+        <Grid item align="center" xs={12} sm={12} md={7} style={{backgroundColor: '#ffffff'}}>
           <Right {...props} />
         </Grid>
       </Grid>
     </div>
+    </main>
   )
 }
 
 const Left = () => {
-  const classes = useStyles()
+const classes = useStyles()
 
   return (
-    <div>
-      <Box pt={"30vh"}>
-        <MainLogo size="large" />
+    <Grid item xs={10} sm={8}>
+      <Box pt={"10vh"}>
+        <MainLogo fullWidth="true"/>
       </Box>
-      <Box pt={"2em"} p={"6em"}>
+      <Box pt={"3vh"} pb={"3vh"}>
         <Typography variant="h5" style={{color: "white"}}>
           An Open Science Workspace for Collaborative Data-driven Discovery
         </Typography>
       </Box>
-    </div>
+    </Grid>
   )
 }
+
 
 const Right = (props) => {
   const classes = useStyles()
@@ -185,29 +188,30 @@ const Right = (props) => {
   }
 
   return ( //FIXME use column grid here instead
-    <div>
-      <Box pt={"30vh"}>
+    <Grid item xs={12} sm={12} md={12}>
+      <Box pt={"1vh"}>
+      <Animation />
         <Typography variant="h4" className={classes.title}>
           Welcome to CyVerse!
         </Typography>
       </Box>
-      <Box pt={"5em"}>
-        <Typography variant="button" gutterBottom>
+      <Box mt={3}>
+        <Typography variant="h6" gutterBottom>
           New to CyVerse?
         </Typography>
       </Box>
-      <Box>
-        <Button variant="contained" color="primary" size="large" disableElevation className={classes.button} onClick={handleOpenDialog}>
+      <Box maxWidth={"250px"} mt={3}>
+        <Button variant="contained" fullWidth="true" color="primary" size="large" disableElevation className={classes.button} onClick={handleOpenDialog}>
           Sign Up
         </Button>
       </Box>
-      <Box mt={5}>
-        <Button variant="outlined" color="primary" size="large" disableElevation className={classes.button} href="/login">
+      <Box maxWidth={"250px"} mt={3}>
+        <Button variant="outlined" fullWidth="true" color="primary" size="large" disableElevation className={classes.button} href="/login">
           Login
         </Button>
       </Box>
-      <Box pt={1}>
-        <Link onClick={() => setForgotPassword(true)}>Forgot Password?</Link>
+      <Box mt={2} mb={5} maxWidth={"250px"}>
+        <Button variant="text" fullWidth="true" color="info" size="small" onClick={() => setForgotPassword(true)}>Forgot Password</Button>
       </Box>
       <SignUpDialog 
         open={dialogOpen}
@@ -215,7 +219,7 @@ const Right = (props) => {
         handleClose={handleCloseDialog} 
         // handleSubmit={handleSubmit}
       />
-    </div>
+    </Grid>
   )
 }
 
