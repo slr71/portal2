@@ -81,7 +81,9 @@ router.put('/users/:username(\\w+)', async (req, res) => {
     let newUser = await User.create(fields)
     if (!newUser)
         return res.send('Error creating user').status(500);
-    newUser = await User.findByPk(newUser.id); // Fetch all assocations
+
+    // Fetch user fields/associations needed by workflow
+    newUser = await User.unscoped().findByPk(newUser.id, { include: [ 'occupation' ] });
 
     const emailAddress = await EmailAddress.create({
         user_id: newUser.id,
