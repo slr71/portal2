@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { renderEmail, generateHMAC, decodeHMAC } = require('./lib/email')
-const { email } = require('../config');
+const config = require('../config');
 const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants');
 const sequelize = require('sequelize');
 const models = require('../models');
@@ -13,6 +13,7 @@ const PasswordResetRequest = models.account_passwordresetrequest;
 //TODO move into module
 const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase()); 
 
+// Check for existing username and/or email address
 router.post('/exists', async (req, res) => {
     let fields = req.body;
     console.log("fields:", fields);
@@ -37,7 +38,7 @@ router.post('/exists', async (req, res) => {
     res.json(result).status(200);
 });
 
-// Create user //TODO require API key?
+// Create user //TODO require API key or valid HMAC
 router.put('/users/:username(\\w+)', async (req, res) => {
     const username = req.params.username;
     let fields = req.body;
@@ -93,13 +94,17 @@ router.put('/users/:username(\\w+)', async (req, res) => {
     const hmac = generateHMAC(emailAddress.id);
 
     res.json(newUser).status(200);
+    // The following is executed after the response as to not delay it 
 
-    // Send email after response as to not delay it
+    // Run user creation workflow
+    const rc = await createUser(newUser)
+
+    // Send confirmation email
     const confirmationUrl = `${UI_PASSWORD_URL}?code=${hmac}`;
     console.log({confirmationUrl});
     await renderEmail({
         to: newUser.email, 
-        bcc: email.bccNewAccountConfirmation,
+        bcc: config.email.bccNewAccountConfirmation,
         subject: 'Please Confirm Your E-Mail Address', //FIXME hardcoded
         templateName: 'email_confirmation_signup_message',
         fields: {
@@ -109,7 +114,36 @@ router.put('/users/:username(\\w+)', async (req, res) => {
     })
 });
 
-// Update user password //TODO require API key?
+async function createUser(user) {
+    // Submit Argo workflow
+    await Argo.submit(
+        `../${config.argo.workflowDefinitionPath}/user.yaml`,
+        'create-user',
+        {
+            // User params
+            user_id_number: user.id,
+            user_id: user.username,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            password: user.password,
+            department: user.department,
+            organization: user.institution,
+            title: user.occupation.name,
+
+            // Other params
+            portal_api_base_url: config.apiBaseUrl,
+            ldap_host: "ldap://pollit.iplantcollaborative.org",
+            ldap_admin: "cn=MANAGER,dc=iplantcollaborative,dc=org",
+            ldap_password: "QA-iplantLDAP",
+            mailchimp_username: "FIXME",
+            mailchimp_api_key: "FIXME",
+            mailchimp_list_id: "FIXME",
+        }
+    );
+}
+
+// Update user password //TODO require API key or is valid HMAC enough?
 router.post('/users/password', async (req, res) => {
     const fields = req.body;
     console.log(fields);
@@ -143,7 +177,7 @@ router.post('/users/password', async (req, res) => {
     res.send('success').status(200);
 });
 
-// Send reset password link //TODO require API key?
+// Send reset password link //TODO require API key or valid HMAC
 router.post('/users/reset_password', async (req, res) => {
     const email = req.body.email;
     console.log(email);
@@ -180,7 +214,7 @@ router.post('/users/reset_password', async (req, res) => {
     console.log({resetUrl});
     await renderEmail({
         to: email, 
-        bcc: email.bccPasswordChangeRequest,
+        bcc: config.email.bccPasswordChangeRequest,
         subject: 'CyVerse Password Reset', //FIXME hardcoded
         templateName: 'password_reset',
         fields: {
