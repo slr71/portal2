@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { renderEmail, generateHMAC, decodeHMAC } = require('./lib/email')
 const config = require('../config');
 const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants');
+const Argo = require('../argo');
 const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
