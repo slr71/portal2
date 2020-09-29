@@ -21,11 +21,11 @@ RUN apt-get -y install ./irods-icommands-4.1.12-ubuntu14-x86_64.deb
 RUN rm ./irods-icommands-4.1.12-ubuntu14-x86_64.deb
 
 # Configure iCommands
-COPY irods_environment.json .
-COPY iinit.expect .
 ARG IRODS_ENVIRONMENT_FILE
-ENV IRODS_ENVIRONMENT_FILE $IRODS_ENVIRONMENT_FILE
+COPY $IRODS_ENVIRONMENT_FILE .
+ENV IRODS_ENVIRONMENT_FILE /usr/src/app/$IRODS_ENVIRONMENT_FILE
 ARG IRODS_PASSWORD
+COPY iinit.expect .
 RUN expect ./iinit.expect
 
 # Configure sSMTP and copy email templates
