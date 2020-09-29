@@ -2,14 +2,15 @@ const axios = require('axios');
 const yaml = require('js-yaml');
 const fs = require('fs');
 const path = require('path');
-const config = require('./config.json');
+const { argo } = require('./config.json');
 
 class ArgoApi {
     constructor(params) {
         this.disabled = params && 'disabled' in params && params.disabled;
-
+        this.namespace = params.namespace || argo.namespace || 'default';
+        
         this.axios = axios.create({
-          baseURL: params.baseUrl || config.argo.baseUrl,
+          baseURL: params.baseUrl || argo.baseUrl,
           timeout: 30*1000,
           headers: { 'content-type': 'application/json' }
         });
@@ -41,7 +42,7 @@ class ArgoApi {
             return;
 
         try {
-            const res = await this.axios.post('/workflows/default', body);
+            const res = await this.axios.post(`/workflows/${argo.namespace}`, body);
             //console.log("res:", res.data);
             return res.data;
         }
