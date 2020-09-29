@@ -78,9 +78,10 @@ router.put('/users/:username(\\w+)', async (req, res) => {
     fields['orcid_id'] = '';
 
     // Create user and email address
-    const newUser = await User.create(fields)
+    let newUser = await User.create(fields)
     if (!newUser)
         return res.send('Error creating user').status(500);
+    newUser = await User.findByPk(newUser.id); // Fetch all assocations
 
     const emailAddress = await EmailAddress.create({
         user_id: newUser.id,
