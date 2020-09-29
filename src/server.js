@@ -107,7 +107,7 @@ app.prepare()
 
         // Public API routes
         server.use('/api', require('./api/public'))
-        if (isDevelopment) server.use('/tests', require('./api/tests'))
+        if (isDevelopment) server.use('/api/tests', require('./api/tests'))
 
         // Require auth on all routes/page after this
         if (!config.debugUser) server.use(keycloakClient.protect())
