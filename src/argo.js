@@ -2,14 +2,15 @@ const axios = require('axios');
 const yaml = require('js-yaml');
 const fs = require('fs');
 const path = require('path');
+const config = require('./config.json');
 
 class ArgoApi {
     constructor(params) {
         this.disabled = params && 'disabled' in params && params.disabled;
 
         this.axios = axios.create({
-          baseURL: params ? params.baseUrl : 'http://localhost:2746/api/v1',
-          timeout: 1000,
+          baseURL: params.baseUrl || config.argo.baseUrl,
+          timeout: 30*1000,
           headers: { 'content-type': 'application/json' }
         });
     }
