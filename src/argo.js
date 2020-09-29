@@ -6,13 +6,15 @@ const { argo } = require('./config.json');
 
 class ArgoApi {
     constructor(params) {
+	if (!params)
+	    params = argo
         this.disabled = params && 'disabled' in params && params.disabled;
-        this.namespace = params.namespace || argo.namespace || 'default';
-        
+        this.namespace = params.namespace || 'default';
+
         this.axios = axios.create({
-          baseURL: params.baseUrl || argo.baseUrl,
-          timeout: 30*1000,
-          headers: { 'content-type': 'application/json' }
+	    baseURL: params.baseUrl || 'http://localhost:2746/api/v1',
+            timeout: 30*1000,
+            headers: { 'content-type': 'application/json' }
         });
     }
 
@@ -42,29 +44,14 @@ class ArgoApi {
             return;
 
         try {
-            const res = await this.axios.post(`/workflows/${argo.namespace}`, body);
-            //console.log("res:", res.data);
+            const res = await this.axios.post(`/workflows/${this.namespace}`, body);
+            console.log("res:", res.data);
             return res.data;
         }
         catch (e) {
             console.log(e);
             return;
         }
-
-        // const body = {
-        //   "namespace": "default",
-        //   "resourceKind": "Workflow",
-        //   "resourceName": "hello-world-9pq62",
-        //   // "submitOptions": {
-        //   //     "serverDryRun": false,
-        //   //     "parameters": [ "user_id=374" ]
-        //   // }
-        // };
-
-        // curl $ARGO_SERVER/api/v1/workflows/argo/submit \
-        // -fs \
-        // -H "Authorization: $ARGO_TOKEN" \
-        // -d '{"resourceKind": "WorkflowTemplate", "resourceName": "hello-argo", "submitOptions": {"labels": "workflows.argoproj.io/workflow-template=hello-argo"}}' 
     }
 }
 
