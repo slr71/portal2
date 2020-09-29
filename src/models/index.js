@@ -126,7 +126,7 @@ models.account_user.addScope('defaultScope',
         'gender_id', 
         'has_verified_email',
         'occupation_id', 
-        'password',
+        'password', // important to exclude
         'region_id', 
         'research_area_id', 
         'aware_channel_id', 
