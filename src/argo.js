@@ -1,6 +1,7 @@
 const axios = require('axios');
 const yaml = require('js-yaml');
 const fs = require('fs');
+const path = require('path');
 
 class ArgoApi {
     constructor(params) {
@@ -13,7 +14,8 @@ class ArgoApi {
         });
     }
 
-    async submit(yamlPath, entryPoint, parameters) {
+    async submit(yamlFilename, entryPoint, parameters) {
+        const yamlPath = path.join(__dirname, 'api', 'workflows', 'argo', yamlFilename);
         let doc;
         try {
             doc = yaml.safeLoad(fs.readFileSync(yamlPath, 'utf8'));

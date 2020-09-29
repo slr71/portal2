@@ -119,7 +119,7 @@ router.put('/users/:username(\\w+)', async (req, res) => {
 async function createUser(user) {
     // Submit Argo workflow
     await Argo.submit(
-        `../${config.argo.workflowDefinitionPath}/user.yaml`,
+        'user.yaml',
         'create-user',
         {
             // User params

@@ -38,7 +38,7 @@ async function email_workshop_enrollment_request(request) {
 
     // Submit Argo workflow
     await Argo.submit(
-        `${config.argo.workflowDefinitionPath}/workshops.yaml`,
+        'workshops.yaml',
         'workshop-review-enrollment-request',
         {  
             workshop_name: workshop.title,
@@ -59,7 +59,7 @@ async function email_workshop_enrollment_confirmation(request) {
 
     // Submit Argo workflow
     await Argo.submit(
-        `../${workflowDefinitionPath}/workshops.yaml`,
+        'workshops.yaml',
         'workshop-grant-enrollment-request',
         {   
             workshop_name: workshop.title,

@@ -40,7 +40,7 @@ async function grantRequest(request) {
 
     // Submit Argo workflow
     await Argo.submit(
-        `../${workflowDefinitionPath}/services.yaml`,
+        'services.yaml',
         'bisque-grant-access',
         {
             user_id: request.user.username,

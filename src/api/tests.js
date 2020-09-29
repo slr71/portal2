@@ -1,21 +1,21 @@
 const router = require('express').Router();
-const { requireAdmin } = require('../auth');
 const util = require('util');
 const Argo = require('../argo');
 
-router.post('/bisque', requireAdmin, async (req, res) => {
+router.post('/bisque', async (req, res) => {
     console.log("BisQue test");
     console.log(util.inspect(req.body, {showHidden: false, depth: null}));
     return res.send("success").status(200);
 });
 
-router.get('/submit', requireAdmin, async (req, res) => {
+router.get('/submit', async (req, res) => {
     console.log("Argo submit test");
     const resp = await Argo.submit(
-        '/Users/mbomhoff/repos/portal2/src/workflows/argo/services.yaml',
-        'atmosphere-grant-access',
+        'user.yaml',
+        'create-user',
         { 
             user_id: "mbomhoff",
+            user_id_number: 1234,
             password: "FIXME",
             email: "mbomhoff@email.arizona.edu",
             ldap_host: "ldap://pollit.iplantcollaborative.org",
