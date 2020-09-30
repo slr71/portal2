@@ -1,4 +1,5 @@
 import { Button } from '@material-ui/core'
+import LaunchIcon from '@material-ui/icons/Launch';
 
 
 const ServiceActionButton = ({ user, service, requestAccessHandler }) => {
@@ -21,7 +22,7 @@ const ServiceActionButton = ({ user, service, requestAccessHandler }) => {
   }
 
   return (
-    <Button variant="contained" color="primary" size="medium" href={url} onClick={action}>
+    <Button endIcon={<LaunchIcon />} variant="contained" color="secondary" size="medium" href={url} onClick={action}>
       {label}
     </Button> 
   )

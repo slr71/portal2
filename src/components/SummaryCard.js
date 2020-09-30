@@ -31,7 +31,7 @@ const SummaryCard = ({ title, subtitle, description, iconUrl, icon, action }) =>
         titleTypographyProps={{variant: 'h6', className: classes.lineheightclass}}
       />
       <CardContent className={classes.content}>
-        <Typography variant="body2" color="textSecondary" component="p">
+        <Typography variant="body2" color="textPrimary" component="p">
           {description.length > 130 ? description.substring(0, 130) + ' ...' : description}
         </Typography>
       </CardContent>

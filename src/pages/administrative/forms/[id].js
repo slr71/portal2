@@ -2,6 +2,8 @@ import { useMutation } from 'react-query'
 import { Container, Box, Paper, Divider, Typography, Button, IconButton, Tab, Tabs, TextField, Checkbox, Grid, makeStyles } from '@material-ui/core'
 import { Layout, UpdateForm } from '../../../components'
 import { useAPI } from '../../../contexts/api'
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
+import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -143,7 +145,7 @@ const FormEditor = (props) => {
                 />
               </Grid>
               <Grid item>
-                <Button variant="contained" color="primary">Delete Form</Button>
+                <Button startIcon={<DeleteForeverIcon />} variant="contained" color="secondary">Delete Form</Button>
               </Grid>
             </Grid>
             <TextField 
@@ -209,8 +211,9 @@ const SectionTabPanel = ({ section, value, index, onUpdate, onDelete, onAddField
               </Grid>
               <Grid item>
                 <Button 
-                  variant="contained" 
-                  color="primary" 
+                  startIcon={<DeleteOutlineIcon />}
+                  variant="outlined" 
+                  color="secondary" 
                   size="small" 
                   onClick={() => onDelete(section.id)}
                 >
@@ -256,7 +259,7 @@ const SectionTabPanel = ({ section, value, index, onUpdate, onDelete, onAddField
   
 const FieldEditor = props => {
   const fields = [
-    { id: 'name', name: 'Name', type: 'text', required: true, value: props.name },
+    { id: 'name', name: 'Name', type: 'text', required: true, value: props.name, color:'secondary' },
     { id: 'type', name: 'Type', type: 'text', required: true, value: props.type },
     { id: 'description', name: 'Description', type: 'text', value: props.description },
     { id: 'conversion_ley', name: 'Conversion Key', type: 'text', value: props.conversion_key },
@@ -270,7 +273,7 @@ const FieldEditor = props => {
           <Typography component="h1" variant="h6" gutterBottom>Field #{props.index+1}</Typography>
         </Grid>
         <Grid item>
-          <Button variant="contained" color="primary" size="small" onClick={props.onDelete}>Delete Field</Button>
+          <Button startIcon={<DeleteOutlineIcon />} variant="outlined" color="secondary" size="small" onClick={props.onDelete}>Delete Field</Button>
         </Grid>
       </Grid>
       <UpdateForm 
