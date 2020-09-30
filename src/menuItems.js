@@ -60,27 +60,33 @@ const menuItems = [
     path: "/administrative",
     restricted: true,
     items: [
-      { label: "Users", 
+      { label: "Users",
+        icon: <LockIcon fontSize="small" color="primary"/>,
         path: "/administrative/users",
         description: "Search across all CyVerse users and view details about individual users."
       },
-      { label: "Restricted Usernames", 
+      { label: "Restricted Usernames",
+        icon: <LockIcon fontSize="small" color="primary"/>, 
         path: "/administrative/usernames",
         description: "Show and edit restricted usernames."
       },
-      { label: "Access Requests", 
+      { label: "Access Requests",
+        icon: <LockIcon fontSize="small" />,
         path: "/administrative/requests",
         description: "Search across all access requests and view/deny/approve individual requests."
       },
-      { label: "Workshops", 
+      { label: "Workshops",
+        icon: <LockIcon fontSize="small" />, 
         path: "/administrative/workshops",
         description: "View, create, and modify workshops."
       },
       { label: "Form Submissions", 
+        icon: <LockIcon fontSize="small" />,
         path: "/administrative/submissions",
         description: "Search across all form submissions and view individual submissions."
       },
-      { label: "Manage Forms", 
+      { label: "Manage Forms",
+        icon: <LockIcon fontSize="small" />, 
         path: "/administrative/forms",
         description: "View and edit forms."
       }
