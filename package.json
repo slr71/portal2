@@ -52,6 +52,7 @@
     "js-yaml": "^3.14.0",
     "just-debounce-it": "^1.1.0",
     "keycloak-connect": "^9.0.3",
+    "lottie-web": "^5.7.3",
     "markdown-to-jsx": "^6.11.4",
     "next": "^9.5.2",
     "pg": "^8.3.2",
