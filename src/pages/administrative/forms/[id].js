@@ -259,7 +259,7 @@ const SectionTabPanel = ({ section, value, index, onUpdate, onDelete, onAddField
   
 const FieldEditor = props => {
   const fields = [
-    { id: 'name', name: 'Name', type: 'text', required: true, value: props.name, color:'secondary' },
+    { id: 'name', name: 'Name', type: 'text', required: true, value: props.name },
     { id: 'type', name: 'Type', type: 'text', required: true, value: props.type },
     { id: 'description', name: 'Description', type: 'text', value: props.description },
     { id: 'conversion_ley', name: 'Conversion Key', type: 'text', value: props.conversion_key },
