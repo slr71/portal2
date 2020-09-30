@@ -222,7 +222,7 @@ const Right = (props) => {
 const SignUpDialog = ({ open, properties, handleClose }) => {
   const api = useAPI()
 
-  const form = getForm(properties)
+  const [form, setForm] = useState(getForm(properties))
   const allFields = form.sections.reduce((acc, s) => acc.concat(s.fields), [])
   const initialValues = 
     allFields.reduce((acc, f) => 
@@ -234,7 +234,7 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
     )
 
   // Custom validator
-  const validateUsernameAndEmail = async (field, value) => {
+  const validate = async (field, value) => {
     if (field.type == 'username') {
       const res = await api.checkUsername(value)
       //TODO add error checking here
@@ -249,6 +249,12 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
     }
 
     return null
+  }
+
+  // Set region based on country
+  const handleSelect = (field, option) => {
+    if (field.id == 'country_id') 
+      setForm(getForm(properties, option.id))
   }
 
   const [submitFormMutation] = useMutation(
@@ -269,7 +275,8 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
           <Wizard
             form={form}
             initialValues={initialValues}
-            validate={validateUsernameAndEmail}
+            validate={validate}
+            onSelect={handleSelect}
             onSubmit={(values, { setSubmitting }) => {
               console.log('Submit', values)
               submitFormMutation(values)
@@ -282,7 +289,7 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
   )
 }
 
-const getForm = (properties) => {
+const getForm = (properties, countryId) => {
   return {
     sections: [
       { autosave: true,
@@ -353,7 +360,9 @@ const getForm = (properties) => {
             name: "Region",
             type: "select",
             required: true,
-            options: properties.regions
+            options: countryId
+              ? properties.regions.filter(r => r.country_id == countryId) // populate based on selected country
+              : [ { id: 4585, name: "Please select a country first ..." } ] 
           },
           { id: "gender_id",
             name: "Gender Identity",
