@@ -118,17 +118,6 @@ spec:
       #TODO add authorization header argument: "-H 'Authorization: foo'"
       args: ["-X PUT", "-d '{ service: \"{{input.parameters.service}}\", username: \"{{input.parameters.user_id}}\" }'", "{{workflow.parameters.portal_api_base_url}}/services/requests"]
 
-  - name: mailchimp-subscribe-user
-    inputs:
-      parameters:
-      - name: email
-      - name: first_name
-      - name: last_name
-    container:
-      image: localhost:5000/portal2
-      command: [curl]
-      args: ["-X POST", "--user '{{workflow.parameters.mailchimp_username}}:{{workflow.parameters.mailchimp_api_key}}'", "-d '{ email_address: \"{{inputs.parameters.email}}\", status: \"subscribed\", merge_fields: { FNAME: \"{{inputs.parameters.first_name}}\", LNAME: \"{{inputs.parameters.last_name}}\" } }'", "https://FIXME.api.mailchimp.com/3.0/lists/{{workflow.parameters.mailchimp_list_id}}/members"]
-
   - name: irods-create-user
     inputs:
       parameters:
@@ -193,4 +182,20 @@ spec:
     container:
       image: localhost:5000/portal2
       command: [sh, -c]
-      args: [ 'echo "dn: uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: {{inputs.parameters.first_name}}\nsn: {{inputs.parameters.last_name}}\ncn: {{inputs.parameters.first_name}} {{inputs.parameters.last_name}}\nuid: {{inputs.parameters.uid}}\nuserPassword: {{inputs.parameters.password}}\nmail: {{inputs.parameters.email}}\ndepartmentNumber: {{inputs.parameters.department}}\no: {{inputs.parameters.organization}}\ntitle: {{inputs.parameters.title}}\nhomeDirectory: /home/{{inputs.parameters.uid}}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: {{inputs.parameters.uidNumber}}\nshadowLastChange:\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H {{workflow.parameters.ldap_host}} -D {{workflow.parameters.ldap_admin}} -w {{workflow.parameters.ldap_password}}' ]
+      args: [ 'echo "dn: uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: {{inputs.parameters.first_name}}\nsn: {{inputs.parameters.last_name}}\ncn: {{inputs.parameters.first_name}} {{inputs.parameters.last_name}}\nuid: {{inputs.parameters.uid}}\nuserPassword: {{inputs.parameters.password}}\nmail: {{inputs.parameters.email}}\ndepartmentNumber: {{inputs.parameters.department}}\no: {{inputs.parameters.organization}}\ntitle: {{inputs.parameters.title}}\nhomeDirectory: /home/{{inputs.parameters.uid}}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: {{inputs.parameters.uidNumber}}\nshadowLastChange:{{workflow.parameters.daysSinceEpoch}}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H {{workflow.parameters.ldap_host}} -D {{workflow.parameters.ldap_admin}} -w {{workflow.parameters.ldap_password}}' ]
+
+  - name: mailchimp-subscribe-user
+    inputs:
+      - name: first_name
+      - name: last_name
+      - name: email
+    container:
+      image: localhost:5000/portal2
+      command: [curl]
+      args: [ 
+        "-X POST", 
+        "https://server.api.mailchimp.com/3.0/lists/{{workflow.parameters.mailchimp_list_id}}/members", 
+        "-H 'authorization: Basic {{workflow.parameters.mailchimp_api_key}}",
+        "-d '{\"email_address\":\"{{inputs.parameters.email}}\",\"status\":\"subscribed\",\"merge_fields":{\"FNAME\":{{input.parameters.first_name}},\"LNAME\":{{input.parameters.last_name}}}}'"
+      ]
+      

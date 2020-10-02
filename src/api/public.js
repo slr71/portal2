@@ -100,10 +100,10 @@ router.put('/users/:username(\\w+)', async (req, res) => {
     res.json(newUser).status(200);
     // The following is executed after the response as to not delay it 
 
-    // Run user creation workflow
+    // Run user creation workflow //FIXME move to password set endpoint
     const rc = await createUser(newUser)
 
-    // Send confirmation email
+    // Send confirmation email //FIXME move this to last step of user creation workflow
     const confirmationUrl = `${UI_PASSWORD_URL}?code=${hmac}`;
     console.log({confirmationUrl});
     await renderEmail({
@@ -119,13 +119,20 @@ router.put('/users/:username(\\w+)', async (req, res) => {
 });
 
 async function createUser(user) {
+    // Calculate number of days since epoch (needed for LDAP )
+    const daysSinceEpoch = Math.floor(new Date()/8.64e7);
+
+    // Calculate uid
+    // Old method: /repos/portal/cyverse_ldap/utils/get_uid_number.py
+    const uid = user.id + 10000;
+
     // Submit Argo workflow
     await Argo.submit(
         'user.yaml',
         'create-user',
         {
             // User params
-            user_id_number: user.id,
+            user_id_number: uid,
             user_id: user.username,
             first_name: user.first_name,
             last_name: user.last_name,
@@ -134,15 +141,16 @@ async function createUser(user) {
             department: user.department,
             organization: user.institution,
             title: user.occupation.name,
+            daysSinceEpoch: daysSinceEpoch,
 
             // Other params
             portal_api_base_url: config.apiBaseUrl,
             ldap_host: "ldap://pollit.iplantcollaborative.org",
             ldap_admin: "cn=MANAGER,dc=iplantcollaborative,dc=org",
             ldap_password: "QA-iplantLDAP",
-            mailchimp_username: "FIXME",
-            mailchimp_api_key: "FIXME",
-            mailchimp_list_id: "FIXME",
+            //mailchimp_username: config.mailchimp.username, // Not needed, API key is sufficient
+            mailchimp_api_key: config.mailchimp.apiKey,
+            mailchimp_list_id: config.mailchimp.listId,
         }
     );
 }

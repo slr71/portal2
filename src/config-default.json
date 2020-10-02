@@ -45,5 +45,10 @@
         "adminBotId": "",
         "adminTier1AtmosphereId": "", 
         "adminTier1ScienceTeamId": "FIXME"
+    },
+
+    "mailchimp": {
+        "apiKey": "642ed3648307196d58f285b8e40846dc-us2",
+        "listId": "5e52b4dbdc"
     }
 }
