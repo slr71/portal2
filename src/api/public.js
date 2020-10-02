@@ -122,9 +122,9 @@ async function createUser(user) {
     // Calculate number of days since epoch (needed for LDAP )
     const daysSinceEpoch = Math.floor(new Date()/8.64e7);
 
-    // Calculate uid
+    // Calculate uidNumber
     // Old method: /repos/portal/cyverse_ldap/utils/get_uid_number.py
-    const uid = user.id + 10000;
+    const uidNumber = user.id + config.uidNumberOffset;
 
     // Submit Argo workflow
     await Argo.submit(
@@ -132,7 +132,7 @@ async function createUser(user) {
         'create-user',
         {
             // User params
-            user_id_number: uid,
+            user_id_number: uidNumber,
             user_id: user.username,
             first_name: user.first_name,
             last_name: user.last_name,

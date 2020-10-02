@@ -4,6 +4,8 @@
     "uiBaseUrl": "http://localhost:3000",
     "apiBaseUrl": "http://localhost:3000/api",
 
+    "uidNumberOffset": 2831,
+
     "hmacKey": "<ADD SECRET HERE>",
 
     "email": {
@@ -41,6 +43,7 @@
     },
   
     "intercom": { 
+        "appId": "",
         "token": "", 
         "adminBotId": "",
         "adminTier1AtmosphereId": "", 
