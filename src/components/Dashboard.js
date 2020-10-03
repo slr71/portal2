@@ -2,11 +2,12 @@ import React from 'react'
 import clsx from 'clsx'
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Button, Divider, IconButton, Typography, Toolbar, AppBar, Drawer, CssBaseline } from '@material-ui/core'
-import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Person as PersonIcon } from '@material-ui/icons'
+import { Container, Box, Divider, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline } from '@material-ui/core'
+import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, AccountCircle as PersonIcon } from '@material-ui/icons'
 import SideBar from './SideBar'
 import TopBar from './TopBar'
 import MainLogo from './MainLogo'
+import { CustomIntercom } from './CustomIntercom'
 import { useUser } from '../contexts/user'
 
 const drawerWidth = 200
@@ -28,7 +29,6 @@ const useStyles = makeStyles((theme) => ({
   ChevronLeftIcon: {
     color:"white",
   },
-
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(['width', 'margin'], {
@@ -49,10 +49,6 @@ const useStyles = makeStyles((theme) => ({
   },
   menuButtonHidden: {
     display: 'none',
-  },
-  title: {
-    flexGrow: 1,
-    visibility:'hidden',
   },
   drawerPaper: {
     position: 'relative',
@@ -142,17 +138,14 @@ export default function Dashboard(props) {
             <MenuIcon />
           </IconButton>
           <MainLogo size="medium" />
-          <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-            CyVerse User Portal
-          </Typography>
+          <div style={{flexGrow: 1}} />
+          <CustomIntercom />
           <Link href="/account">
-            <Button
-              variant="text"
-              color="inherit"
-              startIcon={<PersonIcon />}
-            >
-              My Account
-            </Button>
+            <Tooltip title="Account Info">
+              <IconButton>
+                <PersonIcon fontSize='large' style={{fill: 'white'}} />
+              </IconButton>
+            </Tooltip>
           </Link>
         </Toolbar>
       </AppBar>
