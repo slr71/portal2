@@ -19,6 +19,9 @@
       "src/*.js",
       "src/api",
       "src/models"
+    ],
+    "ignore": [
+      "src/theme.js"
     ]
   },
   "prettier": {

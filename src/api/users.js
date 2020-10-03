@@ -63,12 +63,6 @@ router.post('/:id(\\d+)', getUser, async (req, res) => {
     const fields = req.body;
     console.log(fields);
 
-    const SUPPORTED_FIELDS = [
-        'first_name', 'last_name', 'orcid_id', 'institution', 'department',
-        'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id',
-        'occupation_id', 'research_area_id', 'region_id'
-    ]
-
     // Check permission -- user can only update their own record unless admin
     if (id != req.user.id && !isAdmin(req))
         return res.send('Permission denied').status(403);
@@ -77,6 +71,12 @@ router.post('/:id(\\d+)', getUser, async (req, res) => {
     if (!user)
         return res.send('User not found').status(404);
 
+    // Update
+    const SUPPORTED_FIELDS = [
+        'first_name', 'last_name', 'orcid_id', 'institution', 'department',
+        'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id',
+        'occupation_id', 'research_area_id', 'region_id'
+    ]
     for (let key in fields) {
         // Ignore any non-updateable fields
         if (SUPPORTED_FIELDS.includes(key))
@@ -84,7 +84,7 @@ router.post('/:id(\\d+)', getUser, async (req, res) => {
     }
     await user.save();
     await user.reload();
-
+    
     res.json(user).status(200);
 });
 
