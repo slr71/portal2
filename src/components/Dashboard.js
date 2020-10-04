@@ -2,7 +2,7 @@ import React from 'react'
 import clsx from 'clsx'
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Divider, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline } from '@material-ui/core'
+import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline } from '@material-ui/core'
 import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, AccountCircle as PersonIcon } from '@material-ui/icons'
 import SideBar from './SideBar'
 import TopBar from './TopBar'
@@ -142,9 +142,14 @@ export default function Dashboard(props) {
           <CustomIntercom />
           <Link href="/account">
             <Tooltip title="Account Info">
-              <IconButton>
-                <PersonIcon fontSize='large' style={{fill: 'white'}} />
-              </IconButton>
+              <Button
+                variant="text"
+                color="inherit"
+                size="large"
+                startIcon={<PersonIcon />}
+              >
+                Account
+              </Button>
             </Tooltip>
           </Link>
         </Toolbar>

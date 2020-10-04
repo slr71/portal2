@@ -3,12 +3,12 @@
  * 
  */
 
-import { Badge, IconButton, Tooltip, useTheme } from "@material-ui/core"
+import { Badge, Button, IconButton, Tooltip, useTheme } from "@material-ui/core"
 import LiveHelpIcon from "@material-ui/icons/LiveHelp"
 import { useUser } from '../contexts/user'
 import config from '../config.json'
 
-function CustomIntercom({ intercomUnreadCount }) {
+function CustomIntercom(props) {
     const theme = useTheme()
     const user = useUser()
 
@@ -34,14 +34,23 @@ function CustomIntercom({ intercomUnreadCount }) {
 
     return (
       <Tooltip title="Chat with CyVerse Support">
-        <IconButton
+        <Button
+          variant="text"
+          color="inherit"
+          size="large"
+          startIcon={<LiveHelpIcon />}
+          onClick={handleClick}
+        >
+          Help
+        </Button>
+        {/* <IconButton
           // style={{ color: theme.palette.primary.contrastText }}
           onClick={handleClick}
         >
-          <Badge> {/* badgeContent={intercomUnreadCount} color="error"> */}
+          <Badge>
             <LiveHelpIcon fontSize='large' style={{fill: 'white'}} />
           </Badge>
-        </IconButton>
+        </IconButton> */}
       </Tooltip>
     )
 }
