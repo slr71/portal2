@@ -81,7 +81,7 @@ const Service = (props) => {
                   <Typography color="textSecondary">Contact(s) for questions or problems.</Typography>
                   <List>
                     {service.contacts.map(contact => (
-                      <Link key={contact.id} underline='none' href={`mailto:${contact.email}`}>
+                      <Button key={contact.id} color="primary" href={`mailto:${contact.email}`}>
                         <ListItem>
                           <ListItemAvatar>
                             <Avatar>
@@ -90,7 +90,7 @@ const Service = (props) => {
                           </ListItemAvatar>
                           <ListItemText primary={contact.name} />
                         </ListItem>
-                      </Link>
+                      </Button>
                     ))}
                   </List>
                 </Box>
