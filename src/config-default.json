@@ -18,7 +18,8 @@
         "user": "",
         "password": "",
         "database": "portal",
-        "sessionTable": "session"
+        "sessionTable": "session",
+        "logging": false
     },
 
     "session": {
