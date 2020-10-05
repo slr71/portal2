@@ -1,11 +1,12 @@
 import React, {useEffect, createRef} from "react"
 import lottie from 'lottie-web'
 import { makeStyles } from '@material-ui/core'
-import animation from '../animations/floatguy.json'
+import animation from '../animations/scientist.json'
 
 const useStyles = makeStyles((theme) => ({
   animationBox: {
-    maxWidth:'50%',
+    maxWidth:'45%',
+    margin: '2%',
   },
 }))
 
