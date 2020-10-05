@@ -49,6 +49,21 @@ const Service = (props) => {
     setAnswer(e.target.value)
   }
 
+  // Configure web socket connection
+  React.useEffect(() => {
+    const socket = new WebSocket('ws://localhost:3010')
+
+    // Connection opened
+    socket.addEventListener('open', function (event) {
+      socket.send('Hello Server!');
+    });
+
+    // Listen for messages
+    socket.addEventListener('message', function (event) {
+      console.log('Socket receive:', event.data);
+    });
+  }, [])
+
   return ( //FIXME break into pieces
     <Layout title={service.name} breadcrumbs>
       <Container maxWidth='lg'>

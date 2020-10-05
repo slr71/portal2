@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const bodyParser = require('body-parser');
+const bodyParser = require('body-parser')
 const session = require('express-session')
 const pgsimple = require('connect-pg-simple')
 const Keycloak = require('keycloak-connect')
@@ -9,6 +9,7 @@ const { requestLogger, errorLogger } = require('./logging')
 const config = require('./config.json')
 const { getUser, getUserToken } = require('./auth')
 const PortalAPI = require('./apiClient')
+const ws = require('ws')
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const app = next({ dev: isDevelopment })
@@ -28,6 +29,18 @@ const keycloakClient = new Keycloak(
     { store: sessionStore },
     config.keycloak
 )
+
+// Cofigure web socket server
+const wsServer = new ws.Server({ port: 3010 });
+wsServer.on('connection', function connection(ws, req) {
+    console.log(`connection ip: ${req.connection.remoteAddress} key: ${req.headers['sec-websocket-key']}`)
+
+    ws.on('message', function incoming(message) {
+      console.log('received: %s', message);
+    });
+  
+    ws.send('success');
+});
 
 app.prepare()
     .then(() => {
