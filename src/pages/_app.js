@@ -9,6 +9,7 @@ import theme from '../theme'
 import { KeycloakProvider } from '../contexts/keycloak'
 import { APIProvider } from '../contexts/api'
 import { UserProvider } from '../contexts/user'
+import { CookiesProvider } from 'react-cookie'
 import config from '../config.json'
 
 export default function MyApp(props) {
@@ -35,16 +36,18 @@ export default function MyApp(props) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <KeycloakProvider kauth={kauth}>
-        <APIProvider baseUrl={baseUrl} token={token}>
-          <UserProvider user={user}>
-            <Head>
-              <title>CyVerse User Portal</title>
-            </Head>
-            <Component {...pageProps} />
-          </UserProvider>
-        </APIProvider>
-      </KeycloakProvider>
+      <CookiesProvider>
+        <KeycloakProvider kauth={kauth}>
+          <APIProvider baseUrl={baseUrl} token={token}>
+            <UserProvider user={user}>
+              <Head>
+                <title>CyVerse User Portal</title>
+              </Head>
+              <Component {...pageProps} />
+            </UserProvider>
+          </APIProvider>
+        </KeycloakProvider>
+      </CookiesProvider>
     </ThemeProvider>
   )
 }
