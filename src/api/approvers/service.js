@@ -89,7 +89,11 @@ async function approveAtmosphere(request) {
         // await request.pend();
         await intercom_atmosphere(request, 
             `${intro}
-             In order to use the service you must reside in the United States.`
+
+             At this time, CyVerse Atmosphere is no longer accepting new requests from non-US users. Here is information about alternative services within CyVerse or platforms outside of CyVerse:
+             https://learning.cyverse.org/projects/faq/en/latest/atmosphere-faq.html
+             
+             Please let us know if you have any questions.`
         );
         await request.deny();
         return;
@@ -103,8 +107,11 @@ async function approveAtmosphere(request) {
         logger.info(`approveAtmosphere: Deny user with emails ${user.emails.map(e => e.email).join(', ')}`);
         await intercom_atmosphere(request, 
             `${intro}
-             In order to use the service, you must have a *.edu or *.gov email address associated with your account. 
-             If you have one, and can add it, we can approve your request.`
+
+             In order to use CyVerse Atmosphere you must have a *.edu or *.gov email address associated with your account. 
+             If you have one, and can add it, we can approve your request.
+             
+             Please let us know if you have any questions.`
         );
         await request.deny();
         return;
