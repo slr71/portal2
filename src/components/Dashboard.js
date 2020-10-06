@@ -128,7 +128,6 @@ export default function Dashboard(props) {
 
   const handleCloseAlert = (url) => {
     // Show annual reminder to update account info if at least one year since user joined
-    console.log('foo', new Date(user.date_joined), oneYearBeforeToday)
     if (new Date(user.date_joined) < oneYearBeforeToday) {
       setCookie(
         ACCOUNT_UPDATE_REMINDER_COOKIE, 
