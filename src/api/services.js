@@ -165,21 +165,12 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
     if (request.isApproved())
         await grantRequest(request);
 
-    // Send websocket event to client //TODO move into library
-    if (req.ws) {
-        req.ws.send(JSON.stringify({ 
-            type: WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE,
-            data: {
-                requestId: request.id,
-                serviceId: request.service.id,
-                status: request.status
-            }
-        }))
-    }
+    // Send websocket event to client
+    notifyClientOfRequestStatusChange(req.ws, request)
 });
 
-// Update request status
-router.post('/:nameOrId(\\w+)/requests', getUser, requireAdmin, async (req, res) => {
+// Update request status //TODO require api key
+router.post('/:nameOrId(\\w+)/requests', getUser, async (req, res) => {
     const nameOrId = req.params.nameOrId;
 
     const status = req.body.status;
@@ -219,7 +210,24 @@ router.post('/:nameOrId(\\w+)/requests', getUser, requireAdmin, async (req, res)
     // Call granter (do this after response as to not delay it)
     if (request.isApproved())
         await grantRequest(request);
+
+    notifyClientOfRequestStatusChange(req.ws, request)
 });
+
+//TODO move into library
+function notifyClientOfRequestStatusChange(ws, request) {
+    // Send websocket event to client 
+    if (ws) {
+        ws.send(JSON.stringify({ 
+            type: WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE,
+            data: {
+                requestId: request.id,
+                serviceId: request.service.id,
+                status: request.status
+            }
+        }))
+    }
+}
 
 router.get('/', async (req, res) => {
     const services = await Service.findAll({

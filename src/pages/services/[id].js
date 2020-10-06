@@ -184,7 +184,7 @@ const Service = (props) => {
         handleClose={handleCloseDialog} 
         handleSubmit={() => {
           setAccessRequestStatus('pending')
-	  handleCloseDialog()
+	        handleCloseDialog()
           submitAccessRequestMutation()
         }}
       />
