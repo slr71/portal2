@@ -201,7 +201,7 @@ const RequestAccessDialog = ({ question, requiresAnswer, open, handleChange, han
   <Dialog open={open} onClose={handleClose} fullWidth={true} aria-labelledby="form-dialog-title">
     <DialogContent>
       <DialogContentText>
-        {question}
+        <p>{question}</p>
       </DialogContentText>
       {requiresAnswer &&
         <TextField

@@ -49,6 +49,7 @@ const FormSubmission = props => {
   )
 }
 
+//FIXME replace with Form.js components
 const FormField = props => {
   if (props.api_formfieldsubmission.value_boolean != null) {
     return (

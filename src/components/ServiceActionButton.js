@@ -10,7 +10,7 @@ const ServiceActionButton = ({ status, service, requestAccessHandler }) => {
     if (status === 'pending' || status === 'approved')
       return {
         label: 'ACCESS PENDING APPROVAL', 
-        tooltip: 'The access request in process or awaiting approval.  You will be notified via email when access is granted.', 
+        tooltip: 'The access request is in process or awaiting approval.  You will be notified via email when access is granted.', 
         disabled: true
       }
     if (status === 'denied')
