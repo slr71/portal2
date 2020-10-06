@@ -7,7 +7,7 @@ const ServiceActionButton = ({ status, service, requestAccessHandler }) => {
   const { label, tooltip, action, url, disabled } = (() => {
     if (service.is_powered || status === 'granted')
       return { label: 'LAUNCH', url: service.service_url }
-    if (status === 'pending' || status === 'approved')
+    if (status === 'pending' || status === 'approved' || status === 'requested')
       return {
         label: 'ACCESS PENDING APPROVAL', 
         tooltip: 'The access request is in process or awaiting approval.  You will be notified via email when access is granted.', 

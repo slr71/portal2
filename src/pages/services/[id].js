@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
+import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton } from '../../components'
 import { useMutation } from "react-query"
 import { useAPI } from '../../contexts/api'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
-const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } = require('../../constants');
+const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } = require('../../constants')
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -27,7 +27,7 @@ const Service = (props) => {
   // only Atmosphere has a question, and it has only one
   const question = service.questions && service.questions.length > 0 ? service.questions[0] : null 
 
-  const [accessRequestStatus, setAccessRequestStatus] = useState(request && request.status)
+  const [requestStatus, setRequestStatus] = useState(request && request.status)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [answer, setAnswer] = useState()
 
@@ -39,7 +39,7 @@ const Service = (props) => {
     setDialogOpen(false)
   }
 
-  const [submitAccessRequestMutation] = useMutation(
+  const [submitRequestMutation] = useMutation(
     () => api.createServiceRequest(service.id, [{ questionId: question && question.id, value: answer }]),
     {
       onSuccess: (resp) => {
@@ -57,7 +57,7 @@ const Service = (props) => {
   }
 
   // Configure web socket connection
-  React.useEffect(() => {
+  useEffect(() => {
     const socket = new WebSocket(`${wsBaseUrl}/${user.username}`)
 
     // Listen for messages // TODO move into library
@@ -68,7 +68,7 @@ const Service = (props) => {
 
       event = JSON.parse(event.data)
       if (event.data.type == WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE && event.data.serviceId == service.id) {
-        setAccessRequestStatus(event.data.status)
+        setRequestStatus(event.data.status)
       }
     });
   }, [])
@@ -89,7 +89,7 @@ const Service = (props) => {
                 </Box>
               </Grid>
               <Grid item>
-                <ServiceActionButton service={service} status={accessRequestStatus} requestAccessHandler={handleOpenDialog} />
+                <ServiceActionButton service={service} status={requestStatus} requestAccessHandler={handleOpenDialog} />
               </Grid>
               <Grid item xs={12}>
                 <Box my={1}>
@@ -187,9 +187,9 @@ const Service = (props) => {
         handleSubmit={
           (!question || answer) && // disable submit button if input is blank and answer is required
             (() => {
-              setAccessRequestStatus('pending')
+              setRequestStatus('pending')
               handleCloseDialog()
-              submitAccessRequestMutation()
+              submitRequestMutation()
             })
         }
       />
