@@ -24,7 +24,8 @@ const Service = (props) => {
   const userService = user.services.find(s => s.id == service.id)
   const request = userService && userService.request
 
-  const question = service.questions && service.questions.length > 0 ? service.questions[0] : null // only Atmosphere has a question, and it has only one
+  // only Atmosphere has a question, and it has only one
+  const question = service.questions && service.questions.length > 0 ? service.questions[0] : null 
 
   const [accessRequestStatus, setAccessRequestStatus] = useState(request && request.status)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -39,7 +40,7 @@ const Service = (props) => {
   }
 
   const [submitAccessRequestMutation] = useMutation(
-    () => api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }]),
+    () => api.createServiceRequest(service.id, [{ questionId: question && question.id, value: answer }]),
     {
       onSuccess: (resp) => {
         console.log(resp)
@@ -179,27 +180,30 @@ const Service = (props) => {
       </Container>
       <RequestAccessDialog 
         question={question ? question.question : `Would you like to request access to ${service.name}?`}
+        requiresAnswer={!!question}
         open={dialogOpen}
         handleChange={handleChangeAnswer}
         handleClose={handleCloseDialog} 
-        handleSubmit={() => {
-          setAccessRequestStatus('pending')
-	        handleCloseDialog()
-          submitAccessRequestMutation()
-        }}
+        handleSubmit={
+          (!question || answer) && // disable submit button if input is blank and answer is required
+            (() => {
+              setAccessRequestStatus('pending')
+              handleCloseDialog()
+              submitAccessRequestMutation()
+            })
+        }
       />
     </Layout>
   )
 }
 
-const RequestAccessDialog = ({ question, open, handleChange, handleClose, handleSubmit }) => {
-  return (
-    <Dialog open={open} onClose={handleClose} fullWidth={true} aria-labelledby="form-dialog-title">
-      <DialogTitle id="form-dialog-title">Request Access</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          {question}
-        </DialogContentText>
+const RequestAccessDialog = ({ question, requiresAnswer, open, handleChange, handleClose, handleSubmit }) => (
+  <Dialog open={open} onClose={handleClose} fullWidth={true} aria-labelledby="form-dialog-title">
+    <DialogContent>
+      <DialogContentText>
+        {question}
+      </DialogContentText>
+      {requiresAnswer &&
         <TextField
           autoFocus
           margin="dense"
@@ -207,18 +211,18 @@ const RequestAccessDialog = ({ question, open, handleChange, handleClose, handle
           fullWidth
           onChange={handleChange}
         />
-      </DialogContent>
-      <DialogActions>
-        <Button color="primary" onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button color="primary" variant="contained" onClick={handleSubmit}>
-          Submit
-        </Button>
-      </DialogActions>
-    </Dialog>
-  )
-}
+      }
+    </DialogContent>
+    <DialogActions>
+      <Button color="primary" onClick={handleClose}>
+        Cancel
+      </Button>
+      <Button color="primary" variant="contained" disabled={!handleSubmit} onClick={handleSubmit}>
+        Request Access
+      </Button>
+    </DialogActions>
+  </Dialog>
+)
 
 export async function getServerSideProps({ req, query }) {
   const service = await req.api.service(query.id)
