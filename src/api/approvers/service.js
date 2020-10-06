@@ -52,7 +52,10 @@ async function grantRequest(request) {
             portal_api_base_url: config.apiBaseUrl,
             ldap_host: config.ldap.host,
             ldap_admin: config.ldap.admin,
-            ldap_password: config.ldap.password
+            ldap_password: config.ldap.password,
+            bisque_url: config.bisque.url,
+            bisque_username: config.bisque.username,
+            bisque_password: config.bisque.password
         }
     );
 }
