@@ -7,7 +7,8 @@ const Keycloak = require('keycloak-connect')
 const next = require('next')
 const { requestLogger, errorLogger } = require('./logging')
 const config = require('./config.json')
-const { getUser, getUserToken } = require('./auth')
+const { WS_CONNECTED } = require('./constants')
+const { getUserID, getUserToken } = require('./auth')
 const PortalAPI = require('./apiClient')
 const ws = require('ws')
 
@@ -30,17 +31,26 @@ const keycloakClient = new Keycloak(
     config.keycloak
 )
 
-// Cofigure web socket server
-const wsServer = new ws.Server({ port: 3010 });
-wsServer.on('connection', function connection(ws, req) {
-    console.log(`connection ip: ${req.connection.remoteAddress} key: ${req.headers['sec-websocket-key']}`)
+// Configure web socket server
+const wsServer = new ws.Server({ port: config.wsPort })
+const sockets = {}
+wsServer.on('connection', (ws, req) => {
+    const username = req.url.substr(1) //TODO consider using express-ws package for routing
+    console.log(`Connection from username=${username} ip=${req.connection.remoteAddress} key=${req.headers['sec-websocket-key']}`)
 
-    ws.on('message', function incoming(message) {
-      console.log('received: %s', message);
-    });
-  
-    ws.send('success');
-});
+    sockets[username] = ws
+
+    // ws.on('message', (message) => {
+    //     console.log('Socket received:', message)
+    // })
+
+    ws.send(JSON.stringify({ 
+        type: WS_CONNECTED,
+        data: {
+            key: req.headers['sec-websocket-key']
+        }
+    }))
+})
 
 app.prepare()
     .then(() => {
@@ -129,6 +139,13 @@ app.prepare()
 
         // Require auth on all routes/page after this
         if (!config.debugUser) server.use(keycloakClient.protect())
+
+        // Save web socket handle
+        server.use((req, _, next) => {
+            const username = getUserID(req)
+            req.ws = sockets[username]
+            next()
+        })
 
         // Restricted API routes 
         server.use('/api/users', require('./api/users'))

@@ -10,6 +10,7 @@ const AccessRequestAnswer = models.api_accessrequestanswer;
 const { approveRequest, grantRequest } = require('./approvers/service');
 const intercom = require('../intercom');
 const { getUser, requireAdmin } = require('../auth');
+const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } = require('../constants');
 
 const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api_poweredservice where service_ptr_id=id))'), 'is_powered' ];
 
@@ -163,6 +164,18 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
         await approveRequest(request); // updates request status
     if (request.isApproved())
         await grantRequest(request);
+
+    // Send websocket event to client //TODO move into library
+    if (req.ws) {
+        req.ws.send(JSON.stringify({ 
+            type: WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE,
+            data: {
+                requestId: request.id,
+                serviceId: request.service.id,
+                status: request.status
+            }
+        }))
+    }
 });
 
 // Update request status

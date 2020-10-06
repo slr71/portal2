@@ -2,10 +2,16 @@
 const config = require('./config');
 
 module.exports = {
+  // Front-end URLs
   UI_REQUESTS_URL: `${config.uiBaseUrl}/requests`,
   UI_PASSWORD_URL: `${config.uiBaseUrl}/password`,
   UI_CONFIRM_EMAIL_URL: `${config.uiBaseUrl}/confirm_email`,
 
-  ACCOUNT_UPDATE_REMINDER_COOKIE: 'account_update_reminder'
+  // Cookie Names
+  ACCOUNT_UPDATE_REMINDER_COOKIE: 'account_update_reminder',
+
+  // Websocket Events
+  WS_CONNECTED: 'WS_CONNECTED',
+  WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE: 'WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE',
 }
 

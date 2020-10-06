@@ -1,8 +1,10 @@
 { 
     "port": 3000,
+    "wsPort": 3001,
 
     "uiBaseUrl": "http://localhost:3000",
     "apiBaseUrl": "http://localhost:3000/api",
+    "wsBaseUrl": "ws://localhost:3001",
 
     "uidNumberOffset": 2831,
 
