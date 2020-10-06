@@ -282,7 +282,7 @@ const FormField = props => {
           <MenuItem 
             key={index} 
             value={option.id.toString()} 
-            onClick={() => props.onSelect(props, option)}
+            onClick={() => props.onSelect && props.onSelect(props, option)}
           >
             {option.name}
           </MenuItem>

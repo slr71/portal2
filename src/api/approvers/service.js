@@ -2,7 +2,7 @@ const config = require('../../config.json');
 const constants = require('../../constants.js');
 const Argo = require('../../argo');
 const { intercom_atmosphere } = require('../../intercom');
-const logger = require('../../logging');
+const { logger } = require('../../logging');
 
 // Only the Atmosphere service has a special approval requirements, all other services are auto-approved.
 const APPROVERS = {
@@ -80,6 +80,7 @@ async function approveAtmosphere(request) {
 
     // Check if user is international
     if (user.region.country.name != 'United States') {
+        logger.info(`approveAtmosphere: Deny user from country ${user.region.country.name}`);
         // await intercom_atmosphere(request,
         //     `${intro}
         //      Before we can approve your request, we need some additional information. 
@@ -99,6 +100,7 @@ async function approveAtmosphere(request) {
         email.email.endsWith('.edu') || email.email.endsWith('@cyverse.org') || email.email.endsWith('.gov')
     );
     if (!validEmail) {
+        logger.info(`approveAtmosphere: Deny user with emails ${user.emails.map(e => e.email).join(', ')}`);
         await intercom_atmosphere(request, 
             `${intro}
              In order to use the service, you must have a *.edu or *.gov email address associated with your account. 

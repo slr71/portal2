@@ -107,7 +107,6 @@ function Copyright() {
       CyVerse
       {' '}
       {new Date().getFullYear()}
-      {'.'}
     </Typography>
   )
 }
