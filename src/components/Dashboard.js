@@ -123,15 +123,22 @@ export default function Dashboard(props) {
   const [cookies, setCookie] = useCookies([ACCOUNT_UPDATE_REMINDER_COOKIE])
   const [alertOpen, setAlertOpen] = React.useState(!cookies || !(ACCOUNT_UPDATE_REMINDER_COOKIE in cookies))
 
+  const oneYearFromToday = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+  const oneYearBeforeToday = new Date(new Date().setFullYear(new Date().getFullYear() - 1))
+
   const handleCloseAlert = (url) => {
-    setCookie(
-      ACCOUNT_UPDATE_REMINDER_COOKIE, 
-      '', // empty cookie
-      { 
-        path: '/', 
-        expires: new Date(new Date().setFullYear(new Date().getFullYear() + 1)) // one year from today
-      }
-    )
+    // Show annual reminder to update account info if at least one year since user joined
+    console.log('foo', new Date(user.date_joined), oneYearBeforeToday)
+    if (new Date(user.date_joined) < oneYearBeforeToday) {
+      setCookie(
+        ACCOUNT_UPDATE_REMINDER_COOKIE, 
+        '', // empty cookie
+        { 
+          path: '/', 
+          expires: oneYearFromToday
+        }
+      )
+    }
 
     setAlertOpen(false)
     if (url)
