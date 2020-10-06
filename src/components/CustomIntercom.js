@@ -22,9 +22,9 @@ function CustomIntercom(props) {
                 // config.intercom.companyName
             )
 
-            return () => {
-                intercomLogout()
-            }
+            // return () => {
+            //     intercomLogout()
+            // }
         }
     })
 
