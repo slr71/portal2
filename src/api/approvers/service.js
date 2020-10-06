@@ -52,10 +52,7 @@ async function grantRequest(request) {
             portal_api_base_url: config.apiBaseUrl,
             ldap_host: config.ldap.host,
             ldap_admin: config.ldap.admin,
-            ldap_password: config.ldap.password,
-            //mailchimp_username: config.mailchimp.username, // Not needed, API key is sufficient
-            mailchimp_api_key: config.mailchimp.apiKey,
-            mailchimp_list_id: config.mailchimp.listId,
+            ldap_password: config.ldap.password
         }
     );
 }
