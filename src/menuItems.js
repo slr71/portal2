@@ -1,4 +1,18 @@
-import { Dashboard as DashboardIcon, List as ListIcon, Event as EventIcon, Help as HelpIcon, Lock as LockIcon } from '@material-ui/icons'
+import { 
+  Dashboard as DashboardIcon, 
+  List as ListIcon, 
+  Event as EventIcon, 
+  Help as HelpIcon, 
+  Lock as LockIcon,
+  Group as GroupIcon,
+  Block as BlockIcon,
+  PersonAdd as PersonAddIcon,
+  Computer as ComputerIcon,
+  Edit as EditIcon,
+  Inbox as InboxIcon
+} from '@material-ui/icons'
+
+
 
 const menuItems = [
   {
@@ -61,32 +75,32 @@ const menuItems = [
     restricted: true,
     items: [
       { label: "Users",
-        icon: <LockIcon fontSize="small" color="primary"/>,
+        icon: <GroupIcon fontSize="medium"/>,
         path: "/administrative/users",
         description: "Search across all CyVerse users and view details about individual users."
       },
       { label: "Restricted Usernames",
-        icon: <LockIcon fontSize="small" color="primary"/>, 
+        icon: <BlockIcon fontSize="medium"/>, 
         path: "/administrative/usernames",
         description: "Show and edit restricted usernames."
       },
       { label: "Access Requests",
-        icon: <LockIcon fontSize="small" />,
+        icon: <PersonAddIcon fontSize="medium" />,
         path: "/administrative/requests",
         description: "Search across all access requests and view/deny/approve individual requests."
       },
       { label: "Workshops",
-        icon: <LockIcon fontSize="small" />, 
+        icon: <ComputerIcon fontSize="medium" />, 
         path: "/administrative/workshops",
         description: "View, create, and modify workshops."
       },
       { label: "Form Submissions", 
-        icon: <LockIcon fontSize="small" />,
+        icon: <InboxIcon fontSize="medium" />,
         path: "/administrative/submissions",
         description: "Search across all form submissions and view individual submissions."
       },
       { label: "Manage Forms",
-        icon: <LockIcon fontSize="small" />, 
+        icon: <EditIcon fontSize="medium" />, 
         path: "/administrative/forms",
         description: "View and edit forms."
       }
