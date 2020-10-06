@@ -8,7 +8,7 @@ const ServiceActionButton = ({ user, service, requestAccessHandler }) => {
   if (service.is_powered)
     [label, action, url] = ['LAUNCH', null, service.service_url]
   else {
-    const [userService] = user.services.filter(s => s.id == service.id)
+    const userService = user.services.find(s => s.id == service.id)
 
     if (!userService || !userService.request)
       [label, action, url] =  ['REQUEST ACCESS', requestAccessHandler, null]

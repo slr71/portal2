@@ -114,7 +114,7 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
             user_id: req.user.id
         },
         defaults: {
-            status: AccessRequest.constant.STATUS_REQUESTED,
+            status: AccessRequest.constants.STATUS_REQUESTED,
             message: AccessRequest.constants.MESSAGE_REQUESTED
         }
     });

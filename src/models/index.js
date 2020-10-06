@@ -289,8 +289,8 @@ models.request.constants = {
     STATUS_APPROVED:   'approved', 
     STATUS_GRANTED:    'granted',  
     STATUS_DENIED:     'denied',
-    MESSAGE_REQUESTED: 'Access requested.',
-    MESSAGE_GRANTED:   'Access granted.',
+    MESSAGE_REQUESTED: 'Access requested',
+    MESSAGE_GRANTED:   'Access granted',
     MESSAGE_APPROVED:  'Request approved',
     MESSAGE_PENDING:   'Sent message requesting more information',
     MESSAGE_DENIED:    'You must have a *.edu or *.gov email address associated with your account in order to use Atmosphere'

@@ -1,4 +1,5 @@
 const config = require('../../config.json');
+const constants = require('../../constants.js');
 const Argo = require('../../argo');
 const { intercom_atmosphere } = require('../../intercom');
 const logger = require('../../logging');
@@ -36,29 +37,25 @@ async function grantRequest(request) {
     if (key in GRANTERS)
         workflow = GRANTERS[key];
 
-    console.log('grantRequest:', key);
+    console.log('grantRequest:', key, workflow);
 
     // Submit Argo workflow
     await Argo.submit(
         'services.yaml',
-        'bisque-grant-access',
+        workflow,
         {
+            // User params
             user_id: request.user.username,
-            password: "FIXME",
             email: request.user.email,
-            ldap_host: "ldap://pollit.iplantcollaborative.org",
-            ldap_admin: "cn=MANAGER,dc=iplantcollaborative,dc=org",
-            ldap_password: "QA-iplantLDAP",
-            portal_api_base_url: "http://10.0.2.15:3022",
-            mailchimp_username: "FIXME",
-            mailchimp_api_key: "FIXME",
-            mailchimp_list_id: "FIXME",
-            user_id_number: "FIXME",
-            first_name: request.user.first_name,
-            last_name: request.user.last_name,
-            department: request.user.department,
-            organization: request.user.institution,
-            title: 'FIXME'
+
+            // Other params
+            portal_api_base_url: config.apiBaseUrl,
+            ldap_host: config.ldap.host,
+            ldap_admin: config.ldap.admin,
+            ldap_password: config.ldap.password,
+            //mailchimp_username: config.mailchimp.username, // Not needed, API key is sufficient
+            mailchimp_api_key: config.mailchimp.apiKey,
+            mailchimp_list_id: config.mailchimp.listId,
         }
     );
 }
@@ -73,25 +70,30 @@ async function approveAtmosphere(request) {
     const user = request.user;
     const intro = `Hi ${user.first_name}! Thanks for requesting access to Atmosphere.`;
 
-    // Check if user is a student
-    if (user.occupation.name && user.occupation.name.toLowerCase().indexOf('student') >= 0) {
-        await intercom_atmosphere(request,
-            `${intro}
-             Before we can approve your request, we need some additional information. 
-             Could you please fill out the form below?\n\n${config.atmosphereStudentRequestFormUrl}`
-        );
-        await request.pend();
-        return;
-    }
+    // Check if user is a student //FIXME add student request form
+    // if (user.occupation.name && user.occupation.name.toLowerCase().indexOf('student') >= 0) {
+    //     await intercom_atmosphere(request,
+    //         `${intro}
+    //          Before we can approve your request, we need some additional information. 
+    //          Could you please fill out the form below?\n\n${config.atmosphereStudentRequestFormUrl}`
+    //     );
+    //     await request.pend();
+    //     return;
+    // }
 
     // Check if user is international
     if (user.region.country.name != 'United States') {
-        await intercom_atmosphere(request,
+        // await intercom_atmosphere(request,
+        //     `${intro}
+        //      Before we can approve your request, we need some additional information. 
+        //      Could you please fill out the form below?\n\n${atmosphereInternationalRequestFormUrl}`
+        // );
+        // await request.pend();
+        await intercom_atmosphere(request, 
             `${intro}
-             Before we can approve your request, we need some additional information. 
-             Could you please fill out the form below?\n\n${atmosphereInternationalRequestFormUrl}`
+             In order to use the service you must reside in the United States.`
         );
-        await request.pend();
+        await request.deny();
         return;
     }
 

@@ -42,6 +42,12 @@
     "argo": {
         "baseUrl": "http://localhost:2746/api/v1"
     },
+
+    "ldap": {
+        "host": "",
+        "admin": "",
+        "password": ""
+    },
   
     "intercom": { 
         "appId": "",

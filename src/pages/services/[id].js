@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton } from '../../components'
+import { useMutation } from "react-query"
 import { useAPI } from '../../contexts/api'
 import { useUser } from '../../contexts/user'
 
@@ -31,11 +32,18 @@ const Service = (props) => {
     setDialogOpen(false)
   }
 
-  const handleSubmit = async () => {
-    setDialogOpen(false)
-    //const response = await props.api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }])
-    //const { isLoading, isError, data, error } = useQuery('todos', fetchTodoList)
-  }
+  const [submitAccessRequestMutation] = useMutation(
+    () => api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }]),
+    {
+      onSuccess: (resp) => {
+        console.log(resp)
+        setDialogOpen(false)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
 
   const handleChangeAnswer = (e) => {
     setAnswer(e.target.value)
@@ -57,7 +65,7 @@ const Service = (props) => {
                 </Box>
               </Grid>
               <Grid item>
-                <ServiceActionButton user={user} service={service} /*requestAccessHandler={handleOpenDialog}*//>
+                <ServiceActionButton user={user} service={service} requestAccessHandler={handleOpenDialog} />
               </Grid>
               <Grid item xs={12}>
                 <Box my={1}>
@@ -151,7 +159,7 @@ const Service = (props) => {
         open={dialogOpen}
         handleChange={handleChangeAnswer}
         handleClose={handleCloseDialog} 
-        handleSubmit={handleSubmit}
+        handleSubmit={submitAccessRequestMutation}
       />
     </Layout>
   )
@@ -177,7 +185,7 @@ const RequestAccessDialog = ({ question, open, handleChange, handleClose, handle
         <Button color="primary" onClick={handleClose}>
           Cancel
         </Button>
-        <Button color="primary" onClick={handleSubmit}>
+        <Button color="primary" variant="contained" onClick={handleSubmit}>
           Submit
         </Button>
       </DialogActions>
