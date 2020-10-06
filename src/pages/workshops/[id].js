@@ -1,7 +1,12 @@
+import { useState, useEffect } from 'react'
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Box, Typography, Button, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
+import { Container, Paper, Grid, Box, Typography, Tooltip, Button, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogContent, DialogActions } from '@material-ui/core'
 import { Layout, DateRange } from '../../components'
+import { useAPI } from '../../contexts/api'
+import { useUser } from '../../contexts/user'
+import { wsBaseUrl } from '../../config'
+const { WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE } = require('../../constants')
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -12,8 +17,13 @@ const useStyles = makeStyles((theme) => ({
 const Workshop = props => {
   const workshop = props.workshop
   const classes = useStyles()
+  const api = useAPI()
+  const user = useUser()
+  const userWorkshop = user.workshops.find(w => w.id == workshop.id)
+  const request = userWorkshop && userWorkshop.api_workshopenrollmentrequest
 
-  const [dialogOpen, setDialogOpen] = React.useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [requestStatus, setRequestStatus] = useState(request && request.status)
 
   const handleOpenDialog = () => {
     setDialogOpen(true)
@@ -24,10 +34,27 @@ const Workshop = props => {
   }
 
   const handleSubmit = async () => {
-    setDialogOpen(false)
-    const response = await props.api.createWorkshopRequest(workshop.id)
+    handleCloseDialog()
+    const response = await api.createWorkshopRequest(workshop.id)
     console.log(response)
   }
+
+  // Configure web socket connection
+  useEffect(() => {
+    const socket = new WebSocket(`${wsBaseUrl}/${user.username}`)
+
+    // Listen for messages // TODO move into library
+    socket.addEventListener('message', function (event) {
+      console.log('Socket received:', event.data)
+      if (!event || !event.data)
+        return
+
+      event = JSON.parse(event.data)
+      if (event.data.type == WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE && event.data.workshopId == workshop.id) {
+        setRequestStatus(event.data.status)
+      }
+    });
+  }, [])
 
   return ( //FIXME break into pieces
     <Layout title={workshop.title} breadcrumbs>
@@ -42,7 +69,7 @@ const Workshop = props => {
                 </Box>
               </Grid>
               <Grid item>
-                <Button variant="contained" color="primary" size="medium" /*onClick={handleOpenDialog}*/>ENROLL</Button>
+                <WorkshopActionButton status={requestStatus} requestHandler={handleOpenDialog} />
               </Grid>
               <Grid item xs={12}>
                 <Typography color="textSecondary">{workshop.description}</Typography>
@@ -92,16 +119,47 @@ const Workshop = props => {
   )
 }
 
+const WorkshopActionButton = ({ status, requestHandler }) => {
+  // Request status can be: 'granted', 'denied', 'pending', 'requested'
+
+  const { label, tooltip, action, disabled } = (() => {
+    if (status === 'granted')
+      return { label: 'ENROLLED', disabled: true }
+    if (status === 'pending' || status == 'requested' || status == 'approved')
+      return {
+        label: 'ENROLLMENT PENDING APPROVAL', 
+        tooltip: 'The enrollment request is in process or awaiting approval.  You will be notified via email when completed.', 
+        disabled: true
+      }
+    if (status === 'denied')
+      return { 
+        label: 'REQUEST DENIED', 
+        tooltip: 'The access request was denied and an email was sent with an explanation.', 
+        disabled: true
+      }
+    
+    return { label: 'ENROLL', action: requestHandler }
+  })()
+
+  return (
+    <Tooltip title={tooltip || ''}>
+      <span>
+        <Button variant="contained" color="primary" size="medium" disabled={disabled} onClick={action}>
+          {label}
+        </Button> 
+      </span>
+    </Tooltip>
+  )
+}
+
 const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) => {
   return (
     <Dialog open={open} onClose={handleClose} fullWidth={true} aria-labelledby="form-dialog-title">
-      <DialogTitle id="form-dialog-title">Request Access</DialogTitle>
       <DialogContent>
         <div style={{ fontSize: '16px', color: 'rgba(0, 0, 0, 0.6)' }}>
           <p>
-            Clicking <strong>Enroll</strong> will submit a request to be enrolled in the workshop.
-            Upon enrollment, you will automatically be granted access to all services the workshop
-            will be using.
+            Click <strong>Enroll</strong> to submit a request to be enrolled in the workshop.
+            Upon enrollment, you will automatically be granted access to all services used in the workshop.
           </p>
           <p>
             <strong>If you are in the list of pre-approved participants</strong>, this will happen
@@ -117,11 +175,11 @@ const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) 
         </div>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
+        <Button color="primary" onClick={handleClose}>
           Cancel
         </Button>
-        <Button onClick={handleClose} color="primary" onClick={handleSubmit}>
-          Submit
+        <Button color="primary" variant="contained" onClick={handleSubmit}>
+          Enroll
         </Button>
       </DialogActions>
     </Dialog>

@@ -78,8 +78,8 @@ router.get('/:id(\\d+)/participants', requireAdmin, async (req, res) => {
     return res.json(workshop.users).status(200);
 });
 
-// Create new enrollment request (RESTRICTED TO STAFF)
-router.put('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
+// Create new enrollment request
+router.put('/:id(\\d+)/requests', getUser, async (req, res) => {
     const workshopId = req.params.id;
 
     // Fetch workshop
@@ -123,10 +123,12 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
         await approveRequest(request); // updates request status
     if (request.isApproved())
         await grantRequest(request);
+
+    notifyClientOfRequestStatusChange(req.ws, request)
 });
 
-// Update enrollment request status (RESTRICTED TO STAFF)
-router.post('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
+// Update enrollment request status //TODO require api key
+router.post('/:id(\\d+)/requests', getUser, async (req, res) => {
     const workshopId = req.params.id;
     const status = req.body.status;
     const message = req.body.message;
@@ -160,6 +162,23 @@ router.post('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
     // Call granter (do this after response as to not delay it)
     if (request.isApproved())
         await grantRequest(request);
+
+    notifyClientOfRequestStatusChange(req.ws, request)
 });
+
+//TODO move into library
+function notifyClientOfRequestStatusChange(ws, request) {
+    // Send websocket event to client 
+    if (ws) {
+        ws.send(JSON.stringify({ 
+            type: WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE,
+            data: {
+                requestId: request.id,
+                workshopId: request.workshop.id,
+                status: request.status
+            }
+        }))
+    }
+}
 
 module.exports = router;
