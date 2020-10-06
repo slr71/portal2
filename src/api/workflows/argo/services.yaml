@@ -237,11 +237,11 @@ spec:
       image: localhost:5000/portal2
       env:
       - name: BISQUE_ENDPOINT
-        value: "{{workflow.parameters.portal_api_base_url}}/tests/bisque"
+        value: "{{workflow.parameters.bisque_url}}"
       - name: BISQUE_USERNAME
-        value: ""
+        value: "{{workflow.parameters.bisque_username}}"
       - name: BISQUE_PASSWORD
-        value: ""
+        value: "{{workflow.parameters.bisque_password}}"
       command: [/usr/src/app/bisque_create_user.py]
       args: ["{{inputs.parameters.user_id}}", "{{inputs.parameters.email}}"]
 
