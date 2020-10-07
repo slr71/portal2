@@ -105,7 +105,6 @@ router.put('/users/:username(\\w+)', async (req, res) => {
 
     // Send confirmation email //FIXME move this to last step of user creation workflow
     const confirmationUrl = `${UI_PASSWORD_URL}?code=${hmac}`;
-    console.log({confirmationUrl});
     await renderEmail({
         to: newUser.email, 
         bcc: config.email.bccNewAccountConfirmation,

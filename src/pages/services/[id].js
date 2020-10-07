@@ -187,7 +187,7 @@ const Service = (props) => {
         handleSubmit={
           (!question || answer) && // disable submit button if input is blank and answer is required
             (() => {
-              setRequestStatus('pending')
+              setRequestStatus('requested')
               handleCloseDialog()
               submitRequestMutation()
             })

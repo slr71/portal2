@@ -1,5 +1,4 @@
 const config = require('../../config.json');
-const constants = require('../../constants.js');
 const Argo = require('../../argo');
 const { intercom_atmosphere } = require('../../intercom');
 const { logger } = require('../../logging');
