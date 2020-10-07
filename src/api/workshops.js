@@ -128,43 +128,44 @@ router.put('/:id(\\d+)/requests', getUser, async (req, res) => {
 });
 
 // Update enrollment request status //TODO require api key
-router.post('/:id(\\d+)/requests', getUser, async (req, res) => {
-    const workshopId = req.params.id;
-    const status = req.body.status;
-    const message = req.body.message;
+// REMOVED 10/6/2020, was previously used by Argo workshop enrollment workflow which was replaced with inline code
+// router.post('/:id(\\d+)/requests', getUser, async (req, res) => {
+//     const workshopId = req.params.id;
+//     const status = req.body.status;
+//     const message = req.body.message;
 
-    if (!status || !message) //TODO verify valid status value
-        return res.send('Missing parameter').status(400);
+//     if (!status || !message) //TODO verify valid status value
+//         return res.send('Missing parameter').status(400);
 
-    // Fetch workshop
-    const workshop = await Workshop.findByPk(workshopId);
-    if (!workshop)
-        return res.send("Workshop not found").status(404);
+//     // Fetch workshop
+//     const workshop = await Workshop.findByPk(workshopId);
+//     if (!workshop)
+//         return res.send("Workshop not found").status(404);
 
-    // Fetch request
-    const request = await models.WorkshopEnrollmentRequest.findOne({
-        where: { 
-            workshop_id: workshop.id,
-            user_id: req.user.id
-        }
-    });
-    if (!request)
-        return res.send("Request not found").status(404);
+//     // Fetch request
+//     const request = await models.WorkshopEnrollmentRequest.findOne({
+//         where: { 
+//             workshop_id: workshop.id,
+//             user_id: req.user.id
+//         }
+//     });
+//     if (!request)
+//         return res.send("Request not found").status(404);
 
-    // Update status
-    request.set('status', status);
-    request.set('message', message);
-    await request.save();
+//     // Update status
+//     request.set('status', status);
+//     request.set('message', message);
+//     await request.save();
 
-    // Send response to client
-    res.json(request).status(200);
+//     // Send response to client
+//     res.json(request).status(200);
 
-    // Call granter (do this after response as to not delay it)
-    if (request.isApproved())
-        await grantRequest(request);
+//     // Call granter (do this after response as to not delay it)
+//     if (request.isApproved())
+//         await grantRequest(request);
 
-    notifyClientOfRequestStatusChange(req.ws, request)
-});
+//     notifyClientOfRequestStatusChange(req.ws, request)
+// });
 
 //TODO move into library
 function notifyClientOfRequestStatusChange(ws, request) {

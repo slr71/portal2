@@ -12,7 +12,8 @@
 
     "email": {
         "bccNewAccountConfirmation": [],
-        "bccPasswordChangeRequest": []
+        "bccPasswordChangeRequest": [],
+        "bccWorkshopEnrollmentRequest": []
     },
 
     "db": {
