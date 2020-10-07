@@ -6,7 +6,7 @@ import Head from 'next/head'
 import { ThemeProvider } from '@material-ui/core/styles'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import theme from '../theme'
-import { KeycloakProvider } from '../contexts/keycloak'
+//import { KeycloakProvider } from '../contexts/keycloak'
 import { APIProvider } from '../contexts/api'
 import { UserProvider } from '../contexts/user'
 import { CookiesProvider } from 'react-cookie'
@@ -37,7 +37,7 @@ export default function MyApp(props) {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <CookiesProvider>
-        <KeycloakProvider kauth={kauth}>
+        {/* <KeycloakProvider kauth={kauth}> */}
           <APIProvider baseUrl={baseUrl} token={token}>
             <UserProvider user={user}>
               <Head>
@@ -46,7 +46,7 @@ export default function MyApp(props) {
               <Component {...pageProps} />
             </UserProvider>
           </APIProvider>
-        </KeycloakProvider>
+        {/* </KeycloakProvider> */}
       </CookiesProvider>
     </ThemeProvider>
   )
@@ -58,12 +58,13 @@ MyApp.propTypes = {
 }
 
 MyApp.getInitialProps = async ({ Component, ctx }) => {
-  return { //TODO use ctx?.req? syntax
-    kauth: ctx && ctx.req ? ctx.req.kauth : null,
-    user: ctx && ctx.req && ctx.req.api && ctx.req.api.token ? await ctx.req.api.user() : null,
-    baseUrl: ctx && ctx.req && ctx.req.api ? ctx.req.api.baseUrl : null, 
-    token: ctx && ctx.req && ctx.req.api ? ctx.req.api.token : null,
+  const req = ctx.req
+  const api = req && req.api
+  return {
+    kauth: req && req.kauth,
+    baseUrl: api && api.baseUrl, 
+    token: api && api.token,
+    user: api && api.token ? await api.user() : null,
     pageProps: Component.getInitialProps ? await Component.getInitialProps(ctx) : {},
-    namespacesRequired: ["common"]
   }
 }

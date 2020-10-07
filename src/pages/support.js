@@ -31,9 +31,4 @@ const Support = () => {
   )
 }
 
-//FIXME this is required to prevent "useUser must be used within a UserProvider" error, not sure why
-export async function getServerSideProps() {
-  return { props: {} }
-}
-
 export default Support
