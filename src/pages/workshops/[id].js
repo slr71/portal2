@@ -34,6 +34,7 @@ const Workshop = props => {
   }
 
   const handleSubmit = async () => {
+    setRequestStatus('requested')
     handleCloseDialog()
     const response = await api.createWorkshopRequest(workshop.id)
     console.log(response)
@@ -69,7 +70,12 @@ const Workshop = props => {
                 </Box>
               </Grid>
               <Grid item>
-                <WorkshopActionButton status={requestStatus} requestHandler={handleOpenDialog} />
+                <WorkshopActionButton 
+                  status={requestStatus} 
+                  enrollmentBegins={workshop.enrollment_begins}
+                  enrollmentEnds={workshop.enrollment_ends}
+                  requestHandler={handleOpenDialog} 
+                />
               </Grid>
               <Grid item xs={12}>
                 <Typography color="textSecondary">{workshop.description}</Typography>
@@ -119,10 +125,15 @@ const Workshop = props => {
   )
 }
 
-const WorkshopActionButton = ({ status, requestHandler }) => {
-  // Request status can be: 'granted', 'denied', 'pending', 'requested'
-
+const WorkshopActionButton = ({ status, enrollmentBegins, enrollmentEnds, requestHandler }) => {
   const { label, tooltip, action, disabled } = (() => {
+    const now = Date.now()
+    if (now > new Date(enrollmentEnds))
+      return { label: 'ENROLLMENT PERIOD HAS ENDED', disabled: true }
+    if (now < new Date(enrollmentBegins))
+      return { label: 'ENROLLMENT PERIOD HAS NOT BEGUN', disabled: true }
+
+    // Request status can be: 'granted', 'denied', 'pending', 'requested'
     if (status === 'granted')
       return { label: 'ENROLLED', disabled: true }
     if (status === 'pending' || status == 'requested' || status == 'approved')
