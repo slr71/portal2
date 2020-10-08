@@ -2,24 +2,22 @@ import { Card, CardHeader, CardContent, CardActions, Typography, Avatar } from '
 import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles((theme) => ({
-  header: {
-    height: '5em'
-  },
   content: {
     height: '6em'
   },
-  lineheightclass: {
+  title: {
     lineHeight: '1.1',
+    fontSize: '1.4em',
   }
 }))
 
-const SummaryCard = ({ title, subtitle, description, iconUrl, icon, action }) => { // use icon or iconUrl but not both
+const SummaryCard = ({ title, subtitle, description, iconUrl, icon, action, largeHeader }) => { // use icon or iconUrl but not both
   const classes = useStyles()
 
   return (
     <Card>
       <CardHeader
-        className={classes.header}
+        style={{height: largeHeader ? '7em' : '5em'}}
         avatar={
           (icon || iconUrl) &&
           <Avatar alt={title} src={iconUrl}>
@@ -28,7 +26,7 @@ const SummaryCard = ({ title, subtitle, description, iconUrl, icon, action }) =>
         }
         title={title}
         subheader={subtitle}
-        titleTypographyProps={{variant: 'h6', className: classes.lineheightclass}}
+        titleTypographyProps={{className: classes.title}}
       />
       <CardContent className={classes.content}>
         <Typography variant="body2" color="textSecondary" component="p">

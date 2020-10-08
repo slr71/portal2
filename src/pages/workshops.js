@@ -9,7 +9,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const Workshops = props => {
+const Workshops = (props) => {
   const user = useUser()
   const userWorkshops = user.workshops
   const otherWorkshops = props.workshops.filter(w => !userWorkshops.find(uw => uw.id == w.id))
@@ -103,6 +103,7 @@ const Workshop = ({ workshop }) => {
         description={workshop.description} 
         icon={<EventIcon />}
         action={action}
+        largeHeader
       />
     </Link>
   )
