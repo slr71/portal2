@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography, CircularProgress, LinearProgress } from '@material-ui/core'
 import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
-import { isEmail, isNumeric, isAlphanumeric, isLowercase, isEmpty } from 'validator'
+import { isEmail, isNumeric, isAlphanumeric, isLowercase, isDate, isEmpty } from 'validator'
 import { validatePassword } from '../misc'
 import { CheckboxWithLabel } from "formik-material-ui"
 
