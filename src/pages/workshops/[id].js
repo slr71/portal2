@@ -123,7 +123,7 @@ const WorkshopViewer = (props) => {
               <Typography color="textSecondary"><Markdown>{workshop.about}</Markdown></Typography>
             </Grid>
           }
-          {workshop.services.length > 0 &&
+          {workshop.services && workshop.services.length > 0 &&
             <Grid item xs={12}>
               <Typography component="div" variant="h5">Services</Typography>
               <Typography color="textSecondary">Services used in the workshop.</Typography>
@@ -225,8 +225,22 @@ const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) 
   )
 }
 
-const WorkshopEditor = ({ workshop, participants, requests }) => {
+const WorkshopEditor = (props) => {
+  const api = useAPI()
+  const [workshop, setWorkshop] = useState(props.workshop)
   const [tab, setTab] = useState(0)
+
+  const [submitFormMutation] = useMutation(
+    (data) => api.updateWorkshop(workshop.id, data),
+    {
+      onSuccess: (resp) => {
+        setWorkshop(resp)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
 
   return (
     <div>
@@ -247,7 +261,7 @@ const WorkshopEditor = ({ workshop, participants, requests }) => {
         <WorkshopViewer workshop={workshop} />
       </TabPanel>
       <TabPanel value={tab} index={1}>
-        <GeneralSettings {...workshop} />
+        <GeneralSettings {...workshop} submitHandler={submitFormMutation} />
         <br /><br />
         <EnrollmentPeriod {...workshop} />
         <br /><br />
@@ -261,10 +275,10 @@ const WorkshopEditor = ({ workshop, participants, requests }) => {
         <br /><br />
       </TabPanel>
       <TabPanel value={tab} index={2}>
-        <Participants participants={participants} />
+        <Participants participants={props.participants} />
       </TabPanel>
       <TabPanel value={tab} index={3}>
-        <Requests requests={requests} />
+        <Requests requests={props.requests} />
       </TabPanel>
     </div>
   )
@@ -272,11 +286,6 @@ const WorkshopEditor = ({ workshop, participants, requests }) => {
 
 const GeneralSettings = (props) => {
   const classes = useStyles()
-  const api = useAPI()
-
-  const [submitFormMutation] = useMutation(
-    (data) => api.updateWorkshop(workshop.id, data)
-  )
 
   return (
     <Paper elevation={3} className={classes.paper}>
@@ -296,7 +305,7 @@ const GeneralSettings = (props) => {
             value: props.description
           },
           { id: "about",
-            name: "About",
+            name: "Details",
             type: "text",
             required: true,
             value: props.about,
@@ -309,7 +318,7 @@ const GeneralSettings = (props) => {
         onSubmit={(values, { setSubmitting }) => {
           setTimeout(() => {
             console.log('Submit:', values)
-            submitFormMutation(values)
+            props.submitHandler(values)
             setSubmitting(false)
           }, 1000)
         }}

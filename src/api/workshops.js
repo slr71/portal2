@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:id(\\d+)', async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id, {
-        include: [
+        include: [ //TODO create scope for this
             { 
                 model: User.unscoped(), 
                 as: 'owner',
@@ -41,15 +41,40 @@ router.get('/:id(\\d+)', async (req, res) => {
     return res.json(workshop).status(200);
 });
 
-// Update workshop (RESTRICTED TO STAFF)
-router.post('/:id(\\d+)', requireAdmin, async (req, res) => {
+// Update workshop
+router.post('/:id(\\d+)', getUser, async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
     console.log(fields);
 
-    let workshop = await Workshop.findByPk(id);
+    const workshop = await Workshop.findByPk(id, {
+        include: [ //TODO create scope for this
+            { 
+                model: User.unscoped(), 
+                as: 'owner',
+                attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ]
+            },
+            {
+                model: models.api_service, 
+                as: 'services', 
+                through: { attributes: [] } // remove connector table
+            },
+            {
+                model: User.unscoped(), 
+                as: 'organizers', 
+                through: { attributes: [] }, // remove connector table
+                attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ]
+            },
+            'contacts'
+        ]
+    });
     if (!workshop)
         return res.send('Workshop not found').status(404);
+
+    // Check permission
+    const isEditor = req.user.is_staff || workshop.creator_id == user.id
+    if (!isEditor)
+        return res.send('Permission denied').status(403);
 
     for (let key in fields) {
         // Ignore any non-updateable fields
