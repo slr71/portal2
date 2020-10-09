@@ -12,7 +12,9 @@ const useStyles = makeStyles((theme) => ({
     width: "50vw",
   },
   button: {
-    width: "15vw",
+    width: "17vw",
+    whiteSpace: 'nowrap',
+    minWidth: '10em'
   },
   title: {
     color: '#0971ab',
@@ -26,10 +28,10 @@ const Welcome = (props) => {
   return (
     <div>
       <Grid container>
-        <Grid item align="center" className={classes.grid} style={{backgroundColor: '#0971ab'}}>
+        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" className={classes.grid} style={{backgroundColor: '#0971ab'}}>
           <Left {...props} />
         </Grid>
-        <Grid item align="center" className={classes.grid} style={{backgroundColor: '#ffffff'}}>
+        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" className={classes.grid} style={{backgroundColor: '#ffffff'}}>
           <Right {...props} />
         </Grid>
       </Grid>
@@ -37,24 +39,27 @@ const Welcome = (props) => {
   )
 }
 
-const Left = () => (
-  <div>
-    <Box pt={"15vh"}>
-      <MainLogo size="large" />
-    </Box>
-    <Box>
-      <WelcomeAnimation />
-    </Box>
-    <Box>
-      <Typography variant="h5" style={{color: "white"}}>
-        An Open Science Workspace for
-        <br />
-        Collaborative Data-driven Discovery
-      </Typography>
-    </Box>
-  </div>
-)
+const Left = () => {
+  const classes = useStyles()
 
+  return (
+    <div>
+      <Box pt={"15%"}>
+        <MainLogo size="large" />
+      </Box>
+      <Box>
+        <WelcomeAnimation />
+      </Box>
+        <Box>
+          <Typography variant="h5" style={{color: "white"}}>
+            An Open Science Workspace for
+            <br />
+            Collaborative Data-driven Discovery
+          </Typography>
+        </Box>
+    </div>
+  )
+}
 
 const Right = (props) => {
   const classes = useStyles()
@@ -134,17 +139,17 @@ const Right = (props) => {
 
     return ( //FIXME use column grid here instead
       <div>
-        <Box pt={"30vh"}>
+        <Box pt={"30%"}>
           <Typography variant="h4" className={classes.title}>
             Reset Password
           </Typography>
         </Box>
-        <Box mt={4} style={{width:'30vw'}}>
+        <Box mt={4} style={{width:'60%'}}>
           <Typography variant="button" gutterBottom>
             Enter your email address and we will send you a link to reset your password.
           </Typography>
         </Box>
-        <Box mt={4} style={{width:'30vw'}} >
+        <Box mt={4} style={{width:'60%'}} >
           <TextField 
             id="email" 
             type="email" 
@@ -189,7 +194,7 @@ const Right = (props) => {
 
   return ( //FIXME use column grid here instead
     <div>
-      <Box pt={"30vh"}>
+      <Box pt={"30%"}>
         <Typography variant="h4" className={classes.title}>
           Welcome to CyVerse!
         </Typography>
@@ -200,17 +205,17 @@ const Right = (props) => {
         </Typography>
       </Box>
       <Box mt={2}>
-        <Button variant="contained" fullWidth="true" color="primary" size="large" disableElevation className={classes.button} onClick={handleOpenDialog}>
+        <Button variant="contained" color="primary" size="large" disableElevation className={classes.button} onClick={handleOpenDialog}>
           Sign Up
         </Button>
       </Box>
       <Box mt={3}>
-        <Button variant="outlined" fullWidth="true" color="primary" size="large" disableElevation className={classes.button} href="/login">
+        <Button variant="outlined" color="primary" size="large" disableElevation className={classes.button} href="/login">
           Login
         </Button>
       </Box>
       <Box mt={2} mb={5}>
-        <Button variant="text" fullWidth="true" color="info" size="small" onClick={() => setForgotPassword(true)}>Forgot Password</Button>
+        <Button variant="text" size="small" onClick={() => setForgotPassword(true)}>Forgot Password</Button>
       </Box>
       <SignUpDialog 
         open={dialogOpen}
