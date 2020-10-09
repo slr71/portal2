@@ -67,7 +67,7 @@ router.get('/:id(\\d+)/participants', requireAdmin, async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ 
             {
-                model: User.unscoped(),
+                model: User.unscoped(), //TODO create scope for this
                 as: 'users',
                 attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ],
                 through: { attributes: [] } // remove connector table
@@ -76,6 +76,35 @@ router.get('/:id(\\d+)/participants', requireAdmin, async (req, res) => {
     });
 
     return res.json(workshop.users).status(200);
+});
+
+// Get workshop requests (RESTRICTED TO STAFF)
+router.get('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
+    const requests = await WorkshopEnrollmentRequest.findAll({ 
+        where: { 
+            workshop_id: req.params.id 
+        },
+        include: [ 
+            'logs',
+            {
+                model: User.unscoped(), //TODO create scope for this
+                as: 'user',
+                attributes: [ 'id', 'username', 'first_name', 'last_name', 'email', 'institution', 'department' ],
+                include: [
+                    'funding_agency',
+                    'occupation',
+                    'research_area',
+                    { model: models.account_region, 
+                      as: 'region',
+                      include: [
+                        'country'
+                      ]
+                    }
+                  ]
+            }
+        ]
+    });
+    return res.json(requests).status(200);
 });
 
 // Create new enrollment request

@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react'
 import { useMutation } from "react-query"
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogContent, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell } from '@material-ui/core'
-import { Person as PersonIcon, Delete as DeleteIcon } from '@material-ui/icons'
+import { Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogContent, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse } from '@material-ui/core'
+import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@material-ui/icons'
 import DateFnsUtils from '@date-io/date-fns'
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
 import { Layout, DateRange, TabPanel, UpdateForm } from '../../components'
@@ -16,6 +16,9 @@ const { WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE } = require('../../constant
 const useStyles = makeStyles((theme) => ({
   paper: {
     padding: '4em'
+  },
+  noBorder: {
+    border: 'none'
   }
 }))
 
@@ -26,10 +29,10 @@ const Workshop = (props) => {
 
   return (
     <Layout title={workshop.title} breadcrumbs>
-      <Container maxWidth='md'>
+      <Container maxWidth='lg'>
         {isEditor 
           ? <WorkshopEditor {...props} />
-          : <WorkshopViewer {...props} />
+          : <div><br /><WorkshopViewer {...props} /></div>
         }
       </Container>
     </Layout>
@@ -79,9 +82,8 @@ const WorkshopViewer = (props) => {
     });
   }, [])
 
-  return ( //FIXME break into pieces
+  return (
     <div>
-      <br />
       <Paper elevation={3} className={classes.paper}>
         <Grid container spacing={4}>
           <Grid container item xs={12} justify="space-between">
@@ -217,21 +219,14 @@ const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) 
   )
 }
 
-const WorkshopEditor = ({ workshop, participants }) => {
-  const classes = useStyles()
-  const api = useAPI()
-
+const WorkshopEditor = ({ workshop, participants, requests }) => {
   const [tab, setTab] = useState(0)
-
-  const handleTabChange = (event, newTab) => {
-    setTab(newTab)
-  }
 
   return (
     <div>
       <Tabs
         value={tab}
-        onChange={handleTabChange}
+        onChange={(_, newTab) => setTab(newTab)}
         variant="fullWidth"
         indicatorColor="primary"
         textColor="primary"
@@ -263,7 +258,7 @@ const WorkshopEditor = ({ workshop, participants }) => {
         <Participants participants={participants} />
       </TabPanel>
       <TabPanel value={tab} index={3}>
-        TODO
+        <Requests requests={requests} />
       </TabPanel>
     </div>
   )
@@ -523,8 +518,12 @@ const Participants = ({ participants }) => {
           <Typography component="h1" variant="h4">Participants</Typography>
         </Grid>
         <Grid item>
-          <Button variant="contained" color="primary" style={{marginRight:'1em', width:'8em'}}>Approve</Button>
-          <Button variant="contained" color="primary" style={{width:'8em'}}>Add</Button>
+          <Tooltip title='Approve a user for the workshop which will allow them to enroll'>
+            <Button variant="contained" color="primary" style={{marginRight:'1em', width:'8em'}}>Approve</Button>
+          </Tooltip>
+          <Tooltip title='Directly enroll a user in the workshop, granting access to all workshop services'>
+            <Button variant="contained" color="primary" style={{width:'8em'}}>Enroll</Button>
+          </Tooltip>
         </Grid>
       </Grid>
       {/* <Typography color="textSecondary" gutterBottom>
@@ -563,14 +562,128 @@ const Participants = ({ participants }) => {
   )
 }
 
+const Requests = ({ requests }) => {
+  const classes = useStyles()
+
+  const Row = ({ user, created_at, status, logs }) => {
+    const [open, setOpen] = React.useState(false)
+    return (
+      <>
+        <TableRow>
+          <TableCell>
+            <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
+              {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+            </IconButton>
+          </TableCell>
+          <TableCell>{user.first_name + ' ' + user.last_name}</TableCell>
+          <TableCell>{user.username}</TableCell>
+          <TableCell>{user.email}</TableCell>
+          <TableCell style={{whiteSpace: 'nowrap'}}>{created_at}</TableCell>
+          <TableCell>{status}</TableCell>
+          <TableCell style={{whiteSpace: 'nowrap'}} align="right">
+            <Button color="primary" size="small">Deny</Button>
+            <Button color="primary" size="small">Approve</Button>
+          </TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
+            <Collapse in={open} timeout="auto" unmountOnExit>
+              <Box margin={3}>
+                <Typography><b>User Info</b></Typography>
+                <Table size="small">
+                  <TableRow>
+                    <TableCell className={classes.noBorder}>Company/Institution</TableCell>
+                    <TableCell className={classes.noBorder}>{user.institution}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.noBorder}>Department</TableCell>
+                    <TableCell className={classes.noBorder}>{user.department}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.noBorder}>Occupation</TableCell>
+                    <TableCell className={classes.noBorder}>{user.occupation.name}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.noBorder}>Country</TableCell>
+                    <TableCell className={classes.noBorder}>{user.region.country.name}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.noBorder}>Region</TableCell>
+                    <TableCell className={classes.noBorder}>{user.region.name}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.noBorder}>Research Area</TableCell>
+                    <TableCell className={classes.noBorder}>{user.research_area.name}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className={classes.noBorder}>Funding Agency</TableCell>
+                    <TableCell className={classes.noBorder}>{user.funding_agency.name}</TableCell>
+                  </TableRow>
+                </Table>
+              </Box>
+              <Box margin={3}>
+                <Typography><b>History</b></Typography>
+                <Table size="small">
+                {logs.map(({status, message, created_at}, index) => (
+                  <TableRow key={index}>
+                    <TableCell className={classes.noBorder}>
+                      <Typography variant='subtitle2' color='textSecondary'>{created_at}</Typography>
+                    </TableCell>
+                    <TableCell className={classes.noBorder}>{message}</TableCell>
+                  </TableRow>
+                ))}
+                </Table>
+              </Box>
+            </Collapse>
+          </TableCell>
+        </TableRow>
+      </>
+    )
+  }
+
+  return (        
+    <Paper elevation={3} className={classes.paper}>
+      <Typography component="h1" variant="h4">Requests</Typography>
+      <br />
+      {!requests || requests.length == 0 
+        ? <Typography>None</Typography>
+        : <TableContainer component={Paper}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell></TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Username</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {requests.map((request, index) => (
+                  <Row key={index} {...request} />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+      }
+    </Paper>
+  )
+}
+
 export async function getServerSideProps({ req, query }) {
   const workshop = await req.api.workshop(query.id)
+
+  // These will fail if user is not staff
   const participants = await req.api.workshopParticipants(query.id)
+  const requests = await req.api.workshopRequests(query.id)
 
   return { 
     props: { 
       workshop, 
-      participants 
+      participants,
+      requests
     } 
   }
 }
