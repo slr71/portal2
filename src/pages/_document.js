@@ -13,10 +13,14 @@ export default class MyDocument extends Document {
           {/* PWA primary color */}
           <meta name="theme-color" content={theme.palette.primary.main} />
           <meta name="description" content="The Open Science Workspace for Collaborative Data-driven Discovery"></meta>
-          <link rel="icon" type="image/x-icon" href="../../public/favicon.ico" />
           <link
             rel="stylesheet"
             href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
+          />
+          <link
+            rel="icon"
+            type="image/x-icon"
+            href="/icons/favicon.ico"
           />
         </Head>
         <body>
