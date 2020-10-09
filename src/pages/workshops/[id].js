@@ -46,6 +46,7 @@ const WorkshopViewer = (props) => {
   const user = useUser()
   const userWorkshop = user.workshops.find(w => w.id == workshop.id)
   const request = userWorkshop && userWorkshop.api_workshopenrollmentrequest
+  const isHost = user.id == workshop.creator_id
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [requestStatus, setRequestStatus] = useState(request && request.status)
@@ -109,6 +110,11 @@ const WorkshopViewer = (props) => {
               <Typography color="textSecondary">
                 Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
               </Typography>
+              {isHost &&
+                <Typography>
+                  <b>Your are the workshop host</b>
+                </Typography>
+              }
             </Grid>
           </Grid>
           {workshop.about &&
