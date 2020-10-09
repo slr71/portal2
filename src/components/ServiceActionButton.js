@@ -4,9 +4,9 @@ import LaunchIcon from '@material-ui/icons/Launch';
 const ServiceActionButton = ({ status, service, requestAccessHandler }) => {
   // Request status can be: 'granted', 'denied', 'approved', 'pending'
 
-  const { label, tooltip, action, url, disabled } = (() => {
+  const { label, icon, tooltip, action, url, disabled } = (() => {
     if (service.is_powered || status === 'granted')
-      return { label: 'LAUNCH', url: service.service_url }
+      return { label: 'LAUNCH', icon: <LaunchIcon />, url: service.service_url }
     if (status === 'pending' || status === 'approved' || status === 'requested')
       return {
         label: 'ACCESS PENDING APPROVAL', 
@@ -26,7 +26,7 @@ const ServiceActionButton = ({ status, service, requestAccessHandler }) => {
   return (
     <Tooltip title={tooltip || ''}>
       <span>
-        <Button endIcon={<LaunchIcon />} variant="contained" color="primary" size="medium" disabled={disabled} href={url} onClick={action}>
+        <Button endIcon={icon} variant="contained" color="primary" size="medium" disabled={disabled} href={url} onClick={action}>
           {label}
         </Button> 
       </span>
