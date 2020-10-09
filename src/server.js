@@ -116,7 +116,7 @@ app.prepare()
         })
 
         // Default to landing page if not logged in
-        server.get("/", (req, res) => {
+        server.get("/", keycloakClient.checkSso(), (req, res) => {
             const token = getUserToken(req)
             if (token)
                 res.redirect("/services")
