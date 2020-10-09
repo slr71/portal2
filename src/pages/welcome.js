@@ -4,56 +4,57 @@ import { isEmpty, isEmail } from 'validator'
 import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, LinearProgress, makeStyles} from '@material-ui/core'
 import { MainLogo, Wizard } from '../components'
 import { useAPI } from '../contexts/api'
-import Animation from '../components/animation'
+import WelcomeAnimation from '../components/WelcomeAnimation'
 
 const useStyles = makeStyles((theme) => ({
-
-root: {
+  root: {
     flexGrow: 1,
     backgroundColor:"#0971ab"
-},
-
+  },
   title: {
     color: '#0971ab',
     fontWeight: "bold"
   },
+  grid: {
+    height: "100vh",
+    width: "50vw",
+  }
 }))
 
 const Welcome = (props) => {
   const classes = useStyles()
 
   return (
-      <main>
     <div className={classes.root}>
       <Grid container spacing={0}>
-        <Grid item align="center" xs={12} sm={12} md={5} style={{backgroundColor: '#0971ab'}}>
+        <Grid item align="center" className={classes.grid} style={{backgroundColor: '#0971ab'}}>
           <Left {...props} />
         </Grid>
-        <Grid item align="center" xs={12} sm={12} md={7} style={{backgroundColor: '#ffffff'}}>
+        <Grid item align="center" className={classes.grid} style={{backgroundColor: '#ffffff'}}>
           <Right {...props} />
         </Grid>
       </Grid>
     </div>
-    </main>
   )
 }
 
-const Left = () => {
-const classes = useStyles()
-
-  return (
-    <Grid item xs={10} sm={8}>
-      <Box pt={"10vh"}>
-        <MainLogo fullWidth="true"/>
-      </Box>
-      <Box pt={"3vh"} pb={"3vh"}>
-        <Typography variant="h5" style={{color: "white"}}>
-          An Open Science Workspace for Collaborative Data-driven Discovery
-        </Typography>
-      </Box>
-    </Grid>
-  )
-}
+const Left = () => (
+  <div>
+    <Box pt={"15vh"}>
+      <MainLogo size="large" />
+    </Box>
+    <Box>
+      <WelcomeAnimation />
+    </Box>
+    <Box p={"6em"}>
+      <Typography variant="h5" style={{color: "white"}}>
+        An Open Science Workspace for
+        <br />
+        Collaborative Data-driven Discovery
+      </Typography>
+    </Box>
+  </div>
+)
 
 
 const Right = (props) => {
@@ -188,19 +189,18 @@ const Right = (props) => {
   }
 
   return ( //FIXME use column grid here instead
-    <Grid item xs={12} sm={12} md={12}>
-      <Box pt={"1vh"}>
-      <Animation />
+    <div>
+      <Box pt={"30vh"}>
         <Typography variant="h4" className={classes.title}>
           Welcome to CyVerse!
         </Typography>
       </Box>
-      <Box mt={3}>
+      <Box pt={"5em"}>
         <Typography variant="h6" gutterBottom>
           New to CyVerse?
         </Typography>
       </Box>
-      <Box maxWidth={"250px"} mt={3}>
+      <Box maxWidth={"250px"} mt={2}>
         <Button variant="contained" fullWidth="true" color="primary" size="large" disableElevation className={classes.button} onClick={handleOpenDialog}>
           Sign Up
         </Button>
@@ -219,7 +219,7 @@ const Right = (props) => {
         handleClose={handleCloseDialog} 
         // handleSubmit={handleSubmit}
       />
-    </Grid>
+    </div>
   )
 }
 
