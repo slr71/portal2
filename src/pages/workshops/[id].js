@@ -1,10 +1,12 @@
 import 'date-fns'
-import { useState, useEffect } from 'react'
+// import debounce from 'just-debounce-it'
+import { useState, useEffect, useCallback } from 'react'
 import { useMutation } from "react-query"
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogContent, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse } from '@material-ui/core'
+import { Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse } from '@material-ui/core'
 import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@material-ui/icons'
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import DateFnsUtils from '@date-io/date-fns'
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
 import { Layout, DateRange, TabPanel, UpdateForm } from '../../components'
@@ -17,8 +19,9 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     padding: '4em'
   },
-  noBorder: {
-    border: 'none'
+  cell: {
+    border: 'none',
+    verticalAlign: 'top'
   }
 }))
 
@@ -263,9 +266,9 @@ const WorkshopEditor = (props) => {
       <TabPanel value={tab} index={1}>
         <GeneralSettings {...workshop} submitHandler={submitFormMutation} />
         <br /><br />
-        <EnrollmentPeriod {...workshop} />
+        <EnrollmentPeriod {...workshop} submitHandler={submitFormMutation} />
         <br /><br />
-        <Owner {...workshop} />
+        <Host {...workshop} submitHandler={submitFormMutation} />
         <br /><br />
         <Organizers {...workshop} />
         <br /><br />
@@ -327,8 +330,20 @@ const GeneralSettings = (props) => {
   )
 }
 
-const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends }) => {
+const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler }) => {
   const classes = useStyles()
+  const [errors, setErrors] = useState({})
+
+  //TODO
+  // const validate = (values) => {
+  //   if (newDate(values['enrollment_begins']) > new Date(values['enrollment_ends'])
+  //     setErrors({enrollment_begins})
+  // }
+
+  const handleChange = (values) => {
+    console.log('Submit:', values)
+    submitHandler(values)
+  }
 
   return (
     <Paper elevation={3} className={classes.paper}>
@@ -350,7 +365,7 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends }) => {
             label="Enrollment Begins"
             helperText="When should enrollment begin? This is the earliest users with an authorized email will be able to enroll and get access to the workshop services."
             value={enrollment_begins}
-            // onChange={handleDateChange}
+            onChange={(value) => handleChange({'enrollment_begins': value})}
             KeyboardButtonProps={{
               'aria-label': 'change date',
             }}
@@ -365,7 +380,7 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends }) => {
             label="Enrollment Ends"
             helperText="When should enrollment end? After this date users will not be able to enroll in the workshop, even if their email is authorized."
             value={enrollment_ends}
-            // onChange={handleDateChange}
+            onChange={(value) => handleChange({'enrollment_ends': value})}
             KeyboardButtonProps={{
               'aria-label': 'change date',
             }}
@@ -376,36 +391,58 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends }) => {
   )
 }
 
-const Owner = ({ owner }) => {
+const Host = ({ owner, submitHandler }) => {
   const classes = useStyles()
+  const user = useUser()
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
-    <Paper elevation={3} className={classes.paper}>
-      <Typography component="div" variant="h5">Owner</Typography> 
-      <Typography color="textSecondary">
-        The primary point of contact for this workshop. 
-        This person will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
-        NOTE: this field can only be changed by CyVerse staff.
-      </Typography>
-      <br />
-      <Grid container justify="space-between" alignItems="center">
-        <Grid item>
-          <Link href={`/administrative/users/${owner.id}`}>
-            <ListItem>
-              <ListItemAvatar>
-                <Avatar>
-                  <PersonIcon />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary={owner.first_name + ' ' + owner.last_name} secondary={owner.username} />
-            </ListItem>
-          </Link>
+    <div>
+      <Paper elevation={3} className={classes.paper}>
+        <Typography component="div" variant="h5">Host</Typography> 
+        <Typography color="textSecondary">
+          The primary point of contact for this workshop. 
+          This person will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
+          NOTE: this field can only be changed by CyVerse staff.
+        </Typography>
+        <br />
+        <Grid container justify="space-between" alignItems="center">
+          <Grid item>
+            <Link href={`/administrative/users/${owner.id}`}>
+              <ListItem>
+                <ListItemAvatar>
+                  <Avatar>
+                    <PersonIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary={owner.first_name + ' ' + owner.last_name} secondary={owner.username} />
+              </ListItem>
+            </Link>
+          </Grid>
+          {user.is_staff &&
+            <Grid item>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={() => setDialogOpen(true)}
+              >
+                Change Host
+              </Button>
+            </Grid>
+          }
         </Grid>
-        <Grid item>
-          <Button variant="contained" color="primary">Change Owner</Button>
-        </Grid>
-      </Grid>
-    </Paper>
+      </Paper>
+      <SearchUsersDialog 
+        title='Set Host'
+        description='Enter the user to set as the host for the workshop.'
+        open={dialogOpen}
+        handleClose={() => setDialogOpen(false)} 
+        handleSubmit={(user) => {
+          setDialogOpen(false)
+          submitHandler({ creator_id: user.id })
+        }}
+      />
+    </div>
   )
 }
 
@@ -418,7 +455,7 @@ const Organizers = ({ organizers }) => {
       <Typography color="textSecondary">
         Add additional instructors/organizers for the workshop. 
         These people will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
-        NOTE: Only the workshop owner can add or remove additional instructors/organizers.
+        NOTE: Only the workshop host can add or remove additional instructors/organizers.
       </Typography>
       <br />
       <List>
@@ -603,51 +640,55 @@ const Requests = ({ requests }) => {
         <TableRow>
           <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
             <Collapse in={open} timeout="auto" unmountOnExit>
-              <Box margin={3}>
-                <Typography><b>User Info</b></Typography>
-                <Table size="small">
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Company/Institution</TableCell>
-                    <TableCell className={classes.noBorder}>{user.institution}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Department</TableCell>
-                    <TableCell className={classes.noBorder}>{user.department}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Occupation</TableCell>
-                    <TableCell className={classes.noBorder}>{user.occupation.name}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Country</TableCell>
-                    <TableCell className={classes.noBorder}>{user.region.country.name}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Region</TableCell>
-                    <TableCell className={classes.noBorder}>{user.region.name}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Research Area</TableCell>
-                    <TableCell className={classes.noBorder}>{user.research_area.name}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Funding Agency</TableCell>
-                    <TableCell className={classes.noBorder}>{user.funding_agency.name}</TableCell>
-                  </TableRow>
-                </Table>
-              </Box>
-              <Box margin={3}>
-                <Typography><b>History</b></Typography>
-                <Table size="small">
-                {logs.map(({status, message, created_at}, index) => (
-                  <TableRow key={index}>
-                    <TableCell className={classes.noBorder}>
-                      <Typography variant='subtitle2' color='textSecondary'>{created_at}</Typography>
-                    </TableCell>
-                    <TableCell className={classes.noBorder}>{message}</TableCell>
-                  </TableRow>
-                ))}
-                </Table>
+              <Box m={2}>
+                <Grid container>
+                  <Grid item xs={12} sm={12} md={6}>
+                    <Typography><b>User Info</b></Typography>
+                    <Table size="small" padding='none'>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Company/Institution</TableCell>
+                        <TableCell className={classes.cell}>{user.institution}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Department</TableCell>
+                        <TableCell className={classes.cell}>{user.department}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Occupation</TableCell>
+                        <TableCell className={classes.cell}>{user.occupation.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Country</TableCell>
+                        <TableCell className={classes.cell}>{user.region.country.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Region</TableCell>
+                        <TableCell className={classes.cell}>{user.region.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Research Area</TableCell>
+                        <TableCell className={classes.cell}>{user.research_area.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Funding Agency</TableCell>
+                        <TableCell className={classes.cell}>{user.funding_agency.name}</TableCell>
+                      </TableRow>
+                    </Table>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={6}>
+                    <Typography><b>History</b></Typography>
+                    <Table size="small" padding='none'>
+                    {logs.map(({status, message, created_at}, index) => (
+                      <TableRow key={index}>
+                        <TableCell className={classes.cell}>
+                          <Typography variant='subtitle2' color='textSecondary' noWrap>{created_at}</Typography>
+                        </TableCell>
+                        <TableCell className={classes.cell}>{message}</TableCell>
+                      </TableRow>
+                    ))}
+                    </Table>
+                  </Grid>
+                </Grid>
               </Box>
             </Collapse>
           </TableCell>
@@ -684,6 +725,97 @@ const Requests = ({ requests }) => {
           </TableContainer>
       }
     </Paper>
+  )
+}
+
+const SearchUsersDialog = ({ open, title, description, handleClose, handleSubmit }) => {
+  const api = useAPI()
+  const [users, setUsers] = useState()
+  const [debounce, setDebounce] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [selectedUser, setSelectedUser] = useState()
+
+  const handleChange = (event) => {
+    const { value } = event.target
+
+    // Couldn't get just-debounce-it to work here
+    if (debounce) clearTimeout(debounce)
+    if (!value)
+      reset()
+    else
+      setDebounce(setTimeout(async () => {
+        setLoading(true)
+        const resp = await api.users({ keyword: value })
+        setUsers(resp.results)
+        setLoading(false)
+      }, 1000));
+  }
+
+  const handleSelect = (event, value) => {
+    setSelectedUser(value)
+  }
+
+  const reset = () => {
+    setUsers(null)
+    setSelectedUser(null)
+  }
+
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth aria-labelledby="form-dialog-title">
+      <DialogTitle id="form-dialog-title">{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          {description}
+        </DialogContentText>
+        <Autocomplete
+          freeSolo
+          id="user"
+          disableClearable
+          options={users || []}
+          getOptionLabel={(u) => `${u.first_name} ${u.last_name} (${u.username})`}
+          onChange={handleSelect}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Search users"
+              margin="normal"
+              variant="outlined"
+              InputProps={{ 
+                ...params.InputProps, 
+                // type: 'search',
+                endAdornment: (
+                  <React.Fragment>
+                    {loading 
+                      ? <CircularProgress color="inherit" size={20} /> 
+                      : (users && users.length == 0 ? 'No results' : null)
+                    }
+                    {params.InputProps.endAdornment}
+                  </React.Fragment>
+                )
+              }}
+              onChange={handleChange}
+            />
+          )}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button 
+          variant="outlined"
+          onClick={() => reset() || handleClose()}
+          onBlur={() => reset() || handleClose()}
+        >
+          Cancel
+        </Button>
+        <Button 
+          variant="contained" 
+          color="primary"
+          disabled={!selectedUser || !handleSubmit}
+          onClick={() => handleSubmit(selectedUser)}  
+        >
+          Submit
+        </Button>
+      </DialogActions>
+    </Dialog>
   )
 }
 

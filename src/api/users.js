@@ -36,11 +36,13 @@ router.get('/', requireAdmin, async (req, res) => {
                 : null,
         include: [
             'occupation',
-            { model: models.account_region, 
+            { 
+                model: models.account_region, 
                 as: 'region',
                 include: [ 'country' ]
             }
         ],
+        attributes: [ 'id', 'username', 'first_name', 'last_name' ],
         order: [ ['id', 'DESC'] ],
         offset: offset,
         limit: limit,

@@ -76,10 +76,15 @@ router.post('/:id(\\d+)', getUser, async (req, res) => {
     if (!isEditor)
         return res.send('Permission denied').status(403);
 
+    // Verify and update fields
     for (let key in fields) {
-        // Ignore any non-updateable fields
-        if (['title', 'description', 'about'].includes(key))
-            workshop[key] = fields[key];
+        const SUPPORTED_FIELDS = ['title', 'description', 'about', 'enrollment_begins', 'enrollment_ends', 'creator_id'];
+        const RESTRICTED_FIELDS = [ 'creator_id' ]
+        if (RESTRICTED_FIELDS.includes(key) && !req.user.is_staff)
+            return res.send('Restricted field').status(403);
+        if (!SUPPORTED_FIELDS.includes(key))
+            return res.send('Unsupported field').status(400);
+        workshop[key] = fields[key];
     }
     await workshop.save();
     await workshop.reload();
