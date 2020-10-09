@@ -7,17 +7,16 @@ import { useAPI } from '../contexts/api'
 import WelcomeAnimation from '../components/WelcomeAnimation'
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    backgroundColor:"#0971ab"
+  grid: {
+    height: "100vh",
+    width: "50vw",
+  },
+  button: {
+    width: "15vw",
   },
   title: {
     color: '#0971ab',
     fontWeight: "bold"
-  },
-  grid: {
-    height: "100vh",
-    width: "50vw",
   }
 }))
 
@@ -25,8 +24,8 @@ const Welcome = (props) => {
   const classes = useStyles()
 
   return (
-    <div className={classes.root}>
-      <Grid container spacing={0}>
+    <div>
+      <Grid container>
         <Grid item align="center" className={classes.grid} style={{backgroundColor: '#0971ab'}}>
           <Left {...props} />
         </Grid>
@@ -46,7 +45,7 @@ const Left = () => (
     <Box>
       <WelcomeAnimation />
     </Box>
-    <Box p={"6em"}>
+    <Box>
       <Typography variant="h5" style={{color: "white"}}>
         An Open Science Workspace for
         <br />
@@ -200,17 +199,17 @@ const Right = (props) => {
           New to CyVerse?
         </Typography>
       </Box>
-      <Box maxWidth={"250px"} mt={2}>
+      <Box mt={2}>
         <Button variant="contained" fullWidth="true" color="primary" size="large" disableElevation className={classes.button} onClick={handleOpenDialog}>
           Sign Up
         </Button>
       </Box>
-      <Box maxWidth={"250px"} mt={3}>
+      <Box mt={3}>
         <Button variant="outlined" fullWidth="true" color="primary" size="large" disableElevation className={classes.button} href="/login">
           Login
         </Button>
       </Box>
-      <Box mt={2} mb={5} maxWidth={"250px"}>
+      <Box mt={2} mb={5}>
         <Button variant="text" fullWidth="true" color="info" size="small" onClick={() => setForgotPassword(true)}>Forgot Password</Button>
       </Box>
       <SignUpDialog 
