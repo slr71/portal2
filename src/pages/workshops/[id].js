@@ -233,11 +233,37 @@ const WorkshopEditor = (props) => {
   const [workshop, setWorkshop] = useState(props.workshop)
   const [tab, setTab] = useState(0)
 
-  const [submitFormMutation] = useMutation(
+  const [submitWorkshopMutation] = useMutation(
     (data) => api.updateWorkshop(workshop.id, data),
     {
       onSuccess: (resp) => {
         setWorkshop(resp)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [submitOrganizerMutation] = useMutation(
+    (userId) => api.createWorkshopOrganizer(workshop.id, userId),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteOrganizerMutation] = useMutation(
+    (userId) => api.deleteWorkshopOrganizer(workshop.id, userId),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
       },
       onError: (error) => {
         console.log('ERROR', error)
@@ -264,13 +290,13 @@ const WorkshopEditor = (props) => {
         <WorkshopViewer workshop={workshop} />
       </TabPanel>
       <TabPanel value={tab} index={1}>
-        <GeneralSettings {...workshop} submitHandler={submitFormMutation} />
+        <GeneralSettings {...workshop} submitHandler={submitWorkshopMutation} />
         <br /><br />
-        <EnrollmentPeriod {...workshop} submitHandler={submitFormMutation} />
+        <EnrollmentPeriod {...workshop} submitHandler={submitWorkshopMutation} />
         <br /><br />
-        <Host {...workshop} submitHandler={submitFormMutation} />
+        <Host {...workshop} submitHandler={submitWorkshopMutation} />
         <br /><br />
-        <Organizers {...workshop} />
+        <Organizers {...workshop} submitHandler={submitOrganizerMutation} deleteHandler={deleteOrganizerMutation} />
         <br /><br />
         <Contacts {...workshop} />
         <br /><br />
@@ -446,45 +472,70 @@ const Host = ({ owner, submitHandler }) => {
   )
 }
 
-const Organizers = ({ organizers }) => {
+const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
   const classes = useStyles()
+  const user = useUser()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const isEditable = owner.id == user.id || user.is_staff
 
   return (
-    <Paper elevation={3} className={classes.paper}>
-      <Typography component="div" variant="h5">Instructors/Organizers</Typography> 
-      <Typography color="textSecondary">
-        Add additional instructors/organizers for the workshop. 
-        These people will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
-        NOTE: Only the workshop host can add or remove additional instructors/organizers.
-      </Typography>
-      <br />
-      <List>
-        {organizers.map((organizer, index) => (
-          <Grid container key={index} justify="space-between" alignItems="center">
-            <Grid item>
-              <Link key={organizer.id} href={`/administrative/users/${organizer.id}`}>
-                <ListItem>
-                  <ListItemAvatar>
-                    <Avatar>
-                      <PersonIcon />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText primary={organizer.first_name + ' ' + organizer.last_name} secondary={organizer.username} />
-                </ListItem>
-              </Link>
+    <div>
+      <Paper elevation={3} className={classes.paper}>
+        <Typography component="div" variant="h5">Instructors/Organizers</Typography> 
+        <Typography color="textSecondary">
+          Add additional instructors/organizers for the workshop. 
+          These people will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
+          NOTE: Only the workshop host can add or remove additional instructors/organizers.
+        </Typography>
+        <br />
+        <List>
+          {organizers.map((organizer, index) => (
+            <Grid container key={index} justify="space-between" alignItems="center">
+              <Grid item>
+                <Link key={organizer.id} href={`/administrative/users/${organizer.id}`}>
+                  <ListItem>
+                    <ListItemAvatar>
+                      <Avatar>
+                        <PersonIcon />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary={organizer.first_name + ' ' + organizer.last_name} secondary={organizer.username} />
+                  </ListItem>
+                </Link>
+              </Grid>
+              {isEditable &&
+                <Grid item>
+                  <IconButton>
+                    <DeleteIcon onClick={() => deleteHandler(organizer.id)} />
+                  </IconButton>
+                </Grid>
+              }
             </Grid>
-            <Grid item>
-              <IconButton>
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
-          </Grid>
-        ))}
-      </List>
-      <Box display="flex" justifyContent="flex-end">
-        <Button variant="contained" color="primary">Add Organizer</Button>
-      </Box>
-    </Paper>
+          ))}
+        </List>
+        {isEditable &&
+          <Box display="flex" justifyContent="flex-end">
+            <Button 
+              variant="contained" 
+              color="primary"
+              onClick={() => setDialogOpen(true)}
+            >
+              Add Organizer
+            </Button>
+          </Box>
+        }
+      </Paper>
+      <SearchUsersDialog 
+        title='Add Organizer'
+        description='Enter the user to add as an organizer for the workshop.'
+        open={dialogOpen}
+        handleClose={() => setDialogOpen(false)} 
+        handleSubmit={(user) => {
+          setDialogOpen(false)
+          submitHandler(user.id)
+        }}
+      />
+    </div>
   )
 }
 

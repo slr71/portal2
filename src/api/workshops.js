@@ -1,14 +1,23 @@
 const router = require('express').Router();
-const { requireAdmin, getUser } = require('../auth');
+const { getUser } = require('../auth');
 const models = require('../models');
 const User = models.account_user;
 const Workshop = models.api_workshop;
 const WorkshopEnrollmentRequest = models.api_workshopenrollmentrequest;
 const WorkshopEnrollmentRequestLog = models.api_workshopenrollmentrequestlog;
+const WorkshopOrganizer = models.api_workshoporganizer;
 const { approveRequest, grantRequest } = require('./approvers/workshop');
 
 router.get('/', async (req, res) => {
     const workshops = await Workshop.findAll({
+        include: [ //TODO create scope for this
+            {
+                model: User.unscoped(), 
+                as: 'organizers', 
+                through: { attributes: [] }, // remove connector table
+                attributes: [ 'id' ]
+            }
+        ],
         order: [ [ 'enrollment_begins', 'DESC' ] ]
     });
 
@@ -92,8 +101,10 @@ router.post('/:id(\\d+)', getUser, async (req, res) => {
     res.json(workshop).status(200);
 });
 
-// Get workshop enrollees (RESTRICTED TO STAFF)
-router.get('/:id(\\d+)/participants', requireAdmin, async (req, res) => {
+// Get workshop enrollees
+router.get('/:id(\\d+)/participants', getUser, async (req, res) => {
+    //TODO check permissions (organizer/host/staff)
+
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ 
             {
@@ -108,8 +119,71 @@ router.get('/:id(\\d+)/participants', requireAdmin, async (req, res) => {
     return res.json(workshop.users).status(200);
 });
 
-// Get workshop requests (RESTRICTED TO STAFF)
-router.get('/:id(\\d+)/requests', requireAdmin, async (req, res) => {
+// Add organizer to workshop
+router.put('/:id(\\d+)/organizers', getUser, async (req, res) => {
+    const userId = req.body.userId
+    if (!userId)
+        return res.send('Missing user id').status(400);
+
+    const workshop = await Workshop.findByPk(req.params.id, {
+        include: [ //TODO create scope for this
+            { 
+                model: User.unscoped(), 
+                as: 'owner',
+                attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ]
+            }
+        ]
+    });
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host and staff 
+    if (workshop.owner.id != req.user.id && !req.user.is_staff)
+        return res.send('Permission denied').status(403);
+
+    const [organizer, created] = await WorkshopOrganizer.findOrCreate({ 
+        where: { 
+            workshop_id: workshop.id,
+            organizer_id: userId
+        } 
+    });
+    res.json(organizer).status(201);
+});
+
+// Remove organizer from workshop
+router.delete('/:workshopId(\\d+)/organizers/:userId(\\d+)', getUser, async (req, res) => {
+    const workshop = await Workshop.findByPk(req.params.workshopId, {
+        include: [ //TODO create scope for this
+            { 
+                model: User.unscoped(), 
+                as: 'owner',
+                attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ]
+            }
+        ]
+    });
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host and staff
+    if (workshop.owner.id != req.user.id && !req.user.is_staff)
+        return res.send('Permission denied').status(403);
+
+    const organizer = await WorkshopOrganizer.findOne({ 
+        where: { 
+            workshop_id: workshop.id,
+            organizer_id: req.params.userId
+        } 
+    });
+
+    await organizer.destroy();
+    res.send('success').status(200);
+});
+
+
+// Get workshop requests 
+router.get('/:id(\\d+)/requests', getUser, async (req, res) => {
+    //TODO check permissions (organizer/host/staff)
+
     const requests = await WorkshopEnrollmentRequest.findAll({ 
         where: { 
             workshop_id: req.params.id 

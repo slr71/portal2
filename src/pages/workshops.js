@@ -12,8 +12,8 @@ const useStyles = makeStyles((theme) => ({
 const Workshops = (props) => {
   const user = useUser()
   const userWorkshops = [].concat(
-    user.workshops, // workshops user is/was enrolled in
-    props.workshops.filter(w => w.creator_id == user.id) // workshops user is/was hosting
+    user.workshops, // workshop user is/was enrolled in
+    props.workshops.filter(w => w.creator_id == user.id || w.organizers.some(o => o.id == user.id)) // workshop user is/was hosting/organizer
   )
   const otherWorkshops = props.workshops.filter(w => !userWorkshops.find(w2 => w2.id == w.id)) 
 
@@ -86,6 +86,8 @@ const Workshop = ({ workshop }) => {
   const classes = useStyles()
   const user = useUser()
   const isHost = user.id == workshop.creator_id
+  const isOrganizer = workshop.organizers.some(o => o.id == user.id)
+  console.log({ isHost, isOrganizer })
 
   return (
     <Link underline='none' href={`workshops/${workshop.id}`}>
@@ -103,7 +105,14 @@ const Workshop = ({ workshop }) => {
         }
         description={workshop.description}
         icon={<EventIcon />}
-        action={isHost && <Box m={1}><b>You are the workshop host</b></Box>}
+        action={
+          <Box m={1}>
+            {isHost 
+              ? <b>You are the workshop host</b>
+              : (isOrganizer ? <b>You are a workshop organizer</b> : null)
+            }
+          </Box>
+        }
         largeHeader
       />
     </Link>
