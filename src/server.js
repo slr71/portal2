@@ -137,8 +137,13 @@ app.prepare()
         server.use('/api', require('./api/public'))
         if (isDevelopment) server.use('/api/tests', require('./api/tests'))
 
-        // Require auth on all routes/page after this
-        if (!config.debugUser) server.use(keycloakClient.protect())
+        // Restricted API routes 
+        server.use('/api/users', keycloakClient.checkSso(), require('./api/users'))
+        server.use('/api/services', keycloakClient.checkSso(), require('./api/services'))
+        server.use('/api/workshops', keycloakClient.checkSso(), require('./api/workshops'))
+        server.use('/api/forms', keycloakClient.checkSso(), require('./api/forms'))
+        server.use('/api/mailing_lists', keycloakClient.checkSso(), require('./api/mailing_lists'))
+        server.use('/api/*', (_, res) => res.send('Resource not found').status(404))
 
         // Save web socket handle
         server.use((req, _, next) => {
@@ -147,13 +152,8 @@ app.prepare()
             next()
         })
 
-        // Restricted API routes 
-        server.use('/api/users', require('./api/users'))
-        server.use('/api/services', require('./api/services'))
-        server.use('/api/workshops', require('./api/workshops'))
-        server.use('/api/forms', require('./api/forms'))
-        server.use('/api/mailing_lists', require('./api/mailing_lists'))
-        server.use('/api/*', (_, res) => res.send('Resource not found').status(404))
+        // Require auth on all routes/page after this
+        if (!config.debugUser) server.use(keycloakClient.protect())
 
         // Restricted UI pages
         server.get("*", (req, res) => {
