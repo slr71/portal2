@@ -107,6 +107,10 @@ class PortalAPI {
 
   async deleteWorkshopContact(workshopId, contactId) { return await this.delete(`/workshops/${workshopId}/contacts/${contactId}`) }
 
+  async createWorkshopService(workshopId, serviceId) { return await this.put(`/workshops/${workshopId}/services`, { serviceId }) }
+
+  async deleteWorkshopService(workshopId, serviceId) { return await this.delete(`/workshops/${workshopId}/services/${serviceId}`) }
+
   async forms() { return await this.get (`/forms`) }
 
   async form(id) {  return await this.get(`/forms/${id}`) } // id or name

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useMutation } from "react-query"
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse } from '@material-ui/core'
+import { Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, MenuItem, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse } from '@material-ui/core'
 import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@material-ui/icons'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import DateFnsUtils from '@date-io/date-fns'
@@ -297,6 +297,32 @@ const WorkshopEditor = (props) => {
     }
   )
 
+  const [submitServiceMutation] = useMutation(
+    (serviceId) => api.createWorkshopService(workshop.id, serviceId),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteServiceMutation] = useMutation(
+    (serviceId) => api.deleteWorkshopService(workshop.id, serviceId),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
   return (
     <div>
       <Tabs
@@ -326,7 +352,7 @@ const WorkshopEditor = (props) => {
         <br /><br />
         <Contacts {...workshop} submitHandler={submitContactMutation} deleteHandler={deleteContactMutation} />
         <br /><br />
-        <Services {...workshop} />
+        <Services workshop={workshop} services={props.services} submitHandler={submitServiceMutation} deleteHandler={deleteServiceMutation} />
         <br /><br />
       </TabPanel>
       <TabPanel value={tab} index={2}>
@@ -531,8 +557,8 @@ const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
               </Grid>
               {isEditable &&
                 <Grid item>
-                  <IconButton>
-                    <DeleteIcon onClick={() => deleteHandler(organizer.id)} />
+                  <IconButton onClick={() => deleteHandler(organizer.id)}>
+                    <DeleteIcon />
                   </IconButton>
                 </Grid>
               }
@@ -589,8 +615,8 @@ const Contacts = ({ owner, contacts, submitHandler, deleteHandler }) => {
               </ListItem>
             </Grid>
             <Grid item>
-              <IconButton>
-                <DeleteIcon onClick={() => deleteHandler(contact.id)} />
+              <IconButton onClick={() => deleteHandler(contact.id)}>
+                <DeleteIcon />
               </IconButton>
             </Grid>
           </Grid>
@@ -618,39 +644,58 @@ const Contacts = ({ owner, contacts, submitHandler, deleteHandler }) => {
   )
 }
 
-const Services = ({ services }) => {
+const Services = ({ workshop, services, submitHandler, deleteHandler }) => {
   const classes = useStyles()
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
-    <Paper elevation={3} className={classes.paper}>
-      <Typography component="div" variant="h5">Services</Typography> 
-      <Typography color="textSecondary">Services users need access to for this workshop.</Typography>
-      <br />
-      <List>
-        {services.map((service, index) => (
-          <Grid container key={index} justify="space-between" alignItems="center">
-            <Grid item>
-              <Link key={service.id} href={service.service_url}>
-                <ListItem>
-                  <ListItemAvatar>
-                    <Avatar src={service.icon_url} />
-                  </ListItemAvatar>
-                  <ListItemText primary={service.name} />
-                </ListItem>
-              </Link>
+    <div>
+      <Paper elevation={3} className={classes.paper}>
+        <Typography component="div" variant="h5">Services</Typography> 
+        <Typography color="textSecondary">Services users need access to for this workshop.</Typography>
+        <br />
+        <List>
+          {workshop.services.map((service, index) => (
+            <Grid container key={index} justify="space-between" alignItems="center">
+              <Grid item>
+                <Link key={service.id} href={service.service_url}>
+                  <ListItem>
+                    <ListItemAvatar>
+                      <Avatar src={service.icon_url} />
+                    </ListItemAvatar>
+                    <ListItemText primary={service.name} />
+                  </ListItem>
+                </Link>
+              </Grid>
+              <Grid item>
+                <IconButton onClick={() => deleteHandler(service.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              </Grid>
             </Grid>
-            <Grid item>
-              <IconButton>
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
-          </Grid>
-        ))}
-      </List>
-      <Box display="flex" justifyContent="flex-end">
-        <Button variant="contained" color="primary">Add Service</Button>
-      </Box>
-    </Paper>
+          ))}
+        </List>
+        <Box display="flex" justifyContent="flex-end">
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={() => setDialogOpen(true)}
+          >
+            Add Service
+          </Button>
+        </Box>
+      </Paper>
+      <AddServiceDialog 
+        open={dialogOpen}
+        services={workshop.services}
+        allServices={services}
+        handleClose={() => setDialogOpen(false)} 
+        handleSubmit={(serviceId) => {
+          setDialogOpen(false)
+          submitHandler(serviceId)
+        }}
+      />
+    </div>
   )
 }
 
@@ -968,18 +1013,62 @@ const AddContactDialog = ({ open, handleClose, handleSubmit }) => {
   )
 }
 
+const AddServiceDialog = ({ open, services, allServices, handleClose, handleSubmit }) => {
+  const availableServices = allServices.filter(s => s.approval_key != '' && !services.some(s2 => s2.id == s.id))
+  const [selected, setSelected] = useState()
+
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth>
+      <DialogTitle>Add Service</DialogTitle>
+      <DialogContent>
+      <TextField
+          select
+          margin="normal"
+          fullWidth
+          label="Select a service"
+          value={selected || ''}
+        >
+          {availableServices.map((service, index) => (
+            <MenuItem key={index} value={service.id} onClick={(e) => setSelected(service.id)}>
+              {service.name}
+            </MenuItem>
+          ))}
+        </TextField>
+        <br />
+        <br />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setSelected(null) || handleClose()} variant="outlined">
+          Cancel
+        </Button>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          disabled={!selected || !handleSubmit}
+          onClick={() => setSelected(null) || handleSubmit(selected)}
+        >
+          Add
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
+
 export async function getServerSideProps({ req, query }) {
   const workshop = await req.api.workshop(query.id)
 
   // These will fail if user is not staff
   const participants = await req.api.workshopParticipants(query.id)
   const requests = await req.api.workshopRequests(query.id)
+  const services = await req.api.services()
 
   return { 
     props: { 
       workshop, 
       participants,
-      requests
+      requests,
+      services
     } 
   }
 }
