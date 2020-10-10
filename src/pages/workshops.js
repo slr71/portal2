@@ -52,7 +52,6 @@ const MyWorkshops = ({ workshops }) => {
   return (
     <div>
       {content}
-      <br />
       <p>To host your own workshop use the <Link href='requests/8'>request form</Link>.</p>
     </div>
   )
