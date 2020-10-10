@@ -9,7 +9,7 @@ import { useAPI } from '../../contexts/api'
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   }
 }))
 
