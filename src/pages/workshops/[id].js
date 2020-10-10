@@ -9,7 +9,7 @@ import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as Keyboard
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import DateFnsUtils from '@date-io/date-fns'
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
-import { Layout, DateRange, TabPanel, UpdateForm } from '../../components'
+import { Layout, DateRange, TabPanel, UpdateForm, validateField } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
@@ -28,7 +28,7 @@ const useStyles = makeStyles((theme) => ({
 const Workshop = (props) => {
   const workshop = props.workshop
   const user = useUser()
-  const isEditor = user.is_staff || workshop.creator_id == user.id
+  const isEditor = user.is_staff || user.id == workshop.creator_id || workshop.organizers.some(o => o.id == user.id)
 
   return (
     <Layout title={workshop.title} breadcrumbs>
@@ -271,6 +271,32 @@ const WorkshopEditor = (props) => {
     }
   )
 
+  const [submitContactMutation] = useMutation(
+    (data) => api.createWorkshopContact(workshop.id, data),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteContactMutation] = useMutation(
+    (contactId) => api.deleteWorkshopContact(workshop.id, contactId),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
   return (
     <div>
       <Tabs
@@ -298,7 +324,7 @@ const WorkshopEditor = (props) => {
         <br /><br />
         <Organizers {...workshop} submitHandler={submitOrganizerMutation} deleteHandler={deleteOrganizerMutation} />
         <br /><br />
-        <Contacts {...workshop} />
+        <Contacts {...workshop} submitHandler={submitContactMutation} deleteHandler={deleteContactMutation} />
         <br /><br />
         <Services {...workshop} />
         <br /><br />
@@ -539,10 +565,12 @@ const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
   )
 }
 
-const Contacts = ({ contacts }) => {
+const Contacts = ({ owner, contacts, submitHandler, deleteHandler }) => {
   const classes = useStyles()
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
+    <div>
     <Paper elevation={3} className={classes.paper}>
       <Typography component="div" variant="h5">Support Contacts</Typography> 
       <Typography color="textSecondary">Who participants should reach out to if they have questions.</Typography>
@@ -562,16 +590,31 @@ const Contacts = ({ contacts }) => {
             </Grid>
             <Grid item>
               <IconButton>
-                <DeleteIcon />
+                <DeleteIcon onClick={() => deleteHandler(contact.id)} />
               </IconButton>
             </Grid>
           </Grid>
         ))}
       </List>
       <Box display="flex" justifyContent="flex-end">
-        <Button variant="contained" color="primary">Add Contact</Button>
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={() => setDialogOpen(true)}
+        >
+          Add Contact
+        </Button>
       </Box>
     </Paper>
+    <AddContactDialog 
+      open={dialogOpen}
+      handleClose={() => setDialogOpen(false)} 
+      handleSubmit={(values) => {
+        setDialogOpen(false)
+        submitHandler(values)
+      }}
+    />
+  </div>
   )
 }
 
@@ -864,6 +907,61 @@ const SearchUsersDialog = ({ open, title, description, handleClose, handleSubmit
           onClick={() => handleSubmit(selectedUser)}  
         >
           Submit
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
+const AddContactDialog = ({ open, handleClose, handleSubmit }) => {
+  const [values, setValues] = useState({})
+  const [errors, setErrors] = useState({})
+
+  const handleChange = (e) => {
+    const error = validateField(e.target, e.target.value)
+    setErrors({ ...errors, [e.target.id]: error })
+    setValues({ ...values, [e.target.id]: e.target.value })
+  }
+
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth>
+      <DialogTitle>Add Contact</DialogTitle>
+      <DialogContent>
+        <TextField
+          autoFocus
+          margin="normal"
+          fullWidth
+          id="name"
+          label="Name"
+          type="text"
+          required={true}
+          error={!!errors.name}
+          helperText={errors.name}
+          onChange={handleChange}
+        />
+        <TextField
+          margin="normal"
+          fullWidth
+          id="email"
+          label="Email"
+          type="email"
+          required={true}
+          error={!!errors.email}
+          helperText={errors.email}
+          onChange={handleChange}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} variant="outlined">
+          Cancel
+        </Button>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          disabled={!!errors.name || !!errors.email || !handleSubmit}
+          onClick={() => handleSubmit(values)}
+        >
+          Add
         </Button>
       </DialogActions>
     </Dialog>

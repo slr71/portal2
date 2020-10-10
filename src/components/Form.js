@@ -334,4 +334,4 @@ const FormControls = ({ disabled, activeStep, numSteps, backHandler, nextHandler
   )
 }
 
-export { UpdateForm, Wizard, FormStepper, FormField, FormControls }
+export { UpdateForm, Wizard, FormStepper, FormField, FormControls, validateField }

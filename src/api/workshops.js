@@ -6,6 +6,7 @@ const Workshop = models.api_workshop;
 const WorkshopEnrollmentRequest = models.api_workshopenrollmentrequest;
 const WorkshopEnrollmentRequestLog = models.api_workshopenrollmentrequestlog;
 const WorkshopOrganizer = models.api_workshoporganizer;
+const WorkshopContact = models.api_workshopcontact;
 const { approveRequest, grantRequest } = require('./approvers/workshop');
 
 router.get('/', async (req, res) => {
@@ -179,6 +180,64 @@ router.delete('/:workshopId(\\d+)/organizers/:userId(\\d+)', getUser, async (req
     res.send('success').status(200);
 });
 
+// Add contact to workshop
+router.put('/:id(\\d+)/contacts', getUser, async (req, res) => {
+    const name = req.body.name;
+    const email = req.body.email;
+    if (!name || !email)
+        return res.send('Missing params').status(400);
+
+    const workshop = await Workshop.findByPk(req.params.id, {
+        include: [ //TODO create scope for this
+            { 
+                model: User.unscoped(), 
+                as: 'owner',
+                attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ]
+            }
+        ]
+    });
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host and staff 
+    if (workshop.owner.id != req.user.id && !req.user.is_staff)
+        return res.send('Permission denied').status(403);
+
+    const [contact, created] = await WorkshopContact.findOrCreate({ 
+        where: { 
+            workshop_id: workshop.id,
+            name,
+            email
+        } 
+    });
+    res.json(contact).status(201);
+});
+
+// Remove contact from workshop
+router.delete('/:workshopId(\\d+)/contacts/:contactId(\\d+)', getUser, async (req, res) => {
+    const workshop = await Workshop.findByPk(req.params.workshopId, {
+        include: [ //TODO create scope for this
+            { 
+                model: User.unscoped(), 
+                as: 'owner',
+                attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ]
+            }
+        ]
+    });
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host and staff
+    if (workshop.owner.id != req.user.id && !req.user.is_staff)
+        return res.send('Permission denied').status(403);
+
+    const contact = await WorkshopContact.findByPk(req.params.contactId);
+    if (!contact)
+        return res.send('Contact not found').status(404);
+
+    await contact.destroy();
+    res.send('success').status(200);
+});
 
 // Get workshop requests 
 router.get('/:id(\\d+)/requests', getUser, async (req, res) => {
