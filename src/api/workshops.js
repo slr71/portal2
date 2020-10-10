@@ -10,6 +10,14 @@ const WorkshopContact = models.api_workshopcontact;
 const WorkshopService = models.api_workshopservice;
 const { approveRequest, grantRequest } = require('./approvers/workshop');
 
+function hasHostAccess(workshop, user) {
+    return workshop.creator_id == user.id || user.is_staff
+}
+
+function hasOrganizerAccess(workshop, user) {
+    return hasHostAccess(workshop, user) || workshop.organizers.some(o => o.id == user.id)
+}
+
 router.get('/', async (req, res) => {
     const workshops = await Workshop.findAll({
         include: [ //TODO create scope for this
@@ -83,14 +91,13 @@ router.post('/:id(\\d+)', getUser, async (req, res) => {
         return res.send('Workshop not found').status(404);
 
     // Check permission
-    const isEditor = req.user.is_staff || workshop.creator_id == user.id
-    if (!isEditor)
+    if (!hasOrganizerAccess(workshop, req.user))
         return res.send('Permission denied').status(403);
 
     // Verify and update fields
     for (let key in fields) {
         const SUPPORTED_FIELDS = ['title', 'description', 'about', 'enrollment_begins', 'enrollment_ends', 'creator_id'];
-        const RESTRICTED_FIELDS = [ 'creator_id' ]
+        const RESTRICTED_FIELDS = [ 'enrollment_begins', 'enrollment_ends', 'creator_id' ]
         if (RESTRICTED_FIELDS.includes(key) && !req.user.is_staff)
             return res.send('Restricted field').status(403);
         if (!SUPPORTED_FIELDS.includes(key))
@@ -132,7 +139,7 @@ router.put('/:id(\\d+)/organizers', getUser, async (req, res) => {
         return res.send('Workshop not found').status(404);
 
     // Check permission -- only workshop host and staff 
-    if (workshop.creator_id != req.user.id && !req.user.is_staff)
+    if (!hasHostAccess(workshop, req.user))
         return res.send('Permission denied').status(403);
 
     const [organizer, created] = await WorkshopOrganizer.findOrCreate({ 
@@ -151,7 +158,7 @@ router.delete('/:workshopId(\\d+)/organizers/:userId(\\d+)', getUser, async (req
         return res.send('Workshop not found').status(404);
 
     // Check permission -- only workshop host and staff
-    if (workshop.creator_id != req.user.id && !req.user.is_staff)
+    if (!hasHostAccess(workshop, req.user))
         return res.send('Permission denied').status(403);
 
     const organizer = await WorkshopOrganizer.findOne({ 
@@ -186,7 +193,7 @@ router.put('/:id(\\d+)/contacts', getUser, async (req, res) => {
         return res.send('Workshop not found').status(404);
 
     // Check permission -- only workshop host/organizer and staff 
-    if (workshop.creator_id != req.user.id && !req.user.is_staff && !workshop.organizers.some(o => o.id == req.user.id))
+    if (!hasOrganizerAccess(workshop, req.user))
         return res.send('Permission denied').status(403);
 
     const [contact, created] = await WorkshopContact.findOrCreate({ 
@@ -215,7 +222,7 @@ router.delete('/:workshopId(\\d+)/contacts/:contactId(\\d+)', getUser, async (re
         return res.send('Workshop not found').status(404);
 
     // Check permission -- only workshop host/organizer and staff
-    if (workshop.creator_id != req.user.id && !req.user.is_staff && !workshop.organizers.some(o => o.id == req.user.id))
+    if (!hasOrganizerAccess(workshop, req.user))
         return res.send('Permission denied').status(403);
 
     const contact = await WorkshopContact.findByPk(req.params.contactId);
@@ -245,8 +252,8 @@ router.put('/:id(\\d+)/services', getUser, async (req, res) => {
     if (!workshop)
         return res.send('Workshop not found').status(404);
 
-    // Check permission -- only workshop host/organizer or staff allowed
-    if (workshop.creator_id != req.user.id && !req.user.is_staff && !workshop.organizers.some(o => o.id == req.user.id))
+    // Check permission -- only workshop host/organizer or staff
+    if (!hasOrganizerAccess(workshop, req.user))
         return res.send('Permission denied').status(403);
 
     const [service, created] = await WorkshopService.findOrCreate({ 
@@ -274,7 +281,7 @@ router.delete('/:workshopId(\\d+)/services/:serviceId(\\d+)', getUser, async (re
         return res.send('Workshop not found').status(404);
 
     // Check permission -- only workshop host and staff
-    if (workshop.creator_id != req.user.id && !req.user.is_staff)
+    if (!hasHostAccess(workshop, req.user))
         return res.send('Permission denied').status(403);
 
     const service = await WorkshopService.findOne({

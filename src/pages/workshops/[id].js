@@ -410,7 +410,9 @@ const GeneralSettings = (props) => {
 
 const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler }) => {
   const classes = useStyles()
+  const user = useUser()
   const [errors, setErrors] = useState({})
+  const isEditor = user.is_staff
 
   //TODO
   // const validate = (values) => {
@@ -428,12 +430,13 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
       <Typography component="div" variant="h5">Enrollment Period</Typography> 
       <Typography color="textSecondary">
         Set the date range for when users will be able to enroll in the workshop and gain access to the relevant services.
-        NOTE: These fields can only be changed by CyVerse staff.
+        NOTE: these fields can only be changed by CyVerse staff.
       </Typography>
       <br />
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <Grid container justify="space-around">
           <KeyboardDatePicker
+            disabled={!isEditor}
             disableToolbar
             variant="inline"
             format="MM/dd/yyyy"
@@ -449,6 +452,7 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
             }}
           />
           <KeyboardDatePicker
+            disabled={!isEditor}
             disableToolbar
             variant="inline"
             format="MM/dd/yyyy"
@@ -537,7 +541,7 @@ const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
         <Typography color="textSecondary">
           Add additional instructors/organizers for the workshop. 
           These people will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
-          NOTE: Only the workshop host can add or remove additional instructors/organizers.
+          NOTE: only the workshop host can add or remove additional instructors/organizers.
         </Typography>
         <br />
         <List>
