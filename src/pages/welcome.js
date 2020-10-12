@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
   title: {
     color: '#0971ab',
     fontWeight: "bold"
-  }
+  },
 }))
 
 const Welcome = (props) => {
@@ -45,14 +45,14 @@ const Left = () => {
   return (
     <div>
       <Box pt={"15%"}>
-        <MainLogo size="large" />
+        <MainLogo size="large"/>
       </Box>
       <Box>
         <WelcomeAnimation />
       </Box>
         <Box>
           <Typography variant="h5" style={{color: "white"}}>
-            An Open Science Workspace for
+            The Open Science Workspace for
             <br />
             Collaborative Data-driven Discovery
           </Typography>
