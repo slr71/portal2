@@ -1,7 +1,7 @@
 const config = require('../../config.json');
 const Argo = require('../../argo');
 const { intercom_atmosphere } = require('../../intercom');
-const logger = require('../../logging');
+const { logger } = require('../../logging');
 
 // Only the Atmosphere service has a special approval requirements, all other services are auto-approved.
 const APPROVERS = {
@@ -36,29 +36,25 @@ async function grantRequest(request) {
     if (key in GRANTERS)
         workflow = GRANTERS[key];
 
-    console.log('grantRequest:', key);
+    console.log('grantRequest:', key, workflow);
 
     // Submit Argo workflow
     await Argo.submit(
-        `../${workflowDefinitionPath}/services.yaml`,
-        'bisque-grant-access',
+        'services.yaml',
+        workflow,
         {
+            // User params
             user_id: request.user.username,
-            password: "FIXME",
             email: request.user.email,
-            ldap_host: "ldap://pollit.iplantcollaborative.org",
-            ldap_admin: "cn=MANAGER,dc=iplantcollaborative,dc=org",
-            ldap_password: "QA-iplantLDAP",
-            portal_api_base_url: "http://10.0.2.15:3022",
-            mailchimp_username: "FIXME",
-            mailchimp_api_key: "FIXME",
-            mailchimp_list_id: "FIXME",
-            user_id_number: "FIXME",
-            first_name: request.user.first_name,
-            last_name: request.user.last_name,
-            department: request.user.department,
-            organization: request.user.institution,
-            title: 'FIXME'
+
+            // Other params
+            portal_api_base_url: config.apiBaseUrl,
+            ldap_host: config.ldap.host,
+            ldap_admin: config.ldap.admin,
+            ldap_password: config.ldap.password,
+            bisque_url: config.bisque.url,
+            bisque_username: config.bisque.username,
+            bisque_password: config.bisque.password
         }
     );
 }
@@ -73,25 +69,35 @@ async function approveAtmosphere(request) {
     const user = request.user;
     const intro = `Hi ${user.first_name}! Thanks for requesting access to Atmosphere.`;
 
-    // Check if user is a student
-    if (user.occupation.name && user.occupation.name.toLowerCase().indexOf('student') >= 0) {
-        await intercom_atmosphere(request,
-            `${intro}
-             Before we can approve your request, we need some additional information. 
-             Could you please fill out the form below?\n\n${config.atmosphereStudentRequestFormUrl}`
-        );
-        await request.pend();
-        return;
-    }
+    // Check if user is a student //FIXME add student request form
+    // if (user.occupation.name && user.occupation.name.toLowerCase().indexOf('student') >= 0) {
+    //     await intercom_atmosphere(request,
+    //         `${intro}
+    //          Before we can approve your request, we need some additional information. 
+    //          Could you please fill out the form below?\n\n${config.atmosphereStudentRequestFormUrl}`
+    //     );
+    //     await request.pend();
+    //     return;
+    // }
 
     // Check if user is international
     if (user.region.country.name != 'United States') {
-        await intercom_atmosphere(request,
+        logger.info(`approveAtmosphere: Deny user from country ${user.region.country.name}`);
+        // await intercom_atmosphere(request,
+        //     `${intro}
+        //      Before we can approve your request, we need some additional information. 
+        //      Could you please fill out the form below?\n\n${atmosphereInternationalRequestFormUrl}`
+        // );
+        // await request.pend();
+        await intercom_atmosphere(request, 
             `${intro}
-             Before we can approve your request, we need some additional information. 
-             Could you please fill out the form below?\n\n${atmosphereInternationalRequestFormUrl}`
+
+             At this time, CyVerse Atmosphere is no longer accepting new requests from non-US users. Here is information about alternative services within CyVerse or platforms outside of CyVerse:
+             https://learning.cyverse.org/projects/faq/en/latest/atmosphere-faq.html
+             
+             Please let us know if you have any questions.`
         );
-        await request.pend();
+        await request.deny();
         return;
     }
 
@@ -100,10 +106,14 @@ async function approveAtmosphere(request) {
         email.email.endsWith('.edu') || email.email.endsWith('@cyverse.org') || email.email.endsWith('.gov')
     );
     if (!validEmail) {
+        logger.info(`approveAtmosphere: Deny user with emails ${user.emails.map(e => e.email).join(', ')}`);
         await intercom_atmosphere(request, 
             `${intro}
-             In order to use the service, you must have a *.edu or *.gov email address associated with your account. 
-             If you have one, and can add it, we can approve your request.`
+
+             In order to use CyVerse Atmosphere you must have a *.edu or *.gov email address associated with your account. 
+             If you have one, and can add it, we can approve your request.
+             
+             Please let us know if you have any questions.`
         );
         await request.deny();
         return;

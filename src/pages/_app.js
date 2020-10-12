@@ -6,9 +6,11 @@ import Head from 'next/head'
 import { ThemeProvider } from '@material-ui/core/styles'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import theme from '../theme'
-import { KeycloakProvider } from '../contexts/keycloak'
+//import { KeycloakProvider } from '../contexts/keycloak'
 import { APIProvider } from '../contexts/api'
 import { UserProvider } from '../contexts/user'
+import { CookiesProvider } from 'react-cookie'
+import config from '../config.json'
 
 export default function MyApp(props) {
   const { Component, pageProps, kauth, user, baseUrl, token } = props
@@ -19,22 +21,33 @@ export default function MyApp(props) {
     if (jssStyles) {
       jssStyles.parentElement.removeChild(jssStyles)
     }
+
+    // Setup Intercom chat
+    window.intercomSettings = {
+      app_id: config.intercom.appId,
+      alignment: "right",
+      hide_default_launcher: true,
+    }
+
+    // Load Intercom library -- copied from developer docs, modified app ID
+    var w=window;var ic=w.Intercom;if(typeof ic==="function") {ic('reattach_activator');ic('update',w.intercomSettings);}else {var d=document;var i=function(){i.c(arguments);};i.q=[];i.c=function(args){i.q.push(args);};w.Intercom=i;var l=function(){var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://widget.intercom.io/widget/${config.intercom.appId}';var x=d.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);};if(w.attachEvent){w.attachEvent('onload',l);}else{w.addEventListener('load',l,false);}}
   }, [])
 
   return (
     <ThemeProvider theme={theme}>
-      {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
       <CssBaseline />
-      <KeycloakProvider kauth={kauth}>
-        <APIProvider baseUrl={baseUrl} token={token}>
-          <UserProvider user={user}>
-            <Head>
-              <title>CyVerse User Portal</title>
-            </Head>
-            <Component {...pageProps} />
-          </UserProvider>
-        </APIProvider>
-      </KeycloakProvider>
+      <CookiesProvider>
+        {/* <KeycloakProvider kauth={kauth}> */}
+          <APIProvider baseUrl={baseUrl} token={token}>
+            <UserProvider user={user}>
+              <Head>
+                <title>CyVerse User Portal</title>
+              </Head>
+              <Component {...pageProps} />
+            </UserProvider>
+          </APIProvider>
+        {/* </KeycloakProvider> */}
+      </CookiesProvider>
     </ThemeProvider>
   )
 }
@@ -45,12 +58,13 @@ MyApp.propTypes = {
 }
 
 MyApp.getInitialProps = async ({ Component, ctx }) => {
-  return { //TODO use ctx?.req? syntax
-    kauth: ctx && ctx.req ? ctx.req.kauth : null,
-    user: ctx && ctx.req && ctx.req.api && ctx.req.api.token ? await ctx.req.api.user() : null,
-    baseUrl: ctx && ctx.req && ctx.req.api ? ctx.req.api.baseUrl : null, 
-    token: ctx && ctx.req && ctx.req.api ? ctx.req.api.token : null,
+  const req = ctx.req
+  const api = req && req.api
+  return {
+    kauth: req && req.kauth,
+    baseUrl: api && api.baseUrl, 
+    token: api && api.token,
+    user: api && api.token ? await api.user() : null,
     pageProps: Component.getInitialProps ? await Component.getInitialProps(ctx) : {},
-    namespacesRequired: ["common"]
   }
 }

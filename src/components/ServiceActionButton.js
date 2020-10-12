@@ -1,30 +1,36 @@
-import { Button } from '@material-ui/core'
-import LaunchIcon from '@material-ui/icons/Launch';
+import { Button, Tooltip } from '@material-ui/core'
 
 
-const ServiceActionButton = ({ user, service, requestAccessHandler }) => {
-  let label, action, url
-
+const ServiceActionButton = ({ status, service, requestAccessHandler }) => {
   // Request status can be: 'granted', 'denied', 'approved', 'pending'
-  if (service.is_powered)
-    [label, action, url] = ['LAUNCH', null, service.service_url]
-  else {
-    const [userService] = user.services.filter(s => s.id == service.id)
 
-    if (!userService || !userService.request)
-      [label, action, url] =  ['REQUEST ACCESS', requestAccessHandler, null]
-    else if (userService.request.status === 'granted')
-      [label, action, url] =  ['LAUNCH', null, service.service_url]
-    else if (userService.request.status === 'denied')
-      [label, action, url] =  ['DENIED']
-    else
-      [label, action, url] =  ['PENDING']
-  }
+  const { label, tooltip, action, url, disabled } = (() => {
+    if (service.is_powered || status === 'granted')
+      return { label: 'LAUNCH', url: service.service_url }
+    if (status === 'pending' || status === 'approved' || status === 'requested')
+      return {
+        label: 'ACCESS PENDING APPROVAL', 
+        tooltip: 'The access request is in process or awaiting approval.  You will be notified via email when access is granted.', 
+        disabled: true
+      }
+    if (status === 'denied')
+      return { 
+        label: 'ACCESS DENIED', 
+        tooltip: 'The access request was denied and an email was sent with an explanation.', 
+        disabled: true
+      }
+    
+    return { label: 'REQUEST ACCESS', action: requestAccessHandler }
+  })()
 
   return (
-    <Button endIcon={<LaunchIcon />} variant="contained" color="secondary" size="medium" href={url} onClick={action}>
-      {label}
-    </Button> 
+    <Tooltip title={tooltip || ''}>
+      <span>
+        <Button variant="contained" color="primary" size="medium" disabled={disabled} href={url} onClick={action}>
+          {label}
+        </Button> 
+      </span>
+    </Tooltip>
   )
 }
 

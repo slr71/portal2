@@ -1,18 +1,32 @@
 { 
     "port": 3000,
+    "wsPort": 3001,
 
+    "uiBaseUrl": "http://localhost:3000",
     "apiBaseUrl": "http://localhost:3000/api",
+    "wsBaseUrl": "ws://localhost:3001",
+
+    "uidNumberOffset": 2831,
+
+    "hmacKey": "<ADD SECRET HERE>",
+
+    "email": {
+        "bccNewAccountConfirmation": [],
+        "bccPasswordChangeRequest": [],
+        "bccWorkshopEnrollmentRequest": []
+    },
 
     "db": {
         "host": "localhost",
         "user": "",
         "password": "",
         "database": "portal",
-        "sessionTable": "session"
+        "sessionTable": "session",
+        "logging": false
     },
 
     "session": {
-        "secret": "keyboard cat",
+        "secret": "<ADD SECRET HERE>",
         "secure_cookie": false,
         "ttl": 8
     },
@@ -23,21 +37,37 @@
         "ssl-required": "all",
         "resource": "portal-local",
         "credentials": {
-            "secret": ""
+            "secret": "<ADD SECRET HERE>"
         },
         "confidential-port": 0
     },
 
     "argo": {
-        "baseUrl": "http://localhost:2746/api/v1",
-        "workflowDefinitionPath": "../workflows/argo",
-        "disabled": true 
+        "baseUrl": "http://localhost:2746/api/v1"
+    },
+
+    "ldap": {
+        "host": "",
+        "admin": "",
+        "password": ""
     },
   
     "intercom": { 
+        "appId": "",
         "token": "", 
         "adminBotId": "",
         "adminTier1AtmosphereId": "", 
         "adminTier1ScienceTeamId": "FIXME"
+    },
+
+    "mailchimp": {
+        "apiKey": "642ed3648307196d58f285b8e40846dc-us2",
+        "listId": "5e52b4dbdc"
+    },
+
+    "bisque": {
+        "url": "",
+        "username": "",
+        "password": ""
     }
 }

@@ -2,7 +2,7 @@ const Intercom = require('intercom-client');
 const axios = require('axios');
 const models = require('./models');
 const AccessRequestConversation = models.api_accessrequestconversation;
-const logger = require('./logging');
+const { logger } = require('./logging');
 const config = require('./config.json');
 
 const intercom = new Intercom.Client({ token: config.intercom.token });

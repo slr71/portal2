@@ -9,10 +9,13 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const Workshops = props => {
+const Workshops = (props) => {
   const user = useUser()
-  const userWorkshops = user.workshops
-  const otherWorkshops = props.workshops.filter(w => !userWorkshops.find(uw => uw.id == w.id))
+  const userWorkshops = [].concat(
+    user.workshops, // workshops user is/was enrolled in
+    props.workshops.filter(w => w.creator_id == user.id) // workshops user is/was hosting
+  )
+  const otherWorkshops = props.workshops.filter(w => !userWorkshops.find(w2 => w2.id == w.id)) 
 
   const timeNow = Date.now()
   const mine = userWorkshops.filter(w => new Date(w.enrollment_ends).getTime() > timeNow)
@@ -49,6 +52,7 @@ const MyWorkshops = ({ workshops }) => {
   return (
     <div>
       {content}
+      <br />
       <p>To host your own workshop use the <Link href='requests/8'>request form</Link>.</p>
     </div>
   )
@@ -81,10 +85,7 @@ const WorkshopGrid = ({ workshops }) => (
 const Workshop = ({ workshop }) => {
   const classes = useStyles()
   const user = useUser()
-  const action = 
-    user.id == workshop.creator_id
-      ? 'You are the workshop host'
-      : null
+  const isHost = user.id == workshop.creator_id
 
   return (
     <Link underline='none' href={`workshops/${workshop.id}`}>
@@ -100,9 +101,10 @@ const Workshop = ({ workshop }) => {
             </div>
           </>
         }
-        description={workshop.description} 
+        description={workshop.description}
         icon={<EventIcon />}
-        action={action}
+        action={isHost && <Box m={1}><b>You are the workshop host</b></Box>}
+        largeHeader
       />
     </Link>
   )

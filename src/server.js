@@ -1,14 +1,16 @@
 const express = require('express')
 const cors = require('cors')
-const bodyParser = require('body-parser');
+const bodyParser = require('body-parser')
 const session = require('express-session')
 const pgsimple = require('connect-pg-simple')
 const Keycloak = require('keycloak-connect')
 const next = require('next')
 const { requestLogger, errorLogger } = require('./logging')
 const config = require('./config.json')
-const { getUser, getUserToken } = require('./auth')
+const { WS_CONNECTED } = require('./constants')
+const { getUserID, getUserToken } = require('./auth')
 const PortalAPI = require('./apiClient')
+const ws = require('ws')
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const app = next({ dev: isDevelopment })
@@ -28,6 +30,27 @@ const keycloakClient = new Keycloak(
     { store: sessionStore },
     config.keycloak
 )
+
+// Configure web socket server
+const wsServer = new ws.Server({ port: config.wsPort })
+const sockets = {}
+wsServer.on('connection', (ws, req) => {
+    const username = req.url.substr(1) //TODO consider using express-ws package for routing
+    console.log(`Connection from username=${username} ip=${req.connection.remoteAddress} key=${req.headers['sec-websocket-key']}`)
+
+    sockets[username] = ws
+
+    // ws.on('message', (message) => {
+    //     console.log('Socket received:', message)
+    // })
+
+    ws.send(JSON.stringify({ 
+        type: WS_CONNECTED,
+        data: {
+            key: req.headers['sec-websocket-key']
+        }
+    }))
+})
 
 app.prepare()
     .then(() => {
@@ -73,9 +96,14 @@ app.prepare()
             return nextHandler(req, res)
         })
 
-        server.get("/_next/*", (req, res) => {
-            return nextHandler(req, res)
-        })
+        if (isDevelopment) 
+            server.get("/_next/*", (req, res) => {
+                return nextHandler(req, res)
+            })
+        else
+            server.get("/_next/static/*", (req, res) => {
+                return nextHandler(req, res)
+            })
 
         // Setup API client for use by getServerSideProps()
         server.use(async (req, _, next) => {
@@ -107,10 +135,17 @@ app.prepare()
 
         // Public API routes
         server.use('/api', require('./api/public'))
-        if (isDevelopment) server.use('/tests', require('./api/tests'))
+        if (isDevelopment) server.use('/api/tests', require('./api/tests'))
 
         // Require auth on all routes/page after this
         if (!config.debugUser) server.use(keycloakClient.protect())
+
+        // Save web socket handle
+        server.use((req, _, next) => {
+            const username = getUserID(req)
+            req.ws = sockets[username]
+            next()
+        })
 
         // Restricted API routes 
         server.use('/api/users', require('./api/users'))

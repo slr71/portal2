@@ -21,8 +21,8 @@ const useStyles = makeStyles((theme) => ({
 const Account = ({ properties }) => {
   const classes = useStyles()
   const api = useAPI()
-  const user = useUser()
-  const forms = Forms(user, properties)
+  const [user, setUser] = useState(useUser())
+  const [forms, setForms] = useState(Forms(user, properties))
 
   const initialValues = (fields) =>
       fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
@@ -31,7 +31,10 @@ const Account = ({ properties }) => {
   const [submitFormMutation] = useMutation(
     (submission) => api.updateUser(user.id, submission),
     {
-      //onSuccess: (resp) => {},
+      onSuccess: (resp) => {
+        setUser(resp)
+        setForms(Forms(resp, properties))
+      },
       onError: (error) => {
         console.log('ERROR', error)
       }
@@ -67,6 +70,13 @@ const Account = ({ properties }) => {
                   validate={validate}
                   autosave={form.autosave}
                   onSubmit={(values, { setSubmitting }) => {
+                    // Special case: set region_id if country_id changed
+                    if (values['country_id'] != user.region.country_id) {
+                      const region = properties.regions.find(r => r.country_id == values['country_id'] && r.name == "Not Provided")
+                      if (region)
+                        values['region_id'] = region.id
+                    }
+
                     setTimeout(() => {
                       console.log('Submit:', values)
                       if (form.submitHandler)

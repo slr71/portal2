@@ -7,9 +7,11 @@ import { UpdateForm, Wizard, FormStepper, FormField, FormControls } from './Form
 import User from './User'
 import ServiceActionButton from './ServiceActionButton'
 import TabPanel from './TabPanel'
+import { CustomIntercom } from './CustomIntercom'
 import MainLogo from './MainLogo'
 
 export { 
+  CustomIntercom,
   Dashboard, 
   DateRange, 
   DateSpan, 
@@ -24,5 +26,5 @@ export {
   User, 
   ServiceActionButton,
   TabPanel,
-  MainLogo
+  MainLogo,
 }

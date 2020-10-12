@@ -19,6 +19,9 @@
       "src/*.js",
       "src/api",
       "src/models"
+    ],
+    "ignore": [
+      "src/theme.js"
     ]
   },
   "prettier": {
@@ -56,12 +59,14 @@
     "pg-hstore": "^2.3.3",
     "qs": "^6.9.4",
     "react": "^16.13.1",
+    "react-cookie": "^4.0.3",
     "react-dom": "^16.13.1",
     "react-query": "^2.8.0",
     "sendmail": "^1.6.1",
     "sequelize": "^6.3.4",
     "validator": "^13.1.1",
-    "winston": "^3.3.3"
+    "winston": "^3.3.3",
+    "ws": "^7.3.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.4",

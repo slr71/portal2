@@ -41,7 +41,7 @@ const WorkshopTable = ({ workshops }) => (
     <Table>
       <TableBody>
         {workshops.map(workshop => (
-          <Link key={workshop.id} href={`/administrative/workshops/${workshop.id}`}>
+          <Link key={workshop.id} href={`/workshops/${workshop.id}`}>
             <TableRow hover style={{cursor: 'pointer'}}>
               <TableCell>
                 <div>

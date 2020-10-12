@@ -1,10 +1,14 @@
+import { useState, useEffect } from 'react'
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
+import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton } from '../../components'
+import { useMutation } from "react-query"
 import { useAPI } from '../../contexts/api'
 import { useUser } from '../../contexts/user'
+import { wsBaseUrl } from '../../config'
+const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } = require('../../constants')
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -17,11 +21,15 @@ const Service = (props) => {
   const classes = useStyles()
   const api = useAPI()
   const user = useUser()
+  const userService = user.services.find(s => s.id == service.id)
+  const request = userService && userService.request
 
-  const question = service.questions && service.questions.length > 0 ? service.questions[0] : null // only Atmosphere has a question, and it has only one
+  // only Atmosphere has a question, and it has only one
+  const question = service.questions && service.questions.length > 0 ? service.questions[0] : null 
 
-  const [dialogOpen, setDialogOpen] = React.useState(false)
-  const [answer, setAnswer] = React.useState()
+  const [requestStatus, setRequestStatus] = useState(request && request.status)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [answer, setAnswer] = useState()
 
   const handleOpenDialog = () => {
     setDialogOpen(true)
@@ -31,15 +39,39 @@ const Service = (props) => {
     setDialogOpen(false)
   }
 
-  const handleSubmit = async () => {
-    setDialogOpen(false)
-    //const response = await props.api.createServiceRequest(service.id, [{ questionId: question.id, value: answer }])
-    //const { isLoading, isError, data, error } = useQuery('todos', fetchTodoList)
-  }
+  const [submitRequestMutation] = useMutation(
+    () => api.createServiceRequest(service.id, [{ questionId: question && question.id, value: answer }]),
+    {
+      onSuccess: (resp) => {
+        console.log(resp)
+        setDialogOpen(false)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
 
   const handleChangeAnswer = (e) => {
     setAnswer(e.target.value)
   }
+
+  // Configure web socket connection
+  useEffect(() => {
+    const socket = new WebSocket(`${wsBaseUrl}/${user.username}`)
+
+    // Listen for messages // TODO move into library
+    socket.addEventListener('message', function (event) {
+      console.log('Socket received:', event.data)
+      if (!event || !event.data)
+        return
+
+      event = JSON.parse(event.data)
+      if (event.data.type == WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE && event.data.serviceId == service.id) {
+        setRequestStatus(event.data.status)
+      }
+    });
+  }, [])
 
   return ( //FIXME break into pieces
     <Layout title={service.name} breadcrumbs>
@@ -57,7 +89,7 @@ const Service = (props) => {
                 </Box>
               </Grid>
               <Grid item>
-                <ServiceActionButton user={user} service={service} /*requestAccessHandler={handleOpenDialog}*//>
+                <ServiceActionButton service={service} status={requestStatus} requestAccessHandler={handleOpenDialog} />
               </Grid>
               <Grid item xs={12}>
                 <Box my={1}>
@@ -66,97 +98,112 @@ const Service = (props) => {
                 </Box>
               </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <Box>
-                <Typography component="div" variant="h5">Details</Typography>
-                <Typography color="textPrimary"><Markdown>{service.about}</Markdown></Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Box>
-                <Typography component="div" variant="h5">Contacts</Typography>
-                <Typography color="textSecondary">Contact(s) for questions or problems.</Typography>
-                <List>
-                  {service.contacts.map(contact => (
-                    <Link key={contact.id} underline='none' href={`mailto:${contact.email}`}>
-                      <ListItem>
-                        <ListItemAvatar>
-                          <Avatar>
-                            <PersonIcon />
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText primary={contact.name} />
-                      </ListItem>
-                    </Link>
-                  ))}
-                </List>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Box>
-                <Typography component="div" variant="h5">Resources</Typography>
-                <Typography color="textSecondary">Where you can find support.</Typography>
-                <List>
-                  {service.resources.map(resource => (
-                    <Link key={resource.id} underline='none' href={resource.url}>
-                    <Button color="primary">
-                      <ListItem>
-                        <ListItemAvatar>
-                          <Avatar>
-                            <MenuBookIcon />
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText primary={resource.name} />
-                      </ListItem>
+            {service.about &&
+              <Grid item xs={12}>
+                <Box>
+                  <Typography component="div" variant="h5">Details</Typography>
+                  <Typography color="textPrimary"><Markdown>{service.about}</Markdown></Typography>
+                </Box>
+              </Grid>
+            }
+            {service.contacts.length > 0 &&
+              <Grid item xs={12}>
+                <Box>
+                  <Typography component="div" variant="h5">Contacts</Typography>
+                  <Typography color="textSecondary">Contact(s) for questions or problems.</Typography>
+                  <List>
+                    {service.contacts.map(contact => (
+                      <Button key={contact.id} color="primary" href={`mailto:${contact.email}`}>
+                        <ListItem>
+                          <ListItemAvatar>
+                            <Avatar>
+                              <PersonIcon />
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText primary={contact.name} />
+                        </ListItem>
                       </Button>
-                    </Link>
-                  ))}
-                </List>
-              </Box>
-            </Grid>
-            <Grid item xs={12}>
-              <Box>
-                <Typography component="div" variant="h5">Requests</Typography>
-                <Typography color="textSecondary">Requests you can submit related to this service.</Typography>
-                <List>
-                  {service.forms.map(form => (
-                    <Link key={form.id} underline='none' href={`/requests/${form.id}`}>
-                    <Button color="primary"><ListItem>
-                        <ListItemAvatar>
-                          <Avatar>
-                            <ListIcon />
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText primary={form.name} />
-                      </ListItem>
-                      </Button>
-                    </Link>
-                  ))}
-                </List>
-              </Box>
-            </Grid>
+                    ))}
+                  </List>
+                </Box>
+              </Grid>
+            }
+            {service.resources.length > 0 &&
+              <Grid item xs={12}>
+                <Box>
+                  <Typography component="div" variant="h5">Resources</Typography>
+                  <Typography color="textSecondary">Where you can find support.</Typography>
+                  <List>
+                    {service.resources.map(resource => (
+                      <Link key={resource.id} underline='none' href={resource.url}>
+                      <Button color="primary">
+                        <ListItem>
+                          <ListItemAvatar>
+                            <Avatar>
+                              <MenuBookIcon />
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText primary={resource.name} />
+                        </ListItem>
+                        </Button>
+                      </Link>
+                    ))}
+                  </List>
+                </Box>
+              </Grid>
+            }
+            {service.forms.length > 0 &&
+              <Grid item xs={12}>
+                <Box>
+                  <Typography component="div" variant="h5">Requests</Typography>
+                  <Typography color="textSecondary">Requests you can submit related to this service.</Typography>
+                  <List>
+                    {service.forms.map(form => (
+                      <Link key={form.id} underline='none' href={`/requests/${form.id}`}>
+                      <Button color="primary"><ListItem>
+                          <ListItemAvatar>
+                            <Avatar>
+                              <ListIcon />
+                            </Avatar>
+                          </ListItemAvatar>
+                          <ListItemText primary={form.name} />
+                        </ListItem>
+                        </Button>
+                      </Link>
+                    ))}
+                  </List>
+                </Box>
+              </Grid>
+            }
           </Grid>
         </Paper>
       </Container>
       <RequestAccessDialog 
         question={question ? question.question : `Would you like to request access to ${service.name}?`}
+        requiresAnswer={!!question}
         open={dialogOpen}
         handleChange={handleChangeAnswer}
         handleClose={handleCloseDialog} 
-        handleSubmit={handleSubmit}
+        handleSubmit={
+          (!question || answer) && // disable submit button if input is blank and answer is required
+            (() => {
+              setRequestStatus('requested')
+              handleCloseDialog()
+              submitRequestMutation()
+            })
+        }
       />
     </Layout>
   )
 }
 
-const RequestAccessDialog = ({ question, open, handleChange, handleClose, handleSubmit }) => {
-  return (
-    <Dialog open={open} onClose={handleClose} fullWidth={true} aria-labelledby="form-dialog-title">
-      <DialogTitle id="form-dialog-title">Request Access</DialogTitle>
-      <DialogContent>
-        <DialogContentText>
-          {question}
-        </DialogContentText>
+const RequestAccessDialog = ({ question, requiresAnswer, open, handleChange, handleClose, handleSubmit }) => (
+  <Dialog open={open} onClose={handleClose} fullWidth={true} aria-labelledby="form-dialog-title">
+    <DialogContent>
+      <DialogContentText>
+        <p>{question}</p>
+      </DialogContentText>
+      {requiresAnswer &&
         <TextField
           autoFocus
           margin="dense"
@@ -164,18 +211,18 @@ const RequestAccessDialog = ({ question, open, handleChange, handleClose, handle
           fullWidth
           onChange={handleChange}
         />
-      </DialogContent>
-      <DialogActions>
-        <Button color="primary" onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button color="primary" onClick={handleSubmit}>
-          Submit
-        </Button>
-      </DialogActions>
-    </Dialog>
-  )
-}
+      }
+    </DialogContent>
+    <DialogActions>
+      <Button color="primary" onClick={handleClose}>
+        Cancel
+      </Button>
+      <Button color="primary" variant="contained" disabled={!handleSubmit} onClick={handleSubmit}>
+        Request Access
+      </Button>
+    </DialogActions>
+  </Dialog>
+)
 
 export async function getServerSideProps({ req, query }) {
   const service = await req.api.service(query.id)

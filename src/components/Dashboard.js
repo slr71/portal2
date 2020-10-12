@@ -1,13 +1,17 @@
 import React from 'react'
 import clsx from 'clsx'
 import Link from "next/link"
+import { useRouter } from 'next/router'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Button, Divider, IconButton, Typography, Toolbar, AppBar, Drawer, CssBaseline } from '@material-ui/core'
-import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, Person as PersonIcon } from '@material-ui/icons'
+import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline, Snackbar } from '@material-ui/core'
+import { Close as CloseIcon, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, AccountCircle as PersonIcon } from '@material-ui/icons'
 import SideBar from './SideBar'
 import TopBar from './TopBar'
 import MainLogo from './MainLogo'
+import { CustomIntercom } from './CustomIntercom'
 import { useUser } from '../contexts/user'
+import { useCookies } from 'react-cookie'
+import { ACCOUNT_UPDATE_REMINDER_COOKIE } from '../constants'
 
 const drawerWidth = 200
 
@@ -28,7 +32,6 @@ const useStyles = makeStyles((theme) => ({
   ChevronLeftIcon: {
     color:"white",
   },
-
   appBar: {
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(['width', 'margin'], {
@@ -49,10 +52,6 @@ const useStyles = makeStyles((theme) => ({
   },
   menuButtonHidden: {
     display: 'none',
-  },
-  title: {
-    flexGrow: 1,
-    visibility:'hidden',
   },
   drawerPaper: {
     position: 'relative',
@@ -108,68 +107,87 @@ function Copyright() {
       CyVerse
       {' '}
       {new Date().getFullYear()}
-      {'.'}
     </Typography>
   )
 }
 
 export default function Dashboard(props) {
   const classes = useStyles()
-  const user = useUser()
-
-  const [open, setOpen] = React.useState(true)
-  const handleDrawerOpen = () => {
-    setOpen(true)
-  }
-  const handleDrawerClose = () => {
-    setOpen(false)
-  }
-
   const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight)
+  const user = useUser()
+  const router = useRouter()
+
+  const [drawerOpen, setDrawerOpen] = React.useState(true)
+
+  const [cookies, setCookie] = useCookies([ACCOUNT_UPDATE_REMINDER_COOKIE])
+  const [alertOpen, setAlertOpen] = React.useState(!cookies || !(ACCOUNT_UPDATE_REMINDER_COOKIE in cookies))
+
+  const oneYearFromToday = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+  const oneYearBeforeToday = new Date(new Date().setFullYear(new Date().getFullYear() - 1))
+
+  const handleCloseAlert = (url) => {
+    // Show annual reminder to update account info if at least one year since user joined
+    if (new Date(user.date_joined) < oneYearBeforeToday) {
+      setCookie(
+        ACCOUNT_UPDATE_REMINDER_COOKIE, 
+        '', // empty cookie
+        { 
+          path: '/', 
+          expires: oneYearFromToday
+        }
+      )
+    }
+
+    setAlertOpen(false)
+    if (url)
+      router.push(url)
+  }
 
   return (
     <div className={classes.root}>
       <CssBaseline />
-      <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}>
+      <AppBar position="absolute" className={clsx(classes.appBar, drawerOpen && classes.appBarShift)}>
         <Toolbar className={classes.toolbar}>
           <IconButton
             edge="start"
             aria-label="open drawer"
             color="inherit"
-            onClick={handleDrawerOpen}
-            className={clsx(classes.menuButton, open && classes.menuButtonHidden)}
+            onClick={() => setDrawerOpen(true)}
+            className={clsx(classes.menuButton, drawerOpen && classes.menuButtonHidden)}
           >
             <MenuIcon />
           </IconButton>
           <MainLogo size="medium" />
-          <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-            CyVerse User Portal
-          </Typography>
+          <div style={{flexGrow: 1}} />
+          <CustomIntercom />
           <Link href="/account">
-            <Button
-              variant="text"
-              color="inherit"
-              startIcon={<PersonIcon />}
-            >
-              My Account
-            </Button>
+            <Tooltip title="Account Info">
+              <Button
+                variant="text"
+                color="inherit"
+                size="large"
+                startIcon={<PersonIcon />}
+              >
+                Account
+              </Button>
+            </Tooltip>
           </Link>
         </Toolbar>
       </AppBar>
       <Drawer
         variant="permanent"
         classes={{
-          paper: clsx(classes.drawerPaper, !open && classes.drawerPaperClose),
+          paper: clsx(classes.drawerPaper, !drawerOpen && classes.drawerPaperClose),
         }}
-        open={open}
+        open={drawerOpen}
       >
         <div className={classes.toolbarIcon}>
-          <IconButton onClick={handleDrawerClose}>
+          <IconButton onClick={() => setDrawerOpen(false)}>
             <ChevronLeftIcon className={classes.ChevronLeftIcon}/>
           </IconButton>
         </div>
         <Divider />
-        <SideBar open={open} showStaff={user && user.is_staff}/>
+        <SideBar open={drawerOpen} showStaff={user && user.is_staff}/>
       </Drawer>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
@@ -181,6 +199,24 @@ export default function Dashboard(props) {
           </Box>
         </Container>
       </main>
+      <Snackbar
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        open={alertOpen}
+        message="Hi! Please update your Account Information to make sure everything is current."
+        action={
+          <React.Fragment>
+            <Button color="secondary" size="small" onClick={() => handleCloseAlert("/account")}>
+              UPDATE
+            </Button>
+            <IconButton size="small" aria-label="close" color="inherit" onClick={() => handleCloseAlert()}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </React.Fragment>
+        }
+      />
     </div>
   )
 }

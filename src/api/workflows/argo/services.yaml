@@ -237,11 +237,11 @@ spec:
       image: localhost:5000/portal2
       env:
       - name: BISQUE_ENDPOINT
-        value: "{{workflow.parameters.portal_api_base_url}}/tests/bisque"
+        value: "{{workflow.parameters.bisque_url}}"
       - name: BISQUE_USERNAME
-        value: ""
+        value: "{{workflow.parameters.bisque_username}}"
       - name: BISQUE_PASSWORD
-        value: ""
+        value: "{{workflow.parameters.bisque_password}}"
       command: [/usr/src/app/bisque_create_user.py]
       args: ["{{inputs.parameters.user_id}}", "{{inputs.parameters.email}}"]
 
@@ -317,7 +317,7 @@ spec:
     container:
       image: localhost:5000/portal2
       command: [curl]
-      #TODO add authorization header argument: "-H 'Authorization: foo'"
+      #TODO add api key or authorization header argument: "-H 'Authorization: foo'"
       args: ["-v", "-X POST", "-H", "Content-Type: application/json", "-d", "{ \"status\": \"granted\" }", "{{workflow.parameters.portal_api_base_url}}/services/{{inputs.parameters.service_name}}/requests"]
 
   - name: api-subscribe-mailing-list

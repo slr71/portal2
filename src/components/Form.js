@@ -156,7 +156,7 @@ const UpdateForm = ({ title, subtitle, fields, autosave, validate, onSubmit }) =
   )
 }
 
-const Wizard = ({ form, initialValues, validate, onSubmit }) => {
+const Wizard = ({ form, initialValues, validate, onSelect, onSubmit }) => {
   const classes = useStyles()
 
   const [stepNumber, setStepNumber] = useState(0)
@@ -194,6 +194,7 @@ const Wizard = ({ form, initialValues, validate, onSubmit }) => {
             <div key={field.id}>
               <FormField
                 onChange={handleChange}
+                onSelect={onSelect}
                 onBlur={handleBlur}
                 errorText={touched[field.id] && errors[field.id]}
                 value={values[field.id]}
@@ -272,11 +273,19 @@ const FormField = props => {
         as="select"
         component={TextField}
         select
-        onChange={props.onChange && props.onChange(props.id.toString())} // workaround for "you didn't pass an id" error
+        onChange={
+          props.onChange && props.onChange(props.id.toString()) // workaround for "you didn't pass an id" error
+        } 
         {...commonProps}
       >
         {props.options.map((option, index) => (
-          <MenuItem key={index} value={option.id.toString()}>{option.name}</MenuItem>
+          <MenuItem 
+            key={index} 
+            value={option.id.toString()} 
+            onClick={() => props.onSelect && props.onSelect(props, option)}
+          >
+            {option.name}
+          </MenuItem>
         ))}
       </Field>
     )

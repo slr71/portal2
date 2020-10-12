@@ -20,7 +20,7 @@ const sequelize = new Sequelize(
   config.db.database, config.db.user, config.db.password,
   { host: config.db.host,
     dialect: 'postgres',
-    //logging: false,
+    logging: config.db.logging,
     define: {
       timestamps: false,
       freezeTableName: true,
@@ -64,7 +64,7 @@ models.account_user.hasMany(models.account_emailaddress, { as: 'emails', foreign
 models.account_user.belongsToMany(models.api_service, 
   { as: 'services', through: models.request, foreignKey: 'user_id', otherKey: 'service_id' });
 models.account_user.belongsToMany(models.api_workshop, 
-  { as: 'workshops', through: models.api_userworkshop, foreignKey: 'user_id', otherKey: 'workshop_id' });
+  { as: 'workshops', through: models.api_workshopenrollmentrequest, foreignKey: 'user_id', otherKey: 'workshop_id' });
 
 models.account_emailaddress.belongsToMany(models.api_mailinglist, 
   { as: 'mailing_lists', through: models.api_emailaddressmailinglist, foreignKey: 'email_address_id', otherKey: 'mailing_list_id' });
@@ -83,6 +83,7 @@ models.api_service.hasMany(models.api_accessrequestquestion, { as: 'questions', 
 
 models.api_accessrequestquestion.hasMany(models.api_accessrequestanswer, { as: 'answers', foreignKey: 'access_request_question_id' });
 
+//FIXME change back table name from 'request' to default 'api_accessrequest'
 models.request.belongsTo(models.account_user, { as: 'user' });
 models.request.belongsTo(models.api_service, { as: 'service' });
 models.request.hasMany(models.api_accessrequestlog, { as: 'logs', foreignKey: 'access_request_id' });
@@ -126,7 +127,7 @@ models.account_user.addScope('defaultScope',
         'gender_id', 
         'has_verified_email',
         'occupation_id', 
-        'password',
+        'password', // important to exclude
         'region_id', 
         'research_area_id', 
         'aware_channel_id', 
@@ -289,8 +290,8 @@ models.request.constants = {
     STATUS_APPROVED:   'approved', 
     STATUS_GRANTED:    'granted',  
     STATUS_DENIED:     'denied',
-    MESSAGE_REQUESTED: 'Access requested.',
-    MESSAGE_GRANTED:   'Access granted.',
+    MESSAGE_REQUESTED: 'Access requested',
+    MESSAGE_GRANTED:   'Access granted',
     MESSAGE_APPROVED:  'Request approved',
     MESSAGE_PENDING:   'Sent message requesting more information',
     MESSAGE_DENIED:    'You must have a *.edu or *.gov email address associated with your account in order to use Atmosphere'

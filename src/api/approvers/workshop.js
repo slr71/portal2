@@ -1,6 +1,7 @@
 const config = require('../../config.json');
-const Argo = require('../../argo');
-const logger = require('../../logging');
+const { renderEmail } = require('../lib/email')
+const { logger } = require('../../logging');
+const { UI_WORKSHOPS_URL } = require('../../constants')
 
 async function approveRequest(request) {
     if (request.auto_approve)
@@ -35,40 +36,40 @@ async function grantRequest(request) {
 async function email_workshop_enrollment_request(request) {
     const workshop = request.workshop;
     const user = request.user;
+    const workshopEnrollmentRequestUrl = `${UI_WORKSHOPS_URL}/${workshop.id}`;
 
-    // Submit Argo workflow
-    await Argo.submit(
-        `${config.argo.workflowDefinitionPath}/workshops.yaml`,
-        'workshop-review-enrollment-request',
-        {  
-            workshop_name: workshop.title,
-            username: user.username,
-            email: user.email,
-            full_name: `${user.first_name} ${user.last_name}`,
-            institution: user.institution,
-            country: user.region.country.name,
-            workshop_enrollment_request_url: 'FIXME',
-            portal_api_base_url: "http://10.0.2.15:3022" //FIXME
+    await renderEmail({
+        to: user.email, 
+        bcc: config.email.bccWorkshopEnrollmentRequest,
+        subject: 'Workshop Enrollment Request', //FIXME hardcoded
+        templateName: 'review_workshop_enrollment_request',
+        fields: {
+            "WORKSHOP_NAME": workshop.title,
+            "FULL_NAME": `${user.first_name} ${user.last_name}`,
+            "USERNAME": user.username,
+            "EMAIL": user.email,
+            "INSTITUTION": user.institution,
+            "COUNTRY": user.region.country.name,
+            "WORKSHOP_ENROLLMENT_REQUEST_URL": workshopEnrollmentRequestUrl
         }
-    );
+    });
 }
 
 async function email_workshop_enrollment_confirmation(request) {
     const workshop = request.workshop;
     const user = request.user;
+    const workshopUrl = `${UI_WORKSHOPS_URL}/${workshop.id}`;
 
-    // Submit Argo workflow
-    await Argo.submit(
-        `../${workflowDefinitionPath}/workshops.yaml`,
-        'workshop-grant-enrollment-request',
-        {   
-            workshop_name: workshop.title,
-            workshop_id: workshop.id,
-            user_id: user.username,
-            email: user.email,
-            portal_api_base_url: "http://10.0.2.15:3022" //FIXME
+    await renderEmail({
+        to: user.email, 
+        bcc: config.email.bccWorkshopEnrollmentRequest,
+        subject: 'Workshop Enrollment Approved', //FIXME hardcoded
+        templateName: 'review_workshop_enrollment_request',
+        fields: {
+            "WORKSHOP_NAME": workshop.title,
+            "WORKSHOP_URL": workshopUrl
         }
-    );
+    });
 }
 
 module.exports = { approveRequest, grantRequest };

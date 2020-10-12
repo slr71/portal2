@@ -18,8 +18,7 @@ function renderEmail({ to, bcc, subject, templateName, fields }) {
     if (Array.isArray(bcc))
         bcc = bcc.join(',')
     
-    console.log(body);
-
+    // console.log(body);
     return sendmail({
         from: 'support@cyverse.org', //FIXME hardcoded
         to,
