@@ -1,5 +1,5 @@
 import { makeStyles } from '@material-ui/core/styles'
-import { Card, CardHeader, CardContent, Button } from '@material-ui/core'
+import { Card, CardHeader, CardContent, Box, Button, Typography } from '@material-ui/core'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -15,7 +15,6 @@ const User = (props) => {
       <Card className={classes.box}>
         <CardHeader
           title={`${props.user.first_name} ${props.user.last_name} (${props.user.username})`}
-          // subheader={props.subtitle}
         />
         <CardContent>
           <div>Joined: {props.user.date_joined}</div>
@@ -25,27 +24,31 @@ const User = (props) => {
       </Card>
 
       <Card className={classes.box}>
-        <CardHeader
-          title="Email"
-          // subheader={props.subtitle}
-        />
+        <CardHeader title="Email" />
         <CardContent>
           {props.user.emails.map((email, index) => (
-            <div key={index}>{email.email} - {[email.verified ? 'Verified' : '', email.primary ? 'Primary' : ''].join(', ')}</div>
+            <div key={index}>{email.email} - {email.verified ? 'Verified' + (email.primary ? ', Primary' : '') : 'Unverified'}</div>
           ))}
         </CardContent>
       </Card>
 
       {props.allSections || props.mailingLists ? 
         <Card className={classes.box}>
-        <CardHeader
-          title="Mailing List Subscriptions"
-          // subheader={props.subtitle}
-        />
+        <CardHeader title="Mailing List Subscriptions" />
         <CardContent>
-          {props.user.emails[0].mailing_lists.map((mailingList, index) => (
-            <div key={index}>{mailingList.name}</div>
-          ))}
+        {props.user.emails.map(email => (
+          <div>
+            <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
+            <Box ml={2}>
+              {email.mailing_lists && email.mailing_lists.length > 0 
+                ? email.mailing_lists.map((mailingList, index) => (
+                    <div key={index}>{mailingList.name}</div>
+                  ))
+                : '<None>'
+              }
+            </Box>
+          </div>
+        ))}
         </CardContent>
         </Card>
         : <></>
@@ -53,10 +56,7 @@ const User = (props) => {
 
       {props.allSections || props.institution ? 
         <Card className={classes.box}>
-          <CardHeader
-            title="Institution"
-            // subheader={props.subtitle}
-          />
+          <CardHeader title="Institution" />
           <CardContent>
             <div>Company/Institution: {props.user.institution}</div>
             <div>Department: {props.user.department}</div>
@@ -70,10 +70,7 @@ const User = (props) => {
 
       {props.allSections || props.research ? 
         <Card className={classes.box}>
-          <CardHeader
-            title="Research"
-            // subheader={props.subtitle}
-          />
+          <CardHeader title="Research" />
           <CardContent>
             <div>Research Area: {props.user.research_area.name}</div>
             <div>Funding Agency: {props.user.funding_agency.name}</div>
@@ -84,10 +81,7 @@ const User = (props) => {
 
       {props.allSections || props.demographics ? 
         <Card className={classes.box}>
-          <CardHeader
-            title="Demographics"
-            // subheader={props.subtitle}
-          />
+          <CardHeader title="Demographics" />
           <CardContent>
             <div>Gender Identity: {props.user.gender.name}</div>
             <div>Ethnicity: {props.user.ethnicity.name}</div>
@@ -98,10 +92,7 @@ const User = (props) => {
 
       {props.allSections || props.preferences ? 
         <Card className={classes.box}>
-          <CardHeader
-            title="Preferences"
-            // subheader={props.subtitle}
-          />
+          <CardHeader title="Preferences" />
           <CardContent>
               <div>How did you hear about us? {props.user.aware_channel.name}</div>
               <div>Receive the CyVerse Newsletter? {props.user.subscribe_to_newsletter ? 'Yes' : 'No'}</div>
@@ -113,14 +104,14 @@ const User = (props) => {
 
       {props.allSections || props.services ? 
         <Card className={classes.box}>
-          <CardHeader
-            title="Services"
-            // subheader={props.subtitle}
-          />
+          <CardHeader title="Services" />
           <CardContent>
-            {props.user.services.map((service, index) => (
-                <div key={index}>{service.name} - {service.request.message}</div>
-            ))}      
+            {props.user.services && props.user.services.length > 0
+              ? props.user.services.map((service, index) => (
+                  <div key={index}>{service.name} - {service.request.message}</div>
+                ))
+              : 'None'
+            }      
           </CardContent>
         </Card>
         : <></>
