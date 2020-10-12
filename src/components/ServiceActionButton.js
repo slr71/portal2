@@ -1,5 +1,5 @@
 import { Button, Tooltip } from '@material-ui/core'
-
+import LaunchIcon from '@material-ui/icons/Launch';
 
 const ServiceActionButton = ({ status, service, requestAccessHandler }) => {
   // Request status can be: 'granted', 'denied', 'approved', 'pending'
@@ -26,7 +26,7 @@ const ServiceActionButton = ({ status, service, requestAccessHandler }) => {
   return (
     <Tooltip title={tooltip || ''}>
       <span>
-        <Button variant="contained" color="primary" size="medium" disabled={disabled} href={url} onClick={action}>
+        <Button endIcon={<LaunchIcon />} variant="contained" color="primary" size="medium" disabled={disabled} href={url} onClick={action}>
           {label}
         </Button> 
       </span>

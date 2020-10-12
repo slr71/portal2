@@ -41,7 +41,7 @@ const theme = createMuiTheme({
         contrastText: 'rgba(0,0,0,.87)',
       },
       divider: 'rgba(0,0,0,.12)',
-      },
+    },
     overrides: {
         MuiListItem: {
           root: {

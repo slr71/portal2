@@ -4,57 +4,62 @@ import { isEmpty, isEmail } from 'validator'
 import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, LinearProgress, makeStyles} from '@material-ui/core'
 import { MainLogo, Wizard } from '../components'
 import { useAPI } from '../contexts/api'
-import Animation from '../components/animation'
+import WelcomeAnimation from '../components/WelcomeAnimation'
 
 const useStyles = makeStyles((theme) => ({
-
-root: {
-    flexGrow: 1,
-    backgroundColor:"#0971ab"
-},
-
+  grid: {
+    height: "100vh",
+    width: "50vw",
+  },
+  button: {
+    width: "17vw",
+    whiteSpace: 'nowrap',
+    minWidth: '10em'
+  },
   title: {
     color: '#0971ab',
     fontWeight: "bold"
-  },
+  }
 }))
 
 const Welcome = (props) => {
   const classes = useStyles()
 
   return (
-      <main>
-    <div className={classes.root}>
-      <Grid container spacing={0}>
-        <Grid item align="center" xs={12} sm={12} md={5} style={{backgroundColor: '#0971ab'}}>
+    <div>
+      <Grid container>
+        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" className={classes.grid} style={{backgroundColor: '#0971ab'}}>
           <Left {...props} />
         </Grid>
-        <Grid item align="center" xs={12} sm={12} md={7} style={{backgroundColor: '#ffffff'}}>
+        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" className={classes.grid} style={{backgroundColor: '#ffffff'}}>
           <Right {...props} />
         </Grid>
       </Grid>
     </div>
-    </main>
   )
 }
 
 const Left = () => {
-const classes = useStyles()
+  const classes = useStyles()
 
   return (
-    <Grid item xs={10} sm={8}>
-      <Box pt={"10vh"}>
-        <MainLogo fullWidth="true"/>
+    <div>
+      <Box pt={"15%"}>
+        <MainLogo size="large" />
       </Box>
-      <Box pt={"3vh"} pb={"3vh"}>
-        <Typography variant="h5" style={{color: "white"}}>
-          An Open Science Workspace for Collaborative Data-driven Discovery
-        </Typography>
+      <Box>
+        <WelcomeAnimation />
       </Box>
-    </Grid>
+        <Box>
+          <Typography variant="h5" style={{color: "white"}}>
+            An Open Science Workspace for
+            <br />
+            Collaborative Data-driven Discovery
+          </Typography>
+        </Box>
+    </div>
   )
 }
-
 
 const Right = (props) => {
   const classes = useStyles()
@@ -134,17 +139,17 @@ const Right = (props) => {
 
     return ( //FIXME use column grid here instead
       <div>
-        <Box pt={"30vh"}>
+        <Box pt={"30%"}>
           <Typography variant="h4" className={classes.title}>
             Reset Password
           </Typography>
         </Box>
-        <Box mt={4} style={{width:'30vw'}}>
+        <Box mt={4} style={{width:'60%'}}>
           <Typography variant="button" gutterBottom>
             Enter your email address and we will send you a link to reset your password.
           </Typography>
         </Box>
-        <Box mt={4} style={{width:'30vw'}} >
+        <Box mt={4} style={{width:'60%'}} >
           <TextField 
             id="email" 
             type="email" 
@@ -188,30 +193,29 @@ const Right = (props) => {
   }
 
   return ( //FIXME use column grid here instead
-    <Grid item xs={12} sm={12} md={12}>
-      <Box pt={"1vh"}>
-      <Animation />
+    <div>
+      <Box pt={"30%"}>
         <Typography variant="h4" className={classes.title}>
           Welcome to CyVerse!
         </Typography>
       </Box>
-      <Box mt={3}>
+      <Box pt={"5em"}>
         <Typography variant="h6" gutterBottom>
           New to CyVerse?
         </Typography>
       </Box>
-      <Box maxWidth={"250px"} mt={3}>
-        <Button variant="contained" fullWidth="true" color="primary" size="large" disableElevation className={classes.button} onClick={handleOpenDialog}>
+      <Box mt={2}>
+        <Button variant="contained" color="primary" size="large" disableElevation className={classes.button} onClick={handleOpenDialog}>
           Sign Up
         </Button>
       </Box>
-      <Box maxWidth={"250px"} mt={3}>
-        <Button variant="outlined" fullWidth="true" color="primary" size="large" disableElevation className={classes.button} href="/login">
+      <Box mt={3}>
+        <Button variant="outlined" color="primary" size="large" disableElevation className={classes.button} href="/login">
           Login
         </Button>
       </Box>
-      <Box mt={2} mb={5} maxWidth={"250px"}>
-        <Button variant="text" fullWidth="true" color="info" size="small" onClick={() => setForgotPassword(true)}>Forgot Password</Button>
+      <Box mt={2} mb={5}>
+        <Button variant="text" size="small" onClick={() => setForgotPassword(true)}>Forgot Password</Button>
       </Box>
       <SignUpDialog 
         open={dialogOpen}
@@ -219,7 +223,7 @@ const Right = (props) => {
         handleClose={handleCloseDialog} 
         // handleSubmit={handleSubmit}
       />
-    </Grid>
+    </div>
   )
 }
 

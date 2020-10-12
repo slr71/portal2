@@ -92,7 +92,7 @@ app.prepare()
         })
 
         // Public static files
-        server.get("/*.svg", (req, res) => {
+        server.get("/*.(svg|ico)", (req, res) => {
             return nextHandler(req, res)
         })
 

@@ -5,7 +5,7 @@ const useStyles = makeStyles((theme) => ({
     width: '13em'
   },
   large: {
-    width: '30vw'
+    width: '65%'
   }
 }))
 

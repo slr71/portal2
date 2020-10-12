@@ -6,7 +6,7 @@ import animation from '../animations/scientist.json'
 const useStyles = makeStyles((theme) => ({
   animationBox: {
     maxWidth:'45%',
-    margin: '2%',
+    margin: '3%',
   },
 }))
 
@@ -26,7 +26,7 @@ const Animation = () => {
   }, []);
 
   return (
-        <div className={classes.animationBox} ref={animationContainer} />
+    <div className={classes.animationBox} ref={animationContainer} />
   );
 };
 

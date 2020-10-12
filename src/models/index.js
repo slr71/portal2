@@ -98,6 +98,10 @@ models.api_workshop.belongsToMany(models.account_user,
 models.api_workshop.belongsToMany(models.account_user, 
   { as: 'organizers', through: models.api_workshoporganizer, foreignKey: 'workshop_id', otherKey: 'organizer_id' });
 models.api_workshop.hasMany(models.api_workshopcontact, { as: 'contacts', foreignKey: 'workshop_id' });
+models.api_workshop.hasMany(models.api_workshopenrollmentrequest, { as: 'requests', foreignKey: 'workshop_id' });
+
+models.api_workshopenrollmentrequest.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id' });
+models.api_workshopenrollmentrequest.hasMany(models.api_workshopenrollmentrequestlog, { as: 'logs', foreignKey: 'workshop_enrollment_request_id' });
 
 models.api_formgroup.belongsToMany(models.api_form, 
   { as: 'forms', through: models.api_formgroupform, foreignKey: 'form_group_id', otherKey: 'form_id' });
