@@ -51,7 +51,7 @@ const Users = props => {
           })
           setCount(count)
           setRows(results)
-        }, 1000)
+        }, 500)
     )},
     [page, rowsPerPage, keyword]
   )
