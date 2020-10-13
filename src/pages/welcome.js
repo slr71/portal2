@@ -273,6 +273,7 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
     {
       onSuccess: (resp) => {
         setUser(resp)
+        setSubmitted(true)
       },
       onError: (error) => {
         console.log('ERROR', error)
@@ -304,7 +305,6 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
                 console.log('Submit', values)
                 submitFormMutation(values)
                 setSubmitting(false)
-                setSubmitted(true)
               }}
             />
           }
