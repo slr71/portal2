@@ -53,16 +53,19 @@ const Questions = ({ questions, answers }) => {
     <Card className={classes.box}>
       <CardHeader title="Questions" />
       <CardContent>
-        <List>
-          {questions.map(question => (
-            <ListItem>
-              <ListItemText
-                primary={question.question}
-                secondary={question.id in answersByQuestionId ? answersByQuestionId[question.id].value_text : '<No answer>'}
-              />
-            </ListItem>
-          ))}
-        </List>
+        {questions && questions.length > 0
+          ? <List>
+              {questions.map((question, index) => (
+                <ListItem key={index}>
+                  <ListItemText
+                    primary={question.question}
+                    secondary={question.id in answersByQuestionId ? answersByQuestionId[question.id].value_text : '<No answer>'}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          : 'None'
+        }
       </CardContent>
     </Card>
   )
