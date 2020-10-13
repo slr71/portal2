@@ -297,6 +297,7 @@ const FormField = props => {
       autoFocus={props.index == 0} 
       onChange={props.onChange}
       onBlur={props.onBlur}
+      InputLabelProps={{ shrink: true }} // to prevent "mm/dd/yyyy" placeholder bug
       {...commonProps}
     />
   )
