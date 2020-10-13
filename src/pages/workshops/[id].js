@@ -382,13 +382,13 @@ const GeneralSettings = (props) => {
           { id: "description",
             name: "Description",
             type: "text",
-            required: true,
+            required: false,
             value: props.description
           },
           { id: "about",
             name: "Details",
             type: "text",
-            required: true,
+            required: false,
             value: props.about,
             multiline: true,
             rows: 2
