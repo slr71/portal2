@@ -106,70 +106,76 @@ const Service = (props) => {
                 </Box>
               </Grid>
             }
-            {service.contacts.length > 0 &&
+            {service.contacts && service.contacts.length > 0 &&
               <Grid item xs={12}>
                 <Box>
                   <Typography component="div" variant="h5">Contacts</Typography>
                   <Typography color="textSecondary">Contact(s) for questions or problems.</Typography>
                   <List>
                     {service.contacts.map(contact => (
-                      <Button key={contact.id} color="primary" href={`mailto:${contact.email}`}>
-                        <ListItem>
-                          <ListItemAvatar>
-                            <Avatar>
-                              <PersonIcon />
-                            </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText primary={contact.name} />
-                        </ListItem>
-                      </Button>
+                      <div key={contact.id}>
+                        <Button color="primary" href={`mailto:${contact.email}`}>
+                          <ListItem>
+                            <ListItemAvatar>
+                              <Avatar>
+                                <PersonIcon />
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText primary={contact.name} />
+                          </ListItem>
+                        </Button>
+                      </div>
                     ))}
                   </List>
                 </Box>
               </Grid>
             }
-            {service.resources.length > 0 &&
+            {service.resources && service.resources.length > 0 &&
               <Grid item xs={12}>
                 <Box>
                   <Typography component="div" variant="h5">Resources</Typography>
                   <Typography color="textSecondary">Where you can find support.</Typography>
                   <List>
                     {service.resources.map(resource => (
-                      <Link key={resource.id} underline='none' href={resource.url}>
-                      <Button color="primary">
-                        <ListItem>
-                          <ListItemAvatar>
-                            <Avatar>
-                              <MenuBookIcon />
-                            </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText primary={resource.name} />
-                        </ListItem>
-                        </Button>
-                      </Link>
+                      <div key={resource.id}>
+                        <Link underline='none' href={resource.url}>
+                          <Button color="primary">
+                            <ListItem>
+                              <ListItemAvatar>
+                                <Avatar>
+                                  <MenuBookIcon />
+                                </Avatar>
+                              </ListItemAvatar>
+                              <ListItemText primary={resource.name} />
+                            </ListItem>
+                          </Button>
+                        </Link>
+                      </div>
                     ))}
                   </List>
                 </Box>
               </Grid>
             }
-            {service.forms.length > 0 &&
+            {service.forms && service.forms.length > 0 &&
               <Grid item xs={12}>
                 <Box>
                   <Typography component="div" variant="h5">Requests</Typography>
                   <Typography color="textSecondary">Requests you can submit related to this service.</Typography>
                   <List>
                     {service.forms.map(form => (
-                      <Link key={form.id} underline='none' href={`/requests/${form.id}`}>
-                      <Button color="primary"><ListItem>
-                          <ListItemAvatar>
-                            <Avatar>
-                              <ListIcon />
-                            </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText primary={form.name} />
-                        </ListItem>
-                        </Button>
-                      </Link>
+                      <div key={form.id}>
+                        <Link underline='none' href={`/requests/${form.id}`}>
+                          <Button color="primary"><ListItem>
+                              <ListItemAvatar>
+                                <Avatar>
+                                  <ListIcon />
+                                </Avatar>
+                              </ListItemAvatar>
+                              <ListItemText primary={form.name} />
+                            </ListItem>
+                          </Button>
+                        </Link>
+                      </div>
                     ))}
                   </List>
                 </Box>
