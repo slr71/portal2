@@ -13,7 +13,7 @@ const Workshops = (props) => {
   const user = useUser()
   const userWorkshops = [].concat(
     user.workshops, // workshop user is/was enrolled in
-    props.workshops.filter(w => w.creator_id == user.id || w.organizers.some(o => o.id == user.id)) // workshop user is/was hosting/organizer
+    props.workshops.filter(w => w.creator_id == user.id || (w.organizers && w.organizers.some(o => o.id == user.id))) // workshop user is/was hosting/organizer
   )
   const otherWorkshops = props.workshops.filter(w => !userWorkshops.find(w2 => w2.id == w.id)) 
 
@@ -85,8 +85,7 @@ const Workshop = ({ workshop }) => {
   const classes = useStyles()
   const user = useUser()
   const isHost = user.id == workshop.creator_id
-  const isOrganizer = workshop.organizers.some(o => o.id == user.id)
-  console.log({ isHost, isOrganizer })
+  const isOrganizer = workshop.organizers && workshop.organizers.some(o => o.id == user.id)
 
   return (
     <Link underline='none' href={`workshops/${workshop.id}`}>
