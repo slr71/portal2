@@ -290,9 +290,13 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
           ? <Box p={7}>
               <Typography variant='h6' color='textSecondary'>
                 A confirmation email was sent to
-                <br /><br />
+              </Typography>
+              <br /><br />
+              <Typography variant='h6' color='primary'>		  
                 <b>{user ? user.email : '<error>'}</b>
-                <br /><br />
+              </Typography>
+              <br /><br />
+	      <Typography variant='h6' color='textSecondary'>
                 Please click on the confirmation link in the email to activate your account.
               </Typography>
             </Box>
