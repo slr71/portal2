@@ -54,7 +54,7 @@ spec:
           - name: user_id
             value: "{{workflow.parameters.user_id}}"
     - - name: irods-set-user-password
-        template: irods-create-user
+        template: irods-set-user-password
         arguments:
           parameters:
           - name: user_id
@@ -116,7 +116,13 @@ spec:
       image: localhost:5000/portal2
       command: [curl]
       #TODO add authorization header argument: "-H 'Authorization: foo'"
-      args: ["-X PUT", "-d '{ \"service\": \"{{input.parameters.service}}\", \"username\": \"{{input.parameters.user_id}}\" }'", "{{workflow.parameters.portal_api_base_url}}/services/requests"]
+      args: [
+        "--verbose",
+        "--location",
+        "--request", "PUT", 
+        "--data", "{ \"service\": \"{{input.parameters.service}}\", \"username\": \"{{input.parameters.user_id}}\" }", 
+        "{{workflow.parameters.portal_api_base_url}}/services/requests"
+      ]
 
   - name: irods-create-user
     inputs:
@@ -124,11 +130,11 @@ spec:
       - name: user_id
     container:
       image: localhost:5000/portal2
-      env:
-      - name: IRODS_ENVIRONMENT_FILE
-        value: "/usr/src/app/irods_environment.json"
+      #env:
+      #- name: IRODS_ENVIRONMENT_FILE
+      #  value: "/usr/src/app/irods_environment.json"
       command: [iadmin]
-      args: ["mkuser", "{{inputs.parameters.user_id}}"]
+      args: ["mkuser", "{{inputs.parameters.user_id}}", "rodsuser"]
 
   - name: irods-set-user-password
     inputs:
@@ -137,9 +143,6 @@ spec:
       - name: password
     container:
       image: localhost:5000/portal2
-      env:
-      - name: IRODS_ENVIRONMENT_FILE
-        value: "/usr/src/app/irods_environment.json"
       command: [iadmin]
       args: ["moduser", "{{inputs.parameters.user_id}}", "password", "{{inputs.parameters.password}}"]
 
@@ -150,9 +153,6 @@ spec:
       - name: path
     container:
       image: localhost:5000/portal2
-      env:
-      - name: IRODS_ENVIRONMENT_FILE
-        value: "/usr/src/app/irods_environment.json"
       command: [ichmod]
       args: ["own", "{{inputs.parameters.user}}", "{{inputs.parameters.path}}"]
 
@@ -193,4 +193,12 @@ spec:
     container:
       image: localhost:5000/portal2
       command: [curl]
-      args: ["-X POST", "-H 'Authorization: Basic {{workflow.parameters.mailchimp_api_key}}'", "-d '{\"email_address\":\"{{inputs.parameters.email}}\",\"status\":\"subscribed\",\"merge_fields\":{\"FNAME\":\"{{input.parameters.first_name}}\",\"LNAME\":\"{{input.parameters.last_name}}\"}}'", "https://server.api.mailchimp.com/3.0/lists/{{workflow.parameters.mailchimp_list_id}}/members"]
+      args: [
+        "--verbose", 
+        "--location",
+        "--request", "POST", 
+        "--header", "Authorization: Basic {{workflow.parameters.mailchimp_api_key}}", 
+        "--header", "Content-Type: application/json",
+        "--data", "{\"email_address\":\"{{inputs.parameters.email}}\",\"status\":\"subscribed\",\"merge_fields\":{\"FNAME\":\"{{input.parameters.first_name}}\",\"LNAME\":\"{{input.parameters.last_name}}\"}}",
+        "{{workflow.parameters.mailchimp_api_url}}/lists/{{workflow.parameters.mailchimp_list_id}}/members",
+      ]

@@ -147,7 +147,7 @@ async function createUser(user) {
             ldap_host: config.ldap.host,
             ldap_admin: config.ldap.admin,
             ldap_password: config.ldap.password,
-            //mailchimp_username: config.mailchimp.username, // Not needed, API key is sufficient
+            mailchimp_api_url: config.mailchimp.baseUrl,
             mailchimp_api_key: config.mailchimp.apiKey,
             mailchimp_list_id: config.mailchimp.listId,
         }
