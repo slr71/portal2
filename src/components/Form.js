@@ -251,7 +251,9 @@ const FormField = props => {
     fullWidth: true, 
     margin: "normal",
     required: props.is_required || props.required,
-    disabled: props.disabled
+    disabled: props.disabled,
+    multiline: props.multiline,
+    rows: props.rows
   }
 
   if (props.type === 'boolean') {
