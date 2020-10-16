@@ -1,3 +1,6 @@
+import ResourcesEditor from './ResourcesEditor'
+import ContactsEditor from './ContactsEditor'
+import QuestionsEditor from './QuestionsEditor'
 import Dashboard from './Dashboard'
 import { DateRange, DateSpan } from './DateRange'
 import Layout from './Layout'
@@ -11,21 +14,24 @@ import { CustomIntercom } from './CustomIntercom'
 import MainLogo from './MainLogo'
 
 export { 
+  ContactsEditor,
   CustomIntercom,
   Dashboard, 
   DateRange, 
   DateSpan, 
-  Layout, 
-  SideBar, 
-  SummaryCard, 
-  UpdateForm,
-  Wizard,
   FormStepper, 
   FormField, 
   FormControls, 
-  validateField,
-  User, 
-  ServiceActionButton,
-  TabPanel,
+  Layout, 
   MainLogo,
+  QuestionsEditor,
+  ResourcesEditor,
+  ServiceActionButton,
+  SideBar, 
+  SummaryCard, 
+  TabPanel,
+  UpdateForm,
+  User, 
+  validateField,
+  Wizard,
 }

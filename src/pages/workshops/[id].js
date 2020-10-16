@@ -1,15 +1,14 @@
 import 'date-fns'
 // import debounce from 'just-debounce-it'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useMutation } from "react-query"
 import Markdown from 'markdown-to-jsx'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, MenuItem, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse } from '@material-ui/core'
+import { makeStyles, Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, MenuItem, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse } from '@material-ui/core'
 import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@material-ui/icons'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import DateFnsUtils from '@date-io/date-fns'
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
-import { Layout, DateRange, TabPanel, UpdateForm, validateField } from '../../components'
+import { Layout, DateRange, TabPanel, UpdateForm, ContactsEditor } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
@@ -350,7 +349,7 @@ const WorkshopEditor = (props) => {
         <br /><br />
         <Organizers {...workshop} submitHandler={submitOrganizerMutation} deleteHandler={deleteOrganizerMutation} />
         <br /><br />
-        <Contacts {...workshop} submitHandler={submitContactMutation} deleteHandler={deleteContactMutation} />
+        <ContactsEditor {...workshop} submitHandler={submitContactMutation} deleteHandler={deleteContactMutation} />
         <br /><br />
         <Services workshop={workshop} services={props.services} submitHandler={submitServiceMutation} deleteHandler={deleteServiceMutation} />
         <br /><br />
@@ -391,7 +390,7 @@ const GeneralSettings = (props) => {
             required: false,
             value: props.about,
             multiline: true,
-            rows: 2
+            rows: 4
           }
         ]} 
         initialValues={{...props}} // unused fields will be ignored
@@ -592,59 +591,6 @@ const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
         }}
       />
     </div>
-  )
-}
-
-const Contacts = ({ owner, contacts, submitHandler, deleteHandler }) => {
-  const classes = useStyles()
-  const [dialogOpen, setDialogOpen] = useState(false)
-
-  return (
-    <div>
-    <Paper elevation={3} className={classes.paper}>
-      <Typography component="div" variant="h5">Support Contacts</Typography> 
-      <Typography color="textSecondary">Who participants should reach out to if they have questions.</Typography>
-      <br />
-      <List>
-        {contacts.map((contact, index) => (
-          <Grid container key={index} justify="space-between" alignItems="center">
-            <Grid item>
-              <ListItem>
-                <ListItemAvatar>
-                  <Avatar>
-                    <PersonIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary={contact.name} secondary={contact.email} />
-              </ListItem>
-            </Grid>
-            <Grid item>
-              <IconButton onClick={() => deleteHandler(contact.id)}>
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
-          </Grid>
-        ))}
-      </List>
-      <Box display="flex" justifyContent="flex-end">
-        <Button 
-          variant="contained" 
-          color="primary"
-          onClick={() => setDialogOpen(true)}
-        >
-          Add Contact
-        </Button>
-      </Box>
-    </Paper>
-    <AddContactDialog 
-      open={dialogOpen}
-      handleClose={() => setDialogOpen(false)} 
-      handleSubmit={(values) => {
-        setDialogOpen(false)
-        submitHandler(values)
-      }}
-    />
-  </div>
   )
 }
 
@@ -956,61 +902,6 @@ const SearchUsersDialog = ({ open, title, description, handleClose, handleSubmit
           onClick={() => handleSubmit(selectedUser)}  
         >
           Submit
-        </Button>
-      </DialogActions>
-    </Dialog>
-  )
-}
-
-const AddContactDialog = ({ open, handleClose, handleSubmit }) => {
-  const [values, setValues] = useState({})
-  const [errors, setErrors] = useState({})
-
-  const handleChange = (e) => {
-    const error = validateField(e.target, e.target.value)
-    setErrors({ ...errors, [e.target.id]: error })
-    setValues({ ...values, [e.target.id]: e.target.value })
-  }
-
-  return (
-    <Dialog open={open} onClose={handleClose} fullWidth>
-      <DialogTitle>Add Contact</DialogTitle>
-      <DialogContent>
-        <TextField
-          autoFocus
-          margin="normal"
-          fullWidth
-          id="name"
-          label="Name"
-          type="text"
-          required={true}
-          error={!!errors.name}
-          helperText={errors.name}
-          onChange={handleChange}
-        />
-        <TextField
-          margin="normal"
-          fullWidth
-          id="email"
-          label="Email"
-          type="email"
-          required={true}
-          error={!!errors.email}
-          helperText={errors.email}
-          onChange={handleChange}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} variant="outlined">
-          Cancel
-        </Button>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          disabled={!!errors.name || !!errors.email || !handleSubmit}
-          onClick={() => handleSubmit(values)}
-        >
-          Add
         </Button>
       </DialogActions>
     </Dialog>

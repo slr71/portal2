@@ -89,8 +89,13 @@ const menuItems = [
         path: "/administrative/requests",
         description: "Search across all access requests and view/deny/approve individual requests."
       },
+      { label: "Services",
+        icon: <DashboardIcon fontSize="medium" />, 
+        path: "/administrative/services",
+        description: "View and modify services."
+      },
       { label: "Workshops",
-        icon: <ComputerIcon fontSize="medium" />, 
+        icon: <EventIcon fontSize="medium" />, 
         path: "/administrative/workshops",
         description: "View, create, and modify workshops."
       },

@@ -2,6 +2,8 @@ const router = require('express').Router();
 const models = require('../models');
 const sequelize = require('sequelize');
 const Service = models.api_service;
+const ServiceContact = models.api_contact;
+const ServiceResource = models.api_serviceresource;
 const User = models.account_user;
 const AccessRequest = models.request;
 const AccessRequestLog = models.api_accessrequestlog;
@@ -232,7 +234,7 @@ function notifyClientOfRequestStatusChange(ws, request) {
 router.get('/', async (req, res) => {
     const services = await Service.findAll({
         attributes: { include: [ poweredServiceQuery] },
-        order: [ [ 'name', 'ASC' ] ]
+        order: [ [ sequelize.fn('lower', sequelize.col('name')), 'ASC' ] ]
     });
 
     return res.json(services).status(200);
@@ -244,7 +246,7 @@ router.get('/:nameOrId(\\w+)', async (req, res) => {
         return res.send('Missing required name/id parameter').status(400);
 
     const service = await Service.findOne({
-        include: [
+        include: [ //TODO create scope for this
             'service_maintainer',
             'contacts',
             'resources',
@@ -266,6 +268,148 @@ router.get('/:nameOrId(\\w+)', async (req, res) => {
         return res.send('Service not found').status(404);
 
     return res.json(service).status(200);
+});
+
+// Update service (STAFF ONLY)
+router.post('/:id(\\d+)', getUser, requireAdmin, async (req, res) => {
+    const id = req.params.id;
+    const fields = req.body;
+    console.log(fields);
+
+    const service = await Service.findByPk(id, {
+        include: [ //TODO create scope for this
+            'service_maintainer',
+            'contacts',
+            'resources',
+            'questions',
+            { model: models.api_form, 
+                as: 'forms', 
+                through: { attributes: [] } // remove connector table
+            }
+        ]
+    });
+    if (!service)
+        return res.send('Service not found').status(404);
+
+    // Verify and update fields
+    for (let key in fields) {
+        const SUPPORTED_FIELDS = ['name', 'description', 'about', 'service_url', 'icon_url'];
+        if (!SUPPORTED_FIELDS.includes(key))
+            return res.send('Unsupported field').status(400);
+        service[key] = fields[key];
+    }
+    await service.save();
+    await service.reload();
+
+    res.json(service).status(200);
+});
+
+// Add question to service (STAFF ONLY)
+router.put('/:id(\\d+)/questions', getUser, requireAdmin, async (req, res) => {
+    const questionText = req.body.question;
+    const is_required = true; //req.body.is_required;
+    if (!questionText)
+        return res.send('Missing required fields').status(400);
+
+    const service = await Service.findByPk(req.params.id);
+    if (!service)
+        return res.send('Service not found').status(404);
+
+    const [question, created] = await AccessRequestQuestion.findOrCreate({ 
+        where: { 
+            service_id: service.id,
+            question: questionText,
+            type: 'text',
+            is_required
+        } 
+    });
+    res.json(question).status(201);
+});
+
+// Remove question from service (STAFF ONLY)
+router.delete('/:serviceId(\\d+)/questions/:questionId(\\d+)', getUser, requireAdmin, async (req, res) => {
+    const service = await Service.findByPk(req.params.serviceId);
+    if (!service)
+        return res.send('Service not found').status(404);
+
+    const question = await AccessRequestQuestion.findByPk(req.params.questionId);
+    if (!question)
+        return res.send('Question not found').status(404);
+
+    await question.destroy();
+    res.send('success').status(200);
+});
+
+// Add contact to service (STAFF ONLY)
+router.put('/:id(\\d+)/contacts', getUser, requireAdmin, async (req, res) => {
+    const name = req.body.name;
+    const email = req.body.email;
+    if (!name || !email)
+        return res.send('Missing params').status(400);
+
+    const service = await Service.findByPk(req.params.id);
+    if (!service)
+        return res.send('Service not found').status(404);
+
+    const [contact, created] = await ServiceContact.findOrCreate({ 
+        where: { 
+            service_id: service.id,
+            name,
+            email
+        } 
+    });
+    res.json(contact).status(201);
+});
+
+// Remove contact from service (STAFF ONLY)
+router.delete('/:serviceId(\\d+)/contacts/:contactId(\\d+)', getUser, requireAdmin, async (req, res) => {
+    const service = await Service.findByPk(req.params.serviceId);
+    if (!service)
+        return res.send('Service not found').status(404);
+
+    const contact = await ServiceContact.findByPk(req.params.contactId);
+    if (!contact)
+        return res.send('Contact not found').status(404);
+
+    await contact.destroy();
+    res.send('success').status(200);
+});
+
+// Add resource to service (STAFF ONLY)
+router.put('/:id(\\d+)/resources', getUser, requireAdmin, async (req, res) => {
+    const fields = req.body;
+    console.log(fields);
+    if (!fields.name || !fields.url)
+        return res.send('Missing required fields').status(400);
+
+    const service = await Service.findByPk(req.params.id);
+    if (!service)
+        return res.send('Service not found').status(404);
+
+    const [resource, created] = await ServiceResource.findOrCreate({ 
+        where: { 
+            service_id: service.id,
+            name: fields.name,
+            url: fields.url,
+            description: fields.description || '',
+            icon_url: fields.icon_url || ''
+        } 
+    });
+    res.json(resource).status(201);
+});
+
+// Remove resource from service (STAFF ONLY)
+router.delete('/:serviceId(\\d+)/resources/:resourceId(\\d+)', getUser, requireAdmin, async (req, res) => {
+    const service = await Service.findByPk(req.params.serviceId);
+    if (!service)
+        return res.send('Service not found').status(404);
+
+    const resource = await ServiceResource.findByPk(req.params.resourceId);
+    if (!resource)
+        return res.send('Resource not found').status(404);
+
+    await resource.destroy();
+    res.send('success').status(200);
 });
 
 module.exports = router;

@@ -42,7 +42,9 @@ class PortalAPI {
     const res = await this.request({ method: 'delete', url: `${this.baseUrl}${path}` })
     return res.data   
   }
-  
+
+  // User endpoints
+
   async user(id) { return await this.get(`/users/${id || 'mine'}`) } // FIXME conflict if username is "mine" -- is it a restricted username?
 
   async users(params) { return await this.get(`/users`, params) }
@@ -53,7 +55,7 @@ class PortalAPI {
 
   async createUser(username, params) { return await this.put(`/users/${username}`, params) }
 
-  async updateUser(id, params) { return await this.post(`/users/${id}`, params) }
+  async updateUser(id, fields) { return await this.post(`/users/${id}`, fields) }
 
   async updateMailingListSubscription(params) { return await this.post(`/mailing_lists/subscriptions`, params) }
 
@@ -67,17 +69,21 @@ class PortalAPI {
 
   async confirmEmailAddress(hmac) { return await this.post(`/confirm_email`, { hmac }) }
 
-  async services(params) { return await this.get(`/services`, params) }
-
-  async service(id) { return await this.get(`/services/${id}`) }
-
-  async userProperties() { return await this.get(`/users/properties`) } // FIXME conflict if username is "properties"
-
   async restrictedUsernames() { return await this.get(`/users/restricted`) } // FIXME conflict if username is "restricted"
 
   async createRestrictedUsername(username) { return await this.put(`/users/restricted/${username}`) }
 
   async deleteRestrictedUsername(id) { return await this.delete(`/users/restricted/${id}`) }
+
+  async userProperties() { return await this.get(`/users/properties`) } // FIXME conflict if username is "properties"
+
+  // Service endpoints
+
+  async services(params) { return await this.get(`/services`, params) }
+
+  async service(id) { return await this.get(`/services/${id}`) }
+
+  async updateService(id, fields) { return await this.post(`/services/${id}`, fields) }
 
   async serviceRequests(params) { return await this.get(`/services/requests`, params) }
 
@@ -87,6 +93,20 @@ class PortalAPI {
 
   async updateServiceRequest(id, status, message) { return await this.post(`/services/${id}/requests`, { status, message }) }
 
+  async createServiceQuestion(serviceId, params) { return await this.put(`/services/${serviceId}/questions`, params) }
+
+  async deleteServiceQuestion(serviceId, questionId) { return await this.delete(`/services/${serviceId}/questions/${questionId}`) }
+
+  async createServiceContact(serviceId, params) { return await this.put(`/services/${serviceId}/contacts`, params) }
+
+  async deleteServiceContact(serviceId, contactId) { return await this.delete(`/services/${serviceId}/contacts/${contactId}`) }
+
+  async createServiceResource(serviceId, params) { return await this.put(`/services/${serviceId}/resources`, params) }
+
+  async deleteServiceResource(serviceId, resourceId) { return await this.delete(`/services/${serviceId}/resources/${resourceId}`) }
+
+  // Workshop endpoints
+
   async workshops() { return await this.get(`/workshops`) }
 
   async workshop(id) { return await this.get(`/workshops/${id}`) }
@@ -95,7 +115,7 @@ class PortalAPI {
 
   async workshopRequests(id) { return await this.get(`/workshops/${id}/requests`) }
 
-  async updateWorkshop(id, workshop) { return await this.post(`/workshops/${id}`, workshop) }
+  async updateWorkshop(id, fields) { return await this.post(`/workshops/${id}`, fields) }
 
   async createWorkshopRequest(id) { return await this.put(`/workshops/${id}/requests`) }
 
@@ -111,11 +131,13 @@ class PortalAPI {
 
   async deleteWorkshopService(workshopId, serviceId) { return await this.delete(`/workshops/${workshopId}/services/${serviceId}`) }
 
+  // Form endpoints
+
   async forms() { return await this.get (`/forms`) }
 
   async form(id) {  return await this.get(`/forms/${id}`) } // id or name
 
-  async updateForm(id, form) { return await this.post(`/forms/${id}`, form) }
+  async updateForm(id, fields) { return await this.post(`/forms/${id}`, fields) }
 
   async submitForm(id, submission) { return await this.put(`/forms/${id}/submissions`, submission) }
 
