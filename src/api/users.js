@@ -90,6 +90,45 @@ router.post('/:id(\\d+)', getUser, async (req, res) => {
     res.json(user).status(200);
 });
 
+// Delete user (STAFF ONLY)
+router.delete('/:id(\\d+)', getUser, requireAdmin, async (req, res) => {
+    const id = req.params.id;
+
+    if (id == req.user.id)
+        return res.send('Cannot delete yourself').status(403);
+
+    let user = await User.findByPk(id);
+    if (!user)
+        return res.send('User not found').status(404);
+
+    if (user.is_staff)
+        return res.send('Cannot delete staff user').status(403);
+
+    await user.destroy();
+    res.send('success').status(200);
+
+    // Submit user deletion workflow to remove user from subsystems (LDAP, IRODS, etc).
+    // Do this after the response as to not block the transaction any longer than necessary.
+    await Argo.submit(
+        'user.yaml',
+        'delete-user',
+        {
+            // User params
+            user_id: user.username,
+            email: user.email,
+
+            // Other params
+            portal_api_base_url: config.apiBaseUrl,
+            ldap_host: config.ldap.host,
+            ldap_admin: config.ldap.admin,
+            ldap_password: config.ldap.password,
+            mailchimp_api_url: config.mailchimp.baseUrl,
+            mailchimp_api_key: config.mailchimp.apiKey,
+            mailchimp_list_id: config.mailchimp.listId,
+        }
+    );
+});
+
 router.get('/restricted', requireAdmin, async (req, res) => {
     const usernames = await RestrictedUsername.findAll({
         attributes: [ 'id', 'username' ],
