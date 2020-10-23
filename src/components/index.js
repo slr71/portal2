@@ -7,7 +7,6 @@ import Layout from './Layout'
 import SideBar from './SideBar'
 import SummaryCard from './SummaryCard'
 import { UpdateForm, Wizard, FormStepper, FormField, FormControls, validateField } from './Form'
-import User from './User'
 import ServiceActionButton from './ServiceActionButton'
 import TabPanel from './TabPanel'
 import { CustomIntercom } from './CustomIntercom'
@@ -31,7 +30,6 @@ export {
   SummaryCard, 
   TabPanel,
   UpdateForm,
-  User, 
   validateField,
   Wizard,
 }
