@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography, CircularProgress, LinearProgress } from '@material-ui/core'
+import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography, CircularProgress, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
 import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
 import { isEmail, isNumeric, isAlphanumeric, isLowercase, isDate, isEmpty } from 'validator'
@@ -337,4 +337,48 @@ const FormControls = ({ disabled, activeStep, numSteps, backHandler, nextHandler
   )
 }
 
-export { UpdateForm, Wizard, FormStepper, FormField, FormControls, validateField }
+const FormDialog = ({ title, open, fields, handleClose, handleSubmit }) => {
+  const [values, setValues] = useState({})
+  const [errors, setErrors] = useState({})
+
+  const handleChange = (e) => {
+    const error = validateField(e.target, e.target.value)
+    setErrors({ ...errors, [e.target.id]: error })
+    setValues({ ...values, [e.target.id]: e.target.value })
+  }
+
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogContent>
+        {fields.map((field, index) => 
+          <TextField
+            key={index}
+            autoFocus={index == 0}
+            margin="normal"
+            fullWidth
+            error={!!errors[field.id]}
+            helperText={errors[field.id]}
+            onChange={handleChange}
+            {...field}
+          />
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} variant="outlined">
+          Cancel
+        </Button>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          disabled={Object.values(values).every(e => !e) || Object.values(errors).some(e => e) || !handleSubmit}
+          onClick={() => handleSubmit(values)}
+        >
+          Submit
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
+export { UpdateForm, Wizard, FormStepper, FormField, FormControls, FormDialog, validateField }

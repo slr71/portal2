@@ -113,6 +113,8 @@ class PortalAPI {
 
   async workshopParticipants(id) { return await this.get(`/workshops/${id}/participants`) }
 
+  async workshopEmails(id) { return await this.get(`/workshops/${id}/emails`) }
+
   async workshopRequests(id) { return await this.get(`/workshops/${id}/requests`) }
 
   async updateWorkshop(id, fields) { return await this.post(`/workshops/${id}`, fields) }
@@ -130,6 +132,14 @@ class PortalAPI {
   async createWorkshopService(workshopId, serviceId) { return await this.put(`/workshops/${workshopId}/services`, { serviceId }) }
 
   async deleteWorkshopService(workshopId, serviceId) { return await this.delete(`/workshops/${workshopId}/services/${serviceId}`) }
+
+  async createWorkshopParticipant(workshopId, participantId) { return await this.put(`/workshops/${workshopId}/participants`, { participantId }) }
+
+  async deleteWorkshopParticipant(workshopId, participantId) { return await this.delete(`/workshops/${workshopId}/participants/${participantId}`) }
+
+  async createWorkshopEmail(workshopId, email) { return await this.put(`/workshops/${workshopId}/emails`, { email }) }
+
+  async deleteWorkshopEmail(workshopId, email) { return await this.delete(`/workshops/${workshopId}/emails/${email}`) }
 
   // Form endpoints
 

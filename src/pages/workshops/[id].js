@@ -8,7 +8,7 @@ import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as Keyboard
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import DateFnsUtils from '@date-io/date-fns'
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
-import { Layout, DateRange, TabPanel, UpdateForm, ContactsEditor } from '../../components'
+import { Layout, DateRange, TabPanel, UpdateForm, FormDialog, ContactsEditor } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
@@ -130,8 +130,8 @@ const WorkshopViewer = (props) => {
               <Typography component="div" variant="h5">Services</Typography>
               <Typography color="textSecondary">Services used in the workshop.</Typography>
               <List>
-                {workshop.services.map(service => (
-                  <Link key={service.id} underline='none' href={`/services/${service.id}`}>
+                {workshop.services.map((service, index) => (
+                  <Link key={index} underline='none' href={`/services/${service.id}`}>
                     <ListItem>
                       <ListItemAvatar>
                         <Avatar alt={service.name} src={service.iconUrl} />
@@ -230,7 +230,33 @@ const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) 
 const WorkshopEditor = (props) => {
   const api = useAPI()
   const [workshop, setWorkshop] = useState(props.workshop)
+  const [participants, setParticipants] = useState()
+  const [emails, setEmails] = useState()
+  const [requests, setRequests] = useState()
+  const [services, setServices] = useState()
   const [tab, setTab] = useState(0)
+
+  useEffect(() => { 
+      const fetchData = async () => {
+        const [participants, emails, requests, services] = await Promise.all([
+          api.workshopParticipants(workshop.id),
+          api.workshopEmails(workshop.id),
+          api.workshopRequests(workshop.id),
+          api.services() // for adding a service 
+        ])
+        setParticipants(participants)
+        setEmails(emails)
+        setRequests(requests)
+        setServices(services)
+      }
+      fetchData()
+    }, 
+    []
+  )
+
+  /*
+   * All state management is done here since child components are remounted in tab change
+   */
 
   const [submitWorkshopMutation] = useMutation(
     (data) => api.updateWorkshop(workshop.id, data),
@@ -322,6 +348,32 @@ const WorkshopEditor = (props) => {
     }
   )
 
+  const [deleteParticipantMutation] = useMutation(
+    (participantId) => api.deleteWorkshopParticipant(workshop.id, participantId),
+    {
+      onSuccess: async (resp) => {
+        const newParticipants = await api.workshopParticipants(workshop.id)
+        setParticipants(newParticipants)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteEmailMutation] = useMutation(
+    (email) => api.deleteWorkshopEmail(workshop.id, email),
+    {
+      onSuccess: async (resp) => {
+        const newEmails = await api.workshopEmails(workshop.id)
+        setEmails(newEmails)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
   return (
     <div>
       <Tabs
@@ -334,6 +386,7 @@ const WorkshopEditor = (props) => {
         <Tab label="View" />
         <Tab label="Modify" />
         <Tab label="Participants" />
+        <Tab label="Pre-approvals" />
         <Tab label="Requests" />
       </Tabs>
       <br />
@@ -351,14 +404,17 @@ const WorkshopEditor = (props) => {
         <br /><br />
         <ContactsEditor {...workshop} submitHandler={submitContactMutation} deleteHandler={deleteContactMutation} />
         <br /><br />
-        <Services workshop={workshop} services={props.services} submitHandler={submitServiceMutation} deleteHandler={deleteServiceMutation} />
+        <Services workshop={workshop} services={services} submitHandler={submitServiceMutation} deleteHandler={deleteServiceMutation} />
         <br /><br />
       </TabPanel>
       <TabPanel value={tab} index={2}>
-        <Participants participants={props.participants} />
+        <Participants participants={participants} deleteHandler={deleteParticipantMutation} />
       </TabPanel>
       <TabPanel value={tab} index={3}>
-        <Requests requests={props.requests} />
+        <Emails emails={emails} deleteHandler={deleteEmailMutation} />
+      </TabPanel>
+      <TabPanel value={tab} index={4}>
+        <Requests requests={requests} />
       </TabPanel>
     </div>
   )
@@ -547,7 +603,7 @@ const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
           {organizers.map((organizer, index) => (
             <Grid container key={index} justify="space-between" alignItems="center">
               <Grid item>
-                <Link key={organizer.id} href={`/administrative/users/${organizer.id}`}>
+                <Link href={`/administrative/users/${organizer.id}`}>
                   <ListItem>
                     <ListItemAvatar>
                       <Avatar>
@@ -608,7 +664,7 @@ const Services = ({ workshop, services, submitHandler, deleteHandler }) => {
           {workshop.services.map((service, index) => (
             <Grid container key={index} justify="space-between" alignItems="center">
               <Grid item>
-                <Link key={service.id} href={service.service_url}>
+                <Link href={service.service_url}>
                   <ListItem>
                     <ListItemAvatar>
                       <Avatar src={service.icon_url} />
@@ -649,7 +705,7 @@ const Services = ({ workshop, services, submitHandler, deleteHandler }) => {
   )
 }
 
-const Participants = ({ participants }) => {
+const Participants = ({ participants, deleteHandler }) => {
   const classes = useStyles()
 
   return (        
@@ -657,14 +713,12 @@ const Participants = ({ participants }) => {
       <Grid container justify="space-between">
         <Grid item>
           <Typography component="h1" variant="h4">Participants</Typography>
+          <Typography variant="subtitle1" color="textSecondary">
+            The users below are enrolled in this workshop.
+          </Typography>
         </Grid>
         <Grid item>
-          <Tooltip title='Approve a user for the workshop which will allow them to enroll'>
-            <Button variant="contained" color="primary" style={{marginRight:'1em', width:'8em'}}>Approve</Button>
-          </Tooltip>
-          <Tooltip title='Directly enroll a user in the workshop, granting access to all workshop services'>
-            <Button variant="contained" color="primary" style={{width:'8em'}}>Enroll</Button>
-          </Tooltip>
+          <Button variant="contained" color="primary" style={{width:'8em'}}>Add User</Button>
         </Grid>
       </Grid>
       {/* <Typography color="textSecondary" gutterBottom>
@@ -683,13 +737,13 @@ const Participants = ({ participants }) => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {participants.map(({ id, username, first_name, last_name, email }) => (
-                  <TableRow key={id}>
+                {participants.map(({ id, username, first_name, last_name, email }, index) => (
+                  <TableRow key={index}>
                     <TableCell>{first_name + ' ' + last_name}</TableCell>
                     <TableCell>{username}</TableCell>
                     <TableCell>{email}</TableCell>
                     <TableCell align="right">
-                      <IconButton>
+                      <IconButton onClick={() => deleteHandler(id)}>
                         <DeleteIcon />
                       </IconButton>
                     </TableCell>
@@ -700,6 +754,79 @@ const Participants = ({ participants }) => {
           </TableContainer>
       }
     </Paper>
+  )
+}
+
+const Emails = ({ emails, deleteHandler }) => {
+  const classes = useStyles()
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  return ( 
+    <div>       
+      <Paper elevation={3} className={classes.paper}>
+        <Grid container justify="space-between">
+          <Grid item style={{width:'70%'}}>
+            <Typography component="h1" variant="h4">Pre-approvals</Typography>
+            <Typography variant="subtitle1" color="textSecondary">
+              The users below (shown by CyVerse email address) are pre-approved to enroll in this workshop.
+            </Typography>
+          </Grid>
+          <Grid item>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              style={{marginRight:'1em', width:'10em'}}
+              onClick={() => setDialogOpen(true)}
+            >
+              Add Email
+            </Button>
+          </Grid>
+        </Grid>
+        <br />
+        {!emails || emails.length == 0 
+          ? <Typography>None</Typography>
+          : <TableContainer component={Paper}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Email</TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {emails.map(({ email }, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{email}</TableCell>
+                      <TableCell align="right">
+                        <IconButton onClick={() => deleteHandler(email)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+        }
+      </Paper>
+      <FormDialog 
+        title="Add Email"
+        open={dialogOpen}
+        fields={[
+          {
+            id: "email",
+            label: "Email",
+            type: "email",
+            required: true
+          }
+        ]}
+        handleClose={() => setDialogOpen(false)} 
+        handleSubmit={(values) => {
+          setDialogOpen(false)
+          submitHandler(values)
+        }}
+      />
+    </div>
   )
 }
 
@@ -952,20 +1079,7 @@ const AddServiceDialog = ({ open, services, allServices, handleClose, handleSubm
 
 export async function getServerSideProps({ req, query }) {
   const workshop = await req.api.workshop(query.id)
-
-  // These will fail if user is not staff
-  const participants = await req.api.workshopParticipants(query.id)
-  const requests = await req.api.workshopRequests(query.id)
-  const services = await req.api.services()
-
-  return { 
-    props: { 
-      workshop, 
-      participants,
-      requests,
-      services
-    } 
-  }
+  return { props: { workshop } }
 }
 
 export default Workshop

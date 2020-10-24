@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { getUser } = require('../auth');
+const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
 const Workshop = models.api_workshop;
@@ -8,6 +9,8 @@ const WorkshopEnrollmentRequestLog = models.api_workshopenrollmentrequestlog;
 const WorkshopOrganizer = models.api_workshoporganizer;
 const WorkshopContact = models.api_workshopcontact;
 const WorkshopService = models.api_workshopservice;
+const WorkshopParticipant = models.api_userworkshop;
+const WorkshopEmail= models.api_workshopuseremail;
 const { approveRequest, grantRequest } = require('./approvers/workshop');
 
 function hasHostAccess(workshop, user) {
@@ -110,10 +113,8 @@ router.post('/:id(\\d+)', getUser, async (req, res) => {
     res.json(workshop).status(200);
 });
 
-// Get workshop enrollees
+// Get workshop participants (enrollees)
 router.get('/:id(\\d+)/participants', getUser, async (req, res) => {
-    //TODO check permissions (organizer/host/staff)
-
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ 
             {
@@ -122,11 +123,87 @@ router.get('/:id(\\d+)/participants', getUser, async (req, res) => {
                 attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ],
                 through: { attributes: [] } // remove connector table
             }
-        ]
+        ],
+        order: [ [ sequelize.fn('lower', sequelize.col('first_name')), 'ASC' ] ]
     });
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host/organizer and staff 
+    if (!hasOrganizerAccess(workshop, req.user))
+        return res.send('Permission denied').status(403);
 
     return res.json(workshop.users).status(200);
 });
+
+// Remove participant from workshop
+router.delete('/:workshopId(\\d+)/participants/:userId(\\d+)', getUser, async (req, res) => {
+    const workshop = await Workshop.findByPk(req.params.workshopId);
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host/organizer and staff 
+    if (!hasOrganizerAccess(workshop, req.user))
+        return res.send('Permission denied').status(403);
+
+    const participant = await WorkshopParticipant.findOne({ 
+        where: { 
+            workshop_id: workshop.id,
+            user_id: req.params.userId
+        } 
+    });
+    if (!participant)
+        return res.send('Participant not found').status(404);
+
+    await participant.destroy();
+    res.send('success').status(200);
+});
+
+// Get workshop emails (pre-approved users)
+router.get('/:id(\\d+)/emails', getUser, async (req, res) => {
+    const workshop = await Workshop.findByPk(req.params.id, {
+        include: [ 
+            {
+                model: WorkshopEmail, //TODO create scope for this
+                as: 'emails',
+                attributes: [ 'id', 'email' ]
+            }
+        ],
+        order: [ [ sequelize.fn('lower', sequelize.col('email')), 'ASC' ] ]
+    });
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host/organizer and staff 
+    if (!hasOrganizerAccess(workshop, req.user))
+        return res.send('Permission denied').status(403);
+
+    return res.json(workshop.emails).status(200);
+});
+
+// Remove email from workshop
+router.delete('/:workshopId(\\d+)/emails/:email(\\S+)', getUser, async (req, res) => {
+    const workshop = await Workshop.findByPk(req.params.workshopId);
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host/organizer and staff 
+    if (!hasOrganizerAccess(workshop, req.user))
+        return res.send('Permission denied').status(403);
+
+    const email = await WorkshopEmail.findOne({ 
+        where: { 
+            workshop_id: workshop.id,
+            email: req.params.email
+        } 
+    });
+    if (!email)
+        return res.send('Email not found').status(404);
+
+    await email.destroy();
+    res.send('success').status(200);
+});
+
 
 // Add organizer to workshop
 router.put('/:id(\\d+)/organizers', getUser, async (req, res) => {
@@ -167,6 +244,8 @@ router.delete('/:workshopId(\\d+)/organizers/:userId(\\d+)', getUser, async (req
             organizer_id: req.params.userId
         } 
     });
+    if (!organizer)
+        return res.send('Organizer not found').status(404);
 
     await organizer.destroy();
     res.send('success').status(200);

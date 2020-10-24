@@ -6,7 +6,7 @@ import { DateRange, DateSpan } from './DateRange'
 import Layout from './Layout'
 import SideBar from './SideBar'
 import SummaryCard from './SummaryCard'
-import { UpdateForm, Wizard, FormStepper, FormField, FormControls, validateField } from './Form'
+import { UpdateForm, Wizard, FormStepper, FormField, FormControls, FormDialog, validateField } from './Form'
 import ServiceActionButton from './ServiceActionButton'
 import TabPanel from './TabPanel'
 import { CustomIntercom } from './CustomIntercom'
@@ -21,6 +21,7 @@ export {
   FormStepper, 
   FormField, 
   FormControls, 
+  FormDialog,
   Layout, 
   MainLogo,
   QuestionsEditor,
