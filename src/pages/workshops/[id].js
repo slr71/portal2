@@ -310,7 +310,7 @@ const WorkshopEditor = (props) => {
   )
 
   const [deleteContactMutation] = useMutation(
-    (contactId) => api.deleteWorkshopContact(workshop.id, contactId),
+    (email) => api.deleteWorkshopContact(workshop.id, email),
     {
       onSuccess: async (resp) => {
         const newWorkshop = await api.workshop(workshop.id)
@@ -348,12 +348,38 @@ const WorkshopEditor = (props) => {
     }
   )
 
+  const [submitParticipantMutation] = useMutation(
+    (userId) => api.createWorkshopParticipant(workshop.id, userId),
+    {
+      onSuccess: async (resp) => {
+        const newParticipants = await api.workshopParticipants(workshop.id)
+        setParticipants(newParticipants)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
   const [deleteParticipantMutation] = useMutation(
     (participantId) => api.deleteWorkshopParticipant(workshop.id, participantId),
     {
       onSuccess: async (resp) => {
         const newParticipants = await api.workshopParticipants(workshop.id)
         setParticipants(newParticipants)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [submitEmailMutation] = useMutation(
+    (data) => api.createWorkshopEmail(workshop.id, data),
+    {
+      onSuccess: async (resp) => {
+        const newEmails = await api.workshopEmails(workshop.id)
+        setEmails(newEmails)
       },
       onError: (error) => {
         console.log('ERROR', error)
@@ -408,10 +434,10 @@ const WorkshopEditor = (props) => {
         <br /><br />
       </TabPanel>
       <TabPanel value={tab} index={2}>
-        <Participants participants={participants} deleteHandler={deleteParticipantMutation} />
+        <Participants participants={participants} submitHandler={submitParticipantMutation} deleteHandler={deleteParticipantMutation} />
       </TabPanel>
       <TabPanel value={tab} index={3}>
-        <Emails emails={emails} deleteHandler={deleteEmailMutation} />
+        <Emails emails={emails} submitHandler={submitEmailMutation} deleteHandler={deleteEmailMutation} />
       </TabPanel>
       <TabPanel value={tab} index={4}>
         <Requests requests={requests} />
@@ -705,59 +731,77 @@ const Services = ({ workshop, services, submitHandler, deleteHandler }) => {
   )
 }
 
-const Participants = ({ participants, deleteHandler }) => {
+const Participants = ({ participants, submitHandler, deleteHandler }) => {
   const classes = useStyles()
+  const [dialogOpen, setDialogOpen] = useState(false)
 
-  return (        
-    <Paper elevation={3} className={classes.paper}>
-      <Grid container justify="space-between">
-        <Grid item>
-          <Typography component="h1" variant="h4">Participants</Typography>
-          <Typography variant="subtitle1" color="textSecondary">
-            The users below are enrolled in this workshop.
-          </Typography>
+  return (  
+    <div>      
+      <Paper elevation={3} className={classes.paper}>
+        <Grid container justify="space-between">
+          <Grid item>
+            <Typography component="h1" variant="h4">Participants</Typography>
+            <Typography variant="subtitle1" color="textSecondary">
+              The users below are enrolled in this workshop.
+            </Typography>
+          </Grid>
+          <Grid item>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              style={{width:'10em', whiteSpace: 'nowrap'}}
+              onClick={() => setDialogOpen(true)}
+            >
+              Enroll User
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item>
-          <Button variant="contained" color="primary" style={{width:'8em'}}>Add User</Button>
-        </Grid>
-      </Grid>
-      {/* <Typography color="textSecondary" gutterBottom>
-      </Typography> */}
-      <br />
-      {!participants || participants.length == 0 
-        ? <Typography>None</Typography>
-        : <TableContainer component={Paper}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Username</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {participants.map(({ id, username, first_name, last_name, email }, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{first_name + ' ' + last_name}</TableCell>
-                    <TableCell>{username}</TableCell>
-                    <TableCell>{email}</TableCell>
-                    <TableCell align="right">
-                      <IconButton onClick={() => deleteHandler(id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
+        <br />
+        {!participants || participants.length == 0 
+          ? <Typography>None</Typography>
+          : <TableContainer component={Paper}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Username</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell></TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-      }
-    </Paper>
+                </TableHead>
+                <TableBody>
+                  {participants.map(({ id, username, first_name, last_name, email }, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{first_name + ' ' + last_name}</TableCell>
+                      <TableCell>{username}</TableCell>
+                      <TableCell>{email}</TableCell>
+                      <TableCell align="right">
+                        <IconButton onClick={() => deleteHandler(id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+        }
+      </Paper>
+      <SearchUsersDialog 
+        title='Enroll User'
+        description='Enter the user to enroll in the workshop.'
+        open={dialogOpen}
+        handleClose={() => setDialogOpen(false)}
+        handleSubmit={(user) => {
+          setDialogOpen(false)
+          submitHandler(user.id)
+        }}
+      />
+    </div>
   )
 }
 
-const Emails = ({ emails, deleteHandler }) => {
+const Emails = ({ emails, submitHandler, deleteHandler }) => {
   const classes = useStyles()
   const [dialogOpen, setDialogOpen] = useState(false)
 
@@ -775,7 +819,7 @@ const Emails = ({ emails, deleteHandler }) => {
             <Button 
               variant="contained" 
               color="primary" 
-              style={{marginRight:'1em', width:'10em'}}
+              style={{width:'10em', whiteSpace: 'nowrap'}}
               onClick={() => setDialogOpen(true)}
             >
               Add Email
@@ -995,7 +1039,7 @@ const SearchUsersDialog = ({ open, title, description, handleClose, handleSubmit
               {...params}
               label="Search users"
               margin="normal"
-              variant="outlined"
+              // variant="outlined"
               InputProps={{ 
                 ...params.InputProps, 
                 // type: 'search',

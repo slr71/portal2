@@ -127,17 +127,17 @@ class PortalAPI {
 
   async createWorkshopContact(workshopId, params) { return await this.put(`/workshops/${workshopId}/contacts`, params) }
 
-  async deleteWorkshopContact(workshopId, contactId) { return await this.delete(`/workshops/${workshopId}/contacts/${contactId}`) }
+  async deleteWorkshopContact(workshopId, email) { return await this.delete(`/workshops/${workshopId}/contacts/${email}`) }
 
   async createWorkshopService(workshopId, serviceId) { return await this.put(`/workshops/${workshopId}/services`, { serviceId }) }
 
   async deleteWorkshopService(workshopId, serviceId) { return await this.delete(`/workshops/${workshopId}/services/${serviceId}`) }
 
-  async createWorkshopParticipant(workshopId, participantId) { return await this.put(`/workshops/${workshopId}/participants`, { participantId }) }
+  async createWorkshopParticipant(workshopId, userId) { return await this.put(`/workshops/${workshopId}/participants`, { userId }) }
 
-  async deleteWorkshopParticipant(workshopId, participantId) { return await this.delete(`/workshops/${workshopId}/participants/${participantId}`) }
+  async deleteWorkshopParticipant(workshopId, userId) { return await this.delete(`/workshops/${workshopId}/participants/${userId}`) }
 
-  async createWorkshopEmail(workshopId, email) { return await this.put(`/workshops/${workshopId}/emails`, { email }) }
+  async createWorkshopEmail(workshopId, params) { return await this.put(`/workshops/${workshopId}/emails`, params) }
 
   async deleteWorkshopEmail(workshopId, email) { return await this.delete(`/workshops/${workshopId}/emails/${email}`) }
 
