@@ -42,9 +42,14 @@ async function search(resource, query) {
 }
 
 async function get_conversation(id) {
-    const res = await intercom.conversations.find({ id });
-    if (res && res.body)
-        return res.body;
+    try {
+        const res = await intercom.conversations.find({ id });
+        if (res && res.body)
+            return res.body;
+    }
+    catch(error) {
+        console.log('get_conversation:', error)
+    }
 }
 
 async function start_conversation(user, body) {

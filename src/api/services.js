@@ -67,7 +67,7 @@ router.get('/requests/:id(\\d+)', requireAdmin, async (req, res) => {
                     as: 'questions'
                 }
             },
-            'conversation',
+            'conversations',
             'logs'
         ],
         order: [ [ 'logs', 'created_at', 'ASC' ] ]
@@ -83,11 +83,14 @@ router.get('/requests/:id(\\d+)', requireAdmin, async (req, res) => {
     });
     request.setDataValue('answers', answers);
 
-    if (request.conversation) {
-        const conversation = await intercom.get_conversation(request.conversation.intercom_conversation_id);
-        request.conversation.setDataValue('source', conversation.source);
-        if (conversation && conversation.conversation_parts)
-            request.conversation.setDataValue('parts', conversation.conversation_parts.conversation_parts);
+    // Fetch conversations from Intercom
+    for (let conversation of request.conversations) {
+        const c = await intercom.get_conversation(conversation.intercom_conversation_id);
+        if (c) {
+            conversation.setDataValue('source', c.source);
+            if (c.conversation_parts)
+                conversation.setDataValue('parts', c.conversation_parts.conversation_parts);
+        }
     }
 
     return res.json(request).status(200);

@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Box, FormControlLabel, TextField, Checkbox, Link } from '@material-ui/core'
-import { Layout, Section, User } from '../../../components'
+import { Layout, Section, User, Conversations } from '../../../components'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -13,40 +13,25 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const FormSubmission = props => {
-  const classes = useStyles()
-
-  return (
-    <Layout title={props.submission.form.name} breadcrumbs>
-      <Container maxWidth='lg'>
-          <h1>Form Submission</h1>
-          <Grid container spacing={4}>
-            <Grid item xs={6}>
-              <UserSummary {...props.submission.user} />
-              <Conversations />
-            </Grid>
-            <Grid item xs={6}>
-              <Form form={props.submission.form} fields={props.submission.fields} />
-            </Grid>
+const FormSubmission = ({ submission }) => (
+  <Layout title={submission.form.name} breadcrumbs>
+    <Container maxWidth='lg'>
+        <h1>Form Submission</h1>
+        <Grid container spacing={4}>
+          <Grid item xs={6}>
+            <Section title="User">
+              <User summaryOnly {...submission.user} />
+            </Section>
+            <Section title="Conversations">
+              <Conversations conversations={submission.conversations} />
+            </Section>
           </Grid>
-      </Container>
-    </Layout>
-  )
-}
-
-const UserSummary = (props) => (
-  <Section title="User">
-    <User summaryOnly {...props} />
-    <Box display="flex" justifyContent="flex-end">
-      <Link href={`/administrative/users/${props.id}`}>View Details</Link>
-    </Box>
-  </Section>
-)
-
-const Conversations = (props) => (
-  <Section title="Conversations">
-
-  </Section>
+          <Grid item xs={6}>
+            <Form form={submission.form} fields={submission.fields} />
+          </Grid>
+        </Grid>
+    </Container>
+  </Layout>
 )
 
 const Form = ({ form, fields }) => (

@@ -11,11 +11,13 @@ import Section from './Section'
 import ServiceActionButton from './ServiceActionButton'
 import TabPanel from './TabPanel'
 import User from './User'
+import Conversations from './Conversations'
 import { CustomIntercom } from './CustomIntercom'
 import MainLogo from './MainLogo'
 
 export { 
   ContactsEditor,
+  Conversations,
   CustomIntercom,
   Dashboard, 
   DateRange, 

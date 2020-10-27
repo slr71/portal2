@@ -87,7 +87,7 @@ models.api_accessrequestquestion.hasMany(models.api_accessrequestanswer, { as: '
 models.request.belongsTo(models.account_user, { as: 'user' });
 models.request.belongsTo(models.api_service, { as: 'service' });
 models.request.hasMany(models.api_accessrequestlog, { as: 'logs', foreignKey: 'access_request_id' });
-models.request.hasOne(models.api_accessrequestconversation, { as: 'conversation', foreignKey: 'access_request_id' });
+models.request.hasMany(models.api_accessrequestconversation, { as: 'conversations', foreignKey: 'access_request_id' });
 
 models.api_workshop.belongsTo(models.account_user, { as: 'owner', foreignKey: 'creator_id' });
 models.api_workshop.hasMany(models.api_workshopuseremail, { as: 'emails', foreignKey: 'workshop_id' });
@@ -115,6 +115,7 @@ models.api_formsubmission.belongsTo(models.api_form, { as: 'form', foreignKey: '
 models.api_formsubmission.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id' } );
 models.api_formsubmission.belongsToMany(models.api_formfield, 
   { as: 'fields', through: models.api_formfieldsubmission, foreignKey: 'form_submission_id', otherKey: 'form_field_id' });
+models.api_formsubmission.hasMany(models.api_formsubmissionconversation, { as: 'conversations', foreignKey: 'form_submission_id' });
 
 
 /**

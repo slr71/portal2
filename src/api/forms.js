@@ -9,13 +9,13 @@ const FormSection = models.api_formsection;
 const FormField = models.api_formfield;
 const FormSubmission = models.api_formsubmission;
 const FormFieldSubmission = models.api_formfieldsubmission;
-const { intercom_send_form_submission_confirmation_message } = require('../intercom');
+const intercom = require('../intercom');
 
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
 
 router.get('/', async (req, res) => {
-    let requests = await FormGroup.findAll({
+    let formGroups = await FormGroup.findAll({
         include: [ 
             { 
                 model: models.api_form, 
@@ -26,7 +26,7 @@ router.get('/', async (req, res) => {
         order: [ ['index', 'ASC'] ]
     });
 
-    return res.json(requests).status(200);
+    return res.json(formGroups).status(200);
 });
 
 router.get('/submissions', requireAdmin, async (req, res) => {
@@ -65,10 +65,19 @@ router.get('/submissions', requireAdmin, async (req, res) => {
 
 router.get('/submissions/:id(\\d+)', requireAdmin, async (req, res) => {
     let submission = await models.api_formsubmission.findByPk(req.params.id, {
-        include: [ 
-            'user', 'form', 'fields'
-        ]
+        include: [ 'user', 'form', 'fields', 'conversations' ]
     });
+
+    // Fetch conversations from Intercom
+    for (let conversation of submission.conversations) {
+        const c = await intercom.get_conversation(conversation.intercom_conversation_id);
+        if (c) {
+            console.log(c)
+            conversation.setDataValue('source', c.source);
+            if (c.conversation_parts)
+                conversation.setDataValue('parts', c.conversation_parts.conversation_parts);
+        }
+    }
 
     return res.json(submission).status(200);
 });
@@ -134,7 +143,7 @@ router.put('/:id(\\d+)/submissions', getUser, requireAdmin, async (req, res) => 
 router.get('/:nameOrId([\\w\\%]+)', async (req, res) => {
     const nameOrId = decodeURI(req.params.nameOrId);
 
-    let request = await Form.findOne({
+    let form = await Form.findOne({
         where:
             sequelize.or(
                 { id: isNaN(nameOrId) ? 0 : nameOrId },
@@ -157,10 +166,10 @@ router.get('/:nameOrId([\\w\\%]+)', async (req, res) => {
         ],
         order: [ [ { model: FormSection, as: 'sections' }, { model: FormField, as: 'fields' }, 'index', 'asc' ] ]
     });
-    if (!request)
+    if (!form)
         return res.send('Form not found').status(404);
 
-    return res.json(request).status(200);
+    return res.json(form).status(200);
 });
 
 // Update form
