@@ -1,5 +1,5 @@
 import { makeStyles } from '@material-ui/core/styles'
-import { Card, CardHeader, CardContent, Box, Button, Typography } from '@material-ui/core'
+import { Card, CardHeader, CardContent, Box, Button, Typography, Link } from '@material-ui/core'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -17,26 +17,31 @@ const User = (props) => {
 
   if (props.summaryOnly) {
     return (
-      <table>
-        <tbody>
-          <tr>
-            <td className={classes.cellHeader}>Name</td>
-            <td>{`${props.first_name} ${props.last_name}`}</td>
-          </tr>
-          <tr>
-            <td className={classes.cellHeader}>Username</td>
-            <td>{props.username}</td>
-          </tr>
-          <tr>
-            <td className={classes.cellHeader}>Email</td>
-            <td>{props.email}</td>
-          </tr>
-          <tr>
-            <td className={classes.cellHeader}>Date Joined</td>
-            <td>{props.date_joined}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div>
+        <table>
+          <tbody>
+            <tr>
+              <td className={classes.cellHeader}>Name</td>
+              <td>{`${props.first_name} ${props.last_name}`}</td>
+            </tr>
+            <tr>
+              <td className={classes.cellHeader}>Username</td>
+              <td>{props.username}</td>
+            </tr>
+            <tr>
+              <td className={classes.cellHeader}>Email</td>
+              <td>{props.email}</td>
+            </tr>
+            <tr>
+              <td className={classes.cellHeader}>Date Joined</td>
+              <td>{props.date_joined}</td>
+            </tr>
+          </tbody>
+        </table>
+        <Box display="flex" justifyContent="flex-end">
+          <Link href={`/administrative/users/${props.id}`}>View Details</Link>
+        </Box>
+      </div>
     )
   }
 
@@ -56,7 +61,7 @@ const User = (props) => {
       <Card className={classes.box}>
         <CardHeader title="Email" />
         <CardContent>
-          {props.emails.map((email, index) => (
+          {props.emails && props.emails.map((email, index) => (
             <div key={index}>{email.email} - {email.verified ? 'Verified' + (email.primary ? ', Primary' : '') : 'Unverified'}</div>
           ))}
         </CardContent>
@@ -66,7 +71,7 @@ const User = (props) => {
         <Card className={classes.box}>
         <CardHeader title="Mailing List Subscriptions" />
         <CardContent>
-        {props.emails.map(email => (
+        {props.emails && props.emails.map(email => (
           <div>
             <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
             <Box ml={2}>

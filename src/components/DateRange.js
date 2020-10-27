@@ -1,13 +1,13 @@
-const DateRange = (props) => {
+const DateRange = ({ date1, date2 }) => {
   return (
     <>
-      <DateSpan date={props.date1} /> - <DateSpan date={props.date2} />
+      <DateSpan date={date1} /> - <DateSpan date={date2} />
     </>
   )
 }
 
-const DateSpan = (props) => {
-  const d = new Date(props.date)
+const DateSpan = ({ date }) => {
+  const d = new Date(date)
   const month = d.toLocaleString('default', { month: 'short' })
   const day = d.getDate()
   const year = d.getFullYear()
