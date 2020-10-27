@@ -40,6 +40,7 @@ router.get('/', async (req, res) => {
 router.get('/:id(\\d+)', async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ //TODO create scope for this
+            'contacts',
             { 
                 model: User.unscoped(), 
                 as: 'owner',
@@ -55,8 +56,7 @@ router.get('/:id(\\d+)', async (req, res) => {
                 as: 'organizers', 
                 through: { attributes: [] }, // remove connector table
                 attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ]
-            },
-            'contacts'
+            }
         ]
     });
 
@@ -136,6 +136,29 @@ router.get('/:id(\\d+)/participants', getUser, async (req, res) => {
     return res.json(workshop.users).status(200);
 });
 
+// Add participant to workshop
+router.put('/:id(\\d+)/participants', getUser, async (req, res) => {
+    const userId = req.body.userId
+    if (!userId)
+        return res.send('Missing user id').status(400);
+
+    const workshop = await Workshop.findByPk(req.params.id);
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host/organizer and staff 
+    if (!hasOrganizerAccess(workshop, req.user))
+        return res.send('Permission denied').status(403);
+
+    const [participant, created] = await WorkshopParticipant.findOrCreate({ 
+        where: { 
+            workshop_id: workshop.id,
+            user_id: userId
+        } 
+    });
+    res.json(participant).status(201);
+});
+
 // Remove participant from workshop
 router.delete('/:workshopId(\\d+)/participants/:userId(\\d+)', getUser, async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.workshopId);
@@ -181,6 +204,25 @@ router.get('/:id(\\d+)/emails', getUser, async (req, res) => {
     return res.json(workshop.emails).status(200);
 });
 
+// Add email to workshop
+router.put('/:id(\\d+)/emails', getUser, async (req, res) => {
+    const workshop = await Workshop.findByPk(req.params.id);
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host/organizer and staff 
+    if (!hasOrganizerAccess(workshop, req.user))
+        return res.send('Permission denied').status(403);
+
+    const [email, created] = await WorkshopEmail.findOrCreate({ 
+        where: { 
+            workshop_id: workshop.id,
+            email: req.body.email
+        }
+    });
+    res.json(email).status(201);
+});
+
 // Remove email from workshop
 router.delete('/:workshopId(\\d+)/emails/:email(\\S+)', getUser, async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.workshopId);
@@ -203,7 +245,6 @@ router.delete('/:workshopId(\\d+)/emails/:email(\\S+)', getUser, async (req, res
     await email.destroy();
     res.send('success').status(200);
 });
-
 
 // Add organizer to workshop
 router.put('/:id(\\d+)/organizers', getUser, async (req, res) => {
@@ -286,7 +327,7 @@ router.put('/:id(\\d+)/contacts', getUser, async (req, res) => {
 });
 
 // Remove contact from workshop
-router.delete('/:workshopId(\\d+)/contacts/:contactId(\\d+)', getUser, async (req, res) => {
+router.delete('/:workshopId(\\d+)/contacts/:email(\\S+)', getUser, async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.workshopId, {
         include: [ //TODO create scope for this
             {
@@ -304,7 +345,12 @@ router.delete('/:workshopId(\\d+)/contacts/:contactId(\\d+)', getUser, async (re
     if (!hasOrganizerAccess(workshop, req.user))
         return res.send('Permission denied').status(403);
 
-    const contact = await WorkshopContact.findByPk(req.params.contactId);
+    const contact = await WorkshopContact.findOne({ 
+        where: {
+            workshop_id: workshop.id,
+            email: req.params.email
+        } 
+    });
     if (!contact)
         return res.send('Contact not found').status(404);
 
