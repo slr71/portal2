@@ -62,7 +62,7 @@ models.account_user.belongsTo(models.account_researcharea, { as: 'research_area'
 models.account_user.belongsTo(models.account_awarechannel, { as: 'aware_channel' });
 models.account_user.hasMany(models.account_emailaddress, { as: 'emails', foreignKey: 'user_id' });
 models.account_user.belongsToMany(models.api_service, 
-  { as: 'services', through: models.request, foreignKey: 'user_id', otherKey: 'service_id' });
+  { as: 'services', through: models.api_accessrequest, foreignKey: 'user_id', otherKey: 'service_id' });
 models.account_user.belongsToMany(models.api_workshop, 
   { as: 'workshops', through: models.api_workshopenrollmentrequest, foreignKey: 'user_id', otherKey: 'workshop_id' });
 
@@ -84,10 +84,10 @@ models.api_service.hasMany(models.api_accessrequestquestion, { as: 'questions', 
 models.api_accessrequestquestion.hasMany(models.api_accessrequestanswer, { as: 'answers', foreignKey: 'access_request_question_id' });
 
 //FIXME change back table name from 'request' to default 'api_accessrequest'
-models.request.belongsTo(models.account_user, { as: 'user' });
-models.request.belongsTo(models.api_service, { as: 'service' });
-models.request.hasMany(models.api_accessrequestlog, { as: 'logs', foreignKey: 'access_request_id' });
-models.request.hasMany(models.api_accessrequestconversation, { as: 'conversations', foreignKey: 'access_request_id' });
+models.api_accessrequest.belongsTo(models.account_user, { as: 'user' });
+models.api_accessrequest.belongsTo(models.api_service, { as: 'service' });
+models.api_accessrequest.hasMany(models.api_accessrequestlog, { as: 'logs', foreignKey: 'access_request_id' });
+models.api_accessrequest.hasMany(models.api_accessrequestconversation, { as: 'conversations', foreignKey: 'access_request_id' });
 
 models.api_workshop.belongsTo(models.account_user, { as: 'owner', foreignKey: 'creator_id' });
 models.api_workshop.hasMany(models.api_workshopuseremail, { as: 'emails', foreignKey: 'workshop_id' });
@@ -262,7 +262,7 @@ models.account_emailaddress.addScope('defaultScope',
  */
 
 // Automatically log changes to access request status
-models.request.afterUpdate('afterUpdateRequest', 
+models.api_accessrequest.afterUpdate('afterUpdateRequest', 
   async (request) => {
     await models.api_accessrequestlog.create({
       access_request_id: request.id,
@@ -289,7 +289,7 @@ models.api_workshopenrollmentrequest.afterUpdate('afterUpdateRequest',
  */
 
 // Service access request
-models.request.constants = {
+models.api_accessrequest.constants = {
     STATUS_REQUESTED:  'requested', 
     STATUS_PENDING:    'pending',  
     STATUS_APPROVED:   'approved', 
@@ -302,32 +302,32 @@ models.request.constants = {
     MESSAGE_DENIED:    'You must have a *.edu or *.gov email address associated with your account in order to use Atmosphere'
 };
 
-models.request.prototype.pend = async function() {
-    this.set('status', models.request.constants.STATUS_PENDING);
-    this.set('message', models.request.constants.MESSAGE_PENDING);
+models.api_accessrequest.prototype.pend = async function() {
+    this.set('status', models.api_accessrequest.constants.STATUS_PENDING);
+    this.set('message', models.api_accessrequest.constants.MESSAGE_PENDING);
     await this.save();
 }
 
-models.request.prototype.approve = async function() {
-    this.set('status', models.request.constants.STATUS_APPROVED);
-    this.set('message', models.request.constants.MESSAGE_APPROVED);
+models.api_accessrequest.prototype.approve = async function() {
+    this.set('status', models.api_accessrequest.constants.STATUS_APPROVED);
+    this.set('message', models.api_accessrequest.constants.MESSAGE_APPROVED);
     await this.save();
 }
 
-models.request.prototype.grant = async function() {
-    this.set('status', models.request.constants.STATUS_GRANTED);
-    this.set('message', models.request.constants.MESSAGE_GRANTED);
+models.api_accessrequest.prototype.grant = async function() {
+    this.set('status', models.api_accessrequest.constants.STATUS_GRANTED);
+    this.set('message', models.api_accessrequest.constants.MESSAGE_GRANTED);
     await this.save();
 }
 
-models.request.prototype.deny = async function() {
-    this.set('status', models.request.constants.STATUS_DENIED);
-    this.set('message', models.request.constants.MESSAGE_DENIED);
+models.api_accessrequest.prototype.deny = async function() {
+    this.set('status', models.api_accessrequest.constants.STATUS_DENIED);
+    this.set('message', models.api_accessrequest.constants.MESSAGE_DENIED);
     await this.save();
 }
 
-models.request.prototype.isApproved = function() {
-    return this.status == models.request.constants.STATUS_APPROVED;
+models.api_accessrequest.prototype.isApproved = function() {
+    return this.status == models.api_accessrequest.constants.STATUS_APPROVED;
 }
 
 // Workshop enrollment request

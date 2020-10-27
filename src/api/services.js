@@ -5,7 +5,7 @@ const Service = models.api_service;
 const ServiceContact = models.api_contact;
 const ServiceResource = models.api_serviceresource;
 const User = models.account_user;
-const AccessRequest = models.request;
+const AccessRequest = models.api_accessrequest;
 const AccessRequestLog = models.api_accessrequestlog;
 const AccessRequestQuestion = models.api_accessrequestquestion;
 const AccessRequestAnswer = models.api_accessrequestanswer;
@@ -18,7 +18,6 @@ const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api
 
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
-
 
 router.get('/requests', requireAdmin, async (req, res) => {
     const offset = req.query.offset;
@@ -75,7 +74,7 @@ router.get('/requests/:id(\\d+)', requireAdmin, async (req, res) => {
     if (!request)
         return res.send('Request not found').status(404);
 
-    let answers = await models.api_accessrequestanswer.findAll({
+    let answers = await AccessRequestAnswer.findAll({
         where: {
             access_request_question_id: request.service.questions.map(q => q.id),
             user_id: request.user.id
@@ -114,7 +113,7 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
     // }
 
     // Create access request if it doesn't already exist
-    const [request, created] = await models.request.findOrCreate({
+    const [request, created] = await AccessRequest.findOrCreate({
         where: { 
             service_id: service.id,
             user_id: req.user.id
@@ -196,7 +195,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, async (req, res) => {
     if (!service)
         return res.send("Service not found").status(404);
 
-    const request = await models.request.findOne({
+    const request = await AccessRequest.findOne({
         where: { 
             service_id: service.id,
             user_id: req.user.id

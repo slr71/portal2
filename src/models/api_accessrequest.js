@@ -1,7 +1,7 @@
 /* jshint indent: 2 */
 
 module.exports = function(sequelize, DataTypes) {
-  return sequelize.define('request', {
+  return sequelize.define('api_accessrequest', {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
