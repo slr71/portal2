@@ -46,6 +46,7 @@ const WorkshopViewer = (props) => {
   const classes = useStyles()
   const api = useAPI()
   const user = useUser()
+
   const userWorkshop = user.workshops.find(w => w.id == workshop.id)
   const request = userWorkshop && userWorkshop.api_workshopenrollmentrequest
   const isHost = user.id == workshop.creator_id
@@ -53,17 +54,9 @@ const WorkshopViewer = (props) => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [requestStatus, setRequestStatus] = useState(request && request.status)
 
-  const handleOpenDialog = () => {
-    setDialogOpen(true)
-  }
-
-  const handleCloseDialog = () => {
-    setDialogOpen(false)
-  }
-
   const handleSubmit = async () => {
     setRequestStatus('requested')
-    handleCloseDialog()
+    setDialogOpen(false)
     const response = await api.createWorkshopRequest(workshop.id)
     console.log(response)
   }
@@ -100,7 +93,7 @@ const WorkshopViewer = (props) => {
                 status={requestStatus} 
                 enrollmentBegins={workshop.enrollment_begins}
                 enrollmentEnds={workshop.enrollment_ends}
-                requestHandler={handleOpenDialog} 
+                requestHandler={() => setDialogOpen(true)} 
               />
             </Grid>
             <Grid item xs={12}>
@@ -148,7 +141,7 @@ const WorkshopViewer = (props) => {
       <RequestEnrollmentDialog 
         open={dialogOpen}
         workshop={workshop}
-        handleClose={handleCloseDialog}
+        handleClose={() => setDialogOpen(false)}
         handleSubmit={handleSubmit}
       />
     </div>
@@ -185,7 +178,14 @@ const WorkshopActionButton = ({ status, enrollmentBegins, enrollmentEnds, reques
   return (
     <Tooltip title={tooltip || ''}>
       <span>
-        <Button variant="contained" color="primary" size="medium" disabled={disabled} onClick={action}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          size="medium" 
+          style={{minWidth: "10em"}}
+          disabled={disabled} 
+          onClick={action}
+        >
           {label}
         </Button> 
       </span>
