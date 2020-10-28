@@ -104,7 +104,7 @@ const menuItems = [
         path: "/administrative/submissions",
         description: "Search across all form submissions and view individual submissions."
       },
-      { label: "Manage Forms",
+      { label: "Forms",
         icon: <EditIcon fontSize="medium" />, 
         path: "/administrative/forms",
         description: "View and edit forms."

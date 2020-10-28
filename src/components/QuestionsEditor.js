@@ -20,7 +20,7 @@ const QuestionsEditor = ({ questions, submitHandler, deleteHandler }) => {
       <Typography color="textSecondary">Questions users be will asked when requesting access.</Typography>
       <br />
       <List>
-        {questions.map((question, index) => (
+        {questions && questions.map((question, index) => (
           <Grid container key={index} justify="space-between" alignItems="center">
             <Grid item>
               <ListItem>
