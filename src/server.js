@@ -92,18 +92,18 @@ app.prepare()
         })
 
         // Public static files
-        server.get("/*.(svg|ico)", (req, res) => {
+        server.get("/*.(svg|ico|png|gif|jpg)", (req, res) => {
             return nextHandler(req, res)
         })
 
-        if (isDevelopment) 
+        //if (isDevelopment) 
             server.get("/_next/*", (req, res) => {
                 return nextHandler(req, res)
             })
-        else
-            server.get("/_next/static/*", (req, res) => {
-                return nextHandler(req, res)
-            })
+        //else
+        //    server.get("/_next/static/*", (req, res) => {
+        //        return nextHandler(req, res)
+        //    })
 
         // Setup API client for use by getServerSideProps()
         server.use(async (req, _, next) => {
