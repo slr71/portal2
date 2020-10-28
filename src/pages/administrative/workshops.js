@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import Link from "next/link"
+import { useRouter } from 'next/router'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Grid, Button, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
-import { Layout, DateRange } from '../../components'
+import { Layout, FormDialog, DateRange } from '../../components'
+import { useAPI } from '../../contexts/api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -12,6 +15,18 @@ const useStyles = makeStyles((theme) => ({
 
 const Workshops = props => {
   const classes = useStyles()
+  const router = useRouter()
+  const api = useAPI()
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  const submitWorkshop = async (values) => {
+    const response = await api.createWorkshop(values)
+    console.log(response)
+    //TODO handle errors
+    if (response) {
+      router.push(`/workshops/${response.id}`)
+    }
+  }
 
   return (
     <Layout breadcrumbs>
@@ -23,7 +38,11 @@ const Workshops = props => {
               <Typography component="h1" variant="h4" gutterBottom>Workshops</Typography>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="primary">
+              <Button 
+                variant="contained" 
+                color="primary"
+                onClick={() => setDialogOpen(true)}
+              >
                 Create Workshop
               </Button> 
             </Grid>
@@ -32,6 +51,23 @@ const Workshops = props => {
           <WorkshopTable {...props} />
         </Paper>
       </Container>
+      <FormDialog 
+        title="Create Workshop"
+        open={dialogOpen}
+        fields={[
+          {
+            id: "title",
+            label: "Title",
+            type: "text",
+            required: true
+          }
+        ]}
+        handleClose={() => setDialogOpen(false)} 
+        handleSubmit={(values) => {
+          setDialogOpen(false)
+          submitWorkshop(values)
+        }}
+      />
     </Layout>
   )
 }

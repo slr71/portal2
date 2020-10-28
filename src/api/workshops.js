@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { getUser } = require('../auth');
+const { getUser, requireAdmin } = require('../auth');
 const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
@@ -61,6 +61,34 @@ router.get('/:id(\\d+)', async (req, res) => {
     });
 
     return res.json(workshop).status(200);
+});
+
+// Create workshop (STAFF ONLY)
+router.put('/', getUser, requireAdmin, async (req, res) => {
+    if (!req.body.title)
+        return res.send('Missing title').status(400);
+    
+    // Set default workshop properties
+    const timeNow = Date.now()
+    const defaults = {
+        creator_id: req.user.id,
+        about: '',
+        description: '',
+        enrollment_begins: timeNow,
+        enrollment_ends: timeNow,
+        contact_email: '',
+        contact_name: '',
+        end_date: timeNow,
+        start_date: timeNow
+    };
+    const fields = { ...defaults, ...req.body }; // override default values with request values, if any
+
+    // Create workshop
+    const workshop = await Workshop.create(fields);
+    if (!workshop)
+        return res.send('Failed to create workshop').status(500);
+
+    res.json(workshop).status(201);
 });
 
 // Update workshop
