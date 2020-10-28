@@ -1,5 +1,4 @@
-To: ${EMAIL_ADDRESS}
-Subject: ${SERVICE_NAME} Access Granted
+${SERVICE_NAME} Access Granted
 
 Your request for access to ${SERVICE_NAME} has been approved. You can now launch the service through the User Portal, by visiting the link below:
 

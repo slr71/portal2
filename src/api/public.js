@@ -102,6 +102,9 @@ router.put('/users/:username(\\w+)', async (req, res) => {
 
     // Run user creation workflow //FIXME move to password set endpoint
     const rc = await createUser(newUser)
+    
+    // Grant access to Discovery Environment and Data Commmons services
+    //TODO
 
     // Send confirmation email //FIXME move this to last step of user creation workflow
     const confirmationUrl = `${UI_PASSWORD_URL}?code=${hmac}`;
@@ -109,7 +112,7 @@ router.put('/users/:username(\\w+)', async (req, res) => {
         to: newUser.email, 
         bcc: config.email.bccNewAccountConfirmation,
         subject: 'Please Confirm Your E-Mail Address', //FIXME hardcoded
-        templateName: 'email_confirmation_signup_message',
+        templateName: 'email_confirmation_signup',
         fields: {
             "ACTIVATE_URL": confirmationUrl,
             "FORMS_URL": UI_REQUESTS_URL
