@@ -1,4 +1,3 @@
-import 'date-fns'
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useMutation } from "react-query"
@@ -103,7 +102,7 @@ const WorkshopViewer = (props) => {
                 Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
               </Typography>
               <Typography color="textSecondary">
-                Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
+                Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} showTime />
               </Typography>
               {isHost &&
                 <Typography>

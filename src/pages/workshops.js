@@ -13,7 +13,11 @@ const Workshops = (props) => {
   const user = useUser()
   const userWorkshops = [].concat(
     user.workshops, // workshop user is/was enrolled in
-    props.workshops.filter(w => w.creator_id == user.id || (w.organizers && w.organizers.some(o => o.id == user.id))) // workshop user is/was hosting/organizer
+    props.workshops.filter(w => 
+      !user.workshops.find(uw => uw.id == w.id) && // skip duplicates
+      (w.creator_id == user.id || 
+        (w.organizers && w.organizers.some(o => o.id == user.id)))
+    ) // workshop user is/was hosting/organizer
   )
   const otherWorkshops = props.workshops.filter(w => !userWorkshops.find(w2 => w2.id == w.id)) 
 
@@ -73,8 +77,8 @@ const PastWorkshops = ({ workshops }) => {
 
 const WorkshopGrid = ({ workshops }) => (
   <Grid container spacing={3}>
-    {workshops.map(workshop =>
-      <Grid item xs={6} key={workshop.id}>
+    {workshops.map((workshop, index) =>
+      <Grid item xs={6} key={index}>
         <Workshop workshop={workshop} />
       </Grid>
     )}
@@ -97,7 +101,7 @@ const Workshop = ({ workshop }) => {
               Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
             </div>
             <div className={classes.noWrap}>
-              Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
+              Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} showTime />
             </div>
           </>
         }
