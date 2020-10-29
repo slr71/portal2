@@ -1,5 +1,6 @@
 import { makeStyles } from '@material-ui/core/styles'
 import { Card, CardHeader, CardContent, Box, Button, Typography, Link } from '@material-ui/core'
+import { DateSpan } from './DateRange'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -34,7 +35,7 @@ const User = (props) => {
             </tr>
             <tr>
               <td className={classes.cellHeader}>Date Joined</td>
-              <td>{props.date_joined}</td>
+              <td><DateSpan date={props.date_joined} showTime /></td>
             </tr>
           </tbody>
         </table>
