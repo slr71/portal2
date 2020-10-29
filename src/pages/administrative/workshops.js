@@ -84,10 +84,10 @@ const WorkshopTable = ({ workshops }) => (
                   <b>{workshop.title}</b>
                 </div>
                 <div>
-                  Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
+                  Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} hideTime />
                 </div>
                 <div>
-                  Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} showTime />
+                  Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
                 </div>
               </TableCell>
             </TableRow>

@@ -35,7 +35,7 @@ const User = (props) => {
             </tr>
             <tr>
               <td className={classes.cellHeader}>Date Joined</td>
-              <td><DateSpan date={props.date_joined} showTime /></td>
+              <td><DateSpan date={props.date_joined} /></td>
             </tr>
           </tbody>
         </table>
@@ -53,7 +53,7 @@ const User = (props) => {
           title={`${props.first_name} ${props.last_name} (${props.username})`}
         />
         <CardContent>
-          <div>Joined: {props.date_joined}</div>
+          <div>Joined: <DateSpan date={props.date_joined} /></div>
           <div>ORCID: {props.orcid_id ? props.orcid_id : '<None>'}</div>
           {props.delete ? <Button variant="contained" color="secondary" size="medium">DELETE</Button> : <></>}
         </CardContent>

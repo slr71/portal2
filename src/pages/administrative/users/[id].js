@@ -1,5 +1,5 @@
 import { makeStyles, Container, Box, Button, Paper, Typography } from '@material-ui/core'
-import { Layout } from '../../../components'
+import { Layout, DateSpan } from '../../../components'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -19,7 +19,7 @@ const User = ({ user }) => {
         <Paper elevation={3} className={classes.paper}>
           <Typography component="div" variant="h5">{`${user.first_name} ${user.last_name} (${user.username})`}</Typography> 
           <br />
-          <div>Joined: {user.date_joined}</div>
+          <div>Joined: <DateSpan date={user.date_joined} /></div>
           <div>ORCID: {user.orcid_id ? user.orcid_id : '<None>'}</div>
           <Button variant="contained" color="error" size="medium">DELETE</Button>
         </Paper>

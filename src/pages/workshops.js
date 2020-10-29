@@ -98,10 +98,10 @@ const Workshop = ({ workshop }) => {
         subtitle={
           <>
             <div className={classes.noWrap}>
-              Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
+              Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} hideTime />
             </div>
             <div className={classes.noWrap}>
-              Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} showTime />
+              Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
             </div>
           </>
         }

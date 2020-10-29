@@ -48,7 +48,7 @@ const ConversationPart = ({ author, part_type, assigned_to, created_at, body }) 
       <ListItemText
         primary={author ? `${author.name} (${author.type})` : ''}
         secondary={(<>
-          <DateSpan date={created_at*1000} showTime />
+          <DateSpan date={created_at*1000} />
           <br />
           {content}
         </>)}

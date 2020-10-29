@@ -99,10 +99,10 @@ const WorkshopViewer = (props) => {
               <Typography color="textSecondary">{workshop.description}</Typography>
               <br />
               <Typography color="textSecondary">
-                Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
+                Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} hideTime />
               </Typography>
               <Typography color="textSecondary">
-                Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} showTime />
+                Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
               </Typography>
               {isHost &&
                 <Typography>
