@@ -1,5 +1,5 @@
 import 'date-fns'
-// import debounce from 'just-debounce-it'
+import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useMutation } from "react-query"
 import Markdown from 'markdown-to-jsx'
@@ -228,13 +228,14 @@ const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) 
 }
 
 const WorkshopEditor = (props) => {
+  const router = useRouter()
   const api = useAPI()
   const [workshop, setWorkshop] = useState(props.workshop)
   const [participants, setParticipants] = useState()
   const [emails, setEmails] = useState()
   const [requests, setRequests] = useState()
   const [services, setServices] = useState()
-  const [tab, setTab] = useState(0)
+  const [tab, setTab] = useState(router.query.t || 'view')
 
   useEffect(() => { 
       const fetchData = async () => {
@@ -409,17 +410,17 @@ const WorkshopEditor = (props) => {
         indicatorColor="primary"
         textColor="primary"
       >
-        <Tab label="View" />
-        <Tab label="Modify" />
-        <Tab label="Participants" />
-        <Tab label="Pre-approvals" />
-        <Tab label="Requests" />
+        <Tab label="View" value="view" />
+        <Tab label="Modify" value="modify" />
+        <Tab label="Participants" value="participants" />
+        <Tab label="Pre-approvals" value="preapprovals" />
+        <Tab label="Requests" value="requests" />
       </Tabs>
       <br />
-      <TabPanel value={tab} index={0}>
+      <TabPanel value={tab} index="view">
         <WorkshopViewer workshop={workshop} />
       </TabPanel>
-      <TabPanel value={tab} index={1}>
+      <TabPanel value={tab} index="modify">
         <GeneralSettings {...workshop} submitHandler={submitWorkshopMutation} />
         <br /><br />
         <EnrollmentPeriod {...workshop} submitHandler={submitWorkshopMutation} />
@@ -433,13 +434,13 @@ const WorkshopEditor = (props) => {
         <Services workshop={workshop} services={services} submitHandler={submitServiceMutation} deleteHandler={deleteServiceMutation} />
         <br /><br />
       </TabPanel>
-      <TabPanel value={tab} index={2}>
+      <TabPanel value={tab} index="participants">
         <Participants participants={participants} submitHandler={submitParticipantMutation} deleteHandler={deleteParticipantMutation} />
       </TabPanel>
-      <TabPanel value={tab} index={3}>
+      <TabPanel value={tab} index="preapprovals">
         <Emails emails={emails} submitHandler={submitEmailMutation} deleteHandler={deleteEmailMutation} />
       </TabPanel>
-      <TabPanel value={tab} index={4}>
+      <TabPanel value={tab} index="requests">
         <Requests requests={requests} />
       </TabPanel>
     </div>
@@ -1080,7 +1081,7 @@ const SearchUsersDialog = ({ open, title, description, handleClose, handleSubmit
 }
 
 const AddServiceDialog = ({ open, services, allServices, handleClose, handleSubmit }) => {
-  const availableServices = allServices.filter(s => s.approval_key != '' && !services.some(s2 => s2.id == s.id))
+  const availableServices = allServices && allServices.filter(s => s.approval_key != '' && !services.some(s2 => s2.id == s.id))
   const [selected, setSelected] = useState()
 
   return (
@@ -1094,7 +1095,7 @@ const AddServiceDialog = ({ open, services, allServices, handleClose, handleSubm
           label="Select a service"
           value={selected || ''}
         >
-          {availableServices.map((service, index) => (
+          {availableServices && availableServices.map((service, index) => (
             <MenuItem key={index} value={service.id} onClick={(e) => setSelected(service.id)}>
               {service.name}
             </MenuItem>

@@ -36,7 +36,7 @@ async function grantRequest(request) {
 async function email_workshop_enrollment_request(request) {
     const workshop = request.workshop;
     const user = request.user;
-    const workshopEnrollmentRequestUrl = `${UI_WORKSHOPS_URL}/${workshop.id}`;
+    const workshopEnrollmentRequestUrl = `${UI_WORKSHOPS_URL}/${workshop.id}?t=requests`;
 
     await renderEmail({
         to: user.email, 
