@@ -498,7 +498,8 @@ router.get('/:id(\\d+)/requests', getUser, async (req, res) => {
                     }
                 ]
             }
-        ]
+        ],
+        order: [ [ 'logs', 'created_at', 'ASC' ] ]
     });
     return res.json(requests).status(200);
 });
@@ -536,9 +537,6 @@ router.put('/:id(\\d+)/requests', getUser, async (req, res) => {
     if (!request)
         return res.send('Failed to create request').status(500);
 
-    request.user = req.user;
-    request.workshop = workshop;
-
     // Create initial enrollmment request log entry. Subsequent entries will be automatically created each time
     // the request is updated (see "afterUpdateRequest" hook in src/models/index.js).
     const log = await WorkshopEnrollmentRequestLog.create({
@@ -553,6 +551,8 @@ router.put('/:id(\\d+)/requests', getUser, async (req, res) => {
     res.json(request).status(201);
 
     // Call approver and granter (do this after response as to not delay it)
+    request.user = req.user;
+    request.workshop = workshop;
     if (created) // new request
         await approveRequest(request); // updates request status
     if (request.isApproved())
@@ -567,7 +567,11 @@ router.post('/:id(\\d+)/requests', getUser, async (req, res) => {
     const status = req.body.status;
 
     // Fetch workshop
-    const workshop = await Workshop.findByPk(workshopId);
+    const workshop = await Workshop.findByPk(workshopId, {
+        include: [ 
+            'services'
+        ]
+    });
     if (!workshop)
         return res.send("Workshop not found").status(404);
 
@@ -599,8 +603,8 @@ router.post('/:id(\\d+)/requests', getUser, async (req, res) => {
     res.json(request).status(200);
 
     // Call granter (do this after response as to not delay it)
-    request.workshop = workshop;
     request.user = req.user;
+    request.workshop = workshop;
     if (request.isApproved())
         await grantRequest(request);
 

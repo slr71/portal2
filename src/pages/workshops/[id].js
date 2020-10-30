@@ -7,7 +7,7 @@ import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as Keyboard
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import DateFnsUtils from '@date-io/date-fns'
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
-import { Layout, DateRange, TabPanel, UpdateForm, FormDialog, ContactsEditor } from '../../components'
+import { Layout, DateRange, DateSpan, TabPanel, UpdateForm, FormDialog, ContactsEditor } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
@@ -915,8 +915,12 @@ const Requests = ({ requests, submitHandler }) => {
           <TableCell>{user.first_name + ' ' + user.last_name}</TableCell>
           <TableCell>{user.username}</TableCell>
           <TableCell>{user.email}</TableCell>
-          <TableCell style={{whiteSpace: 'nowrap'}}>{created_at}</TableCell>
-          <TableCell><Status value={status} /></TableCell>
+          <TableCell style={{whiteSpace: 'nowrap'}}>
+            <DateSpan date={created_at} />
+          </TableCell>
+          <TableCell>
+            <Status value={status} />
+          </TableCell>
           <TableCell style={{whiteSpace: 'nowrap'}} align="right">
             <Button 
               color="primary" 
@@ -972,6 +976,9 @@ const Requests = ({ requests, submitHandler }) => {
                         <TableCell className={classes.cell}>Funding Agency</TableCell>
                         <TableCell className={classes.cell}>{user.funding_agency.name}</TableCell>
                       </TableRow>
+                      <TableRow>
+                        <Link href={`/administrative/users/${user.id}`}>View Details</Link>
+                      </TableRow>
                     </Table>
                   </Grid>
                   <Grid item xs={12} sm={12} md={6}>
@@ -980,7 +987,9 @@ const Requests = ({ requests, submitHandler }) => {
                     {logs.map(({status, message, created_at}, index) => (
                       <TableRow key={index}>
                         <TableCell className={classes.cell}>
-                          <Typography variant='subtitle2' color='textSecondary' noWrap>{created_at}</Typography>
+                          <Typography variant='subtitle2' color='textSecondary' noWrap>
+                            <DateSpan date={created_at} />
+                          </Typography>
                         </TableCell>
                         <TableCell className={classes.cell}>{message}</TableCell>
                       </TableRow>

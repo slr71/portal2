@@ -16,7 +16,7 @@ async function approveRequest(request) {
     else
         await request.approve();
     
-    logger.info(`approve: Set access request ${request.id} status to "${request.status}"`);
+    logger.info(`approve: Set service access request ${request.id} status to "${request.status}"`);
 }
 
 // Map service approval keys to Argo workflow templates
@@ -31,6 +31,9 @@ const GRANTERS = {
 };
 
 async function grantRequest(request) {
+    if (!request.service || !request.user)
+        throw('Missing required property')
+
     let workflow = GRANTERS.AUTO_APPROVE;
     const key = request.service.approval_key;
     if (key in GRANTERS)
@@ -44,8 +47,8 @@ async function grantRequest(request) {
         workflow,
         {
             // User params
-            user_id: user.username,
-            email: user.email,
+            user_id: request.user.username,
+            email: request.user.email,
 
             // Other params
             portal_api_base_url: config.apiBaseUrl,
@@ -59,7 +62,7 @@ async function grantRequest(request) {
     );
 
     await request.grant();
-    logger.info(`grant: Set access request ${request.id} status to "${request.status}"`);
+    logger.info(`grant: Set service access request ${request.id} status to "${request.status}"`);
 }
 
 
