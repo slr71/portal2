@@ -16,7 +16,7 @@ async function approveRequest(request) {
     else
         await request.approve();
     
-    logger.info(`approve: Set access request status to "${request.status}"`);
+    logger.info(`approve: Set access request ${request.id} status to "${request.status}"`);
 }
 
 // Map service approval keys to Argo workflow templates
@@ -59,6 +59,7 @@ async function grantRequest(request) {
     );
 
     await request.grant();
+    logger.info(`grant: Set access request ${request.id} status to "${request.status}"`);
 }
 
 
@@ -84,7 +85,7 @@ async function approveAtmosphere(request) {
 
     // Check if user is international
     if (user.region.country.name != 'United States') {
-        logger.info(`approveAtmosphere: Deny user from country ${user.region.country.name}`);
+        logger.info(`approveAtmosphere: Deny user from country ${user.region.country.name} for request ${request.id}`);
         // await intercom_atmosphere(request,
         //     `${intro}
         //      Before we can approve your request, we need some additional information. 
@@ -108,7 +109,7 @@ async function approveAtmosphere(request) {
         email.email.endsWith('.edu') || email.email.endsWith('@cyverse.org') || email.email.endsWith('.gov')
     );
     if (!validEmail) {
-        logger.info(`approveAtmosphere: Deny user with emails ${user.emails.map(e => e.email).join(', ')}`);
+        logger.info(`approveAtmosphere: Deny user with emails ${user.emails.map(e => e.email).join(', ')} for request ${request.id}`);
         await intercom_atmosphere(request, 
             `${intro}
 

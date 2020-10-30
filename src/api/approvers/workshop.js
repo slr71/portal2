@@ -12,7 +12,7 @@ async function approveRequest(request) {
     else
         await approveConditional(request);
     
-    logger.info(`approve: Set enrollment request status to "${request.status}"`);
+    logger.info(`approve: Set enrollment request ${request.id} status to "${request.status}"`);
 }
 
 async function approveConditional(request) {
@@ -58,6 +58,7 @@ async function grantRequest(request) {
 
     await email_workshop_enrollment_confirmation(request);
     await request.grant();
+    logger.info(`grant: Set enrollment request ${request.id} status to "${request.status}"`);
 }
 
 async function email_workshop_enrollment_request(request) {
@@ -91,7 +92,7 @@ async function email_workshop_enrollment_confirmation(request) {
         to: user.email, 
         bcc: config.email.bccWorkshopEnrollmentRequest,
         subject: 'Workshop Enrollment Approved', //FIXME hardcoded
-        templateName: 'review_workshop_enrollment_request',
+        templateName: 'workshop_enrollment',
         fields: {
             "WORKSHOP_NAME": workshop.title,
             "WORKSHOP_URL": workshopUrl
