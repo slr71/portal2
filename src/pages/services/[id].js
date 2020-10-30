@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import Markdown from 'markdown-to-jsx'
-import { makeStyles, Container, Grid, Link, Box, Button, Paper, Tabs, Tab, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
-import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
+import { makeStyles, Container, Grid, Link, Box, Button, IconButton, Paper, Tabs, Tab, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, MenuItem } from '@material-ui/core'
+import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon, Delete as DeleteIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton, TabPanel, UpdateForm, QuestionsEditor, ContactsEditor, ResourcesEditor } from '../../components'
 import { useMutation } from "react-query"
 import { useAPI } from '../../contexts/api'
@@ -55,7 +55,7 @@ const ServiceViewer = (props) => {
     setDialogOpen(false)
   }
 
-  const [submitRequestMutation] = useMutation(
+  const [submitAccessRequestMutation] = useMutation(
     () => api.createServiceRequest(service.id, [{ questionId: question && question.id, value: answer }]),
     {
       onSuccess: (resp) => {
@@ -208,7 +208,7 @@ const ServiceViewer = (props) => {
             (() => {
               setRequestStatus('requested')
               handleCloseDialog()
-              submitRequestMutation()
+              submitAccessRequestMutation()
             })
         }
       />
@@ -246,7 +246,22 @@ const RequestAccessDialog = ({ question, requiresAnswer, open, handleChange, han
 const ServiceEditor = (props) => {
   const api = useAPI()
   const [service, setService] = useState(props.service)
+  const [forms, setForms] = useState()
   const [tab, setTab] = useState(0)
+
+  useEffect(() => { 
+      const fetchData = async () => {
+        const formsByGroup = await api.forms()
+        const forms = formsByGroup
+          .map(s => s.forms)
+          .reduce((acc, forms) => acc.concat(forms))
+          .sort((a, b) => (a.name > b.name) ? 1 : -1)
+        setForms(forms)
+      }
+      fetchData()
+    }, 
+    []
+  )
 
   const [submitServiceMutation] = useMutation(
     (data) => api.updateService(service.id, data),
@@ -338,6 +353,32 @@ const ServiceEditor = (props) => {
     }
   )
 
+  const [submitRequestMutation] = useMutation(
+    (formId) => api.createServiceForm(service.id, formId),
+    {
+      onSuccess: async (resp) => {
+        const newService = await api.service(service.id)
+        setService(newService)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteRequestMutation] = useMutation(
+    (formId) => api.deleteServiceForm(service.id, formId),
+    {
+      onSuccess: async (resp) => {
+        const newService = await api.service(service.id)
+        setService(newService)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
   return (
     <div>
       <Tabs
@@ -362,6 +403,8 @@ const ServiceEditor = (props) => {
         <ContactsEditor {...service} submitHandler={submitContactMutation} deleteHandler={deleteContactMutation} />
         <br /><br />
         <ResourcesEditor {...service} submitHandler={submitResourceMutation} deleteHandler={deleteResourceMutation} />
+        <br /><br />
+        <RequestsEditor {...service} allForms={forms} submitHandler={submitRequestMutation} deleteHandler={deleteRequestMutation} />
         <br /><br />
       </TabPanel>
       {/* <TabPanel value={tab} index={2}>
@@ -426,6 +469,102 @@ const GeneralSettings = (props) => {
         }}
       />
     </Paper>
+  )
+}
+
+const RequestsEditor = ({ forms, allForms, submitHandler, deleteHandler }) => {
+  const classes = useStyles()
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  return (
+    <div>
+    <Paper elevation={3} className={classes.paper}>
+      <Typography component="div" variant="h5">Requests</Typography> 
+      <Typography color="textSecondary">Requests you can submit related to this service.</Typography>
+      <br />
+      <List>
+        {forms.map((form, index) => (
+          <Grid container key={index} justify="space-between" alignItems="center">
+            <Grid item>
+              <ListItem>
+                <ListItemAvatar>
+                  <Avatar>
+                    <ListIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary={form.name} />
+              </ListItem>
+            </Grid>
+            <Grid item>
+              <IconButton onClick={() => deleteHandler(form.id)}>
+                <DeleteIcon />
+              </IconButton>
+            </Grid>
+          </Grid>
+        ))}
+      </List>
+      <Box display="flex" justifyContent="flex-end">
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={() => setDialogOpen(true)}
+        >
+          Add Request
+        </Button>
+      </Box>
+    </Paper>
+    <AddRequestDialog 
+      open={dialogOpen}
+      forms={forms}
+      allForms={allForms}
+      handleClose={() => setDialogOpen(false)} 
+      handleSubmit={(formId) => {
+        setDialogOpen(false)
+        submitHandler(formId)
+      }}
+    />
+  </div>
+  )
+}
+
+const AddRequestDialog = ({ open, forms, allForms, handleClose, handleSubmit }) => {
+  const availableForms = allForms.filter(f => !forms.some(f2 => f2.id == f.id))
+  const [selected, setSelected] = useState()
+
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth>
+      <DialogTitle>Add Request</DialogTitle>
+      <DialogContent>
+        <TextField
+          select
+          margin="normal"
+          fullWidth
+          label="Select a request"
+          value={selected || ''}
+        >
+          {availableForms && availableForms.map((form, index) => (
+            <MenuItem key={index} value={form.id} onClick={(e) => setSelected(form.id)}>
+              {form.name}
+            </MenuItem>
+          ))}
+        </TextField>
+        <br />
+        <br />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setSelected(null) || handleClose()} variant="outlined">
+          Cancel
+        </Button>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          disabled={!selected || !handleSubmit}
+          onClick={() => setSelected(null) || handleSubmit(selected)}
+        >
+          Add
+        </Button>
+      </DialogActions>
+    </Dialog>
   )
 }
 

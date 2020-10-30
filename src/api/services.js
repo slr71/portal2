@@ -4,6 +4,7 @@ const sequelize = require('sequelize');
 const Service = models.api_service;
 const ServiceContact = models.api_contact;
 const ServiceResource = models.api_serviceresource;
+const ServiceForm = models.api_serviceform;
 const User = models.account_user;
 const AccessRequest = models.api_accessrequest;
 const AccessRequestLog = models.api_accessrequestlog;
@@ -244,8 +245,6 @@ router.get('/', async (req, res) => {
 
 router.get('/:nameOrId(\\w+)', async (req, res) => {
     const nameOrId = req.params.nameOrId;
-    if (!nameOrId)
-        return res.send('Missing required name/id parameter').status(400);
 
     const service = await Service.findOne({
         include: [ //TODO create scope for this
@@ -253,7 +252,8 @@ router.get('/:nameOrId(\\w+)', async (req, res) => {
             'contacts',
             'resources',
             'questions',
-            { model: models.api_form, 
+            { 
+                model: models.api_form, 
                 as: 'forms', 
                 through: { attributes: [] } // remove connector table
             }
@@ -411,6 +411,45 @@ router.delete('/:serviceId(\\d+)/resources/:resourceId(\\d+)', getUser, requireA
         return res.send('Resource not found').status(404);
 
     await resource.destroy();
+    res.send('success').status(200);
+});
+
+// Add form to service (STAFF ONLY)
+router.put('/:id(\\d+)/forms', getUser, requireAdmin, async (req, res) => {
+    const fields = req.body;
+    console.log(fields)
+    if (!fields.formId)
+        return res.send('Missing required fields').status(400);
+
+    const service = await Service.findByPk(req.params.id);
+    if (!service)
+        return res.send('Service not found').status(404);
+
+    const [form, created] = await ServiceForm.findOrCreate({ 
+        where: { 
+            service_id: service.id,
+            form_id: fields.formId
+        } 
+    });
+    res.json(form).status(201);
+});
+
+// Remove form from service (STAFF ONLY)
+router.delete('/:serviceId(\\d+)/forms/:formId(\\d+)', getUser, requireAdmin, async (req, res) => {
+    const service = await Service.findByPk(req.params.serviceId);
+    if (!service)
+        return res.send('Service not found').status(404);
+
+    const serviceForm = await ServiceForm.findOne({
+        where: { 
+            service_id: service.id,
+            form_id: req.params.formId
+        }
+    });
+    if (!serviceForm)
+        return res.send('Form not found').status(404);
+
+    await serviceForm.destroy();
     res.send('success').status(200);
 });
 

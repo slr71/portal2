@@ -76,7 +76,7 @@ models.api_service.hasMany(models.api_poweredservice, { as: 'powered_services', 
 models.api_service.hasMany(models.api_contact, { as: 'contacts', foreignKey: 'service_id' });
 models.api_service.hasMany(models.api_serviceresource, { as: 'resources', foreignKey: 'service_id' });
 models.api_service.belongsToMany(models.api_form, 
-  { as: 'forms', through: models.api_serviceform, foreignKey: 'form_id', otherKey: 'service_id' });
+  { as: 'forms', through: models.api_serviceform, foreignKey: 'service_id', otherKey: 'form_id' });
 models.api_service.belongsTo(models.api_servicemaintainer, { as: 'service_maintainer' });
 // models.api_service.hasMany(models.api_accessrequest, { as: 'requests', foreignKey: 'service_id' });
 models.api_service.hasMany(models.api_accessrequestquestion, { as: 'questions', foreignKey: 'service_id' });

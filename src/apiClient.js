@@ -105,6 +105,11 @@ class PortalAPI {
 
   async deleteServiceResource(serviceId, resourceId) { return await this.delete(`/services/${serviceId}/resources/${resourceId}`) }
 
+  async createServiceForm(serviceId, formId) { return await this.put(`/services/${serviceId}/forms`, { formId }) }
+
+  async deleteServiceForm(serviceId, formId) { return await this.delete(`/services/${serviceId}/forms/${formId}`) }
+
+
   // Workshop endpoints
 
   async workshops() { return await this.get(`/workshops`) }
