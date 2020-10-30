@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { getUser, requireAdmin } = require('../auth');
 const sequelize = require('sequelize');
-const models = require('../models');
+const models = require('../../models');
 const User = models.account_user;
 const Workshop = models.api_workshop;
 const WorkshopEnrollmentRequest = models.api_workshopenrollmentrequest;
@@ -21,6 +21,7 @@ function hasOrganizerAccess(workshop, user) {
     return hasHostAccess(workshop, user) || workshop.organizers.some(o => o.id == user.id)
 }
 
+// Get all workshops
 router.get('/', async (req, res) => {
     const workshops = await Workshop.findAll({
         include: [ //TODO create scope for this
@@ -37,6 +38,7 @@ router.get('/', async (req, res) => {
     return res.json(workshops).status(200);
 });
 
+// Get workshop by ID
 router.get('/:id(\\d+)', async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ //TODO create scope for this
@@ -164,7 +166,7 @@ router.get('/:id(\\d+)/participants', getUser, async (req, res) => {
     return res.json(workshop.users).status(200);
 });
 
-// Add participant to workshop
+// Add participant to workshop (enroll user)
 router.put('/:id(\\d+)/participants', getUser, async (req, res) => {
     const userId = req.body.userId
     if (!userId)
@@ -184,7 +186,18 @@ router.put('/:id(\\d+)/participants', getUser, async (req, res) => {
             user_id: userId
         } 
     });
+
     res.json(participant).status(201);
+
+    // Call granter (do this after response as to not delay it)
+    const request = await WorkshopEnrollmentRequest.create({
+        workshop_id: workshop.id,
+        user_id: req.user.id,
+        auto_approve: true,
+        status: WorkshopEnrollmentRequest.constants.STATUS_REQUESTED,
+        message: WorkshopEnrollmentRequest.constants.MESSAGE_REQUESTED
+    });
+    await grantRequest(request); 
 });
 
 // Remove participant from workshop
@@ -450,13 +463,22 @@ router.delete('/:workshopId(\\d+)/services/:serviceId(\\d+)', getUser, async (re
     res.send('success').status(200);
 });
 
-// Get workshop requests 
+// Get workshop enrollment requests 
 router.get('/:id(\\d+)/requests', getUser, async (req, res) => {
-    //TODO check permissions (organizer/host/staff)
+    const workshopId = req.params.id;
+
+    // Fetch workshop
+    const workshop = await Workshop.findByPk(workshopId);
+    if (!workshop)
+        return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host/organizer or staff
+    if (!hasOrganizerAccess(workshop, req.user))
+        return res.send('Permission denied').status(403);
 
     const requests = await WorkshopEnrollmentRequest.findAll({ 
         where: { 
-            workshop_id: req.params.id 
+            workshop_id: workshopId
         },
         include: [ 
             'logs',
@@ -474,7 +496,7 @@ router.get('/:id(\\d+)/requests', getUser, async (req, res) => {
                         'country'
                       ]
                     }
-                  ]
+                ]
             }
         ]
     });
@@ -486,9 +508,18 @@ router.put('/:id(\\d+)/requests', getUser, async (req, res) => {
     const workshopId = req.params.id;
 
     // Fetch workshop
-    const workshop = await Workshop.findByPk(workshopId, { include: [ 'emails' ] });
+    const workshop = await Workshop.findByPk(workshopId, { 
+        include: [ 
+            'emails',
+            'services'
+        ]
+    });
     if (!workshop)
         return res.send('Workshop not found').status(404);
+
+    // Check permission -- only workshop host/organizer or staff
+    if (!hasOrganizerAccess(workshop, req.user))
+        return res.send('Permission denied').status(403);
 
     // Create enrolllment request if it doesn't already exist
     const [request, created] = await WorkshopEnrollmentRequest.findOrCreate({
@@ -530,45 +561,51 @@ router.put('/:id(\\d+)/requests', getUser, async (req, res) => {
     notifyClientOfRequestStatusChange(req.ws, request)
 });
 
-// Update enrollment request status //TODO require api key
-// REMOVED 10/6/2020, was previously used by Argo workshop enrollment workflow which was replaced with inline code
-// router.post('/:id(\\d+)/requests', getUser, async (req, res) => {
-//     const workshopId = req.params.id;
-//     const status = req.body.status;
-//     const message = req.body.message;
+// Update enrollment request status 
+router.post('/:id(\\d+)/requests', getUser, async (req, res) => {
+    const workshopId = req.params.id;
+    const status = req.body.status;
 
-//     if (!status || !message) //TODO verify valid status value
-//         return res.send('Missing parameter').status(400);
+    // Fetch workshop
+    const workshop = await Workshop.findByPk(workshopId);
+    if (!workshop)
+        return res.send("Workshop not found").status(404);
 
-//     // Fetch workshop
-//     const workshop = await Workshop.findByPk(workshopId);
-//     if (!workshop)
-//         return res.send("Workshop not found").status(404);
+    // Check permission -- only workshop host/organizer or staff
+    if (!hasOrganizerAccess(workshop, req.user))
+        return res.send('Permission denied').status(403);
 
-//     // Fetch request
-//     const request = await models.WorkshopEnrollmentRequest.findOne({
-//         where: { 
-//             workshop_id: workshop.id,
-//             user_id: req.user.id
-//         }
-//     });
-//     if (!request)
-//         return res.send("Request not found").status(404);
+    // Fetch request
+    const request = await WorkshopEnrollmentRequest.findOne({
+        where: { 
+            workshop_id: workshop.id,
+            user_id: req.user.id
+        }
+    });
+    if (!request)
+        return res.send("Request not found").status(404);
 
-//     // Update status
-//     request.set('status', status);
-//     request.set('message', message);
-//     await request.save();
+    // Update status
+    switch (status) {
+        case 'pending': request.pend(); break;
+        case 'approved': request.approve(); break;
+        case 'granted': request.grant(); break;
+        case 'denied': request.deny(); break;
+        default:
+          return res.send('Invalid status').status(400);
+    }
 
-//     // Send response to client
-//     res.json(request).status(200);
+    // Send response to client
+    res.json(request).status(200);
 
-//     // Call granter (do this after response as to not delay it)
-//     if (request.isApproved())
-//         await grantRequest(request);
+    // Call granter (do this after response as to not delay it)
+    request.workshop = workshop;
+    request.user = req.user;
+    if (request.isApproved())
+        await grantRequest(request);
 
-//     notifyClientOfRequestStatusChange(req.ws, request)
-// });
+    notifyClientOfRequestStatusChange(req.ws, request)
+});
 
 //TODO move into library
 function notifyClientOfRequestStatusChange(ws, request) {

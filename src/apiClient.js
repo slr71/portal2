@@ -125,6 +125,8 @@ class PortalAPI {
 
   async createWorkshopRequest(id) { return await this.put(`/workshops/${id}/requests`) }
 
+  async updateWorkshopRequest(id, fields) { return await this.post(`/workshops/${id}/requests`, fields) }
+
   async createWorkshopOrganizer(workshopId, userId) { return await this.put(`/workshops/${workshopId}/organizers`, { userId }) }
 
   async deleteWorkshopOrganizer(workshopId, userId) { return await this.delete(`/workshops/${workshopId}/organizers/${userId}`) }

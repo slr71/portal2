@@ -44,8 +44,8 @@ async function grantRequest(request) {
         workflow,
         {
             // User params
-            user_id: request.user.username,
-            email: request.user.email,
+            user_id: user.username,
+            email: user.email,
 
             // Other params
             portal_api_base_url: config.apiBaseUrl,
@@ -57,6 +57,8 @@ async function grantRequest(request) {
             bisque_password: config.bisque.password
         }
     );
+
+    await request.grant();
 }
 
 

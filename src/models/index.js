@@ -261,7 +261,7 @@ models.account_emailaddress.addScope('defaultScope',
  * Define hooks
  */
 
-// Automatically log changes to access request status
+// Automatically log changes to service access request status
 models.api_accessrequest.afterUpdate('afterUpdateRequest', 
   async (request) => {
     await models.api_accessrequestlog.create({
@@ -272,7 +272,7 @@ models.api_accessrequest.afterUpdate('afterUpdateRequest',
   }
 );
 
-// Automatically log changes to enrollment request status
+// Automatically log changes to workshop enrollment request status
 models.api_workshopenrollmentrequest.afterUpdate('afterUpdateRequest', 
   async (request) => {
     await models.api_workshopenrollmentrequestlog.create({

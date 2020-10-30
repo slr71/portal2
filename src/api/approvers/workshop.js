@@ -1,7 +1,10 @@
 const config = require('../../config.json');
+const models = require('../models');
+const AccessRequest = models.api_accessrequest;
 const { renderEmail } = require('../lib/email')
 const { logger } = require('../../logging');
-const { UI_WORKSHOPS_URL } = require('../../constants')
+const { UI_WORKSHOPS_URL } = require('../../constants');
+const serviceApprovers = require('./service');
 
 async function approveRequest(request) {
     if (request.auto_approve)
@@ -29,6 +32,30 @@ async function approveConditional(request) {
 }
 
 async function grantRequest(request) {
+    const user = request.user;
+
+    // Grant access to all services used in workshop
+    for (let service in request.workshop.services) {
+        let serviceRequest = await AccessRequest.findOne({
+            where: { 
+                service_id: service.id,
+                user_id: user.id
+            }
+        });
+
+        if (!serviceRequest) {
+            serviceRequest = await AccessRequest.create({
+                service_id: service.id,
+                user_id: user.id,
+                auto_approve: true,
+                status: AccessRequest.constants.STATUS_REQUESTED,
+                message: AccessRequest.constants.MESSAGE_REQUESTED
+            });
+        }
+
+        serviceApprovers.grantRequest(serviceRequest)
+    }
+
     await email_workshop_enrollment_confirmation(request);
     await request.grant();
 }

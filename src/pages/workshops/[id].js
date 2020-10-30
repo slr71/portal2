@@ -400,6 +400,19 @@ const WorkshopEditor = (props) => {
     }
   )
 
+  const [updateRequestMutation] = useMutation(
+    (status) => api.updateWorkshopRequest(workshop.id, { status }),
+    {
+      onSuccess: async (resp) => {
+        const newRequests = await api.workshopRequests(workshop.id)
+        setRequests(newRequests)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
   return (
     <div>
       <Tabs
@@ -440,7 +453,7 @@ const WorkshopEditor = (props) => {
         <Emails emails={emails} submitHandler={submitEmailMutation} deleteHandler={deleteEmailMutation} />
       </TabPanel>
       <TabPanel value={tab} index="requests">
-        <Requests requests={requests} />
+        <Requests requests={requests} submitHandler={updateRequestMutation} />
       </TabPanel>
     </div>
   )
@@ -874,8 +887,20 @@ const Emails = ({ emails, submitHandler, deleteHandler }) => {
   )
 }
 
-const Requests = ({ requests }) => {
+const Requests = ({ requests, submitHandler }) => {
   const classes = useStyles()
+
+  const Status = ({ value }) => {
+    let color = 'black';
+
+    switch (value) {
+      case 'approved': color = 'green'; break;
+      case 'granted': color = 'blue'; break;
+      case 'denied': color = 'red'; break;
+    }
+
+    return <span style={{color: color}}>{value.toUpperCase()}</span>
+  }
 
   const Row = ({ user, created_at, status, logs }) => {
     const [open, setOpen] = React.useState(false)
@@ -891,10 +916,24 @@ const Requests = ({ requests }) => {
           <TableCell>{user.username}</TableCell>
           <TableCell>{user.email}</TableCell>
           <TableCell style={{whiteSpace: 'nowrap'}}>{created_at}</TableCell>
-          <TableCell>{status}</TableCell>
+          <TableCell><Status value={status} /></TableCell>
           <TableCell style={{whiteSpace: 'nowrap'}} align="right">
-            <Button color="primary" size="small">Deny</Button>
-            <Button color="primary" size="small">Approve</Button>
+            <Button 
+              color="primary" 
+              size="small" 
+              disabled={status == 'denied'}
+              onClick={() => submitHandler('denied')}
+            >
+              Deny
+            </Button>
+            <Button 
+              color="primary" 
+              size="small"
+              disabled={status == 'approved' || status == 'granted'}
+              onClick={() => submitHandler('approved')}
+            >
+              Approve
+            </Button>
           </TableCell>
         </TableRow>
         <TableRow>
