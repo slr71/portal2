@@ -45,7 +45,6 @@ async function grantRequest(request) {
                 user_id: request.user.id
             }
         });
-
         if (!serviceRequest) {
             serviceRequest = await AccessRequest.create({
                 service_id: service.id,
@@ -56,9 +55,11 @@ async function grantRequest(request) {
             });
         }
 
-        serviceRequest.service = service;
-        serviceRequest.user = request.user;
-        serviceApprovers.grantRequest(serviceRequest)
+        if (!serviceRequest.isGranted()) { 
+            serviceRequest.service = service;
+            serviceRequest.user = request.user;
+            serviceApprovers.grantRequest(serviceRequest)
+        }
     }
 
     await email_workshop_enrollment_confirmation(request);

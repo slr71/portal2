@@ -372,6 +372,10 @@ models.api_workshopenrollmentrequest.prototype.isApproved = function() {
     return this.status == models.api_workshopenrollmentrequest.constants.STATUS_APPROVED;
 }
 
+models.api_workshopenrollmentrequest.prototype.isGranted = function() {
+  return this.status == models.api_workshopenrollmentrequest.constants.STATUS_GRANTED;
+}
+
 
 models.sequelize = sequelize;
 module.exports = models;
