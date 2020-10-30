@@ -36,6 +36,7 @@ const useStyles = makeStyles((theme) => ({
     color:"white",
   },
   appBar: {
+    backgroundColor:'#084060',
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(['width', 'margin'], {
       easing: theme.transitions.easing.sharp,
