@@ -1,8 +1,6 @@
 import { makeStyles } from '@material-ui/core/styles'
-import Markdown from 'markdown-to-jsx'
 import { Container, Grid, Box, Typography, Button, Card, CardHeader, CardContent, CardActions, Divider, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@material-ui/core'
-import { Person as PersonIcon } from '@material-ui/icons'
-import { Layout, User } from '../../../components'
+import { Layout, Section, User, Conversations } from '../../../components'
 import { useUser } from '../../../contexts/user'
 
 //FIXME duplicated elsewhere
@@ -16,9 +14,8 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const AccessRequest = props => {
+const AccessRequest = (props) => {
   const request = props.request
-  const classes = useStyles()
 
   return (
     <Layout title={request.service.name} breadcrumbs>
@@ -26,16 +23,17 @@ const AccessRequest = props => {
           <h1>Access Request</h1>
           <Grid container spacing={4}>
             <Grid item xs={6}>
-              <User 
-                user={props.request.user}
-                institution research
-              />
+              <Section title="User">
+                <User summaryOnly {...props.request.user} />
+              </Section>
               <Questions questions={request.service.questions} answers={request.answers} />
+              <History {...props} />
             </Grid>
             <Grid item xs={6}>
               <Actions {...props} />
-              <History {...props} />
-              <Conversations {...props} />
+              <Section title="Conversations">
+                <Conversations conversations={request.conversations} />
+              </Section>
             </Grid>
           </Grid>
       </Container>
@@ -50,25 +48,21 @@ const Questions = ({ questions, answers }) => {
   answers.forEach(a => answersByQuestionId[a.access_request_question_id] = a)
 
   return (
-    <Card className={classes.box}>
-      <CardHeader title="Questions" />
-      <CardContent>
-        <List>
-          {questions.map(question => (
-            <ListItem>
-              <ListItemText
-                primary={question.question}
-                secondary={question.id in answersByQuestionId ? answersByQuestionId[question.id].value_text : '<No answer>'}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </CardContent>
-    </Card>
+    <Section title="Questions">
+      {questions && questions.length > 0
+        ? questions.map((question, index) => (
+            <div key={index}>
+              <Typography>{question.question}</Typography>
+              <Typography style={{color:"gray"}}>{question.id in answersByQuestionId ? answersByQuestionId[question.id].value_text : '<No answer>'}</Typography>
+            </div>
+          ))
+        : 'None'
+      }
+    </Section>
   )
 }
 
-const Actions = props => {
+const Actions = (props) => {
   const user = useUser()
   const request = props.request
   const classes = useStyles()
@@ -107,23 +101,17 @@ const Actions = props => {
   }
 
   return (
-    <Card className={classes.box}>
-      <CardHeader
-        title="Actions"
-        // subheader={props.subtitle}
-        />
-      <CardContent>
+    <Section title="Actions">
         <Typography gutterBottom>
           User has requested access to <b>{props.request.service.name}</b> and the request is currently <b>{props.request.status}</b>.
         </Typography>
         <Typography>
           {text}
         </Typography>
-      </CardContent>
-      <CardActions>
+      <Box display="flex" justifyContent="flex-end">
         {buttons}
-      </CardActions>
-    </Card>
+      </Box>
+    </Section>
   )
 }
 
@@ -132,73 +120,15 @@ const History = props => {
   const classes = useStyles()
 
   return (
-    <Card className={classes.box}>
-      <CardHeader
-        title="History"
-        // subheader={props.subtitle}
-      />
-      <CardContent>
-        {logs.map((log, i) => (
-          <Box key={log.id}>
-            <Typography>{log.message}</Typography>
-            <Typography variant='subtitle2' color='textSecondary'>{log.created_at}</Typography>
-            {i == logs.length - 1 ? <></> : <Divider className={classes.divider} />}
-          </Box>
-        ))}
-      </CardContent>
-    </Card>
-  )
-}
-
-const Conversations = props => {
-  const conversation = props.request.conversation
-  const classes = useStyles()
-
-  if (!conversation)
-    return <></>
-
-  return (
-    <Card className={classes.box}>
-      <CardHeader title="Conversations" />
-      <CardContent>
-        <Conversation conversation={conversation} />
-      </CardContent>
-    </Card>
-  )
-}
-
-const Conversation = props => {
-  const conversation = props.conversation
-
-  return (
-    <List>
-      <ConversationPart part={conversation.source} />
-      {conversation.parts.map(part => (<ConversationPart key={part.id} part={part} />))}
-    </List>
-  )
-}
-
-const ConversationPart = props => {
-  const part = props.part
-
-  let content
-  if (part.part_type && part.part_type == 'assignment')
-    content = `Assigned to ${part.assigned_to.id} (${part.assigned_to.type})`
-  else // assume part_type is "note" or "comment"
-    content = (<Markdown>{part.body}</Markdown>)
-
-  return (
-    <ListItem alignItems="flex-start">
-      <ListItemAvatar>
-        <Avatar>
-          <PersonIcon />
-        </Avatar>
-      </ListItemAvatar>
-      <ListItemText
-        primary={`${part.author.name} (${part.author.type})`}
-        secondary={content}
-      />
-    </ListItem>
+    <Section title="History">
+      {logs.map((log, i) => (
+        <Box key={log.id}>
+          <Typography>{log.message}</Typography>
+          <Typography variant='subtitle2' color='textSecondary'>{log.created_at}</Typography>
+          {i == logs.length - 1 ? <></> : <Divider className={classes.divider} />}
+        </Box>
+      ))}
+    </Section>
   )
 }
 

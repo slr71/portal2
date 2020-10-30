@@ -22,6 +22,7 @@ const FormSubmissions = props => {
   const [keyword, setKeyword] = useState()
   const [count, setCount] = useState(props.count)
   const [rows, setRows] = useState(props.results)
+  const [debounce, setDebounce] = useState(null)
   
   const handleChangePage = async (event, newPage) => {
     setPage(newPage)
@@ -39,15 +40,19 @@ const FormSubmissions = props => {
 
   //TODO add debounce
   useEffect(() => {
-      api.formSubmissions({ 
-        offset: page * rowsPerPage, 
-        limit: rowsPerPage,
-        keyword: keyword
-      }).then(({ count, results }) => {
-        setCount(count)
-        setRows(results)
-      })
-    },
+    // Couldn't get just-debounce-it to work here
+    if (debounce) clearTimeout(debounce)
+    setDebounce(
+      setTimeout(async () => {
+          const { count, results } = await api.formSubmissions({ 
+            offset: page * rowsPerPage, 
+            limit: rowsPerPage,
+            keyword: keyword
+          })
+          setCount(count)
+          setRows(results)
+        }, 500)
+    )},
     [page, rowsPerPage, keyword]
   )
 

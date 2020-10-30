@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import debounce from 'just-debounce-it'
+// import debounce from 'just-debounce-it'
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Paper, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
@@ -9,7 +9,7 @@ import { useAPI } from '../../contexts/api'
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   }
 }))
 
@@ -23,6 +23,7 @@ const Users = props => {
   const [keyword, setKeyword] = useState()
   const [count, setCount] = useState(props.count)
   const [rows, setRows] = useState(props.results)
+  const [debounce, setDebounce] = useState(null)
   
   const handleChangePage = async (event, newPage) => {
     setPage(newPage)
@@ -38,17 +39,20 @@ const Users = props => {
     setPage(0)
   }
 
-  //TODO add debounce
   useEffect(() => {
-      api.users({ 
-        offset: page * rowsPerPage, 
-        limit: rowsPerPage,
-        keyword: keyword
-      }).then(({ count, results }) => {
-        setCount(count)
-        setRows(results)
-      })
-    },
+    // Couldn't get just-debounce-it to work here
+    if (debounce) clearTimeout(debounce)
+    setDebounce(
+      setTimeout(async () => {
+          const { count, results } = await api.users({ 
+            offset: page * rowsPerPage, 
+            limit: rowsPerPage,
+            keyword: keyword
+          })
+          setCount(count)
+          setRows(results)
+        }, 500)
+    )},
     [page, rowsPerPage, keyword]
   )
 
@@ -65,9 +69,18 @@ const Users = props => {
               <TextField style={{width: '20em'}} placeholder="Search ..." onChange={handleChangeKeyword} />
             </Grid>
           </Grid>
-          <Typography color="textSecondary" gutterBottom>Search across username, first name, last name, email, occupation, institution, region, and country</Typography>
+          <Typography color="textSecondary" gutterBottom>
+            Search across username, first name, last name, email, occupation, institution, region, and country
+          </Typography>
           <br />
-          <UserTable rows={rows} rowsPerPage={rowsPerPage} count={count} page={page} handleChangePage={handleChangePage} handleChangeRowsPerPage={handleChangeRowsPerPage} />
+          <UserTable 
+            rows={rows} 
+            rowsPerPage={rowsPerPage} 
+            count={count} 
+            page={page} 
+            handleChangePage={handleChangePage} 
+            handleChangeRowsPerPage={handleChangeRowsPerPage} 
+          />
         </Paper>
       </Container>
     </Layout>

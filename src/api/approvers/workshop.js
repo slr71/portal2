@@ -1,7 +1,10 @@
 const config = require('../../config.json');
+const models = require('../../models');
+const AccessRequest = models.api_accessrequest;
 const { renderEmail } = require('../lib/email')
 const { logger } = require('../../logging');
-const { UI_WORKSHOPS_URL } = require('../../constants')
+const { UI_WORKSHOPS_URL } = require('../../constants');
+const serviceApprovers = require('./service');
 
 async function approveRequest(request) {
     if (request.auto_approve)
@@ -9,7 +12,7 @@ async function approveRequest(request) {
     else
         await approveConditional(request);
     
-    logger.info(`approve: Set enrollment request status to "${request.status}"`);
+    logger.info(`approve: Set workshop enrollment request ${request.id} status to "${request.status}"`);
 }
 
 async function approveConditional(request) {
@@ -28,20 +31,51 @@ async function approveConditional(request) {
     }
 }
 
+// Expects a request object with a user and workshop incl. services
 async function grantRequest(request) {
+    if (!request.user || !request.workshop || !request.workshop.services)
+        throw('Missing required property')
+
+    // Grant access to all services used in workshop
+    for (let service of request.workshop.services) {
+        logger.info(`grant: Grant access to service ${service.name} for workshop enrollment request ${request.id}`);
+        let serviceRequest = await AccessRequest.findOne({
+            where: { 
+                service_id: service.id,
+                user_id: request.user.id
+            }
+        });
+        if (!serviceRequest) {
+            serviceRequest = await AccessRequest.create({
+                service_id: service.id,
+                user_id: request.user.id,
+                auto_approve: true,
+                status: AccessRequest.constants.STATUS_REQUESTED,
+                message: AccessRequest.constants.MESSAGE_REQUESTED
+            });
+        }
+
+        if (!serviceRequest.isGranted()) { 
+            serviceRequest.service = service;
+            serviceRequest.user = request.user;
+            serviceApprovers.grantRequest(serviceRequest)
+        }
+    }
+
     await email_workshop_enrollment_confirmation(request);
     await request.grant();
+    logger.info(`grant: Set workshop enrollment request ${request.id} status to "${request.status}"`);
 }
 
 async function email_workshop_enrollment_request(request) {
     const workshop = request.workshop;
     const user = request.user;
-    const workshopEnrollmentRequestUrl = `${UI_WORKSHOPS_URL}/${workshop.id}`;
+    const workshopEnrollmentRequestUrl = `${UI_WORKSHOPS_URL}/${workshop.id}?t=requests`;
 
     await renderEmail({
         to: user.email, 
         bcc: config.email.bccWorkshopEnrollmentRequest,
-        subject: 'Workshop Enrollment Request', //FIXME hardcoded
+        subject: 'Workshop Enrollment Request',
         templateName: 'review_workshop_enrollment_request',
         fields: {
             "WORKSHOP_NAME": workshop.title,
@@ -63,8 +97,8 @@ async function email_workshop_enrollment_confirmation(request) {
     await renderEmail({
         to: user.email, 
         bcc: config.email.bccWorkshopEnrollmentRequest,
-        subject: 'Workshop Enrollment Approved', //FIXME hardcoded
-        templateName: 'review_workshop_enrollment_request',
+        subject: 'Workshop Enrollment Approved',
+        templateName: 'workshop_enrollment',
         fields: {
             "WORKSHOP_NAME": workshop.title,
             "WORKSHOP_URL": workshopUrl

@@ -15,9 +15,8 @@ function useConfig() {
 }
 
 function ConfigProvider(props) {
-    const [config, setConfig] = React.useState(null);
-    const value = React.useMemo(() => [config, setConfig], [config]);
-    return <ConfigContext.Provider value={value} {...props} />;
+    const [config] = React.useState(props.config);
+    return <ConfigContext.Provider value={config} {...props} />;
 }
 
 export { ConfigProvider, useConfig };

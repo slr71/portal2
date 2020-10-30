@@ -22,7 +22,7 @@ const sessionStore = new pgSession({
     conString: `postgresql://${config.db.user ? config.db.user + '@' : ''}${config.db.host}:5432/${config.db.database}`, 
     tableName: config.db.sessionTable,
     ttl: config.session.ttl,
-    //cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
 })
 
 // Configure the Keycloak client
@@ -92,18 +92,18 @@ app.prepare()
         })
 
         // Public static files
-        server.get("/*.(svg|ico)", (req, res) => {
+        server.get("/*.(svg|ico|png|gif|jpg)", (req, res) => {
             return nextHandler(req, res)
         })
 
-        if (isDevelopment) 
+        //if (isDevelopment) 
             server.get("/_next/*", (req, res) => {
                 return nextHandler(req, res)
             })
-        else
-            server.get("/_next/static/*", (req, res) => {
-                return nextHandler(req, res)
-            })
+        //else
+        //    server.get("/_next/static/*", (req, res) => {
+        //        return nextHandler(req, res)
+        //    })
 
         // Setup API client for use by getServerSideProps()
         server.use(async (req, _, next) => {
@@ -116,7 +116,7 @@ app.prepare()
         })
 
         // Default to landing page if not logged in
-        server.get("/", (req, res) => {
+        server.get("/", keycloakClient.checkSso(), (req, res) => {
             const token = getUserToken(req)
             if (token)
                 res.redirect("/services")
@@ -137,8 +137,13 @@ app.prepare()
         server.use('/api', require('./api/public'))
         if (isDevelopment) server.use('/api/tests', require('./api/tests'))
 
-        // Require auth on all routes/page after this
-        if (!config.debugUser) server.use(keycloakClient.protect())
+        // Restricted API routes 
+        server.use('/api/users', keycloakClient.checkSso(), require('./api/users'))
+        server.use('/api/services', keycloakClient.checkSso(), require('./api/services'))
+        server.use('/api/workshops', keycloakClient.checkSso(), require('./api/workshops'))
+        server.use('/api/forms', keycloakClient.checkSso(), require('./api/forms'))
+        server.use('/api/mailing_lists', keycloakClient.checkSso(), require('./api/mailing_lists'))
+        server.use('/api/*', (_, res) => res.send('Resource not found').status(404))
 
         // Save web socket handle
         server.use((req, _, next) => {
@@ -147,13 +152,8 @@ app.prepare()
             next()
         })
 
-        // Restricted API routes 
-        server.use('/api/users', require('./api/users'))
-        server.use('/api/services', require('./api/services'))
-        server.use('/api/workshops', require('./api/workshops'))
-        server.use('/api/forms', require('./api/forms'))
-        server.use('/api/mailing_lists', require('./api/mailing_lists'))
-        server.use('/api/*', (_, res) => res.send('Resource not found').status(404))
+        // Require auth on all routes/page after this
+        if (!config.debugUser) server.use(keycloakClient.protect())
 
         // Restricted UI pages
         server.get("*", (req, res) => {

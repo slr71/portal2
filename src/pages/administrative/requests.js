@@ -22,6 +22,7 @@ const AccessRequests = props => {
   const [keyword, setKeyword] = useState()
   const [rows, setRows] = useState(props.results)
   const [count, setCount] = useState(props.count)
+  const [debounce, setDebounce] = useState(null)
 
   const handleChangePage = async (event, newPage) => {
     setPage(newPage)
@@ -46,17 +47,20 @@ const AccessRequests = props => {
     setPage(0)
   }
 
-  //TODO add debounce
   useEffect(() => {
-      api.serviceRequests({ 
-        offset: page * rowsPerPage, 
-        limit: rowsPerPage,
-        keyword: keyword
-      }).then(({ count, results }) => {
-        setCount(count)
-        setRows(results)
-      })
-    },
+    // Couldn't get just-debounce-it to work here
+    if (debounce) clearTimeout(debounce)
+    setDebounce(
+      setTimeout(async () => {
+          const { count, results } = await api.serviceRequests({ 
+            offset: page * rowsPerPage, 
+            limit: rowsPerPage,
+            keyword: keyword
+          })
+          setCount(count)
+          setRows(results)
+        }, 500)
+    )},
     [page, rowsPerPage, keyword]
   )
 
@@ -73,9 +77,18 @@ const AccessRequests = props => {
               <TextField style={{width: '20em'}} placeholder="Search ..." onChange={handleChangeKeyword} />
             </Grid>
           </Grid>
-          <Typography color="textSecondary" gutterBottom>Search across service name, username, email, country, and status</Typography>
+          <Typography color="textSecondary" gutterBottom>
+            Search across service name, username, email, country, and status
+          </Typography>
           <br />
-          <RequestTable rows={rows} rowsPerPage={rowsPerPage} count={count} page={page} handleChangePage={handleChangePage} handleChangeRowsPerPage={handleChangeRowsPerPage} />
+          <RequestTable 
+            rows={rows} 
+            rowsPerPage={rowsPerPage} 
+            count={count} 
+            page={page} 
+            handleChangePage={handleChangePage} 
+            handleChangeRowsPerPage={handleChangeRowsPerPage} 
+          />
         </Paper>
       </Container>
     </Layout>

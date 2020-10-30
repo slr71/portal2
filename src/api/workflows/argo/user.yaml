@@ -54,7 +54,7 @@ spec:
           - name: user_id
             value: "{{workflow.parameters.user_id}}"
     - - name: irods-set-user-password
-        template: irods-create-user
+        template: irods-set-user-password
         arguments:
           parameters:
           - name: user_id
@@ -87,36 +87,30 @@ spec:
             value: "{{workflow.parameters.first_name}}"
           - name: last_name
             value: "{{workflow.parameters.last_name}}"
-    - - name: grant-access-to-discovery-environment
-        template: api-grant-access-request
+
+  - name: delete-user
+    steps:
+    - - name: ldap-delete-user
+        template: ldap-delete-user
         arguments:
           parameters:
-          - name: service
-            value: "Discovery Environment"
-          - name: user_id
+          - name: uid
             value: "{{workflow.parameters.user_id}}"
-    - - name: grant-access-to-data-commons
-        template: api-grant-access-request
+    - - name: irods-delete-user
+        template: ldap-delete-user
         arguments:
           parameters:
-          - name: service
-            value: "Data Commons"
-          - name: user_id
+          - name: uid
             value: "{{workflow.parameters.user_id}}"
+    - - name: mailchimp-unsubscribe-user
+        template: mailchimp-unsubscribe-user
+        arguments:
+          parameters:
+          - name: email
+            value: "{{workflow.parameters.email}}"
 
 # Tasks
 #######
-
-  - name: api-grant-access-request
-    inputs:
-      parameters:
-      - name: service
-      - name: user_id
-    container:
-      image: localhost:5000/portal2
-      command: [curl]
-      #TODO add authorization header argument: "-H 'Authorization: foo'"
-      args: ["-X PUT", "-d '{ service: \"{{input.parameters.service}}\", username: \"{{input.parameters.user_id}}\" }'", "{{workflow.parameters.portal_api_base_url}}/services/requests"]
 
   - name: irods-create-user
     inputs:
@@ -124,11 +118,17 @@ spec:
       - name: user_id
     container:
       image: localhost:5000/portal2
-      env:
-      - name: IRODS_ENVIRONMENT_FILE
-        value: "/usr/src/app/irods_environment.json"
       command: [iadmin]
-      args: ["mkuser", "{{inputs.parameters.user_id}}"]
+      args: ["mkuser", "{{inputs.parameters.user_id}}", "rodsuser"]
+
+  - name: irods-delete-user
+    inputs:
+      parameters:
+      - name: user_id
+    container:
+      image: localhost:5000/portal2
+      command: [iadmin]
+      args: ["rmuser", "{{inputs.parameters.user_id}}"]
 
   - name: irods-set-user-password
     inputs:
@@ -137,9 +137,6 @@ spec:
       - name: password
     container:
       image: localhost:5000/portal2
-      env:
-      - name: IRODS_ENVIRONMENT_FILE
-        value: "/usr/src/app/irods_environment.json"
       command: [iadmin]
       args: ["moduser", "{{inputs.parameters.user_id}}", "password", "{{inputs.parameters.password}}"]
 
@@ -150,9 +147,6 @@ spec:
       - name: path
     container:
       image: localhost:5000/portal2
-      env:
-      - name: IRODS_ENVIRONMENT_FILE
-        value: "/usr/src/app/irods_environment.json"
       command: [ichmod]
       args: ["own", "{{inputs.parameters.user}}", "{{inputs.parameters.path}}"]
 
@@ -182,20 +176,49 @@ spec:
     container:
       image: localhost:5000/portal2
       command: [sh, -c]
-      args: [ 'echo "dn: uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: {{inputs.parameters.first_name}}\nsn: {{inputs.parameters.last_name}}\ncn: {{inputs.parameters.first_name}} {{inputs.parameters.last_name}}\nuid: {{inputs.parameters.uid}}\nuserPassword: {{inputs.parameters.password}}\nmail: {{inputs.parameters.email}}\ndepartmentNumber: {{inputs.parameters.department}}\no: {{inputs.parameters.organization}}\ntitle: {{inputs.parameters.title}}\nhomeDirectory: /home/{{inputs.parameters.uid}}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: {{inputs.parameters.uidNumber}}\nshadowLastChange:{{workflow.parameters.daysSinceEpoch}}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H {{workflow.parameters.ldap_host}} -D {{workflow.parameters.ldap_admin}} -w {{workflow.parameters.ldap_password}}' ]
+      args: ['echo "dn: uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: {{inputs.parameters.first_name}}\nsn: {{inputs.parameters.last_name}}\ncn: {{inputs.parameters.first_name}} {{inputs.parameters.last_name}}\nuid: {{inputs.parameters.uid}}\nuserPassword: {{inputs.parameters.password}}\nmail: {{inputs.parameters.email}}\ndepartmentNumber: {{inputs.parameters.department}}\no: {{inputs.parameters.organization}}\ntitle: {{inputs.parameters.title}}\nhomeDirectory: /home/{{inputs.parameters.uid}}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: {{inputs.parameters.uidNumber}}\nshadowLastChange:{{workflow.parameters.daysSinceEpoch}}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H {{workflow.parameters.ldap_host}} -D {{workflow.parameters.ldap_admin}} -w {{workflow.parameters.ldap_password}}']
+
+  - name: ldap-delete-user
+    inputs:
+      parameters:
+      - name: uid
+    container:
+      image: localhost:5000/portal2
+      command: [sh, -c]
+      args: ['echo "dn: uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org" | ldapdelete -H {{workflow.parameters.ldap_host}} -D {{workflow.parameters.ldap_admin}} -w {{workflow.parameters.ldap_password}}']
 
   - name: mailchimp-subscribe-user
     inputs:
+      parameters:
       - name: first_name
       - name: last_name
       - name: email
     container:
       image: localhost:5000/portal2
       command: [curl]
-      args: [ 
-        "-X POST", 
-        "https://server.api.mailchimp.com/3.0/lists/{{workflow.parameters.mailchimp_list_id}}/members", 
-        "-H 'authorization: Basic {{workflow.parameters.mailchimp_api_key}}",
-        "-d '{\"email_address\":\"{{inputs.parameters.email}}\",\"status\":\"subscribed\",\"merge_fields":{\"FNAME\":{{input.parameters.first_name}},\"LNAME\":{{input.parameters.last_name}}}}'"
+      args: [
+        "--verbose", 
+        "--location",
+        "--request", "POST", 
+        "--header", "Authorization: Basic {{workflow.parameters.mailchimp_api_key}}", 
+        "--header", "Content-Type: application/json",
+        "--data", "{\"email_address\":\"{{inputs.parameters.email}}\",\"status\":\"subscribed\",\"merge_fields\":{\"FNAME\":\"{{input.parameters.first_name}}\",\"LNAME\":\"{{input.parameters.last_name}}\"}}",
+        "{{workflow.parameters.mailchimp_api_url}}/lists/{{workflow.parameters.mailchimp_list_id}}/members",
       ]
-      
+
+  - name: mailchimp-unsubscribe-user
+    inputs:
+      parameters:
+      - name: email
+    container:
+      image: localhost:5000/portal2
+      command: [curl]
+      args: [
+        "--verbose", 
+        "--location",
+        "--request", "POST", 
+        "--header", "Authorization: Basic {{workflow.parameters.mailchimp_api_key}}", 
+        "--header", "Content-Type: application/json",
+        "--data", "{\"email_address\":\"{{inputs.parameters.email}}\",\"status\":\"unsubscribed\"}",
+        "{{workflow.parameters.mailchimp_api_url}}/lists/{{workflow.parameters.mailchimp_list_id}}/members",
+      ]

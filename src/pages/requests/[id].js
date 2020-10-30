@@ -7,7 +7,7 @@ import { useAPI } from '../../contexts/api'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   }
 }))
 

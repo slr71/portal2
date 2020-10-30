@@ -1,18 +1,27 @@
-const DateRange = (props) => {
+import { format } from 'date-fns'
+
+const DateRange = ({ date1, date2, hideTime }) => {
   return (
     <>
-      <DateSpan date={props.date1} /> - <DateSpan date={props.date2} />
+      <DateSpan date={date1} hideTime={hideTime} /> to <DateSpan date={date2} hideTime={hideTime} />
     </>
   )
 }
 
-const DateSpan = (props) => {
-  const d = new Date(props.date)
-  const month = d.toLocaleString('default', { month: 'short' })
-  const day = d.getDate()
-  const year = d.getFullYear()
+/* 
+ * Convert date/time to user's local time.
+ *
+ * - Postgres stores timestamps in Phoenix time. 
+ * - Sequelize automatically converts to UTC
+ * - The format() function converts from UTC to user's local time
+ */
+const DateSpan = ({ date, hideTime }) => {
+  const d = new Date(date)
 
-  return <>{month} {day}, {year}</>
+  if (hideTime)
+    return <>{format(d, 'MMM d, yyyy')}</>
+  
+  return <>{format(d, 'MMM d, yyyy hh:mm a')}</>
 }
 
 export { DateSpan, DateRange }

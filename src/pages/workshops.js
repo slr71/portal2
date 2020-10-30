@@ -12,8 +12,12 @@ const useStyles = makeStyles((theme) => ({
 const Workshops = (props) => {
   const user = useUser()
   const userWorkshops = [].concat(
-    user.workshops, // workshops user is/was enrolled in
-    props.workshops.filter(w => w.creator_id == user.id) // workshops user is/was hosting
+    user.workshops, // workshop user is/was enrolled in
+    props.workshops.filter(w => 
+      !user.workshops.find(uw => uw.id == w.id) && // skip duplicates
+      (w.creator_id == user.id || 
+        (w.organizers && w.organizers.some(o => o.id == user.id)))
+    ) // workshop user is/was hosting/organizer
   )
   const otherWorkshops = props.workshops.filter(w => !userWorkshops.find(w2 => w2.id == w.id)) 
 
@@ -52,7 +56,6 @@ const MyWorkshops = ({ workshops }) => {
   return (
     <div>
       {content}
-      <br />
       <p>To host your own workshop use the <Link href='requests/8'>request form</Link>.</p>
     </div>
   )
@@ -74,8 +77,8 @@ const PastWorkshops = ({ workshops }) => {
 
 const WorkshopGrid = ({ workshops }) => (
   <Grid container spacing={3}>
-    {workshops.map(workshop =>
-      <Grid item xs={6} key={workshop.id}>
+    {workshops.map((workshop, index) =>
+      <Grid item xs={6} key={index}>
         <Workshop workshop={workshop} />
       </Grid>
     )}
@@ -86,6 +89,7 @@ const Workshop = ({ workshop }) => {
   const classes = useStyles()
   const user = useUser()
   const isHost = user.id == workshop.creator_id
+  const isOrganizer = workshop.organizers && workshop.organizers.some(o => o.id == user.id)
 
   return (
     <Link underline='none' href={`workshops/${workshop.id}`}>
@@ -94,7 +98,7 @@ const Workshop = ({ workshop }) => {
         subtitle={
           <>
             <div className={classes.noWrap}>
-              Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
+              Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} hideTime />
             </div>
             <div className={classes.noWrap}>
               Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
@@ -103,7 +107,14 @@ const Workshop = ({ workshop }) => {
         }
         description={workshop.description}
         icon={<EventIcon />}
-        action={isHost && <Box m={1}><b>You are the workshop host</b></Box>}
+        action={
+          <Box m={1}>
+            {isHost 
+              ? <b>You are the workshop host</b>
+              : (isOrganizer ? <b>You are a workshop organizer</b> : null)
+            }
+          </Box>
+        }
         largeHeader
       />
     </Link>

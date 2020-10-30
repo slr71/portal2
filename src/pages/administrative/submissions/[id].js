@@ -1,53 +1,47 @@
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Card, CardHeader, CardContent, FormControlLabel, TextField, Checkbox } from '@material-ui/core'
-import { Layout, User } from '../../../components'
+import { Container, Grid, Box, FormControlLabel, TextField, Checkbox, Link } from '@material-ui/core'
+import { Layout, Section, User, Conversations } from '../../../components'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   box: {
     marginBottom: '2em'
+  },
+  paper: {
+    padding: '2em',
+    marginBottom: '2em'
   }
 }))
 
-const FormSubmission = props => {
-  const classes = useStyles()
-
-  return (
-    <Layout title={props.submission.form.name} breadcrumbs>
-      <Container maxWidth='lg'>
-          <h1>Form Submission</h1>
-          <Grid container spacing={4}>
-            <Grid item xs={6}>
-              <User 
-                user={props.submission.user}
-                institution research
-              />
-              <Card className={classes.box}>
-                <CardHeader
-                  title="Form"
-                  subheader={props.submission.form.name}
-                />
-                <CardContent>
-                  {props.submission.fields.map(field =>
-                    // <Typography>{field.name}: {field.api_formfieldsubmission.value_text}</Typography>
-                    <FormField {...field}></FormField>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={6}>
-              <Card className={classes.box}>
-                <CardHeader
-                  title="Conversations"
-                  subheader="TODO"
-                />
-              </Card>
-            </Grid>
+const FormSubmission = ({ submission }) => (
+  <Layout title={submission.form.name} breadcrumbs>
+    <Container maxWidth='lg'>
+        <h1>Form Submission</h1>
+        <Grid container spacing={4}>
+          <Grid item xs={6}>
+            <Section title="User">
+              <User summaryOnly {...submission.user} />
+            </Section>
+            <Section title="Conversations">
+              <Conversations conversations={submission.conversations} />
+            </Section>
           </Grid>
-      </Container>
-    </Layout>
-  )
-}
+          <Grid item xs={6}>
+            <Form form={submission.form} fields={submission.fields} />
+          </Grid>
+        </Grid>
+    </Container>
+  </Layout>
+)
+
+const Form = ({ form, fields }) => (
+  <Section title="Form" subtitle={form.name}>
+    {fields.map(field =>
+      // <Typography>{field.name}: {field.api_formfieldsubmission.value_text}</Typography>
+      <FormField {...field}></FormField>
+    )}
+  </Section>
+)
 
 //FIXME replace with Form.js components
 const FormField = props => {
@@ -90,7 +84,6 @@ const FormField = props => {
 
 export async function getServerSideProps({ req, query }) {
   const submission = await req.api.formSubmission(query.id)
-
   return { props: { submission } }
 }
 

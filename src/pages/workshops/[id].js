@@ -1,13 +1,13 @@
-import 'date-fns'
+import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { useMutation } from "react-query"
 import Markdown from 'markdown-to-jsx'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogContent, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse } from '@material-ui/core'
+import { makeStyles, Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, MenuItem, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse } from '@material-ui/core'
 import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@material-ui/icons'
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import DateFnsUtils from '@date-io/date-fns'
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
-import { Layout, DateRange, TabPanel, UpdateForm } from '../../components'
+import { Layout, DateRange, DateSpan, TabPanel, UpdateForm, FormDialog, ContactsEditor } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
@@ -15,17 +15,18 @@ const { WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE } = require('../../constant
 
 const useStyles = makeStyles((theme) => ({
   paper: {
-    padding: '4em'
+    padding: '3em'
   },
-  noBorder: {
-    border: 'none'
+  cell: {
+    border: 'none',
+    verticalAlign: 'top'
   }
 }))
 
 const Workshop = (props) => {
   const workshop = props.workshop
   const user = useUser()
-  const isEditor = user.is_staff || workshop.creator_id == user.id
+  const isEditor = user.is_staff || user.id == workshop.creator_id || workshop.organizers.some(o => o.id == user.id)
 
   return (
     <Layout title={workshop.title} breadcrumbs>
@@ -44,23 +45,17 @@ const WorkshopViewer = (props) => {
   const classes = useStyles()
   const api = useAPI()
   const user = useUser()
+
   const userWorkshop = user.workshops.find(w => w.id == workshop.id)
   const request = userWorkshop && userWorkshop.api_workshopenrollmentrequest
+  const isHost = user.id == workshop.creator_id
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [requestStatus, setRequestStatus] = useState(request && request.status)
 
-  const handleOpenDialog = () => {
-    setDialogOpen(true)
-  }
-
-  const handleCloseDialog = () => {
-    setDialogOpen(false)
-  }
-
   const handleSubmit = async () => {
     setRequestStatus('requested')
-    handleCloseDialog()
+    setDialogOpen(false)
     const response = await api.createWorkshopRequest(workshop.id)
     console.log(response)
   }
@@ -97,18 +92,23 @@ const WorkshopViewer = (props) => {
                 status={requestStatus} 
                 enrollmentBegins={workshop.enrollment_begins}
                 enrollmentEnds={workshop.enrollment_ends}
-                requestHandler={handleOpenDialog} 
+                requestHandler={() => setDialogOpen(true)} 
               />
             </Grid>
             <Grid item xs={12}>
               <Typography color="textSecondary">{workshop.description}</Typography>
               <br />
               <Typography color="textSecondary">
-                Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} />
+                Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} hideTime />
               </Typography>
               <Typography color="textSecondary">
                 Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
               </Typography>
+              {isHost &&
+                <Typography>
+                  <b>Your are the workshop host</b>
+                </Typography>
+              }
             </Grid>
           </Grid>
           {workshop.about &&
@@ -117,13 +117,13 @@ const WorkshopViewer = (props) => {
               <Typography color="textSecondary"><Markdown>{workshop.about}</Markdown></Typography>
             </Grid>
           }
-          {workshop.services.length > 0 &&
+          {workshop.services && workshop.services.length > 0 &&
             <Grid item xs={12}>
               <Typography component="div" variant="h5">Services</Typography>
               <Typography color="textSecondary">Services used in the workshop.</Typography>
               <List>
-                {workshop.services.map(service => (
-                  <Link key={service.id} underline='none' href={`/services/${service.id}`}>
+                {workshop.services.map((service, index) => (
+                  <Link key={index} underline='none' href={`/services/${service.id}`}>
                     <ListItem>
                       <ListItemAvatar>
                         <Avatar alt={service.name} src={service.iconUrl} />
@@ -140,7 +140,7 @@ const WorkshopViewer = (props) => {
       <RequestEnrollmentDialog 
         open={dialogOpen}
         workshop={workshop}
-        handleClose={handleCloseDialog}
+        handleClose={() => setDialogOpen(false)}
         handleSubmit={handleSubmit}
       />
     </div>
@@ -177,7 +177,14 @@ const WorkshopActionButton = ({ status, enrollmentBegins, enrollmentEnds, reques
   return (
     <Tooltip title={tooltip || ''}>
       <span>
-        <Button variant="contained" color="primary" size="medium" disabled={disabled} onClick={action}>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          size="medium" 
+          style={{minWidth: "10em"}}
+          disabled={disabled} 
+          onClick={action}
+        >
           {label}
         </Button> 
       </span>
@@ -219,8 +226,192 @@ const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) 
   )
 }
 
-const WorkshopEditor = ({ workshop, participants, requests }) => {
-  const [tab, setTab] = useState(0)
+const WorkshopEditor = (props) => {
+  const router = useRouter()
+  const api = useAPI()
+  const [workshop, setWorkshop] = useState(props.workshop)
+  const [participants, setParticipants] = useState()
+  const [emails, setEmails] = useState()
+  const [requests, setRequests] = useState()
+  const [services, setServices] = useState()
+  const [tab, setTab] = useState(router.query.t || 'view')
+
+  useEffect(() => { 
+      const fetchData = async () => {
+        const [participants, emails, requests, services] = await Promise.all([
+          api.workshopParticipants(workshop.id),
+          api.workshopEmails(workshop.id),
+          api.workshopRequests(workshop.id),
+          api.services() // for adding a service 
+        ])
+        setParticipants(participants)
+        setEmails(emails)
+        setRequests(requests)
+        setServices(services)
+      }
+      fetchData()
+    }, 
+    []
+  )
+
+  /*
+   * All state management is done here since child components are remounted in tab change
+   */
+
+  const [submitWorkshopMutation] = useMutation(
+    (data) => api.updateWorkshop(workshop.id, data),
+    {
+      onSuccess: (resp) => {
+        setWorkshop(resp)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [submitOrganizerMutation] = useMutation(
+    (userId) => api.createWorkshopOrganizer(workshop.id, userId),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteOrganizerMutation] = useMutation(
+    (userId) => api.deleteWorkshopOrganizer(workshop.id, userId),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [submitContactMutation] = useMutation(
+    (data) => api.createWorkshopContact(workshop.id, data),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteContactMutation] = useMutation(
+    (email) => api.deleteWorkshopContact(workshop.id, email),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [submitServiceMutation] = useMutation(
+    (serviceId) => api.createWorkshopService(workshop.id, serviceId),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteServiceMutation] = useMutation(
+    (serviceId) => api.deleteWorkshopService(workshop.id, serviceId),
+    {
+      onSuccess: async (resp) => {
+        const newWorkshop = await api.workshop(workshop.id)
+        setWorkshop(newWorkshop)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [submitParticipantMutation] = useMutation(
+    (userId) => api.createWorkshopParticipant(workshop.id, userId),
+    {
+      onSuccess: async (resp) => {
+        const newParticipants = await api.workshopParticipants(workshop.id)
+        setParticipants(newParticipants)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteParticipantMutation] = useMutation(
+    (participantId) => api.deleteWorkshopParticipant(workshop.id, participantId),
+    {
+      onSuccess: async (resp) => {
+        const newParticipants = await api.workshopParticipants(workshop.id)
+        setParticipants(newParticipants)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [submitEmailMutation] = useMutation(
+    (data) => api.createWorkshopEmail(workshop.id, data),
+    {
+      onSuccess: async (resp) => {
+        const newEmails = await api.workshopEmails(workshop.id)
+        setEmails(newEmails)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteEmailMutation] = useMutation(
+    (email) => api.deleteWorkshopEmail(workshop.id, email),
+    {
+      onSuccess: async (resp) => {
+        const newEmails = await api.workshopEmails(workshop.id)
+        setEmails(newEmails)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [updateRequestMutation] = useMutation(
+    (status) => api.updateWorkshopRequest(workshop.id, { status }),
+    {
+      onSuccess: async (resp) => {
+        const newRequests = await api.workshopRequests(workshop.id)
+        setRequests(newRequests)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
 
   return (
     <div>
@@ -231,34 +422,38 @@ const WorkshopEditor = ({ workshop, participants, requests }) => {
         indicatorColor="primary"
         textColor="primary"
       >
-        <Tab label="View" />
-        <Tab label="Modify" />
-        <Tab label="Participants" />
-        <Tab label="Requests" />
+        <Tab label="View" value="view" />
+        <Tab label="Modify" value="modify" />
+        <Tab label="Participants" value="participants" />
+        <Tab label="Pre-approvals" value="preapprovals" />
+        <Tab label="Requests" value="requests" />
       </Tabs>
       <br />
-      <TabPanel value={tab} index={0}>
+      <TabPanel value={tab} index="view">
         <WorkshopViewer workshop={workshop} />
       </TabPanel>
-      <TabPanel value={tab} index={1}>
-        <GeneralSettings {...workshop} />
+      <TabPanel value={tab} index="modify">
+        <GeneralSettings {...workshop} submitHandler={submitWorkshopMutation} />
         <br /><br />
-        <EnrollmentPeriod {...workshop} />
+        <EnrollmentPeriod {...workshop} submitHandler={submitWorkshopMutation} />
         <br /><br />
-        <Owner {...workshop} />
+        <Host {...workshop} submitHandler={submitWorkshopMutation} />
         <br /><br />
-        <Organizers {...workshop} />
+        <Organizers {...workshop} submitHandler={submitOrganizerMutation} deleteHandler={deleteOrganizerMutation} />
         <br /><br />
-        <Contacts {...workshop} />
+        <ContactsEditor {...workshop} submitHandler={submitContactMutation} deleteHandler={deleteContactMutation} />
         <br /><br />
-        <Services {...workshop} />
+        <Services workshop={workshop} services={services} submitHandler={submitServiceMutation} deleteHandler={deleteServiceMutation} />
         <br /><br />
       </TabPanel>
-      <TabPanel value={tab} index={2}>
-        <Participants participants={participants} />
+      <TabPanel value={tab} index="participants">
+        <Participants participants={participants} submitHandler={submitParticipantMutation} deleteHandler={deleteParticipantMutation} />
       </TabPanel>
-      <TabPanel value={tab} index={3}>
-        <Requests requests={requests} />
+      <TabPanel value={tab} index="preapprovals">
+        <Emails emails={emails} submitHandler={submitEmailMutation} deleteHandler={deleteEmailMutation} />
+      </TabPanel>
+      <TabPanel value={tab} index="requests">
+        <Requests requests={requests} submitHandler={updateRequestMutation} />
       </TabPanel>
     </div>
   )
@@ -266,11 +461,6 @@ const WorkshopEditor = ({ workshop, participants, requests }) => {
 
 const GeneralSettings = (props) => {
   const classes = useStyles()
-  const api = useAPI()
-
-  const [submitFormMutation] = useMutation(
-    (data) => api.updateWorkshop(workshop.id, data)
-  )
 
   return (
     <Paper elevation={3} className={classes.paper}>
@@ -286,16 +476,16 @@ const GeneralSettings = (props) => {
           { id: "description",
             name: "Description",
             type: "text",
-            required: true,
+            required: false,
             value: props.description
           },
           { id: "about",
-            name: "About",
+            name: "Details",
             type: "text",
-            required: true,
+            required: false,
             value: props.about,
             multiline: true,
-            rows: 2
+            rows: 4
           }
         ]} 
         initialValues={{...props}} // unused fields will be ignored
@@ -303,7 +493,7 @@ const GeneralSettings = (props) => {
         onSubmit={(values, { setSubmitting }) => {
           setTimeout(() => {
             console.log('Submit:', values)
-            submitFormMutation(values)
+            props.submitHandler(values)
             setSubmitting(false)
           }, 1000)
         }}
@@ -312,20 +502,35 @@ const GeneralSettings = (props) => {
   )
 }
 
-const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends }) => {
+const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler }) => {
   const classes = useStyles()
+  const user = useUser()
+  const [errors, setErrors] = useState({})
+  const isEditor = user.is_staff
+
+  //TODO
+  // const validate = (values) => {
+  //   if (newDate(values['enrollment_begins']) > new Date(values['enrollment_ends'])
+  //     setErrors({enrollment_begins})
+  // }
+
+  const handleChange = (values) => {
+    console.log('Submit:', values)
+    submitHandler(values)
+  }
 
   return (
     <Paper elevation={3} className={classes.paper}>
       <Typography component="div" variant="h5">Enrollment Period</Typography> 
       <Typography color="textSecondary">
         Set the date range for when users will be able to enroll in the workshop and gain access to the relevant services.
-        NOTE: These fields can only be changed by CyVerse staff.
+        NOTE: these fields can only be changed by CyVerse staff.
       </Typography>
       <br />
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <Grid container justify="space-around">
           <KeyboardDatePicker
+            disabled={!isEditor}
             disableToolbar
             variant="inline"
             format="MM/dd/yyyy"
@@ -335,12 +540,13 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends }) => {
             label="Enrollment Begins"
             helperText="When should enrollment begin? This is the earliest users with an authorized email will be able to enroll and get access to the workshop services."
             value={enrollment_begins}
-            // onChange={handleDateChange}
+            onChange={(value) => handleChange({'enrollment_begins': value})}
             KeyboardButtonProps={{
               'aria-label': 'change date',
             }}
           />
           <KeyboardDatePicker
+            disabled={!isEditor}
             disableToolbar
             variant="inline"
             format="MM/dd/yyyy"
@@ -350,7 +556,7 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends }) => {
             label="Enrollment Ends"
             helperText="When should enrollment end? After this date users will not be able to enroll in the workshop, even if their email is authorized."
             value={enrollment_ends}
-            // onChange={handleDateChange}
+            onChange={(value) => handleChange({'enrollment_ends': value})}
             KeyboardButtonProps={{
               'aria-label': 'change date',
             }}
@@ -361,209 +567,340 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends }) => {
   )
 }
 
-const Owner = ({ owner }) => {
+const Host = ({ owner, submitHandler }) => {
   const classes = useStyles()
+  const user = useUser()
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
-    <Paper elevation={3} className={classes.paper}>
-      <Typography component="div" variant="h5">Owner</Typography> 
-      <Typography color="textSecondary">
-        The primary point of contact for this workshop. 
-        This person will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
-        NOTE: this field can only be changed by CyVerse staff.
-      </Typography>
-      <br />
-      <Grid container justify="space-between" alignItems="center">
-        <Grid item>
-          <Link href={`/administrative/users/${owner.id}`}>
-            <ListItem>
-              <ListItemAvatar>
-                <Avatar>
-                  <PersonIcon />
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText primary={owner.first_name + ' ' + owner.last_name} secondary={owner.username} />
-            </ListItem>
-          </Link>
-        </Grid>
-        <Grid item>
-          <Button variant="contained" color="primary">Change Owner</Button>
-        </Grid>
-      </Grid>
-    </Paper>
-  )
-}
-
-const Organizers = ({ organizers }) => {
-  const classes = useStyles()
-
-  return (
-    <Paper elevation={3} className={classes.paper}>
-      <Typography component="div" variant="h5">Instructors/Organizers</Typography> 
-      <Typography color="textSecondary">
-        Add additional instructors/organizers for the workshop. 
-        These people will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
-        NOTE: Only the workshop owner can add or remove additional instructors/organizers.
-      </Typography>
-      <br />
-      <List>
-        {organizers.map((organizer, index) => (
-          <Grid container key={index} justify="space-between" alignItems="center">
-            <Grid item>
-              <Link key={organizer.id} href={`/administrative/users/${organizer.id}`}>
-                <ListItem>
-                  <ListItemAvatar>
-                    <Avatar>
-                      <PersonIcon />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText primary={organizer.first_name + ' ' + organizer.last_name} secondary={organizer.username} />
-                </ListItem>
-              </Link>
-            </Grid>
-            <Grid item>
-              <IconButton>
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
-          </Grid>
-        ))}
-      </List>
-      <Box display="flex" justifyContent="flex-end">
-        <Button variant="contained" color="primary">Add Organizer</Button>
-      </Box>
-    </Paper>
-  )
-}
-
-const Contacts = ({ contacts }) => {
-  const classes = useStyles()
-
-  return (
-    <Paper elevation={3} className={classes.paper}>
-      <Typography component="div" variant="h5">Support Contacts</Typography> 
-      <Typography color="textSecondary">Who participants should reach out to if they have questions.</Typography>
-      <br />
-      <List>
-        {contacts.map((contact, index) => (
-          <Grid container key={index} justify="space-between" alignItems="center">
-            <Grid item>
+    <div>
+      <Paper elevation={3} className={classes.paper}>
+        <Typography component="div" variant="h5">Host</Typography> 
+        <Typography color="textSecondary">
+          The primary point of contact for this workshop. 
+          This person will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
+          NOTE: this field can only be changed by CyVerse staff.
+        </Typography>
+        <br />
+        <Grid container justify="space-between" alignItems="center">
+          <Grid item>
+            <Link href={`/administrative/users/${owner.id}`}>
               <ListItem>
                 <ListItemAvatar>
                   <Avatar>
                     <PersonIcon />
                   </Avatar>
                 </ListItemAvatar>
-                <ListItemText primary={contact.name} secondary={contact.email} />
+                <ListItemText primary={owner.first_name + ' ' + owner.last_name} secondary={owner.username} />
               </ListItem>
-            </Grid>
-            <Grid item>
-              <IconButton>
-                <DeleteIcon />
-              </IconButton>
-            </Grid>
+            </Link>
           </Grid>
-        ))}
-      </List>
-      <Box display="flex" justifyContent="flex-end">
-        <Button variant="contained" color="primary">Add Contact</Button>
-      </Box>
-    </Paper>
+          {user.is_staff &&
+            <Grid item>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={() => setDialogOpen(true)}
+              >
+                Change Host
+              </Button>
+            </Grid>
+          }
+        </Grid>
+      </Paper>
+      <SearchUsersDialog 
+        title='Set Host'
+        description='Enter the user to set as the host for the workshop.'
+        open={dialogOpen}
+        handleClose={() => setDialogOpen(false)} 
+        handleSubmit={(user) => {
+          setDialogOpen(false)
+          submitHandler({ creator_id: user.id })
+        }}
+      />
+    </div>
   )
 }
 
-const Services = ({ services }) => {
+const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
   const classes = useStyles()
+  const user = useUser()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const isEditable = owner.id == user.id || user.is_staff
 
   return (
-    <Paper elevation={3} className={classes.paper}>
-      <Typography component="div" variant="h5">Services</Typography> 
-      <Typography color="textSecondary">Services users need access to for this workshop.</Typography>
-      <br />
-      <List>
-        {services.map((service, index) => (
-          <Grid container key={index} justify="space-between" alignItems="center">
-            <Grid item>
-              <Link key={service.id} href={service.service_url}>
-                <ListItem>
-                  <ListItemAvatar>
-                    <Avatar src={service.icon_url} />
-                  </ListItemAvatar>
-                  <ListItemText primary={service.name} />
-                </ListItem>
-              </Link>
+    <div>
+      <Paper elevation={3} className={classes.paper}>
+        <Typography component="div" variant="h5">Instructors/Organizers</Typography> 
+        <Typography color="textSecondary">
+          Add additional instructors/organizers for the workshop. 
+          These people will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
+          NOTE: only the workshop host can add or remove additional instructors/organizers.
+        </Typography>
+        <br />
+        <List>
+          {organizers.map((organizer, index) => (
+            <Grid container key={index} justify="space-between" alignItems="center">
+              <Grid item>
+                <Link href={`/administrative/users/${organizer.id}`}>
+                  <ListItem>
+                    <ListItemAvatar>
+                      <Avatar>
+                        <PersonIcon />
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText primary={organizer.first_name + ' ' + organizer.last_name} secondary={organizer.username} />
+                  </ListItem>
+                </Link>
+              </Grid>
+              {isEditable &&
+                <Grid item>
+                  <IconButton onClick={() => deleteHandler(organizer.id)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Grid>
+              }
             </Grid>
-            <Grid item>
-              <IconButton>
-                <DeleteIcon />
-              </IconButton>
+          ))}
+        </List>
+        {isEditable &&
+          <Box display="flex" justifyContent="flex-end">
+            <Button 
+              variant="contained" 
+              color="primary"
+              onClick={() => setDialogOpen(true)}
+            >
+              Add Organizer
+            </Button>
+          </Box>
+        }
+      </Paper>
+      <SearchUsersDialog 
+        title='Add Organizer'
+        description='Enter the user to add as an organizer for the workshop.'
+        open={dialogOpen}
+        handleClose={() => setDialogOpen(false)} 
+        handleSubmit={(user) => {
+          setDialogOpen(false)
+          submitHandler(user.id)
+        }}
+      />
+    </div>
+  )
+}
+
+const Services = ({ workshop, services, submitHandler, deleteHandler }) => {
+  const classes = useStyles()
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  return (
+    <div>
+      <Paper elevation={3} className={classes.paper}>
+        <Typography component="div" variant="h5">Services</Typography> 
+        <Typography color="textSecondary">Services users need access to for this workshop.</Typography>
+        <br />
+        <List>
+          {workshop.services.map((service, index) => (
+            <Grid container key={index} justify="space-between" alignItems="center">
+              <Grid item>
+                <Link href={service.service_url}>
+                  <ListItem>
+                    <ListItemAvatar>
+                      <Avatar src={service.icon_url} />
+                    </ListItemAvatar>
+                    <ListItemText primary={service.name} />
+                  </ListItem>
+                </Link>
+              </Grid>
+              <Grid item>
+                <IconButton onClick={() => deleteHandler(service.id)}>
+                  <DeleteIcon />
+                </IconButton>
+              </Grid>
             </Grid>
+          ))}
+        </List>
+        <Box display="flex" justifyContent="flex-end">
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={() => setDialogOpen(true)}
+          >
+            Add Service
+          </Button>
+        </Box>
+      </Paper>
+      <AddServiceDialog 
+        open={dialogOpen}
+        services={workshop.services}
+        allServices={services}
+        handleClose={() => setDialogOpen(false)} 
+        handleSubmit={(serviceId) => {
+          setDialogOpen(false)
+          submitHandler(serviceId)
+        }}
+      />
+    </div>
+  )
+}
+
+const Participants = ({ participants, submitHandler, deleteHandler }) => {
+  const classes = useStyles()
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  return (  
+    <div>      
+      <Paper elevation={3} className={classes.paper}>
+        <Grid container justify="space-between">
+          <Grid item>
+            <Typography component="h1" variant="h4">Participants</Typography>
+            <Typography variant="subtitle1" color="textSecondary">
+              The users below are enrolled in this workshop.
+            </Typography>
           </Grid>
-        ))}
-      </List>
-      <Box display="flex" justifyContent="flex-end">
-        <Button variant="contained" color="primary">Add Service</Button>
-      </Box>
-    </Paper>
-  )
-}
-
-const Participants = ({ participants }) => {
-  const classes = useStyles()
-
-  return (        
-    <Paper elevation={3} className={classes.paper}>
-      <Grid container justify="space-between">
-        <Grid item>
-          <Typography component="h1" variant="h4">Participants</Typography>
+          <Grid item>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              style={{width:'10em', whiteSpace: 'nowrap'}}
+              onClick={() => setDialogOpen(true)}
+            >
+              Enroll User
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item>
-          <Tooltip title='Approve a user for the workshop which will allow them to enroll'>
-            <Button variant="contained" color="primary" style={{marginRight:'1em', width:'8em'}}>Approve</Button>
-          </Tooltip>
-          <Tooltip title='Directly enroll a user in the workshop, granting access to all workshop services'>
-            <Button variant="contained" color="primary" style={{width:'8em'}}>Enroll</Button>
-          </Tooltip>
-        </Grid>
-      </Grid>
-      {/* <Typography color="textSecondary" gutterBottom>
-      </Typography> */}
-      <br />
-      {!participants || participants.length == 0 
-        ? <Typography>None</Typography>
-        : <TableContainer component={Paper}>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Username</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {participants.map(({ id, username, first_name, last_name, email }) => (
-                  <TableRow key={id}>
-                    <TableCell>{first_name + ' ' + last_name}</TableCell>
-                    <TableCell>{username}</TableCell>
-                    <TableCell>{email}</TableCell>
-                    <TableCell align="right">
-                      <IconButton>
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
+        <br />
+        {!participants || participants.length == 0 
+          ? <Typography>None</Typography>
+          : <TableContainer component={Paper}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Name</TableCell>
+                    <TableCell>Username</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell></TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-      }
-    </Paper>
+                </TableHead>
+                <TableBody>
+                  {participants.map(({ id, username, first_name, last_name, email }, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{first_name + ' ' + last_name}</TableCell>
+                      <TableCell>{username}</TableCell>
+                      <TableCell>{email}</TableCell>
+                      <TableCell align="right">
+                        <IconButton onClick={() => deleteHandler(id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+        }
+      </Paper>
+      <SearchUsersDialog 
+        title='Enroll User'
+        description='Enter the user to enroll in the workshop.'
+        open={dialogOpen}
+        handleClose={() => setDialogOpen(false)}
+        handleSubmit={(user) => {
+          setDialogOpen(false)
+          submitHandler(user.id)
+        }}
+      />
+    </div>
   )
 }
 
-const Requests = ({ requests }) => {
+const Emails = ({ emails, submitHandler, deleteHandler }) => {
   const classes = useStyles()
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  return ( 
+    <div>       
+      <Paper elevation={3} className={classes.paper}>
+        <Grid container justify="space-between">
+          <Grid item style={{width:'70%'}}>
+            <Typography component="h1" variant="h4">Pre-approvals</Typography>
+            <Typography variant="subtitle1" color="textSecondary">
+              The users below (shown by CyVerse email address) are pre-approved to enroll in this workshop.
+            </Typography>
+          </Grid>
+          <Grid item>
+            <Button 
+              variant="contained" 
+              color="primary" 
+              style={{width:'10em', whiteSpace: 'nowrap'}}
+              onClick={() => setDialogOpen(true)}
+            >
+              Add Email
+            </Button>
+          </Grid>
+        </Grid>
+        <br />
+        {!emails || emails.length == 0 
+          ? <Typography>None</Typography>
+          : <TableContainer component={Paper}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Email</TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {emails.map(({ email }, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{email}</TableCell>
+                      <TableCell align="right">
+                        <IconButton onClick={() => deleteHandler(email)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+        }
+      </Paper>
+      <FormDialog 
+        title="Add Email"
+        open={dialogOpen}
+        fields={[
+          {
+            id: "email",
+            label: "Email",
+            type: "email",
+            required: true
+          }
+        ]}
+        handleClose={() => setDialogOpen(false)} 
+        handleSubmit={(values) => {
+          setDialogOpen(false)
+          submitHandler(values)
+        }}
+      />
+    </div>
+  )
+}
+
+const Requests = ({ requests, submitHandler }) => {
+  const classes = useStyles()
+
+  const Status = ({ value }) => {
+    let color = 'black';
+
+    switch (value) {
+      case 'approved': color = 'green'; break;
+      case 'granted': color = 'blue'; break;
+      case 'denied': color = 'red'; break;
+    }
+
+    return <span style={{color: color}}>{value.toUpperCase()}</span>
+  }
 
   const Row = ({ user, created_at, status, logs }) => {
     const [open, setOpen] = React.useState(false)
@@ -578,61 +915,88 @@ const Requests = ({ requests }) => {
           <TableCell>{user.first_name + ' ' + user.last_name}</TableCell>
           <TableCell>{user.username}</TableCell>
           <TableCell>{user.email}</TableCell>
-          <TableCell style={{whiteSpace: 'nowrap'}}>{created_at}</TableCell>
-          <TableCell>{status}</TableCell>
+          <TableCell style={{whiteSpace: 'nowrap'}}>
+            <DateSpan date={created_at} />
+          </TableCell>
+          <TableCell>
+            <Status value={status} />
+          </TableCell>
           <TableCell style={{whiteSpace: 'nowrap'}} align="right">
-            <Button color="primary" size="small">Deny</Button>
-            <Button color="primary" size="small">Approve</Button>
+            <Button 
+              color="primary" 
+              size="small" 
+              disabled={status == 'denied'}
+              onClick={() => submitHandler('denied')}
+            >
+              Deny
+            </Button>
+            <Button 
+              color="primary" 
+              size="small"
+              disabled={status == 'approved' || status == 'granted'}
+              onClick={() => submitHandler('approved')}
+            >
+              Approve
+            </Button>
           </TableCell>
         </TableRow>
         <TableRow>
           <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
             <Collapse in={open} timeout="auto" unmountOnExit>
-              <Box margin={3}>
-                <Typography><b>User Info</b></Typography>
-                <Table size="small">
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Company/Institution</TableCell>
-                    <TableCell className={classes.noBorder}>{user.institution}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Department</TableCell>
-                    <TableCell className={classes.noBorder}>{user.department}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Occupation</TableCell>
-                    <TableCell className={classes.noBorder}>{user.occupation.name}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Country</TableCell>
-                    <TableCell className={classes.noBorder}>{user.region.country.name}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Region</TableCell>
-                    <TableCell className={classes.noBorder}>{user.region.name}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Research Area</TableCell>
-                    <TableCell className={classes.noBorder}>{user.research_area.name}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className={classes.noBorder}>Funding Agency</TableCell>
-                    <TableCell className={classes.noBorder}>{user.funding_agency.name}</TableCell>
-                  </TableRow>
-                </Table>
-              </Box>
-              <Box margin={3}>
-                <Typography><b>History</b></Typography>
-                <Table size="small">
-                {logs.map(({status, message, created_at}, index) => (
-                  <TableRow key={index}>
-                    <TableCell className={classes.noBorder}>
-                      <Typography variant='subtitle2' color='textSecondary'>{created_at}</Typography>
-                    </TableCell>
-                    <TableCell className={classes.noBorder}>{message}</TableCell>
-                  </TableRow>
-                ))}
-                </Table>
+              <Box m={2}>
+                <Grid container>
+                  <Grid item xs={12} sm={12} md={6}>
+                    <Typography><b>User Info</b></Typography>
+                    <Table size="small" padding='none'>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Company/Institution</TableCell>
+                        <TableCell className={classes.cell}>{user.institution}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Department</TableCell>
+                        <TableCell className={classes.cell}>{user.department}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Occupation</TableCell>
+                        <TableCell className={classes.cell}>{user.occupation.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Country</TableCell>
+                        <TableCell className={classes.cell}>{user.region.country.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Region</TableCell>
+                        <TableCell className={classes.cell}>{user.region.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Research Area</TableCell>
+                        <TableCell className={classes.cell}>{user.research_area.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className={classes.cell}>Funding Agency</TableCell>
+                        <TableCell className={classes.cell}>{user.funding_agency.name}</TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <Link href={`/administrative/users/${user.id}`}>View Details</Link>
+                      </TableRow>
+                    </Table>
+                  </Grid>
+                  <Grid item xs={12} sm={12} md={6}>
+                    <Typography><b>History</b></Typography>
+                    <Table size="small" padding='none'>
+                    {logs.map(({status, message, created_at}, index) => (
+                      <TableRow key={index}>
+                        <TableCell className={classes.cell}>
+                          <Typography variant='subtitle2' color='textSecondary' noWrap>
+                            <DateSpan date={created_at} />
+                          </Typography>
+                        </TableCell>
+                        <TableCell className={classes.cell}>{message}</TableCell>
+                      </TableRow>
+                    ))}
+                    </Table>
+                  </Grid>
+                </Grid>
               </Box>
             </Collapse>
           </TableCell>
@@ -672,20 +1036,142 @@ const Requests = ({ requests }) => {
   )
 }
 
+const SearchUsersDialog = ({ open, title, description, handleClose, handleSubmit }) => {
+  const api = useAPI()
+  const [users, setUsers] = useState()
+  const [debounce, setDebounce] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [selectedUser, setSelectedUser] = useState()
+
+  const handleChange = (event) => {
+    const { value } = event.target
+
+    // Couldn't get just-debounce-it to work here
+    if (debounce) clearTimeout(debounce)
+    if (!value)
+      reset()
+    else
+      setDebounce(setTimeout(async () => {
+        setLoading(true)
+        const resp = await api.users({ keyword: value })
+        setUsers(resp.results)
+        setLoading(false)
+      }, 1000));
+  }
+
+  const handleSelect = (event, value) => {
+    setSelectedUser(value)
+  }
+
+  const reset = () => {
+    setUsers(null)
+    setSelectedUser(null)
+  }
+
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth aria-labelledby="form-dialog-title">
+      <DialogTitle id="form-dialog-title">{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          {description}
+        </DialogContentText>
+        <Autocomplete
+          freeSolo
+          id="user"
+          disableClearable
+          options={users || []}
+          getOptionLabel={(u) => `${u.first_name} ${u.last_name} (${u.username})`}
+          onChange={handleSelect}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Search users"
+              margin="normal"
+              // variant="outlined"
+              InputProps={{ 
+                ...params.InputProps, 
+                // type: 'search',
+                endAdornment: (
+                  <React.Fragment>
+                    {loading 
+                      ? <CircularProgress color="inherit" size={20} /> 
+                      : (users && users.length == 0 ? 'No results' : null)
+                    }
+                    {params.InputProps.endAdornment}
+                  </React.Fragment>
+                )
+              }}
+              onChange={handleChange}
+            />
+          )}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button 
+          variant="outlined"
+          onClick={() => reset() || handleClose()}
+          onBlur={() => reset() || handleClose()}
+        >
+          Cancel
+        </Button>
+        <Button 
+          variant="contained" 
+          color="primary"
+          disabled={!selectedUser || !handleSubmit}
+          onClick={() => handleSubmit(selectedUser)}  
+        >
+          Submit
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
+const AddServiceDialog = ({ open, services, allServices, handleClose, handleSubmit }) => {
+  const availableServices = allServices && allServices.filter(s => s.approval_key != '' && !services.some(s2 => s2.id == s.id))
+  const [selected, setSelected] = useState()
+
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth>
+      <DialogTitle>Add Service</DialogTitle>
+      <DialogContent>
+      <TextField
+          select
+          margin="normal"
+          fullWidth
+          label="Select a service"
+          value={selected || ''}
+        >
+          {availableServices && availableServices.map((service, index) => (
+            <MenuItem key={index} value={service.id} onClick={(e) => setSelected(service.id)}>
+              {service.name}
+            </MenuItem>
+          ))}
+        </TextField>
+        <br />
+        <br />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setSelected(null) || handleClose()} variant="outlined">
+          Cancel
+        </Button>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          disabled={!selected || !handleSubmit}
+          onClick={() => setSelected(null) || handleSubmit(selected)}
+        >
+          Add
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
+
 export async function getServerSideProps({ req, query }) {
   const workshop = await req.api.workshop(query.id)
-
-  // These will fail if user is not staff
-  const participants = await req.api.workshopParticipants(query.id)
-  const requests = await req.api.workshopRequests(query.id)
-
-  return { 
-    props: { 
-      workshop, 
-      participants,
-      requests
-    } 
-  }
+  return { props: { workshop } }
 }
 
 export default Workshop

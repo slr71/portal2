@@ -231,6 +231,9 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
   const api = useAPI()
 
   const [form, setForm] = useState(getForm(properties))
+  const [isSubmitted, setSubmitted] = useState(false)
+  const [user, setUser] = useState() // newly created user
+
   const allFields = form.sections.reduce((acc, s) => acc.concat(s.fields), [])
   const initialValues = 
     allFields.reduce((acc, f) => 
@@ -241,7 +244,7 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
       {}
     )
 
-  // Custom validator
+  // Custom validator for username & email fields
   const validate = async (field, value) => {
     if (field.type == 'username') {
       const res = await api.checkUsername(value)
@@ -268,7 +271,10 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
   const [submitFormMutation] = useMutation(
     (submission) => api.createUser(submission.username, submission),
     {
-      //onSuccess: (resp) => {},
+      onSuccess: (resp) => {
+        setUser(resp)
+        setSubmitted(true)
+      },
       onError: (error) => {
         console.log('ERROR', error)
       }
@@ -278,19 +284,34 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
   return (
     <Dialog open={open} onClose={handleClose} fullWidth>
       <Box p={3}>
-        <DialogTitle id="form-dialog-title">Create your account</DialogTitle>
+        {!isSubmitted && <DialogTitle>Create your account</DialogTitle>}
         <DialogContent>
-          <Wizard
-            form={form}
-            initialValues={initialValues}
-            validate={validate}
-            onSelect={handleSelect}
-            onSubmit={(values, { setSubmitting }) => {
-              console.log('Submit', values)
-              submitFormMutation(values)
-              setSubmitting(false)
-            }}
-          />
+          {isSubmitted 
+          ? <Box p={7}>
+              <Typography variant='h6' color='textSecondary'>
+                A confirmation email was sent to
+              </Typography>
+              <br /><br />
+              <Typography variant='h6' color='primary'>		  
+                <b>{user ? user.email : '<error>'}</b>
+              </Typography>
+              <br /><br />
+	      <Typography variant='h6' color='textSecondary'>
+                Please click on the confirmation link in the email to activate your account.
+              </Typography>
+            </Box>
+          : <Wizard
+              form={form}
+              initialValues={initialValues}
+              validate={validate}
+              onSelect={handleSelect}
+              onSubmit={(values, { setSubmitting }) => {
+                console.log('Submit', values)
+                submitFormMutation(values)
+                setSubmitting(false)
+              }}
+            />
+          }
         </DialogContent>
       </Box>
     </Dialog>

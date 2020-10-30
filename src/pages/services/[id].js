@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import Markdown from 'markdown-to-jsx'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Link, Box, Button, Paper, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogContent, DialogContentText, DialogActions, TextField } from '@material-ui/core'
-import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon } from '@material-ui/icons'
-import { Layout, ServiceActionButton } from '../../components'
+import { makeStyles, Container, Grid, Link, Box, Button, IconButton, Paper, Tabs, Tab, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, MenuItem } from '@material-ui/core'
+import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon, Delete as DeleteIcon } from '@material-ui/icons'
+import { Layout, ServiceActionButton, TabPanel, UpdateForm, QuestionsEditor, ContactsEditor, ResourcesEditor } from '../../components'
 import { useMutation } from "react-query"
 import { useAPI } from '../../contexts/api'
 import { useUser } from '../../contexts/user'
@@ -17,6 +16,23 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const Service = (props) => {
+  const service = props.service
+  const user = useUser()
+
+  return ( 
+    <Layout title={service.name} breadcrumbs>
+      <Container maxWidth='lg'>
+        {user.is_staff 
+          ? <ServiceEditor {...props} />
+          : <div><br /><ServiceViewer {...props} /></div>
+        }
+        <br />
+      </Container>
+    </Layout>
+  )
+}
+
+const ServiceViewer = (props) => {
   const service = props.service
   const classes = useStyles()
   const api = useAPI()
@@ -39,7 +55,7 @@ const Service = (props) => {
     setDialogOpen(false)
   }
 
-  const [submitRequestMutation] = useMutation(
+  const [submitAccessRequestMutation] = useMutation(
     () => api.createServiceRequest(service.id, [{ questionId: question && question.id, value: answer }]),
     {
       onSuccess: (resp) => {
@@ -73,47 +89,46 @@ const Service = (props) => {
     });
   }, [])
 
-  return ( //FIXME break into pieces
-    <Layout title={service.name} breadcrumbs>
-      <Container maxWidth='lg'>
-        <br />
-        <Paper elevation={3} className={classes.paper}>
-          <Grid container spacing={4}>
-            <Grid container item xs={12}  justify="space-between">
-              <Grid item>
-                <Box display='flex' flexWrap="wrap" alignSelf="flex-end" >
-                <Box mr={2}>
-                  <Avatar alt={service.name} src={service.icon_url} />
-                  </Box>
-                  <Typography component="h1" variant="h4" gutterBottom>{service.name}</Typography>
+  return (
+    <div>
+      <Paper elevation={3} className={classes.paper}>
+        <Grid container spacing={4}>
+          <Grid container item xs={12}  justify="space-between">
+            <Grid item>
+              <Box display='flex' flexWrap="wrap" alignSelf="flex-end" >
+              <Box mr={2}>
+                <Avatar alt={service.name} src={service.icon_url} />
                 </Box>
-              </Grid>
-              <Grid item>
-                <ServiceActionButton service={service} status={requestStatus} requestAccessHandler={handleOpenDialog} />
-              </Grid>
-              <Grid item xs={12}>
-                <Box my={1}>
-                  <Typography color="textPrimary">{service.description}</Typography>
-                  <Link href={service.service_url}>{service.service_url}</Link>
-                </Box>
-              </Grid>
+                <Typography component="h1" variant="h4" gutterBottom>{service.name}</Typography>
+              </Box>
             </Grid>
-            {service.about &&
-              <Grid item xs={12}>
-                <Box>
-                  <Typography component="div" variant="h5">Details</Typography>
-                  <Typography color="textPrimary"><Markdown>{service.about}</Markdown></Typography>
-                </Box>
-              </Grid>
-            }
-            {service.contacts.length > 0 &&
-              <Grid item xs={12}>
-                <Box>
-                  <Typography component="div" variant="h5">Contacts</Typography>
-                  <Typography color="textSecondary">Contact(s) for questions or problems.</Typography>
-                  <List>
-                    {service.contacts.map(contact => (
-                      <Button key={contact.id} color="primary" href={`mailto:${contact.email}`}>
+            <Grid item>
+              <ServiceActionButton service={service} status={requestStatus} requestAccessHandler={handleOpenDialog} />
+            </Grid>
+            <Grid item xs={12}>
+              <Box my={1}>
+                <Typography color="textPrimary">{service.description}</Typography>
+                <Link href={service.service_url}>{service.service_url}</Link>
+              </Box>
+            </Grid>
+          </Grid>
+          {service.about &&
+            <Grid item xs={12}>
+              <Box>
+                <Typography component="div" variant="h5">Details</Typography>
+                <Typography color="textPrimary"><Markdown>{service.about}</Markdown></Typography>
+              </Box>
+            </Grid>
+          }
+          {service.contacts && service.contacts.length > 0 &&
+            <Grid item xs={12}>
+              <Box>
+                <Typography component="div" variant="h5">Contacts</Typography>
+                <Typography color="textSecondary">Contact(s) for questions or problems.</Typography>
+                <List>
+                  {service.contacts.map(contact => (
+                    <div key={contact.id}>
+                      <Button color="primary" href={`mailto:${contact.email}`}>
                         <ListItem>
                           <ListItemAvatar>
                             <Avatar>
@@ -123,61 +138,65 @@ const Service = (props) => {
                           <ListItemText primary={contact.name} />
                         </ListItem>
                       </Button>
-                    ))}
-                  </List>
-                </Box>
-              </Grid>
-            }
-            {service.resources.length > 0 &&
-              <Grid item xs={12}>
-                <Box>
-                  <Typography component="div" variant="h5">Resources</Typography>
-                  <Typography color="textSecondary">Where you can find support.</Typography>
-                  <List>
-                    {service.resources.map(resource => (
-                      <Link key={resource.id} underline='none' href={resource.url}>
-                      <Button color="primary">
-                        <ListItem>
-                          <ListItemAvatar>
-                            <Avatar>
-                              <MenuBookIcon />
-                            </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText primary={resource.name} />
-                        </ListItem>
+                    </div>
+                  ))}
+                </List>
+              </Box>
+            </Grid>
+          }
+          {service.resources && service.resources.length > 0 &&
+            <Grid item xs={12}>
+              <Box>
+                <Typography component="div" variant="h5">Resources</Typography>
+                <Typography color="textSecondary">Where you can find support.</Typography>
+                <List>
+                  {service.resources.map(resource => (
+                    <div key={resource.id}>
+                      <Link underline='none' href={resource.url}>
+                        <Button color="primary">
+                          <ListItem>
+                            <ListItemAvatar>
+                              <Avatar>
+                                <MenuBookIcon />
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText primary={resource.name} />
+                          </ListItem>
                         </Button>
                       </Link>
-                    ))}
-                  </List>
-                </Box>
-              </Grid>
-            }
-            {service.forms.length > 0 &&
-              <Grid item xs={12}>
-                <Box>
-                  <Typography component="div" variant="h5">Requests</Typography>
-                  <Typography color="textSecondary">Requests you can submit related to this service.</Typography>
-                  <List>
-                    {service.forms.map(form => (
-                      <Link key={form.id} underline='none' href={`/requests/${form.id}`}>
-                      <Button color="primary"><ListItem>
-                          <ListItemAvatar>
-                            <Avatar>
-                              <ListIcon />
-                            </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText primary={form.name} />
-                        </ListItem>
+                    </div>
+                  ))}
+                </List>
+              </Box>
+            </Grid>
+          }
+          {service.forms && service.forms.length > 0 &&
+            <Grid item xs={12}>
+              <Box>
+                <Typography component="div" variant="h5">Requests</Typography>
+                <Typography color="textSecondary">Requests you can submit related to this service.</Typography>
+                <List>
+                  {service.forms.map(form => (
+                    <div key={form.id}>
+                      <Link underline='none' href={`/requests/${form.id}`}>
+                        <Button color="primary"><ListItem>
+                            <ListItemAvatar>
+                              <Avatar>
+                                <ListIcon />
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText primary={form.name} />
+                          </ListItem>
                         </Button>
                       </Link>
-                    ))}
-                  </List>
-                </Box>
-              </Grid>
-            }
-          </Grid>
-        </Paper>
-      </Container>
+                    </div>
+                  ))}
+                </List>
+              </Box>
+            </Grid>
+          }
+        </Grid>
+      </Paper>
       <RequestAccessDialog 
         question={question ? question.question : `Would you like to request access to ${service.name}?`}
         requiresAnswer={!!question}
@@ -189,11 +208,11 @@ const Service = (props) => {
             (() => {
               setRequestStatus('requested')
               handleCloseDialog()
-              submitRequestMutation()
+              submitAccessRequestMutation()
             })
         }
       />
-    </Layout>
+    </div>
   )
 }
 
@@ -223,6 +242,331 @@ const RequestAccessDialog = ({ question, requiresAnswer, open, handleChange, han
     </DialogActions>
   </Dialog>
 )
+
+const ServiceEditor = (props) => {
+  const api = useAPI()
+  const [service, setService] = useState(props.service)
+  const [forms, setForms] = useState()
+  const [tab, setTab] = useState(0)
+
+  useEffect(() => { 
+      const fetchData = async () => {
+        const formsByGroup = await api.forms()
+        const forms = formsByGroup
+          .map(s => s.forms)
+          .reduce((acc, forms) => acc.concat(forms))
+          .sort((a, b) => (a.name > b.name) ? 1 : -1)
+        setForms(forms)
+      }
+      fetchData()
+    }, 
+    []
+  )
+
+  const [submitServiceMutation] = useMutation(
+    (data) => api.updateService(service.id, data),
+    {
+      onSuccess: (resp) => {
+        setService(resp)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [submitQuestionMutation] = useMutation(
+    (data) => api.createServiceQuestion(service.id, data),
+    {
+      onSuccess: async (resp) => {
+        const newService = await api.service(service.id)
+        setService(newService)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteQuestionMutation] = useMutation(
+    (questionId) => api.deleteServiceQuestion(service.id, questionId),
+    {
+      onSuccess: async (resp) => {
+        const newService = await api.service(service.id)
+        setService(newService)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [submitContactMutation] = useMutation(
+    (data) => api.createServiceContact(service.id, data),
+    {
+      onSuccess: async (resp) => {
+        const newService = await api.service(service.id)
+        setService(newService)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteContactMutation] = useMutation(
+    (contactId) => api.deleteServiceContact(service.id, contactId),
+    {
+      onSuccess: async (resp) => {
+        const newService = await api.service(service.id)
+        setService(newService)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [submitResourceMutation] = useMutation(
+    (data) => api.createServiceResource(service.id, data),
+    {
+      onSuccess: async (resp) => {
+        const newService = await api.service(service.id)
+        setService(newService)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteResourceMutation] = useMutation(
+    (resourceId) => api.deleteServiceResource(service.id, resourceId),
+    {
+      onSuccess: async (resp) => {
+        const newService = await api.service(service.id)
+        setService(newService)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [submitRequestMutation] = useMutation(
+    (formId) => api.createServiceForm(service.id, formId),
+    {
+      onSuccess: async (resp) => {
+        const newService = await api.service(service.id)
+        setService(newService)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  const [deleteRequestMutation] = useMutation(
+    (formId) => api.deleteServiceForm(service.id, formId),
+    {
+      onSuccess: async (resp) => {
+        const newService = await api.service(service.id)
+        setService(newService)
+      },
+      onError: (error) => {
+        console.log('ERROR', error)
+      }
+    }
+  )
+
+  return (
+    <div>
+      <Tabs
+        value={tab}
+        onChange={(_, newTab) => setTab(newTab)}
+        variant="fullWidth"
+        indicatorColor="primary"
+        textColor="primary"
+      >
+        <Tab label="View" />
+        <Tab label="Modify" />
+      </Tabs>
+      <br />
+      <TabPanel value={tab} index={0}>
+        <ServiceViewer {...props} />
+      </TabPanel>
+      <TabPanel value={tab} index={1}>
+        <GeneralSettings {...service} submitHandler={submitServiceMutation} />
+        <br /><br />
+        <QuestionsEditor {...service} submitHandler={submitQuestionMutation} deleteHandler={deleteQuestionMutation} />
+        <br /><br />
+        <ContactsEditor {...service} submitHandler={submitContactMutation} deleteHandler={deleteContactMutation} />
+        <br /><br />
+        <ResourcesEditor {...service} submitHandler={submitResourceMutation} deleteHandler={deleteResourceMutation} />
+        <br /><br />
+        <RequestsEditor {...service} allForms={forms} submitHandler={submitRequestMutation} deleteHandler={deleteRequestMutation} />
+        <br /><br />
+      </TabPanel>
+      {/* <TabPanel value={tab} index={2}>
+        <Participants participants={props.participants} />
+      </TabPanel>
+      <TabPanel value={tab} index={3}>
+        <Requests requests={props.requests} />
+      </TabPanel> */}
+    </div>
+  )
+}
+
+const GeneralSettings = (props) => {
+  const classes = useStyles()
+
+  return (
+    <Paper elevation={3} className={classes.paper}>
+      <UpdateForm 
+        title="General"
+        fields={[
+          { id: "name",
+            name: "Name",
+            type: "text",
+            required: true,
+            value: props.name,
+          },
+          { id: "description",
+            name: "Description",
+            type: "text",
+            required: false,
+            value: props.description
+          },
+          { id: "about",
+            name: "Details",
+            type: "text",
+            required: false,
+            value: props.about,
+            multiline: true,
+            rows: 4
+          },
+          { id: "service_url",
+            name: "Service URL",
+            type: "text",
+            required: true,
+            value: props.service_url,
+          },
+          { id: "icon_url",
+            name: "Icon URL",
+            type: "text",
+            required: true,
+            value: props.icon_url,
+          }
+        ]} 
+        initialValues={{...props}} // unused fields will be ignored
+        autosave
+        onSubmit={(values, { setSubmitting }) => {
+          setTimeout(() => {
+            console.log('Submit:', values)
+            props.submitHandler(values)
+            setSubmitting(false)
+          }, 1000)
+        }}
+      />
+    </Paper>
+  )
+}
+
+const RequestsEditor = ({ forms, allForms, submitHandler, deleteHandler }) => {
+  const classes = useStyles()
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  return (
+    <div>
+    <Paper elevation={3} className={classes.paper}>
+      <Typography component="div" variant="h5">Requests</Typography> 
+      <Typography color="textSecondary">Requests you can submit related to this service.</Typography>
+      <br />
+      <List>
+        {forms.map((form, index) => (
+          <Grid container key={index} justify="space-between" alignItems="center">
+            <Grid item>
+              <ListItem>
+                <ListItemAvatar>
+                  <Avatar>
+                    <ListIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText primary={form.name} />
+              </ListItem>
+            </Grid>
+            <Grid item>
+              <IconButton onClick={() => deleteHandler(form.id)}>
+                <DeleteIcon />
+              </IconButton>
+            </Grid>
+          </Grid>
+        ))}
+      </List>
+      <Box display="flex" justifyContent="flex-end">
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={() => setDialogOpen(true)}
+        >
+          Add Request
+        </Button>
+      </Box>
+    </Paper>
+    <AddRequestDialog 
+      open={dialogOpen}
+      forms={forms}
+      allForms={allForms}
+      handleClose={() => setDialogOpen(false)} 
+      handleSubmit={(formId) => {
+        setDialogOpen(false)
+        submitHandler(formId)
+      }}
+    />
+  </div>
+  )
+}
+
+const AddRequestDialog = ({ open, forms, allForms, handleClose, handleSubmit }) => {
+  const availableForms = allForms.filter(f => !forms.some(f2 => f2.id == f.id))
+  const [selected, setSelected] = useState()
+
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth>
+      <DialogTitle>Add Request</DialogTitle>
+      <DialogContent>
+        <TextField
+          select
+          margin="normal"
+          fullWidth
+          label="Select a request"
+          value={selected || ''}
+        >
+          {availableForms && availableForms.map((form, index) => (
+            <MenuItem key={index} value={form.id} onClick={(e) => setSelected(form.id)}>
+              {form.name}
+            </MenuItem>
+          ))}
+        </TextField>
+        <br />
+        <br />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setSelected(null) || handleClose()} variant="outlined">
+          Cancel
+        </Button>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          disabled={!selected || !handleSubmit}
+          onClick={() => setSelected(null) || handleSubmit(selected)}
+        >
+          Add
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
 
 export async function getServerSideProps({ req, query }) {
   const service = await req.api.service(query.id)
