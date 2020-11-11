@@ -6,6 +6,7 @@ import { MainLogo, Wizard, honeypotId } from '../components'
 import { useAPI } from '../contexts/api'
 import WelcomeAnimation from '../components/WelcomeAnimation'
 import { honeypotDivisor } from '../config.json'
+const { generateHMAC } = require('../lib/hmac')
 
 const useStyles = makeStyles((theme) => ({
   grid: {
@@ -308,7 +309,7 @@ const SignUpDialog = ({ open, startTime, properties, handleClose }) => {
               validate={validate}
               onSelect={handleSelect}
               onSubmit={(values, { setSubmitting }) => {
-                values['plt'] = honeypotDivisor - startTime / honeypotDivisor // obfuscate page load time
+                values['plt'] = startTime // encrypted page load time
                 console.log('Submit', values)
                 submitFormMutation(values)
                 setSubmitting(false)
@@ -424,8 +425,7 @@ const getForm = (properties, countryId) => {
 
 export async function getServerSideProps({ req }) {
   const properties = await req.api.userProperties()
-  const startTime = Date.now()
-  console.log('startTime', startTime)
+  const startTime = generateHMAC(Date.now())
   return { props: { properties, startTime } }
 }
 

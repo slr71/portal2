@@ -13,6 +13,7 @@ const PasswordReset = models.account_passwordreset;
 const PasswordResetRequest = models.account_passwordresetrequest;
 
 const MINIMUM_TIME_ON_PAGE = 1000*60 // one minute
+const MAXIMUM_TIME_ON_PAGE = 1000*60*60 // one hour
 
 //TODO move into module
 const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase()); 
@@ -70,7 +71,7 @@ router.put('/users/:username(\\w+)', async (req, res) => {
                 const realKey = HONEYPOT_FIELDS[index];
                 fields[realKey] = fields[key]; // replace encoded key with actual field name
             }
-            else 
+            else // a fake field was populated
                 return res.send('Validity test failed (2)').status(400);
         }
     }
@@ -79,8 +80,9 @@ router.put('/users/:username(\\w+)', async (req, res) => {
     if (!fields['plt']) 
         return res.send('Validity test failed (3)').status(400);
 
-    const pageLoadTime = config.honeypotDivisor * (fields['plt'] + config.honeypotDivisor);
-    if (Date.now - pageLoadTime < MINIMUM_TIME_ON_PAGE)
+    const pageLoadTime = decodeHMAC(fields['plt']);
+    const timeExpired = Date.now - pageLoadTime;
+    if (timeExpired < MINIMUM_TIME_ON_PAGE || timeExpired >= MAXIMUM_TIME_ON_PAGE)
         return res.send('Validity test failed (4)').status(400);
 
     // Validate fields

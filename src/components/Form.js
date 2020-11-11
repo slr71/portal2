@@ -248,11 +248,9 @@ const honeypotId = (modulus) => (honeypotDivisor * Math.floor(Math.random() * 10
 const FormField = props => {
   const classes = useStyles()
 
-  const id = props.honeypot ? honeypotId(props.id) : props.id.toString()
-
   const commonProps = {
-    id: id,
-    name: id,
+    id: props.id,
+    name: props.id,
     label: props.name,
     error: props.errorText != null,
     helperText: props.errorText || props.description,
@@ -315,7 +313,7 @@ const FormField = props => {
       {props.honeypot &&
         <Field // honeypot field
             id={honeypotId(0)} // 0 modulus indicates that this is a honeypot field
-            InputLabelProps={{ tabIndex: "-1" }} // disable tabbing to this field
+            inputProps={{ tabIndex: "-1" }} // disable tabbing to this field
             className={classes.honeypot} // hidden from real user but still visible to bots
             component={TextField}
             onChange={props.onChange}

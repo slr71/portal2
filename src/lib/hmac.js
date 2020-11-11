@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { hmacKey } = require('../../config');
+const { hmacKey } = require('../config');
 
 const ALGO = 'aes-256-cbc';
 
@@ -12,7 +12,7 @@ function key() {
   return hash.digest().slice(0, 32);
 }
 
-// Emulating Portal v1 HMAC.  Not really a true HMAC, just encryption.
+// Emulating Portal v1 HMAC.  Not really a true HMAC, just basic encryption.
 function generateHMAC(data) {
   const cipher = crypto.createCipheriv(ALGO, key(), key().slice(0, 16)) //FIXME use a better IV
   let crypted = cipher.update(data.toString(), 'utf8', 'hex')
