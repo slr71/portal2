@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { useMutation } from "react-query"
 import { isEmpty, isEmail } from 'validator'
 import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, LinearProgress, makeStyles} from '@material-ui/core'
-import { MainLogo, Wizard } from '../components'
+import { MainLogo, Wizard, honeypotId } from '../components'
 import { useAPI } from '../contexts/api'
 import WelcomeAnimation from '../components/WelcomeAnimation'
+import { honeypotDivisor } from '../config.json'
 
 const useStyles = makeStyles((theme) => ({
   grid: {
@@ -219,6 +220,7 @@ const Right = (props) => {
       </Box>
       <SignUpDialog 
         open={dialogOpen}
+        startTime={props.startTime}
         properties={props.properties}
         handleClose={handleCloseDialog} 
         // handleSubmit={handleSubmit}
@@ -227,7 +229,7 @@ const Right = (props) => {
   )
 }
 
-const SignUpDialog = ({ open, properties, handleClose }) => {
+const SignUpDialog = ({ open, startTime, properties, handleClose }) => {
   const api = useAPI()
 
   const [form, setForm] = useState(getForm(properties))
@@ -306,6 +308,7 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
               validate={validate}
               onSelect={handleSelect}
               onSubmit={(values, { setSubmitting }) => {
+                values['plt'] = honeypotDivisor - startTime / honeypotDivisor // obfuscate page load time
                 console.log('Submit', values)
                 submitFormMutation(values)
                 setSubmitting(false)
@@ -323,15 +326,17 @@ const getForm = (properties, countryId) => {
     sections: [
       { autosave: true,
         fields: [
-          { id: "first_name",
+          { id: honeypotId(1), 
+            honeypot: true, // tells Wizard to generate honey pot duplicate field
             name: "First Name",
             type: "text",
             required: true
           },
-          { id: "last_name",
+          { id: honeypotId(2),
+            honeypot: true, // tells Wizard to generate honey pot duplicate field
             name: "Last Name",
             type: "text",
-            required: true
+            required: true,
           },
           { id: "username",
             name: "Username",
@@ -419,7 +424,9 @@ const getForm = (properties, countryId) => {
 
 export async function getServerSideProps({ req }) {
   const properties = await req.api.userProperties()
-  return { props: { properties } }
+  const startTime = Date.now()
+  console.log('startTime', startTime)
+  return { props: { properties, startTime } }
 }
 
 export default Welcome

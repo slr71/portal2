@@ -11,6 +11,8 @@ const EmailAddress = models.account_emailaddress;
 const PasswordReset = models.account_passwordreset;
 const PasswordResetRequest = models.account_passwordresetrequest;
 
+const MINIMUM_TIME_ON_PAGE = 1000*60 // one minute
+
 //TODO move into module
 const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase()); 
 
@@ -50,6 +52,35 @@ router.put('/users/:username(\\w+)', async (req, res) => {
     const restricted = await RestrictedUsername.findOne({ where: { username } });
     if (user || restricted)
         return res.send('Username already taken').status(400);
+
+    // Detect bots using honeypot fields
+    // Index in array corresponds to modulus identifier
+    const HONEYPOT_FIELDS = [
+        'first_name', 'last_name'
+    ];
+    for (let key in fields) {
+        if (isNaN(key)) {
+            if (HONEYPOT_FIELDS.includes(key)) // fields must be encoded
+                return res.send('Validity test failed (1)').status(400);
+        }
+        else {
+            const index = (key % config.honeypotDivisor) - 1;
+            if (index >= 0 && index < HONEYPOT_FIELDS.length) {
+                const realKey = HONEYPOT_FIELDS[index];
+                fields[realKey] = fields[key]; // replace encoded key with actual field name
+            }
+            else 
+                return res.send('Validity test failed (2)').status(400);
+        }
+    }
+
+    // Detect bots using page load time
+    if (!fields['plt']) 
+        return res.send('Validity test failed (3)').status(400);
+
+    const pageLoadTime = config.honeypotDivisor * (fields['plt'] + config.honeypotDivisor);
+    if (Date.now - pageLoadTime < MINIMUM_TIME_ON_PAGE)
+        return res.send('Validity test failed (4)').status(400);
 
     // Validate fields
     const REQUIRED_FIELDS = [
