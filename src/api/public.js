@@ -1,5 +1,6 @@
 const router = require('express').Router();
-const { renderEmail, generateHMAC, decodeHMAC } = require('./lib/email')
+const { renderEmail } = require('../lib/email')
+const { generateHMAC, decodeHMAC } = require('../lib/hmac')
 const config = require('../config');
 const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants');
 const Argo = require('../argo');
