@@ -87,7 +87,7 @@ const User = ({ user }) => {
           <br />
           {user.services && user.services.length > 0
             ? user.services.map((service, index) => (
-                <div key={index}>{service.name} - {service.request.message}</div>
+                <div key={index}>{service.name} - {service.request ? service.request.message : '<unknown>'}</div>
               ))
             : 'None'
           }      

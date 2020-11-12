@@ -1135,7 +1135,7 @@ const AddServiceDialog = ({ open, services, allServices, handleClose, handleSubm
     <Dialog open={open} onClose={handleClose} fullWidth>
       <DialogTitle>Add Service</DialogTitle>
       <DialogContent>
-      <TextField
+        <TextField
           select
           margin="normal"
           fullWidth
