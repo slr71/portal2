@@ -4,7 +4,7 @@ import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typog
 import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
 import { isEmail, isNumeric, isAlphanumeric, isLowercase, isDate, isEmpty } from 'validator'
-import { validatePassword } from '../misc'
+import { validatePassword } from '../lib/password'
 import { CheckboxWithLabel } from "formik-material-ui"
 import { honeypotDivisor } from '../config.json'
 
