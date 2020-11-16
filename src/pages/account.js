@@ -7,6 +7,7 @@ import { Layout, UpdateForm } from '../components'
 import { isEmail, isEmpty } from 'validator'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
+const properties = require('../user-properties.json')
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -18,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const Account = ({ properties }) => {
+const Account = () => {
   const classes = useStyles()
   const api = useAPI()
   const [user, setUser] = useState(useUser())
@@ -483,11 +484,6 @@ const Forms = (user, properties) => {
       ]
     }
   ]
-}
-
-export async function getServerSideProps({ req }) {
-  const properties = await req.api.userProperties()
-  return { props: { properties } }
 }
 
 export default Account

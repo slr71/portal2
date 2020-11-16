@@ -222,6 +222,8 @@ router.post('/users/password', async (req, res) => {
     if (!passwordReset)
         return res.send('Error creating password reset').status(500);
 
+    //TODO update LDAP
+
     res.send('success').status(200);
 });
 
@@ -295,6 +297,8 @@ router.post('/confirm_email', async (req, res) => {
     res.send('success').status(200);
 });
 
+// This endpoint is no longer called directly.  It is used to generate the src/user-properties.json file for static compilation.
+// To update the file:  curl -s http://localhost:3000/api/users/properties | jq > user-properties.json
 router.get('/users/properties', async (req, res) => {
     const opts = { attributes: { exclude: [ 'created_at', 'updated_at' ] } };
     const keys = [ 'funding_agencies', 'occupations', 'genders', 'ethnicities', 'countries', 'regions', 'research_areas', 'aware_channels' ];

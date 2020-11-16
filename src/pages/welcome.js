@@ -5,8 +5,8 @@ import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, Di
 import { MainLogo, Wizard, honeypotId } from '../components'
 import { useAPI } from '../contexts/api'
 import WelcomeAnimation from '../components/WelcomeAnimation'
-import { honeypotDivisor } from '../config.json'
 const { generateHMAC } = require('../lib/hmac')
+const properties = require('../user-properties.json')
 
 const useStyles = makeStyles((theme) => ({
   grid: {
@@ -222,7 +222,6 @@ const Right = (props) => {
       <SignUpDialog 
         open={dialogOpen}
         startTime={props.startTime}
-        properties={props.properties}
         handleClose={handleCloseDialog} 
         // handleSubmit={handleSubmit}
       />
@@ -230,10 +229,10 @@ const Right = (props) => {
   )
 }
 
-const SignUpDialog = ({ open, startTime, properties, handleClose }) => {
+const SignUpDialog = ({ open, startTime, handleClose }) => {
   const api = useAPI()
 
-  const [form, setForm] = useState(getForm(properties))
+  const [form, setForm] = useState(getForm())
   const [isSubmitted, setSubmitted] = useState(false)
   const [user, setUser] = useState() // newly created user
 
@@ -268,7 +267,7 @@ const SignUpDialog = ({ open, startTime, properties, handleClose }) => {
   // Set region based on country
   const handleSelect = (field, option) => {
     if (field.id == 'country_id') 
-      setForm(getForm(properties, option.id))
+      setForm(getForm(option.id))
   }
 
   const [submitFormMutation] = useMutation(
@@ -322,7 +321,7 @@ const SignUpDialog = ({ open, startTime, properties, handleClose }) => {
   )
 }
 
-const getForm = (properties, countryId) => {
+const getForm = (countryId) => {
   return {
     sections: [
       { autosave: true,
@@ -423,10 +422,9 @@ const getForm = (properties, countryId) => {
   }
 }
 
-export async function getServerSideProps({ req }) {
-  const properties = await req.api.userProperties()
+export async function getServerSideProps() {
   const startTime = generateHMAC(Date.now())
-  return { props: { properties, startTime } }
+  return { props: { startTime } }
 }
 
 export default Welcome
