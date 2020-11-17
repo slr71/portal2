@@ -7,6 +7,7 @@ import { Layout, UpdateForm } from '../components'
 import { isEmail, isEmpty } from 'validator'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
+import { sortCountries } from '../lib/misc'
 const properties = require('../user-properties.json')
 
 //FIXME duplicated elsewhere
@@ -446,7 +447,7 @@ const Forms = (user, properties) => {
           type: "autocomplete",
           required: true,
           value: user.region.country_id,
-          options: properties.countries
+          options: properties.countries.sort(sortCountries)
         },
         { id: "region_id",
           name: "Region",

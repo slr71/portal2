@@ -14,4 +14,13 @@ const validatePassword = (value) => {
   return null
 }
 
-export { validatePassword }
+// Sort US first
+const sortCountries = (a, b) => {
+  if (a.code == 'US')
+    return -1
+  if (b.code == 'US')
+    return 1
+  return a.name.localeCompare(b.name)
+}
+
+export { validatePassword, sortCountries }

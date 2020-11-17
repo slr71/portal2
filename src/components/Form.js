@@ -5,7 +5,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete'
 import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
 import { isEmail, isNumeric, isAlphanumeric, isLowercase, isDate, isEmpty } from 'validator'
-import { validatePassword } from '../lib/password'
+import { validatePassword } from '../lib/misc'
 import { CheckboxWithLabel } from "formik-material-ui"
 import { honeypotDivisor } from '../config.json'
 

@@ -5,7 +5,8 @@ import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, Di
 import { MainLogo, Wizard, honeypotId } from '../components'
 import { useAPI } from '../contexts/api'
 import WelcomeAnimation from '../components/WelcomeAnimation'
-const { generateHMAC } = require('../lib/hmac')
+import { generateHMAC } from '../lib/hmac'
+import { sortCountries } from '../lib/misc'
 const properties = require('../user-properties.json')
 
 const useStyles = makeStyles((theme) => ({
@@ -388,7 +389,7 @@ const getForm = (countryId) => {
             name: "Country",
             type: "autocomplete",
             required: true,
-            options: properties.countries
+            options: properties.countries.sort(sortCountries)
           },
           { id: "region_id",
             name: "Region",

@@ -3,7 +3,7 @@ import { useMutation } from "react-query"
 import { useAPI } from '../contexts/api'
 import { Box, Grid, Typography, Button, TextField, makeStyles } from '@material-ui/core'
 import { MainLogo } from '../components'
-import { validatePassword } from '../lib/password'
+import { validatePassword } from '../lib/misc'
 
 //FIXME Duplicated in welcome.js
 const useStyles = makeStyles((theme) => ({
