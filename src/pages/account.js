@@ -422,25 +422,6 @@ const Forms = (user, properties) => {
           value: user.occupation.id,
           options: properties.occupations
         },
-        { id: "country_id",
-          name: "Country",
-          type: "select",
-          required: true,
-          value: user.region.country_id,
-          options: properties.countries
-        },
-        { id: "region_id",
-          name: "Region",
-          type: "select",
-          required: true,
-          value: user.region.id,
-          options: properties.regions.filter(r => r.country_id == user.region.country_id)
-        }
-      ]
-    },
-    { title: "Research",
-      autosave: true,
-      fields: [
         { id: "research_area_id",
           name: "Research Area",
           type: "select",
@@ -460,6 +441,20 @@ const Forms = (user, properties) => {
     { title: "Demographics",
       autosave: true,
       fields: [
+        { id: "country_id",
+          name: "Country",
+          type: "autocomplete",
+          required: true,
+          value: user.region.country_id,
+          options: properties.countries
+        },
+        { id: "region_id",
+          name: "Region",
+          type: "select",
+          required: true,
+          value: user.region.id,
+          options: properties.regions.filter(r => r.country_id == user.region.country_id)
+        },
         { id: "gender_id",
           name: "Gender Identity",
           type: "select",

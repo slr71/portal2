@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography, CircularProgress, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
 import { isEmail, isNumeric, isAlphanumeric, isLowercase, isDate, isEmpty } from 'validator'
@@ -131,15 +132,14 @@ const UpdateForm = ({ title, subtitle, fields, autosave, validate, onSubmit }) =
             </Grid>
           }
           {subtitle && <Typography color="textSecondary">{subtitle}</Typography>}
-          {fields.map(field => (
-            <div key={field.id}>
+          {fields.map((field, index) => (
+            <div key={index}>
               <FormField
                 onChange={handleChange}
                 onBlur={handleBlur}
                 errorText={touched[field.id] && errors[field.id]}
                 {...field}
               />
-              <br />
             </div>
           ))}
           <Box display="flex" justifyContent="flex-end">
@@ -205,7 +205,6 @@ const Wizard = ({ form, initialValues, validate, onSelect, onSubmit }) => {
                 value={values[field.id]}
                 {...field}
               />
-              <br />
             </div>
           ))}
           <br />
@@ -245,7 +244,7 @@ const FormStepper = ({activeStep, steps}) => {
 
 const honeypotId = (modulus) => (honeypotDivisor * Math.floor(Math.random() * 10) + modulus).toString()
 
-const FormField = props => {
+const FormField = (props) => {
   const classes = useStyles()
 
   const commonProps = {
@@ -298,6 +297,29 @@ const FormField = props => {
         ))}
       </Field>
     )
+  }
+
+  if (props.type === 'autocomplete') {
+    return (
+      <Field
+        component={Autocomplete}
+        onChange={(event, option) => {
+          event.target.name = props.id
+          event.target.value = option.id
+          props.onChange && props.onChange(event)
+          props.onSelect && props.onSelect(props, option)
+        }} 
+        options={props.options}
+        getOptionLabel={(option) => option.name}
+        value={props.options.find(option => option.id == props.value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            {...commonProps}
+          />
+        )}
+      />
+    ) 
   }
 
   return ( // type is 'char' or 'text'

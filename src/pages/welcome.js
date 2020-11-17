@@ -386,7 +386,7 @@ const getForm = (countryId) => {
         fields: [
           { id: "country_id",
             name: "Country",
-            type: "select",
+            type: "autocomplete",
             required: true,
             options: properties.countries
           },
