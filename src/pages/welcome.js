@@ -299,7 +299,7 @@ const SignUpDialog = ({ open, startTime, handleClose }) => {
                 <b>{user ? user.email : '<error>'}</b>
               </Typography>
               <br /><br />
-	      <Typography variant='h6' color='textSecondary'>
+	            <Typography variant='h6' color='textSecondary'>
                 Please click on the confirmation link in the email to activate your account.
               </Typography>
             </Box>
