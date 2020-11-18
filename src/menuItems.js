@@ -20,10 +20,6 @@ const menuItems = [
     icon: <DashboardIcon fontSize="large"/>,
     path: "/services",
     items: []
-    // items: [
-    //   { label: "Manage Service Quotas", path: "/services/quotas" },
-    //   { label: "Maintenance Calendar", path: "/services/calendar" }
-    // ]
   },
   {
     label: "Requests",
@@ -50,7 +46,7 @@ const menuItems = [
         path: "https://learning.cyverse.org/en/latest/tutorials.html",
         description: "Tutorials covering CyVerse services."
       },
-      { label: "Focus Forum Webinars", 
+      { label: "Webinars", 
         path: "https://learning.cyverse.org/en/latest/webinars.html",
         description: "Upcoming webinars on how to use CyVerse services."
       },
@@ -65,7 +61,15 @@ const menuItems = [
       { label: "FAQ", 
         path: "https://learning.cyverse.org/projects/faq",
         description: "Answers to frequenty asked questions about CyVerse"
-      }
+      },  
+      { label: "Maintenance Calendar", 
+        path: "https://cyverse.org/maintenance",
+        description: "Schedule of future CyVerse service outages"
+      },
+      { label: "Status", 
+        path: "http://status.cyverse.org/",
+        description: "Operational status of all CyVerse resources"
+      },
     ]
   },
   {
@@ -75,37 +79,37 @@ const menuItems = [
     restricted: true,
     items: [
       { label: "Users",
-        icon: <GroupIcon fontSize="medium"/>,
+        icon: <GroupIcon />,
         path: "/administrative/users",
         description: "Search across all CyVerse users and view details about individual users."
       },
       { label: "Restricted Usernames",
-        icon: <BlockIcon fontSize="medium"/>, 
+        icon: <BlockIcon />, 
         path: "/administrative/usernames",
         description: "Show and edit restricted usernames."
       },
       { label: "Access Requests",
-        icon: <PersonAddIcon fontSize="medium" />,
+        icon: <PersonAddIcon />,
         path: "/administrative/requests",
         description: "Search across all access requests and view/deny/approve individual requests."
       },
       { label: "Services",
-        icon: <DashboardIcon fontSize="medium" />, 
+        icon: <DashboardIcon />, 
         path: "/administrative/services",
         description: "View and modify services."
       },
       { label: "Workshops",
-        icon: <EventIcon fontSize="medium" />, 
+        icon: <EventIcon />, 
         path: "/administrative/workshops",
         description: "View, create, and modify workshops."
       },
       { label: "Form Submissions", 
-        icon: <InboxIcon fontSize="medium" />,
+        icon: <InboxIcon />,
         path: "/administrative/submissions",
         description: "Search across all form submissions and view individual submissions."
       },
       { label: "Forms",
-        icon: <EditIcon fontSize="medium" />, 
+        icon: <EditIcon />, 
         path: "/administrative/forms",
         description: "View and edit forms."
       }
