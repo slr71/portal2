@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { requireAdmin, isAdmin, getUser } = require('../auth');
+const { requireAdmin, isAdmin, getUser, asyncHandler } = require('../auth');
 const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
@@ -14,7 +14,7 @@ router.get('/mine', getUser, (req, res) => {
 });
 
 // Get all users
-router.get('/', requireAdmin, async (req, res) => {
+router.get('/', requireAdmin, asyncHandler(async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
     const keyword = req.query.keyword;
@@ -51,16 +51,16 @@ router.get('/', requireAdmin, async (req, res) => {
     });
 
     res.json({ count, results: rows }).status(200);
-});
+}));
 
 // Get individual user (ADMIN ONLY)
-router.get('/:id(\\d+)', requireAdmin, async (req, res) => {
+router.get('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     const user = await User.findByPk(req.params.id);
     res.json(user).status(200);
-});
+}));
 
 // Update user info
-router.post('/:id(\\d+)', getUser, async (req, res) => {
+router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
     console.log(fields);
@@ -88,10 +88,10 @@ router.post('/:id(\\d+)', getUser, async (req, res) => {
     await user.reload();
     
     res.json(user).status(200);
-});
+}));
 
 // Delete user (STAFF ONLY)
-router.delete('/:id(\\d+)', getUser, requireAdmin, async (req, res) => {
+router.delete('/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const id = req.params.id;
 
     if (id == req.user.id)
@@ -127,9 +127,9 @@ router.delete('/:id(\\d+)', getUser, requireAdmin, async (req, res) => {
             mailchimp_list_id: config.mailchimp.listId,
         }
     );
-});
+}));
 
-router.get('/restricted', requireAdmin, async (req, res) => {
+router.get('/restricted', requireAdmin, asyncHandler(async (req, res) => {
     const usernames = await RestrictedUsername.findAll({
         attributes: [ 'id', 'username' ],
         order: [ ['username', 'ASC'] ],
@@ -137,14 +137,14 @@ router.get('/restricted', requireAdmin, async (req, res) => {
     });
 
     res.json(usernames).status(200);
-});
+}));
 
-router.put('/restricted/:username(\\S+)', requireAdmin, async (req, res) => {
+router.put('/restricted/:username(\\S+)', requireAdmin, asyncHandler(async (req, res) => {
     const [username, created] = await RestrictedUsername.findOrCreate({ where: { username: req.params.username } });
     res.json(username).status(201);
-});
+}));
 
-router.delete('/restricted/:username(\\S+)', requireAdmin, async (req, res) => {
+router.delete('/restricted/:username(\\S+)', requireAdmin, asyncHandler(async (req, res) => {
     const username = await RestrictedUsername.findOne({ where: { username: req.params.username } });
     if (!username)
         return res.send('Restricted username not found').status(404);
@@ -152,6 +152,6 @@ router.delete('/restricted/:username(\\S+)', requireAdmin, async (req, res) => {
     await username.destroy();
 
     res.send('success').status(200);
-});
+}));
 
 module.exports = router;

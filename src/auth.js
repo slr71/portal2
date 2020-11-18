@@ -41,10 +41,19 @@ const requireAdmin = async (req, res, next) => {
     next()
 }
 
+// Handle promise exceptions in Express.  Not really auth related but used all over the place.
+// From https://zellwk.com/blog/async-await-express/
+const asyncHandler = fn => (req, res, next) => {
+  return Promise
+      .resolve(fn(req, res, next))
+      .catch(next)
+}
+
 module.exports= {
   getUserToken,
   getUserID,
   getUser,
   isAdmin,
-  requireAdmin
+  requireAdmin,
+  asyncHandler
 }

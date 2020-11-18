@@ -12,7 +12,7 @@ const AccessRequestQuestion = models.api_accessrequestquestion;
 const AccessRequestAnswer = models.api_accessrequestanswer;
 const { approveRequest, grantRequest } = require('./approvers/service');
 const intercom = require('../intercom');
-const { getUser, requireAdmin } = require('../auth');
+const { getUser, requireAdmin, asyncHandler } = require('../auth');
 const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } = require('../constants');
 
 const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api_poweredservice where service_ptr_id=id))'), 'is_powered' ];
@@ -20,7 +20,7 @@ const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
 
-router.get('/requests', requireAdmin, async (req, res) => {
+router.get('/requests', requireAdmin, asyncHandler(async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
     const keyword = req.query.keyword;
@@ -53,9 +53,9 @@ router.get('/requests', requireAdmin, async (req, res) => {
     });
 
     return res.json({ count, results: rows }).status(200);
-});
+}));
 
-router.get('/requests/:id(\\d+)', requireAdmin, async (req, res) => {
+router.get('/requests/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     const request = await AccessRequest.findByPk(req.params.id, {
         include: [ 
             'user',
@@ -94,10 +94,10 @@ router.get('/requests/:id(\\d+)', requireAdmin, async (req, res) => {
     }
 
     return res.json(request).status(200);
-});
+}));
 
 // Create new access request
-router.put('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
+router.put('/:id(\\d+)/requests', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const serviceId = req.params.id;
     const answers = req.body.answers; // [ { questionId, value } ]
 
@@ -172,10 +172,10 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, async (req, res) => {
 
     // Send websocket event to client
     notifyClientOfRequestStatusChange(req.ws, request)
-});
+}));
 
 // Update request status //TODO require api key
-router.post('/:nameOrId(\\w+)/requests', getUser, async (req, res) => {
+router.post('/:nameOrId(\\w+)/requests', getUser, asyncHandler(async (req, res) => {
     const nameOrId = req.params.nameOrId;
 
     const status = req.body.status;
@@ -217,7 +217,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, async (req, res) => {
         await grantRequest(request);
 
     notifyClientOfRequestStatusChange(req.ws, request)
-});
+}));
 
 //TODO move into library
 function notifyClientOfRequestStatusChange(ws, request) {
@@ -234,16 +234,16 @@ function notifyClientOfRequestStatusChange(ws, request) {
     }
 }
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
     const services = await Service.findAll({
         attributes: { include: [ poweredServiceQuery] },
         order: [ [ sequelize.fn('lower', sequelize.col('name')), 'ASC' ] ]
     });
 
     return res.json(services).status(200);
-});
+}));
 
-router.get('/:nameOrId(\\w+)', async (req, res) => {
+router.get('/:nameOrId(\\w+)', asyncHandler(async (req, res) => {
     const nameOrId = req.params.nameOrId;
 
     const service = await Service.findOne({
@@ -270,10 +270,10 @@ router.get('/:nameOrId(\\w+)', async (req, res) => {
         return res.send('Service not found').status(404);
 
     return res.json(service).status(200);
-});
+}));
 
 // Update service (STAFF ONLY)
-router.post('/:id(\\d+)', getUser, requireAdmin, async (req, res) => {
+router.post('/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
     console.log(fields);
@@ -304,10 +304,10 @@ router.post('/:id(\\d+)', getUser, requireAdmin, async (req, res) => {
     await service.reload();
 
     res.json(service).status(200);
-});
+}));
 
 // Add question to service (STAFF ONLY)
-router.put('/:id(\\d+)/questions', getUser, requireAdmin, async (req, res) => {
+router.put('/:id(\\d+)/questions', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const questionText = req.body.question;
     const is_required = true; //req.body.is_required;
     if (!questionText)
@@ -326,10 +326,10 @@ router.put('/:id(\\d+)/questions', getUser, requireAdmin, async (req, res) => {
         } 
     });
     res.json(question).status(201);
-});
+}));
 
 // Remove question from service (STAFF ONLY)
-router.delete('/:serviceId(\\d+)/questions/:questionId(\\d+)', getUser, requireAdmin, async (req, res) => {
+router.delete('/:serviceId(\\d+)/questions/:questionId(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const service = await Service.findByPk(req.params.serviceId);
     if (!service)
         return res.send('Service not found').status(404);
@@ -340,10 +340,10 @@ router.delete('/:serviceId(\\d+)/questions/:questionId(\\d+)', getUser, requireA
 
     await question.destroy();
     res.send('success').status(200);
-});
+}));
 
 // Add contact to service (STAFF ONLY)
-router.put('/:id(\\d+)/contacts', getUser, requireAdmin, async (req, res) => {
+router.put('/:id(\\d+)/contacts', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const name = req.body.name;
     const email = req.body.email;
     if (!name || !email)
@@ -361,10 +361,10 @@ router.put('/:id(\\d+)/contacts', getUser, requireAdmin, async (req, res) => {
         } 
     });
     res.json(contact).status(201);
-});
+}));
 
 // Remove contact from service (STAFF ONLY)
-router.delete('/:serviceId(\\d+)/contacts/:contactId(\\d+)', getUser, requireAdmin, async (req, res) => {
+router.delete('/:serviceId(\\d+)/contacts/:contactId(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const service = await Service.findByPk(req.params.serviceId);
     if (!service)
         return res.send('Service not found').status(404);
@@ -375,10 +375,10 @@ router.delete('/:serviceId(\\d+)/contacts/:contactId(\\d+)', getUser, requireAdm
 
     await contact.destroy();
     res.send('success').status(200);
-});
+}));
 
 // Add resource to service (STAFF ONLY)
-router.put('/:id(\\d+)/resources', getUser, requireAdmin, async (req, res) => {
+router.put('/:id(\\d+)/resources', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const fields = req.body;
     console.log(fields);
     if (!fields.name || !fields.url)
@@ -398,10 +398,10 @@ router.put('/:id(\\d+)/resources', getUser, requireAdmin, async (req, res) => {
         } 
     });
     res.json(resource).status(201);
-});
+}));
 
 // Remove resource from service (STAFF ONLY)
-router.delete('/:serviceId(\\d+)/resources/:resourceId(\\d+)', getUser, requireAdmin, async (req, res) => {
+router.delete('/:serviceId(\\d+)/resources/:resourceId(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const service = await Service.findByPk(req.params.serviceId);
     if (!service)
         return res.send('Service not found').status(404);
@@ -412,10 +412,10 @@ router.delete('/:serviceId(\\d+)/resources/:resourceId(\\d+)', getUser, requireA
 
     await resource.destroy();
     res.send('success').status(200);
-});
+}));
 
 // Add form to service (STAFF ONLY)
-router.put('/:id(\\d+)/forms', getUser, requireAdmin, async (req, res) => {
+router.put('/:id(\\d+)/forms', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const fields = req.body;
     console.log(fields)
     if (!fields.formId)
@@ -432,10 +432,10 @@ router.put('/:id(\\d+)/forms', getUser, requireAdmin, async (req, res) => {
         } 
     });
     res.json(form).status(201);
-});
+}));
 
 // Remove form from service (STAFF ONLY)
-router.delete('/:serviceId(\\d+)/forms/:formId(\\d+)', getUser, requireAdmin, async (req, res) => {
+router.delete('/:serviceId(\\d+)/forms/:formId(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const service = await Service.findByPk(req.params.serviceId);
     if (!service)
         return res.send('Service not found').status(404);
@@ -451,6 +451,6 @@ router.delete('/:serviceId(\\d+)/forms/:formId(\\d+)', getUser, requireAdmin, as
 
     await serviceForm.destroy();
     res.send('success').status(200);
-});
+}));
 
 module.exports = router;

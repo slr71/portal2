@@ -160,6 +160,9 @@ app.prepare()
             return nextHandler(req, res)
         })
 
+        // Catch errors
+        server.use(errorHandler)
+
         server.listen(config.port, (err) => {
             if (err) throw err
             if (isDevelopment)
@@ -174,3 +177,13 @@ app.prepare()
         console.log(exception)
         process.exit(1)
     })
+
+function errorHandler(error, req, res) {
+    console.log("ERROR ".padEnd(80, "!"));
+    console.log(error.stack);
+
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Unknown error";
+
+    res.status(statusCode).send(message);
+}

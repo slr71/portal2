@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { getUser, requireAdmin } = require('../auth');
+const { getUser, requireAdmin, asyncHandler } = require('../auth');
 const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
@@ -22,7 +22,7 @@ function hasOrganizerAccess(workshop, user) {
 }
 
 // Get all workshops
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
     const workshops = await Workshop.findAll({
         include: [ //TODO create scope for this
             {
@@ -36,10 +36,10 @@ router.get('/', async (req, res) => {
     });
 
     return res.json(workshops).status(200);
-});
+}));
 
 // Get workshop by ID
-router.get('/:id(\\d+)', async (req, res) => {
+router.get('/:id(\\d+)', asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ //TODO create scope for this
             'contacts',
@@ -63,10 +63,10 @@ router.get('/:id(\\d+)', async (req, res) => {
     });
 
     return res.json(workshop).status(200);
-});
+}));
 
 // Create workshop (STAFF ONLY)
-router.put('/', getUser, requireAdmin, async (req, res) => {
+router.put('/', getUser, requireAdmin, asyncHandler(async (req, res) => {
     if (!req.body.title)
         return res.send('Missing title').status(400);
     
@@ -91,10 +91,10 @@ router.put('/', getUser, requireAdmin, async (req, res) => {
         return res.send('Failed to create workshop').status(500);
 
     res.json(workshop).status(201);
-});
+}));
 
 // Update workshop
-router.post('/:id(\\d+)', getUser, async (req, res) => {
+router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
     console.log(fields);
@@ -141,10 +141,10 @@ router.post('/:id(\\d+)', getUser, async (req, res) => {
     await workshop.reload();
 
     res.json(workshop).status(200);
-});
+}));
 
 // Get workshop participants (enrollees)
-router.get('/:id(\\d+)/participants', getUser, async (req, res) => {
+router.get('/:id(\\d+)/participants', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ 
             {
@@ -164,10 +164,10 @@ router.get('/:id(\\d+)/participants', getUser, async (req, res) => {
         return res.send('Permission denied').status(403);
 
     return res.json(workshop.users).status(200);
-});
+}));
 
 // Add participant to workshop (enroll user)
-router.put('/:id(\\d+)/participants', getUser, async (req, res) => {
+router.put('/:id(\\d+)/participants', getUser, asyncHandler(async (req, res) => {
     const userId = req.body.userId
     if (!userId)
         return res.send('Missing user id').status(400);
@@ -198,10 +198,10 @@ router.put('/:id(\\d+)/participants', getUser, async (req, res) => {
         message: WorkshopEnrollmentRequest.constants.MESSAGE_REQUESTED
     });
     await grantRequest(request); 
-});
+}));
 
 // Remove participant from workshop
-router.delete('/:workshopId(\\d+)/participants/:userId(\\d+)', getUser, async (req, res) => {
+router.delete('/:workshopId(\\d+)/participants/:userId(\\d+)', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.workshopId);
     if (!workshop)
         return res.send('Workshop not found').status(404);
@@ -221,10 +221,10 @@ router.delete('/:workshopId(\\d+)/participants/:userId(\\d+)', getUser, async (r
 
     await participant.destroy();
     res.send('success').status(200);
-});
+}));
 
 // Get workshop emails (pre-approved users)
-router.get('/:id(\\d+)/emails', getUser, async (req, res) => {
+router.get('/:id(\\d+)/emails', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ 
             {
@@ -243,10 +243,10 @@ router.get('/:id(\\d+)/emails', getUser, async (req, res) => {
         return res.send('Permission denied').status(403);
 
     return res.json(workshop.emails).status(200);
-});
+}));
 
 // Add email to workshop
-router.put('/:id(\\d+)/emails', getUser, async (req, res) => {
+router.put('/:id(\\d+)/emails', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id);
     if (!workshop)
         return res.send('Workshop not found').status(404);
@@ -262,10 +262,10 @@ router.put('/:id(\\d+)/emails', getUser, async (req, res) => {
         }
     });
     res.json(email).status(201);
-});
+}));
 
 // Remove email from workshop
-router.delete('/:workshopId(\\d+)/emails/:email(\\S+)', getUser, async (req, res) => {
+router.delete('/:workshopId(\\d+)/emails/:email(\\S+)', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.workshopId);
     if (!workshop)
         return res.send('Workshop not found').status(404);
@@ -285,10 +285,10 @@ router.delete('/:workshopId(\\d+)/emails/:email(\\S+)', getUser, async (req, res
 
     await email.destroy();
     res.send('success').status(200);
-});
+}));
 
 // Add organizer to workshop
-router.put('/:id(\\d+)/organizers', getUser, async (req, res) => {
+router.put('/:id(\\d+)/organizers', getUser, asyncHandler(async (req, res) => {
     const userId = req.body.userId
     if (!userId)
         return res.send('Missing user id').status(400);
@@ -308,10 +308,10 @@ router.put('/:id(\\d+)/organizers', getUser, async (req, res) => {
         } 
     });
     res.json(organizer).status(201);
-});
+}));
 
 // Remove organizer from workshop
-router.delete('/:workshopId(\\d+)/organizers/:userId(\\d+)', getUser, async (req, res) => {
+router.delete('/:workshopId(\\d+)/organizers/:userId(\\d+)', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.workshopId);
     if (!workshop)
         return res.send('Workshop not found').status(404);
@@ -331,10 +331,10 @@ router.delete('/:workshopId(\\d+)/organizers/:userId(\\d+)', getUser, async (req
 
     await organizer.destroy();
     res.send('success').status(200);
-});
+}));
 
 // Add contact to workshop
-router.put('/:id(\\d+)/contacts', getUser, async (req, res) => {
+router.put('/:id(\\d+)/contacts', getUser, asyncHandler(async (req, res) => {
     const name = req.body.name;
     const email = req.body.email;
     if (!name || !email)
@@ -365,10 +365,10 @@ router.put('/:id(\\d+)/contacts', getUser, async (req, res) => {
         } 
     });
     res.json(contact).status(201);
-});
+}));
 
 // Remove contact from workshop
-router.delete('/:workshopId(\\d+)/contacts/:email(\\S+)', getUser, async (req, res) => {
+router.delete('/:workshopId(\\d+)/contacts/:email(\\S+)', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.workshopId, {
         include: [ //TODO create scope for this
             {
@@ -397,10 +397,10 @@ router.delete('/:workshopId(\\d+)/contacts/:email(\\S+)', getUser, async (req, r
 
     await contact.destroy();
     res.send('success').status(200);
-});
+}));
 
 // Add service to workshop
-router.put('/:id(\\d+)/services', getUser, async (req, res) => {
+router.put('/:id(\\d+)/services', getUser, asyncHandler(async (req, res) => {
     const serviceId = req.body.serviceId
     if (!serviceId)
         return res.send('Missing service id').status(400);
@@ -429,10 +429,10 @@ router.put('/:id(\\d+)/services', getUser, async (req, res) => {
         } 
     });
     res.json(service).status(201);
-});
+}));
 
 // Remove service from workshop
-router.delete('/:workshopId(\\d+)/services/:serviceId(\\d+)', getUser, async (req, res) => {
+router.delete('/:workshopId(\\d+)/services/:serviceId(\\d+)', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.workshopId, {
         include: [ //TODO create scope for this
             {
@@ -461,10 +461,10 @@ router.delete('/:workshopId(\\d+)/services/:serviceId(\\d+)', getUser, async (re
 
     await service.destroy();
     res.send('success').status(200);
-});
+}));
 
 // Get workshop enrollment requests 
-router.get('/:id(\\d+)/requests', getUser, async (req, res) => {
+router.get('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     const workshopId = req.params.id;
 
     // Fetch workshop
@@ -502,10 +502,10 @@ router.get('/:id(\\d+)/requests', getUser, async (req, res) => {
         order: [ [ 'logs', 'created_at', 'ASC' ] ]
     });
     return res.json(requests).status(200);
-});
+}));
 
 // Create new enrollment request
-router.put('/:id(\\d+)/requests', getUser, async (req, res) => {
+router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     const workshopId = req.params.id;
 
     // Fetch workshop
@@ -559,10 +559,10 @@ router.put('/:id(\\d+)/requests', getUser, async (req, res) => {
         await grantRequest(request);
 
     notifyClientOfRequestStatusChange(req.ws, request)
-});
+}));
 
 // Update enrollment request status 
-router.post('/:id(\\d+)/requests', getUser, async (req, res) => {
+router.post('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     const workshopId = req.params.id;
     const status = req.body.status;
 
@@ -609,7 +609,7 @@ router.post('/:id(\\d+)/requests', getUser, async (req, res) => {
         await grantRequest(request);
 
     notifyClientOfRequestStatusChange(req.ws, request)
-});
+}));
 
 //TODO move into library
 function notifyClientOfRequestStatusChange(ws, request) {

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { renderEmail } = require('../lib/email')
 const { generateHMAC, decodeHMAC } = require('../lib/hmac')
+const { asyncHandler } = require('../auth')
 const config = require('../config');
 const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants');
 const Argo = require('../argo');
@@ -19,7 +20,7 @@ const MAXIMUM_TIME_ON_PAGE = 1000*60*60 // one hour
 const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase()); 
 
 // Check for existing username and/or email address
-router.post('/exists', async (req, res) => {
+router.post('/exists', asyncHandler(async (req, res) => {
     let fields = req.body;
     console.log("fields:", fields);
     let result = {}
@@ -41,10 +42,10 @@ router.post('/exists', async (req, res) => {
     }
 
     res.json(result).status(200);
-});
+}));
 
 // Create user //TODO require API key or valid HMAC
-router.put('/users/:username(\\w+)', async (req, res) => {
+router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
     const username = req.params.username;
     let fields = req.body;
     console.log("fields:", fields);
@@ -152,7 +153,7 @@ router.put('/users/:username(\\w+)', async (req, res) => {
             "FORMS_URL": UI_REQUESTS_URL
         }
     })
-});
+}));
 
 async function createUser(user) {
     // Calculate number of days since epoch (needed for LDAP )
@@ -192,7 +193,7 @@ async function createUser(user) {
 }
 
 // Update user password //TODO require API key or is valid HMAC enough?
-router.post('/users/password', async (req, res) => {
+router.post('/users/password', asyncHandler(async (req, res) => {
     const fields = req.body;
     console.log(fields);
 
@@ -225,10 +226,10 @@ router.post('/users/password', async (req, res) => {
     //TODO update LDAP
 
     res.send('success').status(200);
-});
+}));
 
 // Send reset password link //TODO require API key or valid HMAC
-router.post('/users/reset_password', async (req, res) => {
+router.post('/users/reset_password', asyncHandler(async (req, res) => {
     const email = req.body.email;
     console.log(email);
 
@@ -272,9 +273,9 @@ router.post('/users/reset_password', async (req, res) => {
             "USERNAME": emailAddress.user.username
         }
     })
-});
+}));
 
-router.post('/confirm_email', async (req, res) => {
+router.post('/confirm_email', asyncHandler(async (req, res) => {
     const hmac = req.body.hmac
     if (!hmac) 
         return res.send('Missing hmac').status(400);
@@ -295,11 +296,11 @@ router.post('/confirm_email', async (req, res) => {
     emailAddress.save()
 
     res.send('success').status(200);
-});
+}));
 
 // This endpoint is no longer called directly.  It is used to generate the src/user-properties.json file for static compilation.
 // To update the file:  curl -s http://localhost:3000/api/users/properties | jq > user-properties.json
-router.get('/users/properties', async (req, res) => {
+router.get('/users/properties', asyncHandler(async (req, res) => {
     const opts = { attributes: { exclude: [ 'created_at', 'updated_at' ] } };
     const keys = [ 'funding_agencies', 'occupations', 'genders', 'ethnicities', 'countries', 'regions', 'research_areas', 'aware_channels' ];
 
@@ -317,6 +318,6 @@ router.get('/users/properties', async (req, res) => {
     .forEach((e, i) => results[keys[i]] = e);
 
     res.json(results).status(200);
-});
+}));
 
 module.exports = router;

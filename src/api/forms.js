@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { requireAdmin, getUser } = require('../auth');
+const { requireAdmin, getUser, asyncHandler } = require('../auth');
 const sequelize = require('sequelize');
 const models = require('../models');
 const User = models.account_user;
@@ -14,7 +14,7 @@ const intercom = require('../intercom');
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
 
-router.get('/', async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
     let formGroups = await FormGroup.findAll({
         include: [ 
             { 
@@ -27,9 +27,9 @@ router.get('/', async (req, res) => {
     });
 
     return res.json(formGroups).status(200);
-});
+}));
 
-router.get('/submissions', requireAdmin, async (req, res) => {
+router.get('/submissions', requireAdmin, asyncHandler(async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
     const keyword = req.query.keyword;
@@ -61,9 +61,9 @@ router.get('/submissions', requireAdmin, async (req, res) => {
     });
 
     return res.json({ count, results: rows }).status(200);
-});
+}));
 
-router.get('/submissions/:id(\\d+)', requireAdmin, async (req, res) => {
+router.get('/submissions/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     let submission = await models.api_formsubmission.findByPk(req.params.id, {
         include: [ 'user', 'form', 'fields', 'conversations' ]
     });
@@ -72,7 +72,6 @@ router.get('/submissions/:id(\\d+)', requireAdmin, async (req, res) => {
     for (let conversation of submission.conversations) {
         const c = await intercom.get_conversation(conversation.intercom_conversation_id);
         if (c) {
-            console.log(c)
             conversation.setDataValue('source', c.source);
             if (c.conversation_parts)
                 conversation.setDataValue('parts', c.conversation_parts.conversation_parts);
@@ -80,10 +79,10 @@ router.get('/submissions/:id(\\d+)', requireAdmin, async (req, res) => {
     }
 
     return res.json(submission).status(200);
-});
+}));
 
 // Create new form submission
-router.put('/:id(\\d+)/submissions', getUser, requireAdmin, async (req, res) => {
+router.put('/:id(\\d+)/submissions', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const formId = req.params.id;
     const fields = req.body;
     if (!fields || fields.length == 0)
@@ -137,10 +136,10 @@ router.put('/:id(\\d+)/submissions', getUser, requireAdmin, async (req, res) => 
 
     // Send message via Intercom (do this after response as to not delay it)
     //intercom_send_form_submission_confirmation_message(submission);
-});
+}));
 
 // Fetch form by ID or name
-router.get('/:nameOrId([\\w\\%]+)', async (req, res) => {
+router.get('/:nameOrId([\\w\\%]+)', asyncHandler(async (req, res) => {
     const nameOrId = decodeURI(req.params.nameOrId);
 
     let form = await Form.findOne({
@@ -170,10 +169,10 @@ router.get('/:nameOrId([\\w\\%]+)', async (req, res) => {
         return res.send('Form not found').status(404);
 
     return res.json(form).status(200);
-});
+}));
 
 // Update form
-router.post('/:id(\\d+)', requireAdmin, async (req, res) => {
+router.post('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     const formId = req.params.id;
     const newForm = req.body;
 
@@ -233,10 +232,10 @@ router.post('/:id(\\d+)', requireAdmin, async (req, res) => {
 
     await form.reload();
     return res.json(form).status(200);
-});
+}));
 
 // Create form section
-router.put('/sections', async (req, res) => {
+router.put('/sections', asyncHandler(async (req, res) => {
     const newSection = req.body;
     if (!newSection || !newSection.name)
         return res.send('Missing fields').status(400);
@@ -246,10 +245,10 @@ router.put('/sections', async (req, res) => {
         return res.send('Failed to create section').status(500)
 
     return res.json(section).status(201);
-});
+}));
 
 // Update form section
-router.post('/sections/:id(\\d+)/', async (req, res) => {
+router.post('/sections/:id(\\d+)/', asyncHandler(async (req, res) => {
     const sectionId = req.params.id;
     const newSection = req.body;
 
@@ -262,10 +261,10 @@ router.post('/sections/:id(\\d+)/', async (req, res) => {
         return res.send('Failed to update section').status(500)
 
     return res.json(section).status(200);
-});
+}));
 
 // Delete form section
-router.delete('/sections/:id(\\d+)/', async (req, res) => {
+router.delete('/sections/:id(\\d+)/', asyncHandler(async (req, res) => {
     const section = await FormSection.findByPk(req.params.id);
     if (!section)
         return res.send('Section not found').status(404);
@@ -273,10 +272,10 @@ router.delete('/sections/:id(\\d+)/', async (req, res) => {
     await section.destroy();
 
     return res.send(req.params.id).status(200);
-});
+}));
 
 // Create form field
-router.put('/fields', async (req, res) => {
+router.put('/fields', asyncHandler(async (req, res) => {
     const newField = req.body;
 
     if (!newField || !newField.name || !newField.type)
@@ -287,10 +286,10 @@ router.put('/fields', async (req, res) => {
         return res.send('Failed to create field').status(500)
 
     return res.json(field).status(201);
-});
+}));
 
 // Update form field
-router.post('/fields/:id(\\d+)/', async (req, res) => {
+router.post('/fields/:id(\\d+)/', asyncHandler(async (req, res) => {
     const fieldId = req.params.id;
     const newField = req.body;
 
@@ -303,10 +302,10 @@ router.post('/fields/:id(\\d+)/', async (req, res) => {
         return res.send('Failed to update field').status(500)
 
     return res.json(field).status(200);
-});
+}));
 
 // Delete form field
-router.delete('/fields/:id(\\d+)/', async (req, res) => {
+router.delete('/fields/:id(\\d+)/', asyncHandler(async (req, res) => {
     const field = await FormField.findByPk(req.params.id);
     if (!field)
         return res.send('Field not found').status(404);
@@ -314,6 +313,6 @@ router.delete('/fields/:id(\\d+)/', async (req, res) => {
     await field.destroy();
 
     return res.send(req.params.id).status(200);
-});
+}));
 
 module.exports = router;
