@@ -12,8 +12,10 @@ import ServiceActionButton from './ServiceActionButton'
 import TabPanel from './TabPanel'
 import User from './User'
 import Conversations from './Conversations'
-import { CustomIntercom } from './CustomIntercom'
+import { CustomIntercom, intercomShow } from './CustomIntercom'
 import MainLogo from './MainLogo'
+import { menuItems, getMenuItem } from './menuItems'
+import WelcomeAnimation from './WelcomeAnimation'
 
 export { 
   ContactsEditor,
@@ -26,9 +28,12 @@ export {
   FormField, 
   FormControls, 
   FormDialog,
+  getMenuItem,
   honeypotId,
+  intercomShow,
   Layout, 
   MainLogo,
+  menuItems,
   QuestionsEditor,
   ResourcesEditor,
   Section,
@@ -39,5 +44,6 @@ export {
   UpdateForm,
   User,
   validateField,
+  WelcomeAnimation,
   Wizard,
 }

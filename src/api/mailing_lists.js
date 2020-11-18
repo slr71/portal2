@@ -1,9 +1,9 @@
 const router = require('express').Router();
-const { getUser, asyncHandler } = require('../auth');
-const { renderEmail } = require('../lib/email')
-const { generateHMAC } = require('../lib/email')
+const { getUser, asyncHandler } = require('./lib/auth');
+const { renderEmail } = require('./lib/email')
+const { generateHMAC } = require('./lib/email')
 const sequelize = require('sequelize');
-const models = require('../models');
+const models = require('./models');
 const User = models.account_user;
 const MailingList = models.api_mailinglist;
 const EmailAddress = models.account_emailaddress;

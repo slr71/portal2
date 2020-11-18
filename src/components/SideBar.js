@@ -3,7 +3,7 @@ import React from 'react'
 import Link from "next/link"
 import { useRouter } from 'next/router'
 import { ListItem, ListItemIcon, ListItemText } from '@material-ui/core'
-import { menuItems } from '../menuItems.js'
+import { menuItems } from './menuItems'
 
 // const useStyles = makeStyles((theme) => ({
 //   nested: {

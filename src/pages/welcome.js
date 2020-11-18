@@ -2,10 +2,9 @@ import { useState } from 'react'
 import { useMutation } from "react-query"
 import { isEmpty, isEmail } from 'validator'
 import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, LinearProgress, makeStyles} from '@material-ui/core'
-import { MainLogo, Wizard, honeypotId } from '../components'
+import { MainLogo, Wizard, WelcomeAnimation, honeypotId } from '../components'
 import { useAPI } from '../contexts/api'
-import WelcomeAnimation from '../components/WelcomeAnimation'
-import { generateHMAC } from '../lib/hmac'
+import { generateHMAC } from '../api/lib/hmac'
 import { sortCountries } from '../lib/misc'
 const properties = require('../user-properties.json')
 

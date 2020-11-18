@@ -1,6 +1,6 @@
-const models = require('./models');
+const models = require('../models');
 const User = models.account_user;
-const config = require('./config.json')
+const config = require('../../config.json')
 
 const getUserToken = (req) => {
   const keycloakToken = (req && req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token : null) //req?.kauth?.grant?.access_token;

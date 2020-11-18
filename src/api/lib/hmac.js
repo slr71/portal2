@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { hmacKey } = require('../config');
+const { hmacKey } = require('../../config');
 
 const ALGO = 'aes-256-cbc';
 

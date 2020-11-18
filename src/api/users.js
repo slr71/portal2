@@ -1,7 +1,7 @@
 const router = require('express').Router();
-const { requireAdmin, isAdmin, getUser, asyncHandler } = require('../auth');
+const { requireAdmin, isAdmin, getUser, asyncHandler } = require('./lib/auth');
 const sequelize = require('sequelize');
-const models = require('../models');
+const models = require('./models');
 const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
 

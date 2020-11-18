@@ -1,6 +1,5 @@
 import { Grid, Link, Box } from '@material-ui/core'
-import { Layout, SummaryCard } from '../components'
-import { getMenuItem } from '../menuItems.js'
+import { Layout, SummaryCard, getMenuItem } from '../components'
 
 const Administrative = () => {
   const menuItem = getMenuItem('Administrative')

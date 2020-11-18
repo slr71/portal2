@@ -1,7 +1,7 @@
 const router = require('express').Router();
-const { requireAdmin, getUser, asyncHandler } = require('../auth');
+const { requireAdmin, getUser, asyncHandler } = require('./lib/auth');
 const sequelize = require('sequelize');
-const models = require('../models');
+const models = require('./models');
 const User = models.account_user;
 const FormGroup = models.api_formgroup;
 const Form = models.api_form;
@@ -9,7 +9,7 @@ const FormSection = models.api_formsection;
 const FormField = models.api_formfield;
 const FormSubmission = models.api_formsubmission;
 const FormFieldSubmission = models.api_formfieldsubmission;
-const intercom = require('../intercom');
+const intercom = require('./lib/intercom');
 
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 

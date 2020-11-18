@@ -2,7 +2,7 @@ const axios = require('axios');
 const yaml = require('js-yaml');
 const fs = require('fs');
 const path = require('path');
-const { argo } = require('./config.json');
+const { argo } = require('../../config.json');
 
 class ArgoApi {
     constructor(params) {

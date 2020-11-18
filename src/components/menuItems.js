@@ -7,12 +7,9 @@ import {
   Group as GroupIcon,
   Block as BlockIcon,
   PersonAdd as PersonAddIcon,
-  Computer as ComputerIcon,
   Edit as EditIcon,
   Inbox as InboxIcon
 } from '@material-ui/icons'
-
-
 
 const menuItems = [
   {

@@ -1,12 +1,12 @@
 const router = require('express').Router();
-const { renderEmail } = require('../lib/email')
-const { generateHMAC, decodeHMAC } = require('../lib/hmac')
-const { asyncHandler } = require('../auth')
+const { renderEmail } = require('./lib/email')
+const { generateHMAC, decodeHMAC } = require('./lib/hmac')
+const { asyncHandler } = require('./lib/auth')
 const config = require('../config');
 const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants');
-const Argo = require('../argo');
+const Argo = require('./lib/argo');
 const sequelize = require('sequelize');
-const models = require('../models');
+const models = require('./models');
 const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
 const EmailAddress = models.account_emailaddress;

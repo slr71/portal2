@@ -1,7 +1,7 @@
 const router = require('express').Router();
-const { getUser, requireAdmin, asyncHandler } = require('../auth');
+const { getUser, requireAdmin, asyncHandler } = require('./lib/auth');
 const sequelize = require('sequelize');
-const models = require('../models');
+const models = require('./models');
 const User = models.account_user;
 const Workshop = models.api_workshop;
 const WorkshopEnrollmentRequest = models.api_workshopenrollmentrequest;

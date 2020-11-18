@@ -1,8 +1,8 @@
 const config = require('../../config.json');
-const models = require('../../models');
+const models = require('../models');
 const AccessRequest = models.api_accessrequest;
-const { renderEmail } = require('../../lib/email')
-const { logger } = require('../../logging');
+const { renderEmail } = require('../lib/email')
+const { logger } = require('../lib/logging');
 const { UI_WORKSHOPS_URL } = require('../../constants');
 const serviceApprovers = require('./service');
 

@@ -9,7 +9,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Sequelize } = require('sequelize');
-const config = require('../config.json');
+const config = require('../../config.json');
 
 
 /**
@@ -39,7 +39,7 @@ const sequelize = new Sequelize(
  * Load models
  */
 
-let modelPath = path.resolve(process.cwd(), 'src/models'); // __dirname not working in Next.js
+let modelPath = path.resolve(process.cwd(), 'src/api/models'); // __dirname not working in Next.js
 let models = {};
 fs.readdirSync(modelPath) 
   .filter(file => file.split(".").pop() === 'js' && file !== "index.js")

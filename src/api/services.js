@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const models = require('../models');
+const models = require('./models');
 const sequelize = require('sequelize');
 const Service = models.api_service;
 const ServiceContact = models.api_contact;
@@ -11,8 +11,8 @@ const AccessRequestLog = models.api_accessrequestlog;
 const AccessRequestQuestion = models.api_accessrequestquestion;
 const AccessRequestAnswer = models.api_accessrequestanswer;
 const { approveRequest, grantRequest } = require('./approvers/service');
-const intercom = require('../intercom');
-const { getUser, requireAdmin, asyncHandler } = require('../auth');
+const intercom = require('./lib/intercom');
+const { getUser, requireAdmin, asyncHandler } = require('./lib/auth');
 const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } = require('../constants');
 
 const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api_poweredservice where service_ptr_id=id))'), 'is_powered' ];

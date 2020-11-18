@@ -1,7 +1,7 @@
 import { Grid, Box, Tabs, Tab, Breadcrumbs, Link, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { useRouter } from 'next/router'
-import { menuItems } from '../menuItems.js'
+import { menuItems } from './menuItems.js'
 
 const useStyles = makeStyles((theme) => ({
   title: {

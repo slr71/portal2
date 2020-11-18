@@ -1,7 +1,5 @@
 import { Grid, Link, Box } from '@material-ui/core'
-import { Layout, SummaryCard } from '../components'
-import { intercomShow } from '../components/CustomIntercom'
-import { getMenuItem } from '../menuItems.js'
+import { Layout, SummaryCard, intercomShow, getMenuItem } from '../components'
 
 const Support = () => {
   const menuItem = getMenuItem('Support')
