@@ -60,6 +60,7 @@ const useStyles = makeStyles((theme) => ({
     width: drawerWidth,
     color:'#ffffff',
     backgroundColor: '#212121',
+    backgroundImage: "url(/backgroundImages/SidebarPattern.svg)",
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
