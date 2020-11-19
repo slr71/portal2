@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography, CircularProgress, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
+import Autocomplete from '@material-ui/lab/Autocomplete'
 import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
 import { isEmail, isNumeric, isAlphanumeric, isLowercase, isDate, isEmpty } from 'validator'
-import { validatePassword } from '../misc'
+import { validatePassword } from '../lib/misc'
 import { CheckboxWithLabel } from "formik-material-ui"
+import { honeypotDivisor } from '../config.json'
 
 const useStyles = makeStyles((theme) => ({
   checkbox: {
@@ -14,6 +16,10 @@ const useStyles = makeStyles((theme) => ({
   hidden: {
     display: 'none'
   },
+  honeypot: {
+    position: 'fixed',
+    top: -100
+  }
 }))
 
 const initialValues = (fields) =>
@@ -126,15 +132,14 @@ const UpdateForm = ({ title, subtitle, fields, autosave, validate, onSubmit }) =
             </Grid>
           }
           {subtitle && <Typography color="textSecondary">{subtitle}</Typography>}
-          {fields.map(field => (
-            <div key={field.id}>
+          {fields.map((field, index) => (
+            <div key={index}>
               <FormField
                 onChange={handleChange}
                 onBlur={handleBlur}
                 errorText={touched[field.id] && errors[field.id]}
                 {...field}
               />
-              <br />
             </div>
           ))}
           <Box display="flex" justifyContent="flex-end">
@@ -200,7 +205,6 @@ const Wizard = ({ form, initialValues, validate, onSelect, onSubmit }) => {
                 value={values[field.id]}
                 {...field}
               />
-              <br />
             </div>
           ))}
           <br />
@@ -238,11 +242,14 @@ const FormStepper = ({activeStep, steps}) => {
   )
 }
 
-const FormField = props => {
+const honeypotId = (modulus) => (honeypotDivisor * Math.floor(Math.random() * 10) + modulus).toString()
+
+const FormField = (props) => {
   const classes = useStyles()
+
   const commonProps = {
-    id: props.id.toString(),
-    name: props.id.toString(),
+    id: props.id,
+    name: props.id,
     label: props.name,
     error: props.errorText != null,
     helperText: props.errorText || props.description,
@@ -261,7 +268,6 @@ const FormField = props => {
       <Field
         type="checkbox"
         component={CheckboxWithLabel}
-        name={props.id.toString()}
         color="primary"
         onChange={props.onChange}
         Label={{label: props.name, className: classes.checkbox}}
@@ -292,16 +298,54 @@ const FormField = props => {
       </Field>
     )
   }
-  
+
+  if (props.type === 'autocomplete') {
+    return (
+      <Field
+        component={Autocomplete}
+        onChange={(event, option) => {
+          event.target.name = props.id
+          event.target.value = option.id
+          props.onChange && props.onChange(event)
+          props.onSelect && props.onSelect(props, option)
+        }} 
+        options={props.options}
+        getOptionLabel={(option) => option.name}
+        value={props.options.find(option => option.id == props.value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            {...commonProps}
+          />
+        )}
+      />
+    ) 
+  }
+
   return ( // type is 'char' or 'text'
-    <Field
-      component={TextField}
-      autoFocus={props.index == 0} 
-      onChange={props.onChange}
-      onBlur={props.onBlur}
-      InputLabelProps={{ shrink: true }} // to prevent "mm/dd/yyyy" placeholder bug
-      {...commonProps}
-    />
+    <>
+      <Field
+        component={TextField}
+        autoFocus={props.index == 0} 
+        onChange={props.onChange}
+        onBlur={props.onBlur}
+        InputLabelProps={{ shrink: true }} // to prevent "mm/dd/yyyy" placeholder bug
+        {...commonProps}
+      />
+      {props.honeypot &&
+        <Field // honeypot field
+            id={honeypotId(0)} // 0 modulus indicates that this is a honeypot field
+            inputProps={{ tabIndex: "-1" }} // disable tabbing to this field
+            className={classes.honeypot} // hidden from real user but still visible to bots
+            component={TextField}
+            onChange={props.onChange}
+            onBlur={props.onBlur}
+            required={false}
+            label={props.name}
+            type={props.type}
+        />
+      }
+    </>
   )
 }
   
@@ -381,4 +425,4 @@ const FormDialog = ({ title, open, fields, handleClose, handleSubmit }) => {
   )
 }
 
-export { UpdateForm, Wizard, FormStepper, FormField, FormControls, FormDialog, validateField }
+export { UpdateForm, Wizard, FormStepper, FormField, FormControls, FormDialog, validateField, honeypotId }

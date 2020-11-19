@@ -1,6 +1,5 @@
 import { Grid, Link, Box } from '@material-ui/core'
-import { Layout, SummaryCard } from '../components'
-import { getMenuItem } from '../menuItems.js'
+import { Layout, SummaryCard, getMenuItem } from '../components'
 
 const Administrative = () => {
   const menuItem = getMenuItem('Administrative')
@@ -21,6 +20,9 @@ const Administrative = () => {
             </Grid>
           )}
         </Grid>
+        <Box mt={4}>
+          <p>For related information see the <Link href='https://analytics.cyverse.rocks' target="_blank">User Analytics Portal</Link>.</p>
+        </Box>
       </Box>
     </Layout>
   )

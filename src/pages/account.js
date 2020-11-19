@@ -7,6 +7,8 @@ import { Layout, UpdateForm } from '../components'
 import { isEmail, isEmpty } from 'validator'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
+import { sortCountries } from '../lib/misc'
+const properties = require('../user-properties.json')
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -18,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const Account = ({ properties }) => {
+const Account = () => {
   const classes = useStyles()
   const api = useAPI()
   const [user, setUser] = useState(useUser())
@@ -421,25 +423,6 @@ const Forms = (user, properties) => {
           value: user.occupation.id,
           options: properties.occupations
         },
-        { id: "country_id",
-          name: "Country",
-          type: "select",
-          required: true,
-          value: user.region.country_id,
-          options: properties.countries
-        },
-        { id: "region_id",
-          name: "Region",
-          type: "select",
-          required: true,
-          value: user.region.id,
-          options: properties.regions.filter(r => r.country_id == user.region.country_id)
-        }
-      ]
-    },
-    { title: "Research",
-      autosave: true,
-      fields: [
         { id: "research_area_id",
           name: "Research Area",
           type: "select",
@@ -459,6 +442,20 @@ const Forms = (user, properties) => {
     { title: "Demographics",
       autosave: true,
       fields: [
+        { id: "country_id",
+          name: "Country",
+          type: "autocomplete",
+          required: true,
+          value: user.region.country_id,
+          options: properties.countries.sort(sortCountries)
+        },
+        { id: "region_id",
+          name: "Region",
+          type: "select",
+          required: true,
+          value: user.region.id,
+          options: properties.regions.filter(r => r.country_id == user.region.country_id)
+        },
         { id: "gender_id",
           name: "Gender Identity",
           type: "select",
@@ -483,11 +480,6 @@ const Forms = (user, properties) => {
       ]
     }
   ]
-}
-
-export async function getServerSideProps({ req }) {
-  const properties = await req.api.userProperties()
-  return { props: { properties } }
 }
 
 export default Account

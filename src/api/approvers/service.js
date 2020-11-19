@@ -1,7 +1,7 @@
 const config = require('../../config.json');
-const Argo = require('../../argo');
-const { intercom_atmosphere } = require('../../intercom');
-const { logger } = require('../../logging');
+const Argo = require('../lib/argo');
+const { intercom_atmosphere } = require('../lib/intercom');
+const { logger } = require('../lib/logging');
 
 // Only the Atmosphere service has a special approval requirements, all other services are auto-approved.
 const APPROVERS = {

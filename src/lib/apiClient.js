@@ -43,7 +43,9 @@ class PortalAPI {
     return res.data   
   }
 
-  // User endpoints
+  /*
+   * User endpoints
+   */
 
   async user(id) { return await this.get(`/users/${id || 'mine'}`) } // FIXME conflict if username is "mine" -- is it a restricted username?
 
@@ -75,9 +77,12 @@ class PortalAPI {
 
   async deleteRestrictedUsername(id) { return await this.delete(`/users/restricted/${id}`) }
 
-  async userProperties() { return await this.get(`/users/properties`) } // FIXME conflict if username is "properties"
+  // This endpoint is no longer called directly. Instead, use the cached copy in src/user-properties.json
+  // async userProperties() { return await this.get(`/users/properties`) } // FIXME conflict if username is "properties"
 
-  // Service endpoints
+  /*
+   * Service endpoints
+   */
 
   async services(params) { return await this.get(`/services`, params) }
 
@@ -110,7 +115,9 @@ class PortalAPI {
   async deleteServiceForm(serviceId, formId) { return await this.delete(`/services/${serviceId}/forms/${formId}`) }
 
 
-  // Workshop endpoints
+  /*
+   * Workshop endpoints
+   */
 
   async workshops() { return await this.get(`/workshops`) }
 
@@ -152,7 +159,9 @@ class PortalAPI {
 
   async deleteWorkshopEmail(workshopId, email) { return await this.delete(`/workshops/${workshopId}/emails/${email}`) }
 
-  // Form endpoints
+  /*
+   * Form endpoints
+   */
 
   async forms() { return await this.get (`/forms`) }
 

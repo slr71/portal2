@@ -36,9 +36,9 @@ const FormSubmission = ({ submission }) => (
 
 const Form = ({ form, fields }) => (
   <Section title="Form" subtitle={form.name}>
-    {fields.map(field =>
+    {fields.map((field, index) =>
       // <Typography>{field.name}: {field.api_formfieldsubmission.value_text}</Typography>
-      <FormField {...field}></FormField>
+      <FormField key={index} {...field}></FormField>
     )}
   </Section>
 )
@@ -73,7 +73,7 @@ const FormField = props => {
       disabled={true}
       fullWidth
       margin="normal" 
-      id={props.id} 
+      id={props.id.toString()} 
       label={props.name} 
       helperText={props.description}
       defaultValue={value}

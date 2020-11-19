@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { useMutation } from "react-query"
 import { isEmpty, isEmail } from 'validator'
 import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, LinearProgress, makeStyles} from '@material-ui/core'
-import { MainLogo, Wizard } from '../components'
+import { MainLogo, Wizard, WelcomeAnimation, honeypotId } from '../components'
 import { useAPI } from '../contexts/api'
-import WelcomeAnimation from '../components/WelcomeAnimation'
+import { generateHMAC } from '../api/lib/hmac'
+import { sortCountries } from '../lib/misc'
+const properties = require('../user-properties.json')
 
 const useStyles = makeStyles((theme) => ({
   grid: {
@@ -219,7 +221,7 @@ const Right = (props) => {
       </Box>
       <SignUpDialog 
         open={dialogOpen}
-        properties={props.properties}
+        startTime={props.startTime}
         handleClose={handleCloseDialog} 
         // handleSubmit={handleSubmit}
       />
@@ -227,10 +229,10 @@ const Right = (props) => {
   )
 }
 
-const SignUpDialog = ({ open, properties, handleClose }) => {
+const SignUpDialog = ({ open, startTime, handleClose }) => {
   const api = useAPI()
 
-  const [form, setForm] = useState(getForm(properties))
+  const [form, setForm] = useState(getForm())
   const [isSubmitted, setSubmitted] = useState(false)
   const [user, setUser] = useState() // newly created user
 
@@ -265,7 +267,7 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
   // Set region based on country
   const handleSelect = (field, option) => {
     if (field.id == 'country_id') 
-      setForm(getForm(properties, option.id))
+      setForm(getForm(option.id))
   }
 
   const [submitFormMutation] = useMutation(
@@ -296,7 +298,7 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
                 <b>{user ? user.email : '<error>'}</b>
               </Typography>
               <br /><br />
-	      <Typography variant='h6' color='textSecondary'>
+	            <Typography variant='h6' color='textSecondary'>
                 Please click on the confirmation link in the email to activate your account.
               </Typography>
             </Box>
@@ -306,6 +308,7 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
               validate={validate}
               onSelect={handleSelect}
               onSubmit={(values, { setSubmitting }) => {
+                values['plt'] = startTime // encrypted page load time
                 console.log('Submit', values)
                 submitFormMutation(values)
                 setSubmitting(false)
@@ -318,20 +321,22 @@ const SignUpDialog = ({ open, properties, handleClose }) => {
   )
 }
 
-const getForm = (properties, countryId) => {
+const getForm = (countryId) => {
   return {
     sections: [
       { autosave: true,
         fields: [
-          { id: "first_name",
+          { id: honeypotId(1), 
+            honeypot: true, // tells Wizard to generate honey pot duplicate field
             name: "First Name",
             type: "text",
             required: true
           },
-          { id: "last_name",
+          { id: honeypotId(2),
+            honeypot: true, // tells Wizard to generate honey pot duplicate field
             name: "Last Name",
             type: "text",
-            required: true
+            required: true,
           },
           { id: "username",
             name: "Username",
@@ -381,9 +386,9 @@ const getForm = (properties, countryId) => {
         fields: [
           { id: "country_id",
             name: "Country",
-            type: "select",
+            type: "autocomplete",
             required: true,
-            options: properties.countries
+            options: properties.countries.sort(sortCountries)
           },
           { id: "region_id",
             name: "Region",
@@ -417,9 +422,9 @@ const getForm = (properties, countryId) => {
   }
 }
 
-export async function getServerSideProps({ req }) {
-  const properties = await req.api.userProperties()
-  return { props: { properties } }
+export async function getServerSideProps() {
+  const startTime = generateHMAC(Date.now())
+  return { props: { startTime } }
 }
 
 export default Welcome

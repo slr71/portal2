@@ -1,8 +1,9 @@
 const router = require('express').Router();
-const { getUser } = require('../auth');
-const { renderEmail, generateHMAC } = require('./lib/email')
+const { getUser, asyncHandler } = require('./lib/auth');
+const { renderEmail } = require('./lib/email')
+const { generateHMAC } = require('./lib/email')
 const sequelize = require('sequelize');
-const models = require('../models');
+const models = require('./models');
 const User = models.account_user;
 const MailingList = models.api_mailinglist;
 const EmailAddress = models.account_emailaddress;
@@ -14,7 +15,7 @@ const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequeli
 
 // Create email address
 // Can be submitted again for existing email address to resend confirmation email
-router.put('/email_addresses', getUser, async (req, res) => {
+router.put('/email_addresses', getUser, asyncHandler(async (req, res) => {
     console.log(req.body)
     const email = req.body.email; // email address
 
@@ -52,9 +53,9 @@ router.put('/email_addresses', getUser, async (req, res) => {
             "ACTIVATE_URL": confirmationUrl,
         }
     })
-});
+}));
 
-router.delete('/email_addresses/:id(\\d+)', getUser, async (req, res) => {
+router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const id = req.params.id
 
     const emailAddress = await EmailAddress.findOne({
@@ -70,9 +71,9 @@ router.delete('/email_addresses/:id(\\d+)', getUser, async (req, res) => {
 
     await emailAddress.destroy();
     res.send('success').status(200);
-});
+}));
 
-router.post('/subscriptions', getUser, async (req, res) => {
+router.post('/subscriptions', getUser, asyncHandler(async (req, res) => {
     console.log(req.body)
     const id = req.body.id // mailing list id
     const name = req.body.name; // OR mailing list name, e.g. "de-users"
@@ -114,6 +115,6 @@ router.post('/subscriptions', getUser, async (req, res) => {
     await emailAddressToMailingList.save();
 
     return res.send('success').status(200);
-});
+}));
 
 module.exports = router;

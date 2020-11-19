@@ -1,4 +1,4 @@
-import PortalAPI from '../apiClient'
+import PortalAPI from '../lib/apiClient'
 
 const APIContext = React.createContext()
 APIContext.displayName = 'API'

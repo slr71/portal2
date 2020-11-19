@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const util = require('util');
-const Argo = require('../argo');
+const Argo = require('./lib/argo');
 
 router.post('/bisque', async (req, res) => {
     console.log("BisQue test");

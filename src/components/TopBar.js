@@ -1,7 +1,7 @@
 import { Grid, Box, Tabs, Tab, Breadcrumbs, Link, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { useRouter } from 'next/router'
-import { menuItems } from '../menuItems.js'
+import { menuItems } from './menuItems.js'
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -13,7 +13,7 @@ const useStyles = makeStyles((theme) => ({
     height: "3.75em",
   },
   breadcrumbs: {
-    paddingTop:'3px',
+    paddingTop:'0.35em',
   }
 }))
 
@@ -62,7 +62,7 @@ const TopBar = (props) => {
   const backUrl = "/" + parts.slice(0, -1).join("/")
 
   return (
-    <Box pl={3} pr={4} p={1} className={classes.box}>
+    <Box px={4} pt={1.15} className={classes.box}>
       <Grid container justify="space-between">
         <Grid item>
           {props.back 

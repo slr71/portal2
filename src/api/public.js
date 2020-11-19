@@ -1,21 +1,26 @@
 const router = require('express').Router();
-const { renderEmail, generateHMAC, decodeHMAC } = require('./lib/email')
+const { renderEmail } = require('./lib/email')
+const { generateHMAC, decodeHMAC } = require('./lib/hmac')
+const { asyncHandler } = require('./lib/auth')
 const config = require('../config');
 const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants');
-const Argo = require('../argo');
+const Argo = require('./lib/argo');
 const sequelize = require('sequelize');
-const models = require('../models');
+const models = require('./models');
 const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
 const EmailAddress = models.account_emailaddress;
 const PasswordReset = models.account_passwordreset;
 const PasswordResetRequest = models.account_passwordresetrequest;
 
+const MINIMUM_TIME_ON_PAGE = 1000*60 // one minute
+const MAXIMUM_TIME_ON_PAGE = 1000*60*60 // one hour
+
 //TODO move into module
 const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase()); 
 
 // Check for existing username and/or email address
-router.post('/exists', async (req, res) => {
+router.post('/exists', asyncHandler(async (req, res) => {
     let fields = req.body;
     console.log("fields:", fields);
     let result = {}
@@ -37,10 +42,10 @@ router.post('/exists', async (req, res) => {
     }
 
     res.json(result).status(200);
-});
+}));
 
 // Create user //TODO require API key or valid HMAC
-router.put('/users/:username(\\w+)', async (req, res) => {
+router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
     const username = req.params.username;
     let fields = req.body;
     console.log("fields:", fields);
@@ -50,6 +55,36 @@ router.put('/users/:username(\\w+)', async (req, res) => {
     const restricted = await RestrictedUsername.findOne({ where: { username } });
     if (user || restricted)
         return res.send('Username already taken').status(400);
+
+    // Detect bots using honeypot fields
+    // Index in array corresponds to modulus identifier
+    const HONEYPOT_FIELDS = [
+        'first_name', 'last_name'
+    ];
+    for (let key in fields) {
+        if (isNaN(key)) {
+            if (HONEYPOT_FIELDS.includes(key)) // fields must be encoded
+                return res.send('Validity test failed (1)').status(400);
+        }
+        else {
+            const index = (key % config.honeypotDivisor) - 1;
+            if (index >= 0 && index < HONEYPOT_FIELDS.length) {
+                const realKey = HONEYPOT_FIELDS[index];
+                fields[realKey] = fields[key]; // replace encoded key with actual field name
+            }
+            else // a fake field was populated
+                return res.send('Validity test failed (2)').status(400);
+        }
+    }
+
+    // Detect bots using page load time
+    if (!fields['plt']) 
+        return res.send('Validity test failed (3)').status(400);
+
+    const pageLoadTime = decodeHMAC(fields['plt']);
+    const timeExpired = Date.now - pageLoadTime;
+    if (timeExpired < MINIMUM_TIME_ON_PAGE || timeExpired >= MAXIMUM_TIME_ON_PAGE)
+        return res.send('Validity test failed (4)').status(400);
 
     // Validate fields
     const REQUIRED_FIELDS = [
@@ -118,7 +153,7 @@ router.put('/users/:username(\\w+)', async (req, res) => {
             "FORMS_URL": UI_REQUESTS_URL
         }
     })
-});
+}));
 
 async function createUser(user) {
     // Calculate number of days since epoch (needed for LDAP )
@@ -158,7 +193,7 @@ async function createUser(user) {
 }
 
 // Update user password //TODO require API key or is valid HMAC enough?
-router.post('/users/password', async (req, res) => {
+router.post('/users/password', asyncHandler(async (req, res) => {
     const fields = req.body;
     console.log(fields);
 
@@ -188,11 +223,13 @@ router.post('/users/password', async (req, res) => {
     if (!passwordReset)
         return res.send('Error creating password reset').status(500);
 
+    //TODO update LDAP
+
     res.send('success').status(200);
-});
+}));
 
 // Send reset password link //TODO require API key or valid HMAC
-router.post('/users/reset_password', async (req, res) => {
+router.post('/users/reset_password', asyncHandler(async (req, res) => {
     const email = req.body.email;
     console.log(email);
 
@@ -236,9 +273,9 @@ router.post('/users/reset_password', async (req, res) => {
             "USERNAME": emailAddress.user.username
         }
     })
-});
+}));
 
-router.post('/confirm_email', async (req, res) => {
+router.post('/confirm_email', asyncHandler(async (req, res) => {
     const hmac = req.body.hmac
     if (!hmac) 
         return res.send('Missing hmac').status(400);
@@ -259,9 +296,11 @@ router.post('/confirm_email', async (req, res) => {
     emailAddress.save()
 
     res.send('success').status(200);
-});
+}));
 
-router.get('/users/properties', async (req, res) => {
+// This endpoint is no longer called directly.  It is used to generate the src/user-properties.json file for static compilation.
+// To update the file:  curl -s http://localhost:3000/api/users/properties | jq > user-properties.json
+router.get('/users/properties', asyncHandler(async (req, res) => {
     const opts = { attributes: { exclude: [ 'created_at', 'updated_at' ] } };
     const keys = [ 'funding_agencies', 'occupations', 'genders', 'ethnicities', 'countries', 'regions', 'research_areas', 'aware_channels' ];
 
@@ -279,6 +318,6 @@ router.get('/users/properties', async (req, res) => {
     .forEach((e, i) => results[keys[i]] = e);
 
     res.json(results).status(200);
-});
+}));
 
 module.exports = router;

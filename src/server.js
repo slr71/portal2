@@ -5,11 +5,11 @@ const session = require('express-session')
 const pgsimple = require('connect-pg-simple')
 const Keycloak = require('keycloak-connect')
 const next = require('next')
-const { requestLogger, errorLogger } = require('./logging')
+const { requestLogger, errorLogger } = require('./api/lib/logging')
 const config = require('./config.json')
 const { WS_CONNECTED } = require('./constants')
-const { getUserID, getUserToken } = require('./auth')
-const PortalAPI = require('./apiClient')
+const { getUserID, getUserToken } = require('./api/lib/auth')
+const PortalAPI = require('./lib/apiClient')
 const ws = require('ws')
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -160,6 +160,9 @@ app.prepare()
             return nextHandler(req, res)
         })
 
+        // Catch errors
+        server.use(errorHandler)
+
         server.listen(config.port, (err) => {
             if (err) throw err
             if (isDevelopment)
@@ -174,3 +177,13 @@ app.prepare()
         console.log(exception)
         process.exit(1)
     })
+
+function errorHandler(error, req, res) {
+    console.log("ERROR ".padEnd(80, "!"));
+    console.log(error.stack);
+
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Unknown error";
+
+    res.status(statusCode).send(message);
+}
