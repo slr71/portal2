@@ -1,0 +1,10 @@
+.animationBox {
+    max-width:45%;
+    margin: 3%;
+}
+
+@media only screen and (max-width: 600px) {
+    .animationBox {
+        display: none;
+    }
+  }

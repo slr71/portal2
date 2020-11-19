@@ -1,4 +1,4 @@
-import { Link, Grid, Button, IconButton } from '@material-ui/core'
+import { Link, Grid, Button, IconButton, Divider, Box, Typography } from '@material-ui/core'
 import { Launch as LaunchIcon, HelpOutlineOutlined as HelpIcon } from '@material-ui/icons'
 import { Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
@@ -21,14 +21,24 @@ const Services = (props) => {
 
   return (
     <Layout title="Services">
-      <h2>My Services</h2>
+    <Box mt={4}>
+      <Typography variant="h6" component="h2">My Services</Typography>
+      <Divider />
+      <br />
       <MyServices services={userServices} />
-      <br />
-      <h2>Available</h2>
+      </Box>
+      <Box mt={4}>
+      <Typography variant="h6" component="h2">Available</Typography>
+      <Divider />
+      <br/>
       <AvailableServices services={available} />
+      </Box>
+      <Box mt={4}>
+      <Typography variant="h6" component="h2">Powered by CyVerse{poweredByButton}</Typography>
+      <Divider />
       <br />
-      <h2>Powered by CyVerse{poweredByButton}</h2>
       <PoweredServices services={powered} />
+      </Box>
     </Layout>
   )
 }
@@ -68,9 +78,9 @@ const PoweredServices = ({services}) => {
 }
 
 const ServiceGrid = ({ services, launch }) => (
-  <Grid container spacing={4}>
+  <Grid container spacing={3}>
     {services.map(service =>
-      <Grid item key={service.id} xs={12} sm={6} md={3} lg={4} xl={2}>
+      <Grid item key={service.id} xs={12} sm={12} md={6} lg={3} xl={2}>
         <Service {...service} launch={launch} />
       </Grid>
     )}
