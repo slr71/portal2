@@ -10,6 +10,8 @@
 
     "hmacKey": "<ADD SECRET HERE>",
 
+    "honeypotDivisor": "7",
+
     "email": {
         "bccNewAccountConfirmation": [],
         "bccPasswordChangeRequest": [],
