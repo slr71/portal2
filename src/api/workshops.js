@@ -59,7 +59,8 @@ router.get('/:id(\\d+)', asyncHandler(async (req, res) => {
                 through: { attributes: [] }, // remove connector table
                 attributes: [ 'id', 'username', 'first_name', 'last_name', 'email' ]
             }
-        ]
+        ],
+        order: [ [ 'services', 'name', 'ASC' ] ]
     });
 
     return res.json(workshop).status(200);
