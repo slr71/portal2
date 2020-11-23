@@ -229,6 +229,7 @@ const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) 
 const WorkshopEditor = (props) => {
   const router = useRouter()
   const api = useAPI()
+  const [_, setError] = useError()
   const [workshop, setWorkshop] = useState(props.workshop)
   const [participants, setParticipants] = useState()
   const [emails, setEmails] = useState()

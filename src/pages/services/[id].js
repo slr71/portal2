@@ -37,6 +37,7 @@ const ServiceViewer = (props) => {
   const classes = useStyles()
   const api = useAPI()
   const user = useUser()
+  const [_, setError] = useError()
   const userService = user.services.find(s => s.id == service.id)
   const request = userService && userService.request
 
