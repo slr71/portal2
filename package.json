@@ -62,7 +62,6 @@
     "react": "^16.13.1",
     "react-cookie": "^4.0.3",
     "react-dom": "^16.13.1",
-    "react-query": "^2.8.0",
     "sendmail": "^1.6.1",
     "sequelize": "^6.3.4",
     "validator": "^13.1.1",

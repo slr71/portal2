@@ -10,6 +10,7 @@ import theme from '../theme'
 import { APIProvider } from '../contexts/api'
 import { UserProvider } from '../contexts/user'
 import { CookiesProvider } from 'react-cookie'
+import { ErrorProvider } from '../contexts/error'
 import config from '../config.json'
 
 export default function MyApp(props) {
@@ -43,7 +44,9 @@ export default function MyApp(props) {
               <Head>
                 <title>CyVerse User Portal</title>
               </Head>
-              <Component {...pageProps} />
+              <ErrorProvider>
+                <Component {...pageProps} />
+              </ErrorProvider>
             </UserProvider>
           </APIProvider>
         {/* </KeycloakProvider> */}

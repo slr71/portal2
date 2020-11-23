@@ -1,4 +1,3 @@
-import { useMutation } from "react-query"
 import { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, Switch, Typography, Link, Button, IconButton, TextField, Avatar, List, ListItem, ListItemText, ListItemAvatar, ListItemSecondaryAction, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
@@ -7,6 +6,7 @@ import { Layout, UpdateForm } from '../components'
 import { isEmail, isEmpty } from 'validator'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
+import { useError } from '../contexts/error'
 import { sortCountries } from '../lib/misc'
 const properties = require('../user-properties.json')
 
@@ -23,6 +23,7 @@ const useStyles = makeStyles((theme) => ({
 const Account = () => {
   const classes = useStyles()
   const api = useAPI()
+  const [_, setError] = useError()
   const [user, setUser] = useState(useUser())
   const [forms, setForms] = useState(Forms(user, properties))
 
@@ -30,18 +31,17 @@ const Account = () => {
       fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
 
   // Default submit handler for forms
-  const [submitFormMutation] = useMutation(
-    (submission) => api.updateUser(user.id, submission),
-    {
-      onSuccess: (resp) => {
-        setUser(resp)
-        setForms(Forms(resp, properties))
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitForm = async (submission) => {
+    try {
+      const newUser = await api.updateUser(user.id, submission)
+      setUser(newUser)
+      setForms(Forms(newUser, properties))
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
   const title = 
     <div style={{display: 'flex', alignItems: 'center'}}>
@@ -84,7 +84,7 @@ const Account = () => {
                       if (form.submitHandler)
                         form.submitHandler(values)
                       else
-                        submitFormMutation(values)
+                        submitForm(values)
                       setSubmitting(false)
                     }, 1000)
                   }}
@@ -103,11 +103,11 @@ const EmailForm = ({ user, title, subtitle }) => {
   const [emails, setEmails] = useState(user.emails)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [emailToAdd, setEmailToAdd] = useState('')
-  const [error, setError] = useState()
+  const [validationError, setValidationError] = useState()
 
   const handleChangeEmail = async (event) => {
     setEmailToAdd(event.target.value)
-    setError(await validateEmail(event.target.value))
+    setValidationError(await validateEmail(event.target.value))
   }
 
   const handleCloseDialog = () => {
@@ -127,48 +127,45 @@ const EmailForm = ({ user, title, subtitle }) => {
     return null
   }
 
-  const [handleSubmitEmail] = useMutation(
-    () => api.createEmailAddress({ email: emailToAdd }),
-    {
-      onSuccess: async (resp) => {
-        setEmails(emails.concat(resp))
-        handleCloseDialog()
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitEmail = async () => {
+    try {
+      const newEmails = await api.createEmailAddress({ email: emailToAdd })
+      setEmails(emails.concat(newEmails))
+      handleCloseDialog()
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [handleResendConfirmationEmail] = useMutation(
-    (email) => api.createEmailAddress({ email: email.email }),
-    {
-      onSuccess: async (resp, email) => {
-        const newEmails = emails.map(email2 => {
-          return {...email2, sent: (email2.email == email.email) } 
-        })
+  const resendConfirmationEmail = async (email) => {
+    try {
+      const newEmail = await api.createEmailAddress({ email: email.email })
+      const newEmails = emails.map(email2 => {
+        return {...email2, sent: (email2.email == email.email) } 
+      })
+      setEmails(newEmails)
+      handleCloseDialog()
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
+  const removeEmailAddress = async (id) => {
+    try {
+      await api.deleteEmailAddress(id)
+      const newEmails = emails.filter(email => email.id != id)
         setEmails(newEmails)
         handleCloseDialog()
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
     }
-  )
-
-  const [handleRemoveEmailAddress] = useMutation(
-    (id) => api.deleteEmailAddress(id),
-    {
-      onSuccess: async (resp, id) => {
-        const newEmails = emails.filter(email => email.id != id)
-        setEmails(newEmails)
-        handleCloseDialog()
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
     }
-  )
+  }
 
   const statusMsg = (email) => email.verified 
     ? 'Verified' + (email.primary ? ', Primary' : '')
@@ -177,7 +174,7 @@ const EmailForm = ({ user, title, subtitle }) => {
         Click on the link in the email to verify that this is your address.<br />
         {email.sent 
           ? '[ Sent! ]'
-          : <Link onClick={() => handleResendConfirmationEmail(email)}>[ Resend Confirmation Email ]</Link>
+          : <Link onClick={() => resendConfirmationEmail(email)}>[ Resend Confirmation Email ]</Link>
         }
       </>
 
@@ -200,7 +197,7 @@ const EmailForm = ({ user, title, subtitle }) => {
               />
               {!email.primary &&
                 <ListItemSecondaryAction>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleRemoveEmailAddress(email.id)}>
+                  <IconButton edge="end" aria-label="delete" onClick={() => removeEmailAddress(email.id)}>
                     <DeleteIcon />
                   </IconButton>
                 </ListItemSecondaryAction>
@@ -220,10 +217,10 @@ const EmailForm = ({ user, title, subtitle }) => {
       </Box>
       <AddEmailAddressDialog 
         open={dialogOpen}
-        error={error}
+        error={validationError}
         handleChange={handleChangeEmail}
         handleClose={handleCloseDialog} 
-        handleSubmit={!isEmpty(emailToAdd) && !error ? handleSubmitEmail : null}
+        handleSubmit={!isEmpty(emailToAdd) && !validationError ? submitEmail : null}
       />
     </div>
   )
@@ -283,13 +280,9 @@ const MailingListForm = ({ user, title, subtitle }) => {
 
 const MailingListItem = ({ email, list }) => {
   const api = useAPI()
+  const [_, setError] = useError()
 
-  const [state, setState] = useState(list.api_emailaddressmailinglist.is_subscribed) //FIXME ugly, alias api_emailaddressmailinglist in api query
-
-  const handleChange = (event) => {
-    console.log(state, email.id, event.target.name, event.target.checked)
-    setState(event.target.checked)
-  }
+  const [state, setState] = useState(list.api_emailaddressmailinglist.is_subscribed)
 
   useEffect(() => {
       api.updateMailingListSubscription({ 
@@ -298,6 +291,7 @@ const MailingListItem = ({ email, list }) => {
         subscribe: state
       }).then((resp) => {
         console.log(resp)
+        setError(resp.data)
       })
     },
     [state]
@@ -313,7 +307,7 @@ const MailingListItem = ({ email, list }) => {
           color="primary"
           variant="caption"
           edge="end"
-          onChange={handleChange}
+          onChange={(event) => setState(event.target.checked)}
         />
       </ListItemSecondaryAction>
     </ListItem>
@@ -357,17 +351,7 @@ const Forms = (user, properties) => {
     { title: "Password",
       autosave: false,
       submitHandler: (values) => {
-        // const [submitPasswordMutation] = useMutation(
-        //   (submission) => api.updateUser(user.id, submission),
-        //   {
-        //     onSuccess: (resp) => {
-        //     },
-        //     onError: (error) => {
-        //       console.log('ERROR', error)
-        //     }
-        //   }
-        // )
-        // return submitPasswordMutation;
+        //TODO
       },
       fields: [
         { id: "old_password",

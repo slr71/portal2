@@ -4,12 +4,14 @@ import Link from "next/link"
 import { useRouter } from 'next/router'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline, Snackbar } from '@material-ui/core'
+import { Alert, AlertTitle } from '@material-ui/lab'
 import { Close as CloseIcon, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, AccountCircle as PersonIcon } from '@material-ui/icons'
 import SideBar from './SideBar'
 import TopBar from './TopBar'
 import MainLogo from './MainLogo'
 import { CustomIntercom } from './CustomIntercom'
 import { useUser } from '../contexts/user'
+import { useError } from '../contexts/error'
 import { useCookies } from 'react-cookie'
 import { ACCOUNT_UPDATE_REMINDER_COOKIE } from '../constants'
 
@@ -113,8 +115,8 @@ function Copyright() {
 
 export default function Dashboard(props) {
   const classes = useStyles()
-  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight)
   const user = useUser()
+  const [error, setError] = useError()
   const router = useRouter()
 
   const [drawerOpen, setDrawerOpen] = React.useState(true)
@@ -199,6 +201,20 @@ export default function Dashboard(props) {
           </Box>
         </Container>
       </main>
+      <Snackbar 
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+        open={!!error}
+      >
+        <Alert elevation={6} variant="filled" severity="error" onClose={() => setError(null)}>
+          <AlertTitle>
+            Oops! An error occurred:
+          </AlertTitle>
+          {error}
+        </Alert>
+      </Snackbar>
       <Snackbar
         anchorOrigin={{
           vertical: 'bottom',

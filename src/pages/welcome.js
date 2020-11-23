@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { useMutation } from "react-query"
 import { isEmpty, isEmail } from 'validator'
 import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, LinearProgress, makeStyles} from '@material-ui/core'
 import { MainLogo, Wizard, WelcomeAnimation, honeypotId } from '../components'
 import { useAPI } from '../contexts/api'
+import { useError } from '../contexts/error'
 import { generateHMAC } from '../api/lib/hmac'
 import { sortCountries } from '../lib/misc'
 const properties = require('../user-properties.json')
@@ -66,11 +66,12 @@ const Left = () => {
 const Right = (props) => {
   const classes = useStyles()
   const api = useAPI()
+  const [_, setError] = useError()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [forgotPassword, setForgotPassword] = useState(false)
   const [email, setEmail] = useState()
-  const [error, setError] = useState()
+  const [validationError, setValidationError] = useState()
   const [isSubmitting, setSubmitting] = useState(false)
   const [isSubmitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState()
@@ -85,7 +86,7 @@ const Right = (props) => {
 
   const handleChangeEmail = async (e) => {
     setEmail(e.target.value)
-    setError(await validateEmail(e.target.value))
+    setValidationError(await validateEmail(e.target.value))
   }
 
   const validateEmail = async (value) => {
@@ -101,20 +102,19 @@ const Right = (props) => {
     return null
   }
 
-  const [submitFormMutation] = useMutation(
-    (email) => api.resetPassword({ email }),
-    {
-      onSuccess: (resp) => {
-        setSubmitting(false)
-        setSubmitted(true)
-        if (resp !== 'success') 
-          setSubmitError(resp)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitForm = async (email) => {
+    try {
+      const resp = await api.resetPassword({ email })
+      setSubmitting(false)
+      setSubmitted(true)
+      if (resp !== 'success') 
+        setSubmitError(resp)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setSubmitError(error.message)
+    }
+  }
 
   //TODO move into separate component
   if (forgotPassword) {
@@ -159,8 +159,8 @@ const Right = (props) => {
             required
             variant="outlined" 
             fullWidth
-            error={!!error}
-            helperText={error}
+            error={!!validationError}
+            helperText={validationError}
             onChange={handleChangeEmail}
           />
           {isSubmitting && <LinearProgress />}
@@ -170,13 +170,13 @@ const Right = (props) => {
             variant="contained" 
             color="primary" 
             size="large"
-            disabled={isSubmitting || !!error || !email}
+            disabled={isSubmitting || !!validationError || !email}
             onClick={() => {
               console.log('Submit')
               setSubmitting(true)
               setSubmitted(false)
               setSubmitError(false)
-              submitFormMutation(email)
+              submitForm(email)
             }}
           >
             Submit
@@ -270,18 +270,17 @@ const SignUpDialog = ({ open, startTime, handleClose }) => {
       setForm(getForm(option.id))
   }
 
-  const [submitFormMutation] = useMutation(
-    (submission) => api.createUser(submission.username, submission),
-    {
-      onSuccess: (resp) => {
-        setUser(resp)
-        setSubmitted(true)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitForm = async (submission) => {
+    try {
+      const newUser = await api.createUser(submission.username, submission)
+      setUser(newUser)
+      setSubmitted(true)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth>
@@ -310,7 +309,7 @@ const SignUpDialog = ({ open, startTime, handleClose }) => {
               onSubmit={(values, { setSubmitting }) => {
                 values['plt'] = startTime // encrypted page load time
                 console.log('Submit', values)
-                submitFormMutation(values)
+                submitForm(values)
                 setSubmitting(false)
               }}
             />

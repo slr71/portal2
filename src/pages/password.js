@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useMutation } from "react-query"
 import { useAPI } from '../contexts/api'
+import { useError } from '../contexts/error'
 import { Box, Grid, Typography, Button, TextField, makeStyles } from '@material-ui/core'
 import { MainLogo } from '../components'
 import { validatePassword } from '../lib/misc'
@@ -58,6 +58,7 @@ const Left = () => {
 const Right = (props) => {
   const classes = useStyles()
   const api = useAPI()
+  const [_, setError] = useError()
   const reset = 'reset' in props
   const hmac = props.code
   const setLabel = reset ? 'Reset' : 'Set'
@@ -85,17 +86,16 @@ const Right = (props) => {
       return 'Passwords must match'
   }
 
-  const [submitFormMutation] = useMutation(
-    (password) => api.updatePassword({ hmac, password }),
-    {
-      onSuccess: (resp) => {
-        setSubmitted(true)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitForm = async (password) => {
+    try {
+      await api.updatePassword({ hmac, password })
+      setSubmitted(true)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
   if (isSubmitted) {
     return (
@@ -164,7 +164,7 @@ const Right = (props) => {
           onClick={() => {
             console.log('Submit')
             setSubmitting(true)
-            submitFormMutation(password1)
+            submitForm(password1)
             //setSubmitting(false)
           }}
         >

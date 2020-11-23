@@ -1,10 +1,10 @@
-import { useMutation } from "react-query"
 import { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Grid, Typography, TextField, Button, IconButton, TableContainer, Table, TableBody, TableRow, TableCell, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
-import DeleteIcon from '@material-ui/icons/Delete';
+import DeleteIcon from '@material-ui/icons/Delete'
 import Layout from '../../components/Layout'
 import { useAPI } from '../../contexts/api'
+import { useError } from '../../contexts/error'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -16,52 +16,43 @@ const useStyles = makeStyles((theme) => ({
 const RestrictedUsernames = (props) => {
   const classes = useStyles()
   const api = useAPI()
+  const [_, setError] = useError()
 
   const [usernames, setUsernames] = useState(props.usernames)
   const [keyword, setKeyword] = useState()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [usernameToAdd, setUsernameToAdd] = useState()
 
-  const [deleteRestrictedUsername] = useMutation(
-    (username) => api.deleteRestrictedUsername(username),
-    {
-      onSuccess: (resp, username) => {
-        setUsernames(usernames.filter(u => u.username != username))
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
-    }
-  )
-
   const handleChangeKeyword = (event) => {
     setKeyword(event.target.value)
-  }
-
-  const handleOpenDialog = () => {
-    setDialogOpen(true)
-  }
-
-  const handleCloseDialog = () => {
-    setDialogOpen(false)
   }
 
   const handleChangeUsername = (event) => {
     setUsernameToAdd(event.target.value)
   }
 
-  const [handleSubmitUsername] = useMutation(
-    () => api.createRestrictedUsername(usernameToAdd),
-    {
-      onSuccess: async (resp) => {
-        handleCloseDialog()
-        setUsernames(await api.restrictedUsernames())
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const deleteRestrictedUsername = async (username) => {
+    try {
+      await api.deleteRestrictedUsername(username)
+      setUsernames(usernames.filter(u => u.username != username))
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
+  const submitUsername = async () => {
+    try {
+      await api.createRestrictedUsername(usernameToAdd)
+      setDialogOpen(false)
+      setUsernames(await api.restrictedUsernames())
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
   return (
     <Layout breadcrumbs>
@@ -73,7 +64,7 @@ const RestrictedUsernames = (props) => {
               <Typography component="h1" variant="h4">Restricted Usernames</Typography>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="primary" onClick={handleOpenDialog}>Add Username</Button>
+              <Button variant="contained" color="primary" onClick={() => setDialogOpen(true)}>Add Username</Button>
             </Grid>
             <Grid item>
               <TextField style={{width: '20em'}} placeholder="Search ..." onChange={handleChangeKeyword} />
@@ -90,8 +81,8 @@ const RestrictedUsernames = (props) => {
       <AddUsernameDialog 
         open={dialogOpen}
         handleChange={handleChangeUsername}
-        handleClose={handleCloseDialog} 
-        handleSubmit={handleSubmitUsername}
+        handleClose={() => setDialogOpen(false)} 
+        handleSubmit={submitUsername}
       />
     </Layout>
   )

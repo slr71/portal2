@@ -1,9 +1,9 @@
-import { useMutation } from "react-query"
 import Markdown from 'markdown-to-jsx'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, Typography } from '@material-ui/core'
 import { Layout, Wizard } from '../../components'
 import { useAPI } from '../../contexts/api'
+import { useError } from '../../contexts/error'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -17,6 +17,7 @@ const Request = (props) => {
 
   const classes = useStyles()
   const api = useAPI()
+  const [_, setError] = useError()
 
   const initialValues = 
     allFields.reduce((acc, f) => 
@@ -28,9 +29,15 @@ const Request = (props) => {
     )
   console.log('initialValues:', initialValues)
   
-  const [submitFormMutation] = useMutation(
-    (submission) => api.submitForm(form.id, submission)
-  )
+  const submitForm = async (submission) => {
+    try {
+      await api.submitForm(form.id, submission)
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
   const formatSubmission = (values) => {
     return allFields.map(f => {

@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
-import { useMutation } from "react-query"
 import Markdown from 'markdown-to-jsx'
 import { makeStyles, Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, MenuItem, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse } from '@material-ui/core'
 import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@material-ui/icons'
@@ -9,6 +8,7 @@ import DateFnsUtils from '@date-io/date-fns'
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
 import { Layout, DateRange, DateSpan, TabPanel, UpdateForm, FormDialog, ContactsEditor } from '../../components'
 import { useAPI } from '../../contexts/api'
+import { useError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
 const { WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE } = require('../../constants')
@@ -258,160 +258,148 @@ const WorkshopEditor = (props) => {
    * All state management is done here since child components are remounted in tab change
    */
 
-  const [submitWorkshopMutation] = useMutation(
-    (data) => api.updateWorkshop(workshop.id, data),
-    {
-      onSuccess: (resp) => {
-        setWorkshop(resp)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitWorkshop = async (data) => {
+    try {
+      const newWorkshop = await api.updateWorkshop(workshop.id, data)
+      setWorkshop(newWorkshop)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [submitOrganizerMutation] = useMutation(
-    (userId) => api.createWorkshopOrganizer(workshop.id, userId),
-    {
-      onSuccess: async (resp) => {
-        const newWorkshop = await api.workshop(workshop.id)
-        setWorkshop(newWorkshop)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitOrganizer = async (userId) => {
+    try {
+      await api.createWorkshopOrganizer(workshop.id, userId)
+      const newWorkshop = await api.workshop(workshop.id)
+      setWorkshop(newWorkshop)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [deleteOrganizerMutation] = useMutation(
-    (userId) => api.deleteWorkshopOrganizer(workshop.id, userId),
-    {
-      onSuccess: async (resp) => {
-        const newWorkshop = await api.workshop(workshop.id)
-        setWorkshop(newWorkshop)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const deleteOrganizer = async (userId) => {
+    try {
+      await api.deleteWorkshopOrganizer(workshop.id, userId)
+      const newWorkshop = await api.workshop(workshop.id)
+      setWorkshop(newWorkshop)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [submitContactMutation] = useMutation(
-    (data) => api.createWorkshopContact(workshop.id, data),
-    {
-      onSuccess: async (resp) => {
-        const newWorkshop = await api.workshop(workshop.id)
-        setWorkshop(newWorkshop)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitContact = async (data) => {
+    try {
+      await api.createWorkshopContact(workshop.id, data)
+      const newWorkshop = await api.workshop(workshop.id)
+      setWorkshop(newWorkshop)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [deleteContactMutation] = useMutation(
-    (email) => api.deleteWorkshopContact(workshop.id, email),
-    {
-      onSuccess: async (resp) => {
-        const newWorkshop = await api.workshop(workshop.id)
-        setWorkshop(newWorkshop)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const deleteContact = async (email) => {
+    try {
+      await api.deleteWorkshopContact(workshop.id, email)
+      const newWorkshop = await api.workshop(workshop.id)
+      setWorkshop(newWorkshop)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [submitServiceMutation] = useMutation(
-    (serviceId) => api.createWorkshopService(workshop.id, serviceId),
-    {
-      onSuccess: async (resp) => {
-        const newWorkshop = await api.workshop(workshop.id)
-        setWorkshop(newWorkshop)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitService = async (serviceId) => {
+    try {
+      await api.createWorkshopService(workshop.id, serviceId)
+      const newWorkshop = await api.workshop(workshop.id)
+      setWorkshop(newWorkshop)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [deleteServiceMutation] = useMutation(
-    (serviceId) => api.deleteWorkshopService(workshop.id, serviceId),
-    {
-      onSuccess: async (resp) => {
-        const newWorkshop = await api.workshop(workshop.id)
-        setWorkshop(newWorkshop)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const deleteService = async (serviceId) => {
+    try {
+      await api.deleteWorkshopService(workshop.id, serviceId)
+      const newWorkshop = await api.workshop(workshop.id)
+      setWorkshop(newWorkshop)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [submitParticipantMutation] = useMutation(
-    (userId) => api.createWorkshopParticipant(workshop.id, userId),
-    {
-      onSuccess: async (resp) => {
-        const newParticipants = await api.workshopParticipants(workshop.id)
-        setParticipants(newParticipants)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitParticipant = async (userId) => {
+    try {
+      await api.createWorkshopParticipant(workshop.id, userId)
+      const newParticipants = await api.workshopParticipants(workshop.id)
+      setParticipants(newParticipants)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [deleteParticipantMutation] = useMutation(
-    (participantId) => api.deleteWorkshopParticipant(workshop.id, participantId),
-    {
-      onSuccess: async (resp) => {
-        const newParticipants = await api.workshopParticipants(workshop.id)
-        setParticipants(newParticipants)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const deleteParticipant = async (participantId) => {
+    try {
+      await api.deleteWorkshopParticipant(workshop.id, participantId)
+      const newParticipants = await api.workshopParticipants(workshop.id)
+      setParticipants(newParticipants)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [submitEmailMutation] = useMutation(
-    (data) => api.createWorkshopEmail(workshop.id, data),
-    {
-      onSuccess: async (resp) => {
-        const newEmails = await api.workshopEmails(workshop.id)
-        setEmails(newEmails)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitEmail = async (data) => {
+    try {
+      await api.createWorkshopEmail(workshop.id, data)
+      const newEmails = await api.workshopEmails(workshop.id)
+      setEmails(newEmails)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [deleteEmailMutation] = useMutation(
-    (email) => api.deleteWorkshopEmail(workshop.id, email),
-    {
-      onSuccess: async (resp) => {
-        const newEmails = await api.workshopEmails(workshop.id)
-        setEmails(newEmails)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const deleteEmail = async (email) => {
+    try {
+      await api.deleteWorkshopEmail(workshop.id, email)
+      const newEmails = await api.workshopEmails(workshop.id)
+      setEmails(newEmails)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [updateRequestMutation] = useMutation(
-    (status) => api.updateWorkshopRequest(workshop.id, { status }),
-    {
-      onSuccess: async (resp) => {
-        const newRequests = await api.workshopRequests(workshop.id)
-        setRequests(newRequests)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const updateRequest = async (status) => {
+    try {
+      await api.updateWorkshopRequest(workshop.id, { status })
+      const newRequests = await api.workshopRequests(workshop.id)
+      setRequests(newRequests)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
   return (
     <div>
@@ -433,27 +421,27 @@ const WorkshopEditor = (props) => {
         <WorkshopViewer workshop={workshop} />
       </TabPanel>
       <TabPanel value={tab} index="modify">
-        <GeneralSettings {...workshop} submitHandler={submitWorkshopMutation} />
+        <GeneralSettings {...workshop} submitHandler={submitWorkshop} />
         <br /><br />
-        <EnrollmentPeriod {...workshop} submitHandler={submitWorkshopMutation} />
+        <EnrollmentPeriod {...workshop} submitHandler={submitWorkshop} />
         <br /><br />
-        <Host {...workshop} submitHandler={submitWorkshopMutation} />
+        <Host {...workshop} submitHandler={submitWorkshop} />
         <br /><br />
-        <Organizers {...workshop} submitHandler={submitOrganizerMutation} deleteHandler={deleteOrganizerMutation} />
+        <Organizers {...workshop} submitHandler={submitOrganizer} deleteHandler={deleteOrganizer} />
         <br /><br />
-        <ContactsEditor {...workshop} submitHandler={submitContactMutation} deleteHandler={deleteContactMutation} />
+        <ContactsEditor {...workshop} submitHandler={submitContact} deleteHandler={deleteContact} />
         <br /><br />
-        <Services workshop={workshop} services={services} submitHandler={submitServiceMutation} deleteHandler={deleteServiceMutation} />
+        <Services workshop={workshop} services={services} submitHandler={submitService} deleteHandler={deleteService} />
         <br /><br />
       </TabPanel>
       <TabPanel value={tab} index="participants">
-        <Participants participants={participants} submitHandler={submitParticipantMutation} deleteHandler={deleteParticipantMutation} />
+        <Participants participants={participants} submitHandler={submitParticipant} deleteHandler={deleteParticipant} />
       </TabPanel>
       <TabPanel value={tab} index="preapprovals">
-        <Emails emails={emails} submitHandler={submitEmailMutation} deleteHandler={deleteEmailMutation} />
+        <Emails emails={emails} submitHandler={submitEmail} deleteHandler={deleteEmail} />
       </TabPanel>
       <TabPanel value={tab} index="requests">
-        <Requests requests={requests} submitHandler={updateRequestMutation} />
+        <Requests requests={requests} submitHandler={updateRequest} />
       </TabPanel>
     </div>
   )

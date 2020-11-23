@@ -3,8 +3,8 @@ import Markdown from 'markdown-to-jsx'
 import { makeStyles, Container, Grid, Link, Box, Button, IconButton, Paper, Tabs, Tab, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, MenuItem } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon, Delete as DeleteIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton, TabPanel, UpdateForm, QuestionsEditor, ContactsEditor, ResourcesEditor } from '../../components'
-import { useMutation } from "react-query"
 import { useAPI } from '../../contexts/api'
+import { useError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
 const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } = require('../../constants')
@@ -55,21 +55,15 @@ const ServiceViewer = (props) => {
     setDialogOpen(false)
   }
 
-  const [submitAccessRequestMutation] = useMutation(
-    () => api.createServiceRequest(service.id, [{ questionId: question && question.id, value: answer }]),
-    {
-      onSuccess: (resp) => {
-        console.log(resp)
-        setDialogOpen(false)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitAccessRequest = async () => {
+    try {
+      await api.createServiceRequest(service.id, [{ questionId: question && question.id, value: answer }])
+      handleCloseDialog()
     }
-  )
-
-  const handleChangeAnswer = (e) => {
-    setAnswer(e.target.value)
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
   }
 
   // Configure web socket connection
@@ -201,14 +195,14 @@ const ServiceViewer = (props) => {
         question={question ? question.question : `Would you like to request access to ${service.name}?`}
         requiresAnswer={!!question}
         open={dialogOpen}
-        handleChange={handleChangeAnswer}
+        handleChange={(e) => setAnswer(e.target.value)}
         handleClose={handleCloseDialog} 
         handleSubmit={
           (!question || answer) && // disable submit button if input is blank and answer is required
             (() => {
               setRequestStatus('requested')
               handleCloseDialog()
-              submitAccessRequestMutation()
+              submitAccessRequest()
             })
         }
       />
@@ -263,121 +257,112 @@ const ServiceEditor = (props) => {
     []
   )
 
-  const [submitServiceMutation] = useMutation(
-    (data) => api.updateService(service.id, data),
-    {
-      onSuccess: (resp) => {
-        setService(resp)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitService = async (data) => {
+    try {
+      const newService = await api.updateService(service.id, data)
+      setService(newService)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [submitQuestionMutation] = useMutation(
-    (data) => api.createServiceQuestion(service.id, data),
-    {
-      onSuccess: async (resp) => {
-        const newService = await api.service(service.id)
-        setService(newService)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitQuestion = async (data) => {
+    try {
+      await api.createServiceQuestion(service.id, data)
+      const newService = await api.service(service.id)
+      setService(newService)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [deleteQuestionMutation] = useMutation(
-    (questionId) => api.deleteServiceQuestion(service.id, questionId),
-    {
-      onSuccess: async (resp) => {
-        const newService = await api.service(service.id)
-        setService(newService)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const deleteQuestion = async (questionId) => {
+    try {
+      await api.deleteServiceQuestion(service.id, questionId)
+      const newService = await api.service(service.id)
+      setService(newService)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [submitContactMutation] = useMutation(
-    (data) => api.createServiceContact(service.id, data),
-    {
-      onSuccess: async (resp) => {
-        const newService = await api.service(service.id)
-        setService(newService)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitContact = async (data) => {
+    try {
+      await api.createServiceContact(service.id, data)
+      const newService = await api.service(service.id)
+      setService(newService)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [deleteContactMutation] = useMutation(
-    (contactId) => api.deleteServiceContact(service.id, contactId),
-    {
-      onSuccess: async (resp) => {
-        const newService = await api.service(service.id)
-        setService(newService)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const deleteContact = async (contactId) => {
+    try {
+      await api.deleteServiceContact(service.id, contactId)
+      const newService = await api.service(service.id)
+      setService(newService)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [submitResourceMutation] = useMutation(
-    (data) => api.createServiceResource(service.id, data),
-    {
-      onSuccess: async (resp) => {
-        const newService = await api.service(service.id)
-        setService(newService)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitResource = async (data) => {
+    try {
+      await api.createServiceResource(service.id, data)
+      const newService = await api.service(service.id)
+      setService(newService)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [deleteResourceMutation] = useMutation(
-    (resourceId) => api.deleteServiceResource(service.id, resourceId),
-    {
-      onSuccess: async (resp) => {
-        const newService = await api.service(service.id)
-        setService(newService)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const deleteResource = async (resourceId) => {
+    try {
+      await api.deleteServiceResource(service.id, resourceId)
+      const newService = await api.service(service.id)
+      setService(newService)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [submitRequestMutation] = useMutation(
-    (formId) => api.createServiceForm(service.id, formId),
-    {
-      onSuccess: async (resp) => {
-        const newService = await api.service(service.id)
-        setService(newService)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const submitRequest = async (formId) => {
+    try {
+      await api.createServiceForm(service.id, formId)
+      const newService = await api.service(service.id)
+      setService(newService)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [deleteRequestMutation] = useMutation(
-    (formId) => api.deleteServiceForm(service.id, formId),
-    {
-      onSuccess: async (resp) => {
-        const newService = await api.service(service.id)
-        setService(newService)
-      },
-      onError: (error) => {
-        console.log('ERROR', error)
-      }
+  const deleteRequest = async (formId) => {
+    try {
+      await api.deleteServiceForm(service.id, formId)
+      const newService = await api.service(service.id)
+      setService(newService)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
   return (
     <div>
@@ -396,15 +381,15 @@ const ServiceEditor = (props) => {
         <ServiceViewer {...props} />
       </TabPanel>
       <TabPanel value={tab} index={1}>
-        <GeneralSettings {...service} submitHandler={submitServiceMutation} />
+        <GeneralSettings {...service} submitHandler={submitService} />
         <br /><br />
-        <QuestionsEditor {...service} submitHandler={submitQuestionMutation} deleteHandler={deleteQuestionMutation} />
+        <QuestionsEditor {...service} submitHandler={submitQuestion} deleteHandler={deleteQuestion} />
         <br /><br />
-        <ContactsEditor {...service} submitHandler={submitContactMutation} deleteHandler={deleteContactMutation} />
+        <ContactsEditor {...service} submitHandler={submitContact} deleteHandler={deleteContact} />
         <br /><br />
-        <ResourcesEditor {...service} submitHandler={submitResourceMutation} deleteHandler={deleteResourceMutation} />
+        <ResourcesEditor {...service} submitHandler={submitResource} deleteHandler={deleteResource} />
         <br /><br />
-        <RequestsEditor {...service} allForms={forms} submitHandler={submitRequestMutation} deleteHandler={deleteRequestMutation} />
+        <RequestsEditor {...service} allForms={forms} submitHandler={submitRequest} deleteHandler={deleteRequest} />
         <br /><br />
       </TabPanel>
       {/* <TabPanel value={tab} index={2}>

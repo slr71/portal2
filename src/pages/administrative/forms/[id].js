@@ -1,7 +1,7 @@
-import { useMutation } from 'react-query'
 import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, Grid, makeStyles } from '@material-ui/core'
 import { Layout, UpdateForm } from '../../../components'
 import { useAPI } from '../../../contexts/api'
+import { useError } from '../../../contexts/error'
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
@@ -27,6 +27,7 @@ const useStyles = makeStyles((theme) => ({
 const FormEditor = (props) => {
   const classes = useStyles()
   const api = useAPI()
+  const [_, setError] = useError()
 
   const [tab, setTab] = React.useState(0)
   const [form, setForm] = React.useState(props.form)
@@ -36,91 +37,102 @@ const FormEditor = (props) => {
     form.sections[tab] && form.sections[tab].fields ? form.sections[tab].fields.length * 32 : 0
   ) + 150
 
-  const handleTabChange = (event, newTab) => setTab(newTab)
-
-  const [updateFormMutation] = useMutation(
-    (fields) => api.updateForm(form.id, fields),
-    {
-      //onSuccess: (resp) => {},
-      onError: (error) => {
-        console.log('updateForm ERROR', error)
-      }
+  const updateForm = async (fields) => {
+    try {
+      await api.updateForm(form.id, fields)
     }
-  )
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [addSectionMutation] = useMutation(
-    () =>
-      api.createFormSection({ 
+  const addSection = async () => {
+    try {
+      const newIndex = form.sections.reduce((acc, s) => Math.max(acc, s.index + 1), 0)
+      await api.createFormSection({ 
         form_id: form.id, 
         name: 'New section', 
         description: '',
-        index: form.sections.reduce((acc, s) => Math.max(acc, s.index + 1), 0)
+        index: newIndex
       })
-      .then( () => api.form(form.id) ),
-    {
-      onSuccess: (resp) => {
-        setForm(resp)
-        setTab(resp.sections[-1].index)
-      },
-      onError: (error) => {
-        console.log('createFormSection ERROR', error)
-      }
+      const newForm = await api.form(form.id)
+      setForm(newForm)
+      setTab(newIndex)
     }
-  )
-
-  const [deleteSectionMutation] = useMutation(
-    (id) => api.deleteFormSection(id).then( () => api.form(form.id) ),
-    {
-      onSuccess: (resp) => {
-        const index = form.sections.findIndex(s => s.id == resp)
-        setTab(index-1)
-        setForm(resp)
-      },
-      onError: (error) => {
-        console.log('deleteFormSection ERROR', error)
-      }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
     }
-  )
+  }
 
-  const [updateSectionMutation] = useMutation(
-    (fields) => api.updateFormSection(form.sections[tab].id, fields)
-  )
+  const deleteSection = async (id) => {
+    try {
+      await api.deleteFormSection(id)
+      const newForm = await api.form(form.id)
+      const index = form.sections.findIndex(s => s.id == id)
+      setTab(index-1)
+      setForm(newForm)
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
-  const [addFieldMutation] = useMutation(
-    () =>
-      api.createFormField({ 
+  const updateSection = async (fields) => {
+    try {
+      await api.updateFormSection(form.sections[tab].id, fields)
+      const newForm = await api.form(form.id)
+      setForm(newForm)
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
+  const addField = async () => {
+    try {
+      await api.createFormField({ 
         form_section_id: form.sections[tab].id, 
         name: 'New field', 
         type: 'text', 
         is_required: true,
         index: form.sections[tab].fields ? form.sections[tab].fields.reduce((acc, f) => Math.max(acc, f.index + 1), 0) : 0,
       })
-      .then( () => api.form(form.id) ),
-    {
-      onSuccess: (resp) => {
-        setForm(resp)
-      },
-      onError: (error) => {
-        console.log('createFormField ERROR', error)
-      }
+      const newForm = await api.form(form.id)
+      setForm(newForm)
     }
-  )
-
-  const [deleteFieldMutation] = useMutation(
-    (id) => api.deleteFormField(id).then( () => api.form(form.id) ),
-    {
-      onSuccess: (resp) => {
-        setForm(resp)
-      },
-      onError: (error, { onError }) => {
-        console.log('deleteFormSection ERROR', error)
-      }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
     }
-  )
+  }
 
-  const [updateFieldMutation] = useMutation(
-    ({ id, values }) => api.updateFormField(id, values).then( () => api.form(form.id) ),
-  )
+  const deleteField = async (id) => {
+    try {
+      await api.deleteFormField(id)
+      const newForm = await api.form(form.id)
+      setForm(newForm)
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
+  const updateField = async ({ id, values }) => {
+    try {
+      await api.updateFormField(id, values)
+      const newForm = await api.form(form.id)
+      setForm(newForm)
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
   return (
     <Layout title={form.name} breadcrumbs>
@@ -141,7 +153,7 @@ const FormEditor = (props) => {
                     }
                   }} 
                   defaultValue={form.name} 
-                  onChange={(e) => updateFormMutation({ name: e.target.value })}
+                  onChange={(e) => updateForm({ name: e.target.value })}
                 />
               </Grid>
               <Grid item>
@@ -156,7 +168,7 @@ const FormEditor = (props) => {
               id="description" 
               label="Description"
               defaultValue={form.description} 
-              onChange={(e) => updateFormMutation({ description: e.target.value })}
+              onChange={(e) => updateForm({ description: e.target.value })}
             />
           </Box>
           <div className={classes.root}>
@@ -164,13 +176,13 @@ const FormEditor = (props) => {
               orientation="vertical"
               variant="scrollable"
               value={tab}
-              onChange={handleTabChange}
+              onChange={(_, newTab) => setTab(newTab)}
               className={classes.tabs}
             >
               {form.sections.map((section, index) => (
                 <Tab key={index} label={section.name} />
               ))}
-              <Button color="primary" onClick={addSectionMutation}>+ Add Section</Button>
+              <Button color="primary" onClick={addSection}>+ Add Section</Button>
             </Tabs>
             {form.sections.map((section, index) => (
               <SectionTabPanel 
@@ -178,11 +190,11 @@ const FormEditor = (props) => {
                 value={tab} 
                 index={index} 
                 section={section} 
-                onUpdate={updateSectionMutation}
-                onDelete={deleteSectionMutation} 
-                onAddField={addFieldMutation} 
-                onDeleteField={deleteFieldMutation}
-                onUpdateField={updateFieldMutation}
+                onUpdate={updateSection}
+                onDelete={deleteSection} 
+                onAddField={addField} 
+                onDeleteField={deleteField}
+                onUpdateField={updateField}
               />
             ))}
           </div>
