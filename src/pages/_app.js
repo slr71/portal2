@@ -42,7 +42,7 @@ export default function MyApp(props) {
           <APIProvider baseUrl={baseUrl} token={token}>
             <UserProvider user={user}>
               <Head>
-                <title>CyVerse User Portal</title>
+                <title>User Portal - CyVerse</title>
               </Head>
               <ErrorProvider>
                 <Component {...pageProps} />
