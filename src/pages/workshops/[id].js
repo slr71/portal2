@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Workshop = (props) => {
   const workshop = props.workshop
-  const user = useUser()
+  const [user] = useUser()
   const isEditor = user.is_staff || user.id == workshop.creator_id || workshop.organizers.some(o => o.id == user.id)
 
   return (
@@ -44,7 +44,7 @@ const WorkshopViewer = (props) => {
   const workshop = props.workshop
   const classes = useStyles()
   const api = useAPI()
-  const user = useUser()
+  const [user] = useUser()
 
   const userWorkshop = user.workshops.find(w => w.id == workshop.id)
   const request = userWorkshop && userWorkshop.api_workshopenrollmentrequest
@@ -493,7 +493,7 @@ const GeneralSettings = (props) => {
 
 const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler }) => {
   const classes = useStyles()
-  const user = useUser()
+  const [user] = useUser()
   const [errors, setErrors] = useState({})
   const isEditor = user.is_staff
 
@@ -558,7 +558,7 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
 
 const Host = ({ owner, submitHandler }) => {
   const classes = useStyles()
-  const user = useUser()
+  const [user] = useUser()
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
@@ -613,7 +613,7 @@ const Host = ({ owner, submitHandler }) => {
 
 const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
   const classes = useStyles()
-  const user = useUser()
+  const [user] = useUser()
   const [dialogOpen, setDialogOpen] = useState(false)
   const isEditable = owner.id == user.id || user.is_staff
 

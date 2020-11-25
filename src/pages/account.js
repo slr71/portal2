@@ -24,7 +24,7 @@ const Account = () => {
   const classes = useStyles()
   const api = useAPI()
   const [_, setError] = useError()
-  const [user, setUser] = useState(useUser())
+  const [user, setUser] = useUser()
   const [forms, setForms] = useState(Forms(user, properties))
 
   const initialValues = (fields) =>

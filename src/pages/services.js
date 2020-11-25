@@ -4,7 +4,7 @@ import { Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
 
 const Services = (props) => {
-  const user = useUser()
+  const [user] = useUser()
   const userServices = user.services
   const services = props.services
 

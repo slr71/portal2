@@ -18,10 +18,8 @@ function useError() {
 
 function ErrorProvider(props) {
   const [error, setError] = React.useState(null);
-  const value = React.useMemo(() => [error, setError], [
-      error,
-  ]);
-  return <ErrorContext.Provider value={value} {...props} />;
+  const value = React.useMemo(() => [error, setError], [error])
+  return <ErrorContext.Provider value={value} {...props} />
 }
 
 export { ErrorProvider, useError };

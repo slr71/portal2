@@ -118,7 +118,7 @@ function Copyright() {
 
 export default function Dashboard(props) {
   const classes = useStyles()
-  const user = useUser()
+  const [user, setUser] = useUser()
   const api = useAPI()
   const [error, setError] = useError()
   const router = useRouter()
@@ -150,9 +150,10 @@ export default function Dashboard(props) {
   }
 
   // Persist drawer state in user settings
-  const handleDrawerEvent = (open) => {
+  const handleDrawerEvent = async (open) => {
     setDrawerOpen(open)
-    api.updateUser(user.id, { settings: { ...user.settings, drawerOpen: open } })
+    const newUser = await api.updateUser(user.id, { settings: { ...user.settings, drawerOpen: open } })
+    setUser(newUser)
   }
 
   return (

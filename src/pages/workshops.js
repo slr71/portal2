@@ -10,7 +10,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const Workshops = (props) => {
-  const user = useUser()
+  const [user] = useUser()
   const userWorkshops = [].concat(
     user.workshops, // workshop user is/was enrolled in
     props.workshops.filter(w => 
@@ -87,7 +87,7 @@ const WorkshopGrid = ({ workshops }) => (
 
 const Workshop = ({ workshop }) => {
   const classes = useStyles()
-  const user = useUser()
+  const [user] = useUser()
   const isHost = user.id == workshop.creator_id
   const isOrganizer = workshop.organizers && workshop.organizers.some(o => o.id == user.id)
 

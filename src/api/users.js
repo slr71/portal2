@@ -8,12 +8,7 @@ const RestrictedUsername = models.account_restrictedusername;
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
 
-// Get current user based on token
-router.get('/mine', getUser, (req, res) => {
-    res.json(req.user).status(200);
-});
-
-// Get all users
+// Get all users (STAFF ONLY)
 router.get('/', requireAdmin, asyncHandler(async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
@@ -53,7 +48,12 @@ router.get('/', requireAdmin, asyncHandler(async (req, res) => {
     res.json({ count, results: rows }).status(200);
 }));
 
-// Get individual user (ADMIN ONLY)
+// Get current user based on token
+router.get('/mine', getUser, (req, res) => {
+    res.json(req.user).status(200);
+});
+
+// Get individual user (STAFF ONLY)
 router.get('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     const user = await User.findByPk(req.params.id);
     res.json(user).status(200);

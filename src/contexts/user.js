@@ -17,8 +17,9 @@ function useUser() {
 // }
 
 function UserProvider(props) {
-  const [user] = React.useState(props.user)
-  return <UserContext.Provider value={user} {...props} />
+  const [user, setUser] = React.useState(props.user)
+  const value = React.useMemo(() => [user, setUser], [user])
+  return <UserContext.Provider value={value} {...props} />
 }
 
 export { UserProvider, useUser };

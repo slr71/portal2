@@ -63,7 +63,7 @@ const Questions = ({ questions, answers }) => {
 }
 
 const Actions = (props) => {
-  const user = useUser()
+  const [user] = useUser()
   const request = props.request
   const classes = useStyles()
 

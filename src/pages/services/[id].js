@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
 
 const Service = (props) => {
   const service = props.service
-  const user = useUser()
+  const [user] = useUser()
 
   return ( 
     <Layout title={service.name} breadcrumbs>
@@ -36,7 +36,7 @@ const ServiceViewer = (props) => {
   const service = props.service
   const classes = useStyles()
   const api = useAPI()
-  const user = useUser()
+  const [user] = useUser()
   const [_, setError] = useError()
   const userService = user.services.find(s => s.id == service.id)
   const request = userService && userService.request

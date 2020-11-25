@@ -10,7 +10,7 @@ import config from '../config.json'
 
 function CustomIntercom(props) {
     const theme = useTheme()
-    const user = useUser()
+    const [user] = useUser()
 
     React.useEffect(() => {
         if (user) {
