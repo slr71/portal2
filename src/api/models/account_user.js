@@ -138,6 +138,10 @@ module.exports = function(sequelize, DataTypes) {
         model: 'account_institution',
         key: 'id'
       }
+    },
+    settings: {
+      type: DataTypes.JSON,
+      allowNull: true
     }
   }, {
     tableName: 'account_user'

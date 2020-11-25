@@ -11,6 +11,7 @@ import TopBar from './TopBar'
 import MainLogo from './MainLogo'
 import { CustomIntercom } from './CustomIntercom'
 import { useUser } from '../contexts/user'
+import { useAPI } from '../contexts/api'
 import { useError } from '../contexts/error'
 import { useCookies } from 'react-cookie'
 import { ACCOUNT_UPDATE_REMINDER_COOKIE } from '../constants'
@@ -116,10 +117,11 @@ function Copyright() {
 export default function Dashboard(props) {
   const classes = useStyles()
   const user = useUser()
+  const api = useAPI()
   const [error, setError] = useError()
   const router = useRouter()
 
-  const [drawerOpen, setDrawerOpen] = React.useState(true)
+  const [drawerOpen, setDrawerOpen] = React.useState(!user.settings || user.settings.drawerOpen)
 
   const [cookies, setCookie] = useCookies([ACCOUNT_UPDATE_REMINDER_COOKIE])
   const [alertOpen, setAlertOpen] = React.useState(!cookies || !(ACCOUNT_UPDATE_REMINDER_COOKIE in cookies))
@@ -145,6 +147,12 @@ export default function Dashboard(props) {
       router.push(url)
   }
 
+  // Persist drawer state in user settings
+  const handleDrawerEvent = (open) => {
+    setDrawerOpen(open)
+    api.updateUser(user.id, { settings: { ...user.settings, drawerOpen: open } })
+  }
+
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -154,7 +162,7 @@ export default function Dashboard(props) {
             edge="start"
             aria-label="open drawer"
             color="inherit"
-            onClick={() => setDrawerOpen(true)}
+            onClick={() => handleDrawerEvent(true)}
             className={clsx(classes.menuButton, drawerOpen && classes.menuButtonHidden)}
           >
             <MenuIcon />
@@ -184,7 +192,7 @@ export default function Dashboard(props) {
         open={drawerOpen}
       >
         <div className={classes.toolbarIcon}>
-          <IconButton onClick={() => setDrawerOpen(false)}>
+          <IconButton onClick={() => handleDrawerEvent(false)}>
             <ChevronLeftIcon className={classes.ChevronLeftIcon}/>
           </IconButton>
         </div>

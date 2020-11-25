@@ -59,7 +59,7 @@ router.get('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     res.json(user).status(200);
 }));
 
-// Update user info
+// Update user 
 router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
@@ -77,7 +77,7 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const SUPPORTED_FIELDS = [
         'first_name', 'last_name', 'orcid_id', 'institution', 'department',
         'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id',
-        'occupation_id', 'research_area_id', 'region_id'
+        'occupation_id', 'research_area_id', 'region_id', 'settings'
     ]
     for (let key in fields) {
         // Ignore any non-updateable fields
@@ -86,7 +86,7 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     }
     await user.save();
     await user.reload();
-    
+
     res.json(user).status(200);
 }));
 
@@ -129,6 +129,7 @@ router.delete('/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res)
     );
 }));
 
+// Get restricted usernames
 router.get('/restricted', requireAdmin, asyncHandler(async (req, res) => {
     const usernames = await RestrictedUsername.findAll({
         attributes: [ 'id', 'username' ],
@@ -139,11 +140,13 @@ router.get('/restricted', requireAdmin, asyncHandler(async (req, res) => {
     res.json(usernames).status(200);
 }));
 
+// Add restricted username
 router.put('/restricted/:username(\\S+)', requireAdmin, asyncHandler(async (req, res) => {
     const [username, created] = await RestrictedUsername.findOrCreate({ where: { username: req.params.username } });
     res.json(username).status(201);
 }));
 
+// Delete restricted username
 router.delete('/restricted/:username(\\S+)', requireAdmin, asyncHandler(async (req, res) => {
     const username = await RestrictedUsername.findOne({ where: { username: req.params.username } });
     if (!username)
