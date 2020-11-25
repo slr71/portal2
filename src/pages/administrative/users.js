@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
-// import debounce from 'just-debounce-it'
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Paper, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
+import { Container, Grid, Paper, Typography, TextField, CircularProgress, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import Layout from '../../components/Layout'
 import { useAPI } from '../../contexts/api'
 
@@ -24,6 +23,7 @@ const Users = props => {
   const [count, setCount] = useState(props.count)
   const [rows, setRows] = useState(props.results)
   const [debounce, setDebounce] = useState(null)
+  const [searching, setSearching] = useState(false)
   
   const handleChangePage = async (event, newPage) => {
     setPage(newPage)
@@ -35,12 +35,12 @@ const Users = props => {
   }
 
   const handleChangeKeyword = async (event) => {
+    setSearching(true)
     setKeyword(event.target.value)
     setPage(0)
   }
 
   useEffect(() => {
-    // Couldn't get just-debounce-it to work here
     if (debounce) clearTimeout(debounce)
     setDebounce(
       setTimeout(async () => {
@@ -51,6 +51,7 @@ const Users = props => {
           })
           setCount(count)
           setRows(results)
+          setSearching(false)
         }, 500)
     )},
     [page, rowsPerPage, keyword]
@@ -66,11 +67,23 @@ const Users = props => {
               <Typography component="h1" variant="h4" gutterBottom>Users</Typography>
             </Grid>
             <Grid item>
-              <TextField style={{width: '20em'}} placeholder="Search ..." onChange={handleChangeKeyword} />
+              <TextField 
+                style={{width: '20em'}} 
+                placeholder="Search ..." 
+                onChange={handleChangeKeyword} 
+                InputProps={{ 
+                  endAdornment: (
+                    <React.Fragment>
+                      {searching && <CircularProgress color="inherit" size={20} />}
+                    </React.Fragment>
+                  )
+                }}
+              />
             </Grid>
           </Grid>
           <Typography color="textSecondary" gutterBottom>
-            Search across username, first name, last name, email, occupation, institution, region, and country
+            Search across first name, last name, username, email, institution, occupation, region, and country.<br />
+            Enter multiple keywords separated by spaces.
           </Typography>
           <br />
           <UserTable 
@@ -93,25 +106,27 @@ const UserTable = ({ rows, rowsPerPage, count, page, handleChangePage, handleCha
       <TableHead>
         <TableRow>
           <TableCell>First Name</TableCell>
-          <TableCell align="right">Last Name</TableCell>
-          <TableCell align="right">Username</TableCell>
-          <TableCell align="right">Institution</TableCell>
-          <TableCell align="right">Occupation</TableCell>
-          <TableCell align="right">Region</TableCell>
-          <TableCell align="right">Country</TableCell>
+          <TableCell>Last Name</TableCell>
+          <TableCell>Username</TableCell>
+          <TableCell>Email</TableCell>
+          <TableCell>Institution</TableCell>
+          <TableCell>Occupation</TableCell>
+          <TableCell>Region</TableCell>
+          <TableCell>Country</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
-        {rows.map(user => (
-          <Link key={user.id} href={`/administrative/users/${user.id}`}>
+        {rows.map((user, index) => (
+          <Link key={index} href={`/administrative/users/${user.id}`}>
             <TableRow hover style={{cursor: 'pointer'}}>
               <TableCell>{user.first_name}</TableCell>
-              <TableCell align="right">{user.last_name}</TableCell>
-              <TableCell align="right">{user.username}</TableCell>
-              <TableCell align="right">{user.institution}</TableCell>
-              <TableCell align="right">{user.occupation.name}</TableCell>
-              <TableCell align="right">{user.region.name}</TableCell>
-              <TableCell align="right">{user.region.country.name}</TableCell>
+              <TableCell>{user.last_name}</TableCell>
+              <TableCell>{user.username}</TableCell>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>{user.institution}</TableCell>
+              <TableCell>{user.occupation.name}</TableCell>
+              <TableCell>{user.region.name}</TableCell>
+              <TableCell>{user.region.country.name}</TableCell>
             </TableRow>
           </Link>
         ))}

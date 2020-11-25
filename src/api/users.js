@@ -6,27 +6,28 @@ const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
 
 //TODO move into module
-const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
+const likeAny = (key, vals) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: { [sequelize.Op.any]: vals.map(k => `%${k}%`) } }) 
 
 // Get all users (STAFF ONLY)
 router.get('/', requireAdmin, asyncHandler(async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
     const keyword = req.query.keyword;
+    const keywords = keyword && keyword.split(' ').filter(k => k)
 
     const { count, rows } = await User.unscoped().findAndCountAll({
         where: 
             keyword
                 ? sequelize.or(
                     { id: isNaN(keyword) ? 0 : keyword }, 
-                    like('first_name', keyword),
-                    like('last_name', keyword),
-                    like('username', keyword),
-                    like('institution', keyword),
-                    like('department', keyword),
-                    like('occupation.name', keyword),
-                    like('region.name', keyword),
-                    like('region.country.name', keyword),
+                    likeAny('first_name', keywords),
+                    likeAny('last_name', keywords),
+                    likeAny('username', keywords),
+                    likeAny('email', keywords),
+                    likeAny('institution', keywords),
+                    likeAny('occupation.name', keywords),
+                    likeAny('region.name', keywords),
+                    likeAny('region.country.name', keywords),
                   )
                 : null,
         include: [
@@ -37,7 +38,7 @@ router.get('/', requireAdmin, asyncHandler(async (req, res) => {
                 include: [ 'country' ]
             }
         ],
-        attributes: [ 'id', 'username', 'first_name', 'last_name' ],
+        attributes: [ 'id', 'username', 'first_name', 'last_name', 'email', 'institution' ],
         order: [ ['id', 'DESC'] ],
         offset: offset,
         limit: limit,
