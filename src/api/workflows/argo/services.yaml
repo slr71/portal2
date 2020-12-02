@@ -181,6 +181,14 @@ spec:
             value: "{{workflow.parameters.user_id}}"
           - name: path
             value: "sci_data"
+    - - name: set-owner-maizecode
+        template: irods-chmod-own
+        arguments:
+          parameters:
+          - name: user
+            value: "maizecode"
+          - name: path
+            value: "sci_data"
     - - name: sciapps-api-grant-access-request
         template: api-grant-access-request
         arguments:
