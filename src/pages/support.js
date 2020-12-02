@@ -13,8 +13,8 @@ const Support = () => {
     <Layout title='Support' actions={chatLink}>
       <Box mt={4}>
         <Grid container spacing={4}>
-          {menuItem.items.map(item =>
-            <Grid item xs={4} key={item.path}>
+          {menuItem.items.map((item, index) =>
+            <Grid item key={index} xs={12} sm={12} md={6} lg={4} xl={2}>
               <Link underline='none' href={item.path}>
                 <SummaryCard 
                   title={item.label} 

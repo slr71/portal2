@@ -1,4 +1,4 @@
-import { Grid, Link, Box, makeStyles } from '@material-ui/core'
+import { Grid, Link, Box, Divider, Typography, makeStyles } from '@material-ui/core'
 import { Event as EventIcon } from '@material-ui/icons'
 import { DateRange, Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
@@ -28,17 +28,26 @@ const Workshops = (props) => {
 
   return (
     <Layout title="Workshops">
-      <Box>
-        <h2>My Workshops</h2>
+      <Box mt={3}>
+        <Typography variant="h6" component="h2">My Workshops</Typography>
+        <Divider />
+        <br />
         <MyWorkshops workshops={mine} />
+        <br />
       </Box>
-      <Box mt={5}>
-        <h2>Upcoming Workshops</h2>
+      <Box mt={3}>
+        <Typography variant="h6" component="h2">Upcoming Workshops</Typography>
+        <Divider />
+        <br />
         <UpcomingWorkshops workshops={upcoming} />
+        <br />
       </Box>
-      <Box mt={5}>
-        <h2>Past Workshops</h2>
+      <Box mt={3}>
+        <Typography variant="h6" component="h2">Past Workshops</Typography>
+        <Divider />
+        <br />
         <PastWorkshops workshops={past} />
+        <br />
       </Box>
     </Layout>
   )
@@ -48,37 +57,38 @@ const MyWorkshops = ({ workshops }) => {
   const content =
     workshops.length > 0
     ? <WorkshopGrid workshops={workshops} />
-    : <p>
+    : <Typography variant="body1">
         Looks like you aren't attending any workshops.
         If you enroll in one, you'll find it here.
-      </p>
+      </Typography>
 
   return (
     <div>
       {content}
-      <p>To host your own workshop use the <Link href='requests/8'>request form</Link>.</p>
+      <br />
+      <Typography variant="body1">To host your own workshop use the <Link href='requests/8'>request form</Link>.</Typography>
     </div>
   )
 }
 
 const UpcomingWorkshops = ({ workshops }) => {
   if (workshops.length > 0)
-    return (<WorkshopGrid workshops={workshops} />)
+    return <WorkshopGrid workshops={workshops} />
 
-  return (<p>No upcoming workshops.</p>)
+  return <Typography variant="body1">No upcoming workshops.</Typography>
 }
 
 const PastWorkshops = ({ workshops }) => {
   if (workshops.length > 0)
-    return (<WorkshopGrid workshops={workshops} />)
+    return <WorkshopGrid workshops={workshops} />
 
-  return (<p>Looks like you haven't attended any workshops.</p>)
+  return <Typography variant="body1">Looks like you haven't attended any workshops.</Typography>
 }
 
 const WorkshopGrid = ({ workshops }) => (
-  <Grid container spacing={3}>
+  <Grid container spacing={4}>
     {workshops.map((workshop, index) =>
-      <Grid item xs={6} key={index}>
+      <Grid item key={index} xs={12} sm={12} md={6} lg={5} xl={4}>
         <Workshop workshop={workshop} />
       </Grid>
     )}

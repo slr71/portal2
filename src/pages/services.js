@@ -21,23 +21,26 @@ const Services = (props) => {
 
   return (
     <Layout title="Services">
-    <Box mt={4}>
-      <Typography variant="h6" component="h2">My Services</Typography>
-      <Divider />
-      <br />
-      <MyServices services={userServices} />
+      <Box mt={3}>
+        <Typography variant="h6" component="h2">My Services</Typography>
+        <Divider />
+        <br />
+        <MyServices services={userServices} />
+        <br />
       </Box>
-      <Box mt={4}>
-      <Typography variant="h6" component="h2">Available</Typography>
-      <Divider />
-      <br/>
-      <AvailableServices services={available} />
+      <Box mt={3}>
+        <Typography variant="h6" component="h2">Available</Typography>
+        <Divider />
+        <br/>
+        <AvailableServices services={available} />
+        <br />
       </Box>
-      <Box mt={4}>
-      <Typography variant="h6" component="h2">Powered by CyVerse{poweredByButton}</Typography>
-      <Divider />
-      <br />
-      <PoweredServices services={powered} />
+      <Box mt={3}>
+        <Typography variant="h6" component="h2">Powered by CyVerse{poweredByButton}</Typography>
+        <Divider />
+        <br />
+        <PoweredServices services={powered} />
+        <br />
       </Box>
     </Layout>
   )
@@ -78,9 +81,9 @@ const PoweredServices = ({services}) => {
 }
 
 const ServiceGrid = ({ services, launch }) => (
-  <Grid container spacing={3}>
-    {services.map(service =>
-      <Grid item key={service.id} xs={12} sm={12} md={6} lg={3} xl={2}>
+  <Grid container spacing={4}>
+    {services.map((service, index) =>
+      <Grid item key={index} xs={12} sm={12} md={6} lg={4} xl={2}>
         <Service {...service} launch={launch} />
       </Grid>
     )}
