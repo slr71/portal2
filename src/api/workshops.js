@@ -12,6 +12,7 @@ const WorkshopService = models.api_workshopservice;
 const WorkshopParticipant = models.api_userworkshop;
 const WorkshopEmail= models.api_workshopuseremail;
 const { approveRequest, grantRequest } = require('./approvers/workshop');
+const { notifyClientOfWorkshopRequestStatusChange } = require('./lib/ws');
 
 function hasHostAccess(workshop, user) {
     return workshop.creator_id == user.id || user.is_staff
@@ -559,7 +560,7 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     if (request.isApproved())
         await grantRequest(request);
 
-    notifyClientOfRequestStatusChange(req.ws, request)
+    notifyClientOfWorkshopRequestStatusChange(req.ws, request)
 }));
 
 // Update enrollment request status 
@@ -609,22 +610,7 @@ router.post('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     if (request.isApproved())
         await grantRequest(request);
 
-    notifyClientOfRequestStatusChange(req.ws, request)
+    notifyClientOfWorkshopRequestStatusChange(req.ws, request)
 }));
-
-//TODO move into library
-function notifyClientOfRequestStatusChange(ws, request) {
-    // Send websocket event to client 
-    if (ws) {
-        ws.send(JSON.stringify({ 
-            type: WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE,
-            data: {
-                requestId: request.id,
-                workshopId: request.workshop.id,
-                status: request.status
-            }
-        }))
-    }
-}
 
 module.exports = router;

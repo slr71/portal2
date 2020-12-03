@@ -1076,10 +1076,8 @@ const SearchUsersDialog = ({ open, title, description, handleClose, handleSubmit
               {...params}
               label="Search users"
               margin="normal"
-              // variant="outlined"
               InputProps={{ 
                 ...params.InputProps, 
-                // type: 'search',
                 endAdornment: (
                   <React.Fragment>
                     {loading 

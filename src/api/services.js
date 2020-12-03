@@ -12,8 +12,9 @@ const AccessRequestQuestion = models.api_accessrequestquestion;
 const AccessRequestAnswer = models.api_accessrequestanswer;
 const { approveRequest, grantRequest } = require('./approvers/service');
 const intercom = require('./lib/intercom');
+const { notifyClientOfServiceRequestStatusChange } = require('./lib/ws');
 const { getUser, requireAdmin, asyncHandler } = require('./lib/auth');
-const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } = require('../constants');
+const { emailServiceAccessGranted } = require('./lib/email');
 
 const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api_poweredservice where service_ptr_id=id))'), 'is_powered' ];
 
@@ -166,12 +167,14 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, asyncHandler(async (req
 
     // Call approver and granter (do this after response as to not delay it)
     if (created) // new request
-        await approveRequest(request); // updates request status
+        await approveRequest(request);
     if (request.isApproved())
         await grantRequest(request);
+    if (request.isGranted()) 
+        await emailServiceAccessGranted(request);
 
     // Send websocket event to client
-    notifyClientOfRequestStatusChange(req.ws, request)
+    notifyClientOfServiceRequestStatusChange(req.ws, request);
 }));
 
 // Update request status //TODO require api key
@@ -215,24 +218,11 @@ router.post('/:nameOrId(\\w+)/requests', getUser, asyncHandler(async (req, res) 
     // Call granter (do this after response as to not delay it)
     if (request.isApproved())
         await grantRequest(request);
+    if (request.isGranted()) 
+        await emailServiceAccessGranted(request);
 
-    notifyClientOfRequestStatusChange(req.ws, request)
+    notifyClientOfServiceRequestStatusChange(req.ws, request);
 }));
-
-//TODO move into library
-function notifyClientOfRequestStatusChange(ws, request) {
-    // Send websocket event to client 
-    if (ws) {
-        ws.send(JSON.stringify({ 
-            type: WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE,
-            data: {
-                requestId: request.id,
-                serviceId: request.service.id,
-                status: request.status
-            }
-        }))
-    }
-}
 
 router.get('/', asyncHandler(async (req, res) => {
     const services = await Service.findAll({

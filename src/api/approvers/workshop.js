@@ -1,9 +1,8 @@
 const config = require('../../config.json');
 const models = require('../models');
 const AccessRequest = models.api_accessrequest;
-const { renderEmail } = require('../lib/email')
+const { emailWorkshopEnrollmentRequest } = require('../lib/email')
 const { logger } = require('../lib/logging');
-const { UI_WORKSHOPS_URL } = require('../../constants');
 const serviceApprovers = require('./service');
 
 async function approveRequest(request) {
@@ -26,7 +25,7 @@ async function approveConditional(request) {
         await request.approve();
     else {
         // User is not pre-approved, send an email to the instructor
-        await email_workshop_enrollment_request(request);
+        await emailWorkshopEnrollmentRequest(request);
         await request.pend();
     }
 }
@@ -65,45 +64,6 @@ async function grantRequest(request) {
     await email_workshop_enrollment_confirmation(request);
     await request.grant();
     logger.info(`grant: Set workshop enrollment request ${request.id} status to "${request.status}"`);
-}
-
-async function email_workshop_enrollment_request(request) {
-    const workshop = request.workshop;
-    const user = request.user;
-    const workshopEnrollmentRequestUrl = `${UI_WORKSHOPS_URL}/${workshop.id}?t=requests`;
-
-    await renderEmail({
-        to: user.email, 
-        bcc: config.email.bccWorkshopEnrollmentRequest,
-        subject: 'Workshop Enrollment Request',
-        templateName: 'review_workshop_enrollment_request',
-        fields: {
-            "WORKSHOP_NAME": workshop.title,
-            "FULL_NAME": `${user.first_name} ${user.last_name}`,
-            "USERNAME": user.username,
-            "EMAIL": user.email,
-            "INSTITUTION": user.institution,
-            "COUNTRY": user.region.country.name,
-            "WORKSHOP_ENROLLMENT_REQUEST_URL": workshopEnrollmentRequestUrl
-        }
-    });
-}
-
-async function email_workshop_enrollment_confirmation(request) {
-    const workshop = request.workshop;
-    const user = request.user;
-    const workshopUrl = `${UI_WORKSHOPS_URL}/${workshop.id}`;
-
-    await renderEmail({
-        to: user.email, 
-        bcc: config.email.bccWorkshopEnrollmentRequest,
-        subject: 'Workshop Enrollment Approved',
-        templateName: 'workshop_enrollment',
-        fields: {
-            "WORKSHOP_NAME": workshop.title,
-            "WORKSHOP_URL": workshopUrl
-        }
-    });
 }
 
 module.exports = { approveRequest, grantRequest };

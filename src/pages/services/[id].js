@@ -90,9 +90,9 @@ const ServiceViewer = (props) => {
         <Grid container spacing={4}>
           <Grid container item xs={12}  justify="space-between">
             <Grid item>
-              <Box display='flex' flexWrap="wrap" alignSelf="flex-end" >
-              <Box mr={2}>
-                <Avatar alt={service.name} src={service.icon_url} />
+              <Box display='flex' flexWrap="wrap" alignSelf="flex-end">
+                <Box mr={2}>
+                  <Avatar alt={service.name} src={service.icon_url} />
                 </Box>
                 <Typography component="h1" variant="h4" gutterBottom>{service.name}</Typography>
               </Box>

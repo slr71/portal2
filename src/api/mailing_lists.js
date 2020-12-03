@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { getUser, asyncHandler } = require('./lib/auth');
-const { renderEmail } = require('./lib/email')
+const { emailNewEmailConfirmation } = require('./lib/email')
 const { generateHMAC } = require('./lib/email')
 const sequelize = require('sequelize');
 const models = require('./models');
@@ -42,17 +42,7 @@ router.put('/email_addresses', getUser, asyncHandler(async (req, res) => {
     res.send(emailAddress).status(200);
 
     // Send email after response as to not delay it
-    const confirmationUrl = `${UI_CONFIRM_EMAIL_URL}?code=${hmac}`;
-    console.log({confirmationUrl});
-    await renderEmail({
-        to: email, 
-        bcc: null,
-        subject: 'CyVerse Email Confirmation', //FIXME hardcoded
-        templateName: 'add_email_confirmation',
-        fields: {
-            "ACTIVATE_URL": confirmationUrl,
-        }
-    })
+    await emailNewEmailConfirmation(email, hmac)
 }));
 
 router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, res) => {

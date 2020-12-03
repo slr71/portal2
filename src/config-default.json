@@ -15,6 +15,7 @@
     "email": {
         "bccNewAccountConfirmation": [],
         "bccPasswordChangeRequest": [],
+        "bccServiceAccessGranted": [],
         "bccWorkshopEnrollmentRequest": []
     },
 
