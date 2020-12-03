@@ -7,7 +7,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
     wget curl \
     expect \
     python3 python3-pip \
-    ssmtp \
+    # ssmtp \
     gettext-base \
     libnss-ldap libpam-ldap ldap-utils
 
