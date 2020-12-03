@@ -102,12 +102,12 @@ const Actions = (props) => {
 
   return (
     <Section title="Actions">
-        <Typography gutterBottom>
-          User has requested access to <b>{props.request.service.name}</b> and the request is currently <b>{props.request.status}</b>.
-        </Typography>
-        <Typography>
-          {text}
-        </Typography>
+      <Typography gutterBottom>
+        User has requested access to <b>{props.request.service.name}</b> and the request is currently <b>{props.request.status}</b>.
+      </Typography>
+      <Typography>
+        {text}
+      </Typography>
       <Box display="flex" justifyContent="flex-end">
         {buttons}
       </Box>

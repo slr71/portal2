@@ -177,7 +177,13 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, asyncHandler(async (req
     notifyClientOfServiceRequestStatusChange(req.ws, request);
 }));
 
-// Update request status //TODO require api key
+/*
+ * Update request status //TODO require api key
+ * 
+ * Called in 
+ *     1. Admin "Access Requests" page to grant/deny request
+ *     2. Service registration workflow (src/api/workflows/argo) to grant request
+ */
 router.post('/:nameOrId(\\w+)/requests', getUser, asyncHandler(async (req, res) => {
     const nameOrId = req.params.nameOrId;
 
