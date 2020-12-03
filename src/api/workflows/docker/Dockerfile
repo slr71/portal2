@@ -1,5 +1,4 @@
 FROM ubuntu:18.04
-MAINTAINER Matt Bomhoff <mbomhoff@email.arizona.edu>
 
 WORKDIR /usr/src/app
 
@@ -29,12 +28,12 @@ COPY iinit.expect .
 RUN expect ./iinit.expect
 
 # Configure sSMTP and copy email templates
-ARG EMAIL_SERVER
-ARG EMAIL_USER 
-ARG EMAIL_PASS
-ARG EMAIL_HOSTNAME
-RUN echo "mailhub=$EMAIL_SERVER\nAuthUser=$EMAIL_USER\nAuthPass=$EMAIL_PASS\nhostname=$EMAIL_HOSTNAME\nUseSTARTTLS=YES" > /etc/ssmtp/ssmtp.conf
-ADD $EMAIL_TEMPLATES_PATH $WORKDIR/templates
+# ARG EMAIL_SERVER
+# ARG EMAIL_USER 
+# ARG EMAIL_PASS
+# ARG EMAIL_HOSTNAME
+# RUN echo "mailhub=$EMAIL_SERVER\nAuthUser=$EMAIL_USER\nAuthPass=$EMAIL_PASS\nhostname=$EMAIL_HOSTNAME\nUseSTARTTLS=YES" > /etc/ssmtp/ssmtp.conf
+# ADD $EMAIL_TEMPLATES_PATH $WORKDIR/templates
 
 # Install Python modules
 COPY requirements.txt .
