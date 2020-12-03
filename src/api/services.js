@@ -195,6 +195,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, asyncHandler(async (req, res) 
     if (!message)
         return res.send('Missing message').status(400);
 
+    // Get service
     const service = await Service.findOne({
         where:
             sequelize.or(
@@ -205,6 +206,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, asyncHandler(async (req, res) 
     if (!service)
         return res.send("Service not found").status(404);
 
+    // Get request
     const request = await AccessRequest.findOne({
         where: { 
             service_id: service.id,
@@ -214,6 +216,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, asyncHandler(async (req, res) 
     if (!request)
         return res.send("Request not found").status(404);
 
+    // Update request
     request.set('status', status);
     request.set('message', message);
     await request.save();
@@ -227,6 +230,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, asyncHandler(async (req, res) 
     if (request.isGranted()) 
         await emailServiceAccessGranted(request);
 
+    // Update status on client
     notifyClientOfServiceRequestStatusChange(req.ws, request);
 }));
 
