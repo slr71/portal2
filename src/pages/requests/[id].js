@@ -11,8 +11,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const Request = (props) => {
-  const form = props.form
+const Request = ({ form }) => {
   const allFields = form.sections.reduce((acc, s) => acc.concat(s.fields), [])
 
   const classes = useStyles()
@@ -54,22 +53,17 @@ const Request = (props) => {
           <Box>
             <Typography component="h1" variant="h4" gutterBottom>{form.name}</Typography>
             <Typography color="textSecondary" gutterBottom>{form.description}</Typography>
-            {form.explanation !== form.description ? (
+            {form.explanation !== form.description && (
               <Typography color="textSecondary">
-                <Markdown>
-                  {form.explanation}
-                </Markdown>
+                <Markdown>{form.explanation}</Markdown>
               </Typography>
-            ) : (
-              <></>
             )}
           </Box>
           <Wizard
             form={form}
             initialValues={initialValues}
             onSubmit={(values, { setSubmitting }) => {
-              console.log('Submit!!!')
-              //submitFormMutation(formatSubmission(values))
+              submitForm(formatSubmission(values))
               setSubmitting(false)
             }}
           />
@@ -81,7 +75,6 @@ const Request = (props) => {
 
 export async function getServerSideProps({ req, query }) {
   const form = await req.api.form(query.id)
-
   return { props: { form } }
 }
 
