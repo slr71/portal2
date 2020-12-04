@@ -512,17 +512,13 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
 
     // Fetch workshop
     const workshop = await Workshop.findByPk(workshopId, { 
-        include: [ 
+        include: [  //TODO move into scope
             'emails',
             'services'
         ]
     });
     if (!workshop)
         return res.send('Workshop not found').status(404);
-
-    // Check permission -- only workshop host/organizer or staff
-    if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
 
     // Create enrolllment request if it doesn't already exist
     const [request, created] = await WorkshopEnrollmentRequest.findOrCreate({
@@ -540,7 +536,7 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
         return res.send('Failed to create request').status(500);
 
     // Create initial enrollmment request log entry. Subsequent entries will be automatically created each time
-    // the request is updated (see "afterUpdateRequest" hook in src/models/index.js).
+    // the request is updated (see "afterUpdateRequest" hook in src/api/models/index.js).
     const log = await WorkshopEnrollmentRequestLog.create({
         workshop_enrollment_request_id: request.id,
         status: request.status,
@@ -552,15 +548,15 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     // Send response to client
     res.json(request).status(201);
 
-    // Call approver and granter (do this after response as to not delay it)
+    // Call approver and granter -- do this after response as to not delay it
     request.user = req.user;
     request.workshop = workshop;
     if (created) // new request
-        await approveRequest(request); // updates request status
+        await approveRequest(request);
     if (request.isApproved())
         await grantRequest(request);
 
-    notifyClientOfWorkshopRequestStatusChange(req.ws, request)
+    notifyClientOfWorkshopRequestStatusChange(req.ws, request);
 }));
 
 // Update enrollment request status 
@@ -604,13 +600,13 @@ router.post('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     // Send response to client
     res.json(request).status(200);
 
-    // Call granter (do this after response as to not delay it)
+    // Call granter -- do this after response as to not delay it
     request.user = req.user;
     request.workshop = workshop;
     if (request.isApproved())
         await grantRequest(request);
 
-    notifyClientOfWorkshopRequestStatusChange(req.ws, request)
+    notifyClientOfWorkshopRequestStatusChange(req.ws, request);
 }));
 
 module.exports = router;

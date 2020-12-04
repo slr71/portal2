@@ -45,6 +45,7 @@ const WorkshopViewer = (props) => {
   const classes = useStyles()
   const api = useAPI()
   const [user] = useUser()
+  const [_, setError] = useError()
 
   const userWorkshop = user.workshops.find(w => w.id == workshop.id)
   const request = userWorkshop && userWorkshop.api_workshopenrollmentrequest
@@ -54,13 +55,21 @@ const WorkshopViewer = (props) => {
   const [requestStatus, setRequestStatus] = useState(request && request.status)
 
   const handleSubmit = async () => {
-    setRequestStatus('requested')
     setDialogOpen(false)
-    const response = await api.createWorkshopRequest(workshop.id)
-    console.log(response)
+    setRequestStatus('submitted')
+    try {
+      const newRequest = await api.createWorkshopRequest(workshop.id)
+      setRequestStatus(newRequest.status)
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
   }
 
   // Configure web socket connection
+  // The enrollment status will live udpate in cases where an instructor manually approves a request
+  // while the user is viewing this page.
   useEffect(() => {
     const socket = new WebSocket(`${wsBaseUrl}/${user.username}`)
 
@@ -71,7 +80,7 @@ const WorkshopViewer = (props) => {
         return
 
       event = JSON.parse(event.data)
-      if (event.data.type == WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE && event.data.workshopId == workshop.id) {
+      if (event.type == WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE && event.data.workshopId == workshop.id) {
         setRequestStatus(event.data.status)
       }
     });
@@ -155,10 +164,11 @@ const WorkshopActionButton = ({ status, enrollmentBegins, enrollmentEnds, reques
     if (now < new Date(enrollmentBegins))
       return { label: 'ENROLLMENT PERIOD HAS NOT BEGUN', disabled: true }
 
-    // Request status can be: 'granted', 'denied', 'pending', 'requested'
+    if (status === 'submitted')
+      return { label: '...', disabled: true }
     if (status === 'granted')
       return { label: 'ENROLLED', disabled: true }
-    if (status === 'pending' || status == 'requested' || status == 'approved')
+    if (status === 'pending' || status == 'approved')
       return {
         label: 'ENROLLMENT PENDING APPROVAL', 
         tooltip: 'The enrollment request is in process or awaiting approval.  You will be notified via email when completed.', 
@@ -198,16 +208,15 @@ const RequestEnrollmentDialog = ({ open, workshop, handleClose, handleSubmit }) 
       <DialogContent>
         <div style={{ fontSize: '16px', color: 'rgba(0, 0, 0, 0.6)' }}>
           <p>
-            Click <strong>Enroll</strong> to submit a request to be enrolled in the workshop.
+            Click <strong>Enroll</strong> to submit a request to enroll in the workshop.
             Upon enrollment, you will automatically be granted access to all services used in the workshop.
           </p>
           <p>
-            <strong>If you are in the list of pre-approved participants</strong>, this will happen
-            immediately, and you will recieve an email notifying you of your enrollment.
+            <strong>If you have been pre-approved to enroll</strong> this will happen
+            immediately and you will recieve an enrollment confirmation email.
           </p>
           <p>
-            <strong>If you have not been pre-approved</strong>, a request will be created, and
-            the instructor will be emailed for manual approval.
+            <strong>If you have not been pre-approved</strong> the instructor will be emailed for manual approval.
           </p>
           <p>
             Would you like to enroll in the <strong>{workshop.title}</strong> workshop?

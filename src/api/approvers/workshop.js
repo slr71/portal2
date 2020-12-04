@@ -1,53 +1,67 @@
-const config = require('../../config.json');
 const models = require('../models');
 const AccessRequest = models.api_accessrequest;
-const { emailWorkshopEnrollmentRequest } = require('../lib/email')
+const WorkshopParticipant = models.api_userworkshop;
+const { emailWorkshopEnrollmentRequest, emailWorkshopEnrollmentConfirmation } = require('../lib/email')
 const { logger } = require('../lib/logging');
 const serviceApprovers = require('./service');
 
 async function approveRequest(request) {
+    if (!request.workshop || !request.user)
+        throw('Missing required property');
+
     if (request.auto_approve)
         await request.approve();
-    else
-        await approveConditional(request);
+    else {
+        // Check if user has a pre-approved email address
+        const userEmails = request.user.emails.map(e => e.email);
+        const workshopEmails = request.workshop.emails.map(e => e.email);
+        if (userEmails.find(e => workshopEmails.includes(e))) 
+            await request.approve();
+        else {
+            // User is not pre-approved, send an email to the instructor for manual approval
+            await request.pend();
+            await emailWorkshopEnrollmentRequest(request);
+        }
+    }
     
     logger.info(`approve: Set workshop enrollment request ${request.id} status to "${request.status}"`);
 }
 
-async function approveConditional(request) {
-    const user = request.user;
-    const workshop = request.workshop;
-
-    // Check if user has a pre-approved email address
-    const emails = user.emails.map(e => e.email);
-    const workshopEmail = workshop.emails.some(email => emails.includes(email));
-    if (workshopEmail) 
-        await request.approve();
-    else {
-        // User is not pre-approved, send an email to the instructor
-        await emailWorkshopEnrollmentRequest(request);
-        await request.pend();
-    }
-}
-
 // Expects a request object with a user and workshop incl. services
 async function grantRequest(request) {
-    if (!request.user || !request.workshop || !request.workshop.services)
+    const user = request.user
+    const workshop = request.workshop
+    if (!user || !workshop || !workshop.services)
         throw('Missing required property')
 
+    await request.grant();
+    logger.info(`grant: Set workshop enrollment request ${request.id} status to "${request.status}"`);
+
+    // Add user to workshop participants
+    const [participant, created] = await WorkshopParticipant.findOrCreate({ 
+        where: { 
+            workshop_id: workshop.id,
+            user_id: user.id,
+            workshop_enrollment_request_id: request.id
+        } 
+    });
+
+    // Send enrollment notification email to user
+    await emailWorkshopEnrollmentConfirmation(request);
+
     // Grant access to all services used in workshop
-    for (let service of request.workshop.services) {
+    for (let service of workshop.services) {
         logger.info(`grant: Grant access to service ${service.name} for workshop enrollment request ${request.id}`);
         let serviceRequest = await AccessRequest.findOne({
             where: { 
                 service_id: service.id,
-                user_id: request.user.id
+                user_id: user.id
             }
         });
         if (!serviceRequest) {
             serviceRequest = await AccessRequest.create({
                 service_id: service.id,
-                user_id: request.user.id,
+                user_id: user.id,
                 auto_approve: true,
                 status: AccessRequest.constants.STATUS_REQUESTED,
                 message: AccessRequest.constants.MESSAGE_REQUESTED
@@ -56,14 +70,10 @@ async function grantRequest(request) {
 
         if (!serviceRequest.isGranted()) { 
             serviceRequest.service = service;
-            serviceRequest.user = request.user;
+            serviceRequest.user = user;
             serviceApprovers.grantRequest(serviceRequest)
         }
     }
-
-    await email_workshop_enrollment_confirmation(request);
-    await request.grant();
-    logger.info(`grant: Set workshop enrollment request ${request.id} status to "${request.status}"`);
 }
 
 module.exports = { approveRequest, grantRequest };

@@ -115,6 +115,13 @@ app.prepare()
             next()
         })
 
+        // Save web socket handle
+        server.use((req, _, next) => {
+            const username = getUserID(req)
+            req.ws = sockets[username]
+            next()
+        })
+
         // Default to landing page if not logged in
         server.get("/", keycloakClient.checkSso(), (req, res) => {
             const token = getUserToken(req)
@@ -144,13 +151,6 @@ app.prepare()
         server.use('/api/forms', keycloakClient.checkSso(), require('./api/forms'))
         server.use('/api/mailing_lists', keycloakClient.checkSso(), require('./api/mailing_lists'))
         server.use('/api/*', (_, res) => res.send('Resource not found').status(404))
-
-        // Save web socket handle
-        server.use((req, _, next) => {
-            const username = getUserID(req)
-            req.ws = sockets[username]
-            next()
-        })
 
         // Require auth on all routes/page after this
         if (!config.debugUser) server.use(keycloakClient.protect())

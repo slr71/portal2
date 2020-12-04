@@ -330,6 +330,10 @@ models.api_accessrequest.prototype.isApproved = function() {
     return this.status == models.api_accessrequest.constants.STATUS_APPROVED;
 }
 
+models.api_accessrequest.prototype.isGranted = function() {
+  return this.status == models.api_accessrequest.constants.STATUS_GRANTED;
+}
+
 // Workshop enrollment request
 models.api_workshopenrollmentrequest.constants = {
     STATUS_REQUESTED:  'requested',
