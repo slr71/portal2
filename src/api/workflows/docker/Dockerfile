@@ -12,7 +12,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
     libnss-ldap libpam-ldap ldap-utils
 
 # Configure LDAP
-COPY ldap.conf /etc/ldap
+ARG LDAP_CONFIG_FILE
+COPY $LDAP_CONFIG_FILE /etc/ldap/ldap.conf
 
 # Install iCommands
 RUN wget -q https://files.renci.org/pub/irods/releases/4.1.12/ubuntu14/irods-icommands-4.1.12-ubuntu14-x86_64.deb
