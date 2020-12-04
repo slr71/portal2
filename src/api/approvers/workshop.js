@@ -41,10 +41,13 @@ async function grantRequest(request) {
     const [participant, created] = await WorkshopParticipant.findOrCreate({ 
         where: { 
             workshop_id: workshop.id,
-            user_id: user.id,
+            user_id: user.id
+        },
+        defaults: {
             workshop_enrollment_request_id: request.id
-        } 
+        }
     });
+    //TODO check for error
 
     // Send enrollment notification email to user
     await emailWorkshopEnrollmentConfirmation(request);

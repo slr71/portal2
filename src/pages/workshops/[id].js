@@ -923,7 +923,7 @@ const Requests = ({ requests, submitHandler }) => {
             <Button 
               color="primary" 
               size="small" 
-              disabled={status == 'denied'}
+              disabled={status == 'denied' || status == 'granted'}
               onClick={() => submitHandler('denied')}
             >
               Deny
