@@ -78,6 +78,7 @@ async function grantRequest(request) {
  */
 
 // Based on v1 portal:/warden/approvers/atmosphere.py
+// Approval policy and messages updated 12/3/2020 per https://cyverse.atlassian.net/browse/UP-47
 async function approveAtmosphere(request) {
     const user = request.user;
     const intro = `Hi ${user.first_name}! Thanks for requesting access to Atmosphere.`;
@@ -85,6 +86,7 @@ async function approveAtmosphere(request) {
 
     // Check if user is a student
     if (user.occupation.name && user.occupation.name.toLowerCase().indexOf('student') >= 0) {
+        logger.info(`approveAtmosphere: Pend student user "${user.username}" for request ${request.id}`);
         await intercom_atmosphere(request,
             `${intro}
 
@@ -97,41 +99,30 @@ async function approveAtmosphere(request) {
         return;
     }
 
-    // Check if user is international
-    if (user.region.country.name != 'United States') {
-        logger.info(`approveAtmosphere: Deny user from country ${user.region.country.name} for request ${request.id}`);
-        await intercom_atmosphere(request, 
-            `${intro}
+    // Deny all other requests
+    logger.info(`approveAtmosphere: Deny user "${user.username}" for request ${request.id}`);
+    await intercom_atmosphere(request, 
+        `${intro}
 
-             At this time, CyVerse Atmosphere is no longer accepting new requests from non-US users. Here is information about alternative services within CyVerse or platforms outside of CyVerse:
-             ${faqUrl}
-             
-             Please let us know if you have any questions.`
-        );
-        await request.deny();
-        return;
-    }
+        We are no longer accepting new accounts as Atmosphere is being changed from a general purpose cloud computing environment to one that supports cloud-native development projects.
 
-    // Check if user has an auto-approvable email address
-    const validEmail = user.emails.some(email => 
-        email.email.endsWith('.edu') || email.email.endsWith('@cyverse.org') || email.email.endsWith('.gov')
+        What can I use instead of Atmosphere?
+        
+        The CyVerse Discovery Environment (https://de.cyverse.org/) is a simple web interface for managing data, running analyses, and visualizing results. See Getting Started with the Discovery Environment: https://learning.cyverse.org/projects/discovery-environment-guide/en/latest/
+        
+        In addition, the NSF recently extended CyVerse’s long-term partnership with Jetstream (https://jetstream-cloud.org/) through 2025 to provide similar capabilities and interfaces of Atmosphere yet with significantly larger CPU, GPU, and storage infrastructure. This presents an exciting option for our U.S. users. 
+        https://cyverse.org/national-science-foundation-10M-award-to-jetstream-2-brings-new-opportunities-for-cyverse
+        
+        What if I already had images on Atmosphere?
+        
+        CyVerse staff will provide assistance for U.S.-based researchers to migrate their cloud images to Jetstream, which uses CyVerse Atmosphere as its primary interface. The CyVerse Atmosphere image must be owned by the user and must meet Jetstream’s requirements for importing images. CyVerse cannot guarantee 100% success when exporting a virtual disk image from CyVerse Atmosphere to Jetstream Atmosphere. Jetstream staff will not provide support for imported images, and instead recommends images be recreated in their cloud. For more information about Jetstream, see Getting Started with Jetstream: https://iujetstream.atlassian.net/wiki/spaces/JWT/pages/29720582/Quick+Start+Guide
+        
+        For more information please see the FAQ: ${faqUrl}
+        
+        Thank you, please let us know if there anything else we can help you with.`
     );
-    if (!validEmail) {
-        logger.info(`approveAtmosphere: Deny user with emails ${user.emails.map(e => e.email).join(', ')} for request ${request.id}`);
-        await intercom_atmosphere(request, 
-            `${intro}
-
-             In order to use CyVerse Atmosphere you must have a *.edu or *.gov email address associated with your account. 
-             If you have one, and can add it, we can approve your request.
-             
-             Please let us know if you have any questions.`
-        );
-        await request.deny();
-        return;
-    }
-
-    // All requirements met
-    await request.approve();
+    await request.deny();
+    return;
 }
 
 module.exports = { approveRequest, grantRequest };
