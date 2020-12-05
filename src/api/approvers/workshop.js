@@ -16,10 +16,10 @@ async function approveRequest(request) {
         const userEmails = request.user.emails.map(e => e.email);
         const workshopEmails = request.workshop.emails.map(e => e.email);
         if (userEmails.find(e => workshopEmails.includes(e))) 
-            await request.approve();
+            await request.approve('User was pre-approved');
         else {
             // User is not pre-approved, send an email to the instructor for manual approval
-            await request.pend();
+            await request.pend('Sent enrollment request to instructor');
             await emailWorkshopEnrollmentRequest(request);
         }
     }

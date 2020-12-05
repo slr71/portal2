@@ -302,15 +302,15 @@ models.api_accessrequest.constants = {
     MESSAGE_DENIED:    'You must have a *.edu or *.gov email address associated with your account in order to use Atmosphere'
 };
 
-models.api_accessrequest.prototype.pend = async function() {
+models.api_accessrequest.prototype.pend = async function(message) {
     this.set('status', models.api_accessrequest.constants.STATUS_PENDING);
-    this.set('message', models.api_accessrequest.constants.MESSAGE_PENDING);
+    this.set('message', message || models.api_accessrequest.constants.MESSAGE_PENDING);
     await this.save();
 }
 
-models.api_accessrequest.prototype.approve = async function() {
+models.api_accessrequest.prototype.approve = async function(message) {
     this.set('status', models.api_accessrequest.constants.STATUS_APPROVED);
-    this.set('message', models.api_accessrequest.constants.MESSAGE_APPROVED);
+    this.set('message', message || models.api_accessrequest.constants.MESSAGE_APPROVED);
     await this.save();
 }
 
@@ -320,9 +320,9 @@ models.api_accessrequest.prototype.grant = async function() {
     await this.save();
 }
 
-models.api_accessrequest.prototype.deny = async function() {
+models.api_accessrequest.prototype.deny = async function(message) {
     this.set('status', models.api_accessrequest.constants.STATUS_DENIED);
-    this.set('message', models.api_accessrequest.constants.MESSAGE_DENIED);
+    this.set('message', message || models.api_accessrequest.constants.MESSAGE_DENIED);
     await this.save();
 }
 
@@ -348,15 +348,15 @@ models.api_workshopenrollmentrequest.constants = {
     MESSAGE_DENIED:    'Request denied'
 };
 
-models.api_workshopenrollmentrequest.prototype.pend = async function() {
+models.api_workshopenrollmentrequest.prototype.pend = async function(message) {
     this.set('status', models.api_workshopenrollmentrequest.constants.STATUS_PENDING);
-    this.set('message', models.api_workshopenrollmentrequest.constants.MESSAGE_PENDING);
+    this.set('message', message || odels.api_workshopenrollmentrequest.constants.MESSAGE_PENDING);
     await this.save();
 }
 
-models.api_workshopenrollmentrequest.prototype.approve = async function() {
+models.api_workshopenrollmentrequest.prototype.approve = async function(message) {
     this.set('status', models.api_workshopenrollmentrequest.constants.STATUS_APPROVED);
-    this.set('message', models.api_workshopenrollmentrequest.constants.MESSAGE_APPROVED);
+    this.set('message', message || models.api_workshopenrollmentrequest.constants.MESSAGE_APPROVED);
     await this.save();
 }
 
@@ -366,9 +366,9 @@ models.api_workshopenrollmentrequest.prototype.grant = async function() {
     await this.save();
 }
 
-models.api_workshopenrollmentrequest.prototype.deny = async function() {
+models.api_workshopenrollmentrequest.prototype.deny = async function(message) {
     this.set('status', models.api_workshopenrollmentrequest.constants.STATUS_DENIED);
-    this.set('message', models.api_workshopenrollmentrequest.constants.MESSAGE_DENIED);
+    this.set('message', message || models.api_workshopenrollmentrequest.constants.MESSAGE_DENIED);
     await this.save();
 }
 

@@ -399,9 +399,9 @@ const WorkshopEditor = (props) => {
     }
   }
 
-  const updateRequest = async (status) => {
+  const updateRequest = async (status, message) => {
     try {
-      await api.updateWorkshopRequest(workshop.id, { status })
+      await api.updateWorkshopRequest(workshop.id, { status, message })
       const newRequests = await api.workshopRequests(workshop.id)
       setRequests(newRequests)
     }
@@ -924,7 +924,7 @@ const Requests = ({ requests, submitHandler }) => {
               color="primary" 
               size="small" 
               disabled={status == 'denied' || status == 'granted'}
-              onClick={() => submitHandler('denied')}
+              onClick={() => submitHandler('denied', `Request denied by ${user.username}`)}
             >
               Deny
             </Button>
@@ -932,7 +932,7 @@ const Requests = ({ requests, submitHandler }) => {
               color="primary" 
               size="small"
               disabled={status == 'approved' || status == 'granted'}
-              onClick={() => submitHandler('approved')}
+              onClick={() => submitHandler('approved', `Request approved by ${user.username}`)}
             >
               Approve
             </Button>

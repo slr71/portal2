@@ -549,15 +549,15 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     if (!request)
         return res.send('Failed to create request').status(500);
 
-    // Create initial enrollmment request log entry. Subsequent entries will be automatically created each time
-    // the request is updated (see "afterUpdateRequest" hook in src/api/models/index.js).
-    // const log = await WorkshopEnrollmentRequestLog.create({
-    //     workshop_enrollment_request_id: request.id,
-    //     status: request.status,
-    //     message: request.message
-    // })
-    // if (!log)
-    //     return res.send('Failed to create enrollment request log').status(500);
+    // Create initial enrollment request log entry to record that user requested to enroll.
+    // Subsequent entries will be automatically created each time the request is updated (see "afterUpdateRequest" hook in src/api/models/index.js).
+    const log = await WorkshopEnrollmentRequestLog.create({
+        workshop_enrollment_request_id: request.id,
+        status: request.status,
+        message: request.message
+    })
+    if (!log)
+        return res.send('Failed to create enrollment request log').status(500);
     
     // Send response to client
     res.json(request).status(201);
@@ -576,7 +576,14 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
 // Update enrollment request status 
 router.post('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     const workshopId = req.params.id;
+
     const status = req.body.status;
+    if (!status) //TODO verify valid status value
+        return res.send('Missing status').status(400);
+
+    const message = req.body.message;
+    if (!message)
+        return res.send('Missing message').status(400);
 
     // Fetch workshop
     const workshop = await Workshop.findByPk(workshopId, {
@@ -601,15 +608,10 @@ router.post('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     if (!request)
         return res.send("Request not found").status(404);
 
-    // Update status
-    switch (status) {
-        case 'pending': request.pend(); break;
-        case 'approved': request.approve(); break;
-        case 'granted': request.grant(); break;
-        case 'denied': request.deny(); break;
-        default:
-          return res.send('Invalid status').status(400);
-    }
+    // Update request
+    request.set('status', status);
+    request.set('message', message);
+    await request.save();
 
     // Send response to client
     res.json(request).status(200);
