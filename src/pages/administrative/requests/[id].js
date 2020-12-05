@@ -64,22 +64,16 @@ const Questions = ({ questions, answers }) => {
 
 const Actions = (props) => {
   const [user] = useUser()
-  const request = props.request
+  const [request, setRequest] = React.useState(props.request)
   const classes = useStyles()
 
-  const handleApprove = async () => {
-    const response = await props.api.updateServiceRequest(request.service.id, 'approved', 'Request approved by ' + user.username)
-    console.log(response.data)
-    props.request = response.data
+  const updateStatus = async (status) => {
+    const newRequest = await props.api.updateServiceRequest(request.service.id, { status, message: `Request ${status} by ${user.username}` })
+    setRequest(newRequest)
   }
 
-  const handleDeny = async () => {
-    const response = await props.api.updateServiceRequest(request.service.id, 'denied', 'Request denied by ' + user.username)
-    console.log(response.data)
-  }
-
-  const approveButton = <Button key="approve" color="primary" size="medium" onClick={handleApprove}>APPROVE</Button>
-  const denyButton = <Button key="deny" color="secondary" size="medium" onClick={handleDeny}>DENY</Button>
+  const approveButton = <Button color="primary" size="medium" onClick={() => updateStatus('approved')}>APPROVE</Button>
+  const denyButton = <Button color="secondary" size="medium" onClick={() => updateStatus('denied')}>DENY</Button>
 
   let buttons, text
   switch (props.request.status) {

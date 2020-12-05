@@ -152,8 +152,8 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, asyncHandler(async (req
         }
     }
 
-    // Create initial access request log entry. Subsequent entries will be automatically created each time
-    // the request is updated (see "afterUpdateRequest" hook in src/models/index.js).
+    // Create initial access request log entry to record that user requested access.
+    // Subsequent entries will be automatically created each time the request is updated (see "afterUpdateRequest" hook in src/api/models/index.js).
     const log = await AccessRequestLog.create({
         access_request_id: request.id,
         status: request.status,
@@ -170,10 +170,7 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, asyncHandler(async (req
         await approveRequest(request);
     if (request.isApproved())
         await grantRequest(request);
-    if (request.isGranted()) 
-        await emailServiceAccessGranted(request);
 
-    // Send websocket event to client
     notifyClientOfServiceRequestStatusChange(req.ws, request);
 }));
 
@@ -227,7 +224,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, asyncHandler(async (req, res) 
     // Call granter (do this after response as to not delay it)
     if (request.isApproved())
         await grantRequest(request);
-    if (request.isGranted()) 
+    if (request.isGranted()) // callback from workflow
         await emailServiceAccessGranted(request);
 
     // Update status on client

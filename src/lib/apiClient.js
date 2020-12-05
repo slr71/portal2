@@ -96,7 +96,7 @@ class PortalAPI {
 
   async createServiceRequest(id, answers) { return await this.put(`/services/${id}/requests`, { answers })}
 
-  async updateServiceRequest(id, status, message) { return await this.post(`/services/${id}/requests`, { status, message }) }
+  async updateServiceRequest(id, fields) { return await this.post(`/services/${id}/requests`, fields) }
 
   async createServiceQuestion(serviceId, params) { return await this.put(`/services/${serviceId}/questions`, params) }
 

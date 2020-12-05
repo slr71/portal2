@@ -48,36 +48,28 @@ const Services = (props) => {
 
 const MyServices = ({services}) => {
   if (services && services.length > 0)
-    return (<ServiceGrid services={services} launch={true} />)
+    return <ServiceGrid services={services} launch={true} />
 
   return (
-    <p>
-    Looks like you don't have access to any services.
-    If you request access to one, you'll find it here.
-    </p>
+    <Typography variant="body1">
+      Looks like you don't have access to any services.
+      If you request access to one, you'll find it here.
+    </Typography>
   )
 }
 
 const AvailableServices = ({services}) => {
   if (services && services.length > 0)
-    return (<ServiceGrid services={services} launch={false} />)
+    return <ServiceGrid services={services} launch={false} />
 
-  return (
-    <p>
-    There are no additional services available.
-    </p>
-  )
+  return <Typography variant="body1">There are no additional services available.</Typography>
 }
 
 const PoweredServices = ({services}) => {
   if (services && services.length > 0)
-    return (<ServiceGrid services={services} launch={true} />)
+    return <ServiceGrid services={services} launch={true} />
 
-  return (
-    <p>
-    There are no additional services available.
-    </p>
-  )
+  return <Typography variant="body1">There are no additional services available.</Typography>
 }
 
 const ServiceGrid = ({ services, launch }) => (

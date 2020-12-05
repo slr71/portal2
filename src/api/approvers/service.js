@@ -3,7 +3,6 @@ const Argo = require('../lib/argo');
 const { intercom_atmosphere } = require('../lib/intercom');
 const { emailServiceAccessGranted } = require('../lib/email')
 const { logger } = require('../lib/logging');
-const { UI_SERVICES_URL } = require('../../constants');
 
 // Only the Atmosphere service has a special approval requirements, all other services are auto-approved.
 const APPROVERS = {
@@ -81,6 +80,9 @@ async function grantRequest(request) {
 // Approval policy and messages updated 12/3/2020 per https://cyverse.atlassian.net/browse/UP-47
 async function approveAtmosphere(request) {
     const user = request.user;
+    if (!user)
+        throw('Missing required property');
+
     const intro = `Hi ${user.first_name}! Thanks for requesting access to Atmosphere.`;
     const faqUrl = 'https://learning.cyverse.org/projects/faq/en/latest/atmosphere-faq.html';
 

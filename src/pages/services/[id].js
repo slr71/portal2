@@ -39,7 +39,7 @@ const ServiceViewer = (props) => {
   const [user] = useUser()
   const [_, setError] = useError()
   const userService = user.services.find(s => s.id == service.id)
-  const request = userService && userService.request
+  const request = userService && userService.api_accessrequest
 
   // only Atmosphere has a question, and it has only one
   const question = service.questions && service.questions.length > 0 ? service.questions[0] : null 
@@ -48,18 +48,14 @@ const ServiceViewer = (props) => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [answer, setAnswer] = useState()
 
-  const handleOpenDialog = () => {
-    setDialogOpen(true)
-  }
-
-  const handleCloseDialog = () => {
-    setDialogOpen(false)
-  }
-
   const submitAccessRequest = async () => {
     try {
-      await api.createServiceRequest(service.id, [{ questionId: question && question.id, value: answer }])
-      handleCloseDialog()
+      const questions = question && question.id
+        ? [{ questionId: question && question.id, value: answer }]
+        : null
+      const newRequest = await api.createServiceRequest(service.id, questions)
+      setRequestStatus(newRequest.status)
+      setDialogOpen(false)
     }
     catch(error) {
       console.log(error)
@@ -78,7 +74,7 @@ const ServiceViewer = (props) => {
         return
 
       event = JSON.parse(event.data)
-      if (event.data.type == WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE && event.data.serviceId == service.id) {
+      if (event.type == WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE && event.data.serviceId == service.id) {
         setRequestStatus(event.data.status)
       }
     });
@@ -98,7 +94,7 @@ const ServiceViewer = (props) => {
               </Box>
             </Grid>
             <Grid item>
-              <ServiceActionButton service={service} status={requestStatus} requestAccessHandler={handleOpenDialog} />
+              <ServiceActionButton service={service} status={requestStatus} requestAccessHandler={() => setDialogOpen(true)} />
             </Grid>
             <Grid item xs={12}>
               <Box my={1}>
@@ -197,12 +193,12 @@ const ServiceViewer = (props) => {
         requiresAnswer={!!question}
         open={dialogOpen}
         handleChange={(e) => setAnswer(e.target.value)}
-        handleClose={handleCloseDialog} 
+        handleClose={() => setDialogOpen(false)} 
         handleSubmit={
           (!question || answer) && // disable submit button if input is blank and answer is required
             (() => {
               setRequestStatus('requested')
-              handleCloseDialog()
+              setDialogOpen(false)
               submitAccessRequest()
             })
         }
