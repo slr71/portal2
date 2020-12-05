@@ -4,8 +4,8 @@ const expressWinston = require("express-winston")
 const { getUserID } = require("./auth")
 
 //TODO move to config file
-const logLevel = 'info'
-const logLabel = 'dev'
+const logLevel = 'debug'
+const logLabel = (process.env.NODE_ENV == 'production' ? 'PROD' : 'DEV')
 
 const logFormat = printf(
     ({ level, message, label, timestamp }) =>
