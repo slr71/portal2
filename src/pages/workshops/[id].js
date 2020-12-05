@@ -892,12 +892,13 @@ const Requests = ({ requests, submitHandler }) => {
     let color = 'black';
 
     switch (value) {
-      case 'approved': color = 'green'; break;
-      case 'granted': color = 'blue'; break;
-      case 'denied': color = 'red'; break;
+      case 'pending':
+      case 'approved': color = 'inherit'; break;
+      case 'granted': color = 'primary'; break;
+      case 'denied': color = 'error'; break;
     }
 
-    return <span style={{color: color}}>{value.toUpperCase()}</span>
+    return <Typography color={color}>{value.toUpperCase()}</Typography>
   }
 
   const Row = ({ user, created_at, status, logs }) => {
