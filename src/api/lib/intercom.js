@@ -7,7 +7,7 @@ const config = require('../../config.json');
 
 const intercom = new Intercom.Client({ token: config.intercom.token });
 
-async function create_contact(user) {
+async function createContact(user) {
     const contacts = await search('contacts', {
         field: 'external_id',
         operator: '=',
@@ -41,20 +41,20 @@ async function search(resource, query) {
     }
 }
 
-async function get_conversation(id) {
+async function getConversation(id) {
     try {
         const res = await intercom.conversations.find({ id });
         if (res && res.body)
             return res.body;
     }
     catch(error) {
-        console.log('get_conversation:', error)
+        console.log('getConversation:', error)
     }
 }
 
-async function start_conversation(user, body) {
+async function startConversation(user, body) {
     // Make sure contact exists
-    const contact = await create_contact(user);
+    const contact = await createContact(user);
 
     // Create message (which will result in a new conversation)
     const message = await intercom.messages.create({
@@ -83,7 +83,7 @@ async function start_conversation(user, body) {
     return [conversation, message.body]
 }
 
-function get_atmosphere_conversation_body(questions, answers) {
+function getAtmosphereConversationBody(questions, answers) {
     let body = "Atmosphere access requested.";
 
     if (questions && questions.length > 0) {
@@ -109,12 +109,12 @@ function get_atmosphere_conversation_body(questions, answers) {
     return body;
 }
 
-async function intercom_atmosphere(request, responseMessage) {
+async function sendAtmosphereSignupMessage(request, responseMessage) {
     const service = request.service;
     const user = request.user;
 
-    const body = get_atmosphere_conversation_body(service.questions, request.answers);
-    const [conversation, message] = await start_conversation(user, body);
+    const body = getAtmosphereConversationBody(service.questions, request.answers);
+    const [conversation, message] = await startConversation(user, body);
 
     await AccessRequestConversation.create({
         access_request_id: request.id,
@@ -122,18 +122,18 @@ async function intercom_atmosphere(request, responseMessage) {
         intercom_conversation_id: conversation.id
     });
 
-    await add_note_to_conversation(conversation.id, `This request can be viewed at ${config.accessRequestsUrl}/${request.id}`);
+    await addNoteToConversation(conversation.id, `This request can be viewed at ${config.accessRequestsUrl}/${request.id}`);
 
-    await reply_to_conversation(conversation.id, responseMessage);
-    await assign_conversation_to_atmosphere_team(conversation.id);
+    await replyToConversation(conversation.id, responseMessage);
+    await assignConversationToAtmosphereTeam(conversation.id);
 }
 
-async function intercom_send_form_submission_confirmation_message(submission) {
+async function sendFormSubmissionConfirmationMessage(submission) {
     const user = submission.user;
     const intercomTeams = submission.intercomTeams;
 
     const body = get_form_submission_conversation_body(user, submission);
-    connst [conversation, message] = await start_conversation(user, body);
+    connst [conversation, message] = await startConversation(user, body);
 
     await FormSubmissionConversation.create(
         form_submission=form_submission,
@@ -141,17 +141,17 @@ async function intercom_send_form_submission_confirmation_message(submission) {
         intercom_conversation_id=conversation.id
     );
 
-    await add_note_to_conversation(conversation.id, `This form submission can be viewed at ${config.formSubmissionUrl}/${submission.id}`);
+    await addNoteToConversation(conversation.id, `This form submission can be viewed at ${config.formSubmissionUrl}/${submission.id}`);
    
-    await reply_to_conversation(conversation.id,
+    await replyToConversation(conversation.id,
         `Hi ${user.first_name}! Thanks for submitting the form. One of the staff will review it and get back to you. In the meantime, feel free to respond to this message if you'd like to chat more about your request.`
     );
 
     if (intercomTeams && intercomTeams.length > 0)
-        assign_conversation_to_intercom_team(conversation.id, intercomTeams[0].id)
+        assignConversationToIntercomTeam(conversation.id, intercomTeams[0].id)
 }
 
-async function add_note_to_conversation(conversationId, message) {
+async function addNoteToConversation(conversationId, message) {
     try {
         await intercom.conversations.reply({
             id: conversationId,
@@ -166,19 +166,19 @@ async function add_note_to_conversation(conversationId, message) {
     }
 }
 
-async function assign_conversation_to_atmosphere_team(conversationId) {
-    await assign_conversation(conversationId, config.intercom.adminTier1AtmosphereId)
+async function assignConversationToAtmosphereTeam(conversationId) {
+    await assignConversation(conversationId, config.intercom.adminTier1AtmosphereId)
 }
 
-async function assign_conversation_to_science_team(conversationId) {
-    await assign_conversation(conversationId, config.intercom.adminTier1ScienceTeamId)
+async function assignConversationToScienceTeam(conversationId) {
+    await assignConversation(conversationId, config.intercom.adminTier1ScienceTeamId)
 }
 
-async function assign_conversation_to_intercom_team(conversationId, intercomTeamId) {
-    await assign_conversation(conversationId, intercomTeamId)
+async function assignConversationToIntercomTeam(conversationId, intercomTeamId) {
+    await assignConversation(conversationId, intercomTeamId)
 }
 
-async function assign_conversation(conversationId, assigneeId) {
+async function assignConversation(conversationId, assigneeId) {
     await intercom.conversations.reply({
         id: conversationId,
         type: 'admin',
@@ -188,7 +188,7 @@ async function assign_conversation(conversationId, assigneeId) {
     })
 }
 
-async function reply_to_conversation(conversationId, message) {
+async function replyToConversation(conversationId, message) {
     await intercom.conversations.reply({
         id: conversationId,
         type: 'admin',
@@ -198,4 +198,8 @@ async function reply_to_conversation(conversationId, message) {
     });
 }
 
-module.exports = { get_conversation, intercom_atmosphere, intercom_send_form_submission_confirmation_message };
+module.exports = { 
+    getConversation, 
+    sendAtmosphereSignupMessage, 
+    sendFormSubmissionConfirmationMessage 
+};

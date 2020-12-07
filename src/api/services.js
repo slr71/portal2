@@ -86,7 +86,7 @@ router.get('/requests/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) =>
 
     // Fetch conversations from Intercom
     for (let conversation of request.conversations) {
-        const c = await intercom.get_conversation(conversation.intercom_conversation_id);
+        const c = await intercom.getConversation(conversation.intercom_conversation_id);
         if (c) {
             conversation.setDataValue('source', c.source);
             if (c.conversation_parts)

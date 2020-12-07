@@ -1,6 +1,6 @@
 const config = require('../../config.json');
 const Argo = require('../lib/argo');
-const { intercom_atmosphere } = require('../lib/intercom');
+const { sendAtmosphereSignupMessage } = require('../lib/intercom');
 const { emailServiceAccessGranted } = require('../lib/email')
 const { logger } = require('../lib/logging');
 
@@ -89,7 +89,7 @@ async function approveAtmosphere(request) {
     // Check if user is a student
     if (user.occupation.name && user.occupation.name.toLowerCase().indexOf('student') >= 0) {
         logger.info(`approveAtmosphere: Pend student user "${user.username}" for request ${request.id}`);
-        await intercom_atmosphere(request,
+        await sendAtmosphereSignupMessage(request,
             `${intro}
 
              We are no longer approving student access for Atmosphere unless you are part of a workshop. Please ask your instructor for details on enrolling into the workshop.
@@ -103,7 +103,7 @@ async function approveAtmosphere(request) {
 
     // Deny all other requests
     logger.info(`approveAtmosphere: Deny user "${user.username}" for request ${request.id}`);
-    await intercom_atmosphere(request, 
+    await sendAtmosphereSignupMessage(request, 
         `${intro}
 
         We are no longer accepting new accounts as Atmosphere is being changed from a general purpose cloud computing environment to one that supports cloud-native development projects.
