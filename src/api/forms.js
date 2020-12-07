@@ -14,6 +14,7 @@ const intercom = require('./lib/intercom');
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
 
+// Get all forms
 router.get('/', asyncHandler(async (req, res) => {
     let formGroups = await FormGroup.findAll({
         include: [ 
@@ -156,14 +157,15 @@ router.get('/:nameOrId([\\w\\%]+)', asyncHandler(async (req, res) => {
                     { 
                         model: FormField, 
                         as: 'fields', 
-                        include: [ 'options' ],
-                        // order: [ ['index', 'ASC'] ] // not working, see order below
+                        include: [ 'options' ]
                     }
-                ],
-                order: [ ['index', 'ASC'] ]
+                ]
             }
         ],
-        order: [ [ { model: FormSection, as: 'sections' }, { model: FormField, as: 'fields' }, 'index', 'asc' ] ]
+        order: [ 
+            [ { model: FormSection, as: 'sections' }, 'index', 'asc' ],
+            [ { model: FormSection, as: 'sections' }, { model: FormField, as: 'fields' }, 'index', 'asc' ] 
+        ]
     });
     if (!form)
         return res.send('Form not found').status(404);
