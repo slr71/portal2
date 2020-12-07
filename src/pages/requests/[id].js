@@ -59,6 +59,7 @@ const Request = ({ form }) => {
               </Typography>
             )}
           </Box>
+          <br />
           <Wizard
             form={form}
             initialValues={initialValues}
