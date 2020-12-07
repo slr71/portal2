@@ -70,7 +70,7 @@ router.get('/submissions/:id(\\d+)', requireAdmin, asyncHandler(async (req, res)
 
     // Fetch conversations from Intercom
     for (let conversation of submission.conversations) {
-        const c = await intercom.get_conversation(conversation.intercom_conversation_id);
+        const c = await intercom.getConversation(conversation.intercom_conversation_id);
         if (c) {
             conversation.setDataValue('source', c.source);
             if (c.conversation_parts)
@@ -82,7 +82,7 @@ router.get('/submissions/:id(\\d+)', requireAdmin, asyncHandler(async (req, res)
 }));
 
 // Create new form submission
-router.put('/:id(\\d+)/submissions', getUser, requireAdmin, asyncHandler(async (req, res) => {
+router.put('/:id(\\d+)/submissions', getUser, asyncHandler(async (req, res) => {
     const formId = req.params.id;
     const fields = req.body;
     if (!fields || fields.length == 0)
@@ -134,8 +134,8 @@ router.put('/:id(\\d+)/submissions', getUser, requireAdmin, asyncHandler(async (
     // Send response to client
     res.json(submission).status(201);
 
-    // Send message via Intercom (do this after response as to not delay it)
-    //intercom_send_form_submission_confirmation_message(submission);
+    // Send confirmation message via Intercom (do this after response as to not delay it)
+    intercom.sendFormSubmissionConfirmationMessage(submission);
 }));
 
 // Fetch form by ID or name
@@ -235,7 +235,7 @@ router.post('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
 }));
 
 // Create form section
-router.put('/sections', asyncHandler(async (req, res) => {
+router.put('/sections', requireAdmin, asyncHandler(async (req, res) => {
     const newSection = req.body;
     if (!newSection || !newSection.name)
         return res.send('Missing fields').status(400);
@@ -248,7 +248,7 @@ router.put('/sections', asyncHandler(async (req, res) => {
 }));
 
 // Update form section
-router.post('/sections/:id(\\d+)/', asyncHandler(async (req, res) => {
+router.post('/sections/:id(\\d+)/', requireAdmin, asyncHandler(async (req, res) => {
     const sectionId = req.params.id;
     const newSection = req.body;
 
@@ -264,7 +264,7 @@ router.post('/sections/:id(\\d+)/', asyncHandler(async (req, res) => {
 }));
 
 // Delete form section
-router.delete('/sections/:id(\\d+)/', asyncHandler(async (req, res) => {
+router.delete('/sections/:id(\\d+)/', requireAdmin, asyncHandler(async (req, res) => {
     const section = await FormSection.findByPk(req.params.id);
     if (!section)
         return res.send('Section not found').status(404);
@@ -275,7 +275,7 @@ router.delete('/sections/:id(\\d+)/', asyncHandler(async (req, res) => {
 }));
 
 // Create form field
-router.put('/fields', asyncHandler(async (req, res) => {
+router.put('/fields', requireAdmin, asyncHandler(async (req, res) => {
     const newField = req.body;
 
     if (!newField || !newField.name || !newField.type)
@@ -289,7 +289,7 @@ router.put('/fields', asyncHandler(async (req, res) => {
 }));
 
 // Update form field
-router.post('/fields/:id(\\d+)/', asyncHandler(async (req, res) => {
+router.post('/fields/:id(\\d+)/', requireAdmin, asyncHandler(async (req, res) => {
     const fieldId = req.params.id;
     const newField = req.body;
 
@@ -305,7 +305,7 @@ router.post('/fields/:id(\\d+)/', asyncHandler(async (req, res) => {
 }));
 
 // Delete form field
-router.delete('/fields/:id(\\d+)/', asyncHandler(async (req, res) => {
+router.delete('/fields/:id(\\d+)/', requireAdmin, asyncHandler(async (req, res) => {
     const field = await FormField.findByPk(req.params.id);
     if (!field)
         return res.send('Field not found').status(404);
