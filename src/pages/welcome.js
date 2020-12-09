@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 import { isEmpty, isEmail } from 'validator'
-import { Link, Box, Grid, Typography, TextField, Button, Dialog, DialogTitle, DialogContent, LinearProgress, makeStyles} from '@material-ui/core'
+import { Link, Box, Grid, Typography, TextField, Button, LinearProgress, makeStyles} from '@material-ui/core'
 import { MainLogo, Wizard, WelcomeAnimation, honeypotId } from '../components'
 import { useAPI } from '../contexts/api'
 import { useError } from '../contexts/error'
@@ -65,24 +66,17 @@ const Left = () => {
 
 const Right = (props) => {
   const classes = useStyles()
+  const router = useRouter()
   const api = useAPI()
   const [_, setError] = useError()
 
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const [signup, setSignup] = useState(!!router.query.signup)
   const [forgotPassword, setForgotPassword] = useState(false)
   const [email, setEmail] = useState()
   const [validationError, setValidationError] = useState()
   const [isSubmitting, setSubmitting] = useState(false)
   const [isSubmitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState()
-
-  const handleOpenDialog = () => {
-    setDialogOpen(true)
-  }
-
-  const handleCloseDialog = () => {
-    setDialogOpen(false)
-  }
 
   const handleChangeEmail = async (e) => {
     setEmail(e.target.value)
@@ -132,26 +126,24 @@ const Right = (props) => {
           <Typography variant="h5" className={classes.title}>
             Please check your email now.
           </Typography>
-          <Box mt={"25vh"}>
-            <Link onClick={() => setForgotPassword(false)}>Back to Sign-in/Sign-Up</Link>
-          </Box>
+          <br />
+          <br />
+          <Link onClick={() => setForgotPassword(false)}>Back to Sign-in/Sign-Up</Link>
         </Box>
       )
     }
 
     return ( //FIXME use column grid here instead
-      <div>
-        <Box pt={"30%"}>
-          <Typography variant="h4" className={classes.title}>
-            Reset Password
-          </Typography>
-        </Box>
-        <Box mt={4} style={{width:'60%'}}>
+      <Box width="60%" pt={"30%"}>
+        <Typography variant="h4" className={classes.title}>
+          Reset Password
+        </Typography>
+        <Box mt={5}>
           <Typography variant="button" gutterBottom>
             Enter your email address and we will send you a link to reset your password.
           </Typography>
-        </Box>
-        <Box mt={4} style={{width:'60%'}} >
+          </Box>
+        <Box mt={4}>
           <TextField 
             id="email" 
             type="email" 
@@ -165,7 +157,7 @@ const Right = (props) => {
           />
           {isSubmitting && <LinearProgress />}
         </Box>
-        <Box mt={2} style={{width:'30vw'}}  display="flex" justifyContent="flex-end">
+        <Box mt={1} display="flex" justifyContent="flex-end">
           <Button 
             variant="contained" 
             color="primary" 
@@ -182,17 +174,19 @@ const Right = (props) => {
             Submit
           </Button>
         </Box>
-        <Box mt={4}>
-          <Typography variant="button" color="error">
-            {submitError}
-          </Typography>
-        </Box>
-        <Box mt={"25vh"}>
-          <Link onClick={() => setForgotPassword(false)}>Back to Sign-in/Sign-Up</Link>
-        </Box>
-      </div>
+        <br />
+        <Typography variant="button" color="error">
+          {submitError}
+        </Typography>
+        <br />
+        <br />
+        <Link onClick={() => setForgotPassword(false)}>Back to Sign-in/Sign-Up</Link>
+      </Box>
     )
   }
+
+  if (signup)
+    return <SignUp startTime={props.startTime} />
 
   return ( //FIXME use column grid here instead
     <div>
@@ -207,7 +201,7 @@ const Right = (props) => {
         </Typography>
       </Box>
       <Box mt={2}>
-        <Button variant="contained" color="primary" size="large" disableElevation className={classes.button} onClick={handleOpenDialog}>
+        <Button variant="contained" color="primary" size="large" disableElevation className={classes.button} onClick={() => setSignup(true)}>
           Sign Up
         </Button>
       </Box>
@@ -219,17 +213,12 @@ const Right = (props) => {
       <Box mt={2} mb={5}>
         <Button variant="text" size="small" onClick={() => setForgotPassword(true)}>Forgot Password</Button>
       </Box>
-      <SignUpDialog 
-        open={dialogOpen}
-        startTime={props.startTime}
-        handleClose={handleCloseDialog} 
-        // handleSubmit={handleSubmit}
-      />
     </div>
   )
 }
 
-const SignUpDialog = ({ open, startTime, handleClose }) => {
+const SignUp = ({ startTime }) => {
+  const classes = useStyles()
   const api = useAPI()
 
   const [form, setForm] = useState(getForm())
@@ -238,8 +227,7 @@ const SignUpDialog = ({ open, startTime, handleClose }) => {
 
   const allFields = form.sections.reduce((acc, s) => acc.concat(s.fields), [])
   const initialValues = 
-    allFields.reduce((acc, f) => 
-      { 
+    allFields.reduce((acc, f) => { 
         acc[f.id.toString()] = ''; 
         return acc 
       }, 
@@ -283,25 +271,25 @@ const SignUpDialog = ({ open, startTime, handleClose }) => {
   }
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth>
-      <Box p={3}>
-        {!isSubmitted && <DialogTitle>Create your account</DialogTitle>}
-        <DialogContent>
-          {isSubmitted 
-          ? <Box p={7}>
-              <Typography variant='h6' color='textSecondary'>
-                A confirmation email was sent to
-              </Typography>
-              <br /><br />
-              <Typography variant='h6' color='primary'>		  
-                <b>{user ? user.email : '<error>'}</b>
-              </Typography>
-              <br /><br />
-	            <Typography variant='h6' color='textSecondary'>
-                Please click on the confirmation link in the email to activate your account.
-              </Typography>
-            </Box>
-          : <Wizard
+    <Box width="60%" pt={"25%"}>
+        {isSubmitted 
+        ? <Box p={7}>
+            <Typography variant='h6' color='textSecondary'>
+              A confirmation email was sent to
+            </Typography>
+            <br /><br />
+            <Typography variant='h6' color='primary'>		  
+              <b>{user ? user.email : '<error>'}</b>
+            </Typography>
+            <br /><br />
+            <Typography variant='h6' color='textSecondary'>
+              Please click on the confirmation link in the email to activate your account.
+            </Typography>
+          </Box>
+        : <Box>
+            <Typography variant="h4" className={classes.title}>Create your account</Typography>
+            <br />
+            <Wizard
               form={form}
               initialValues={initialValues}
               validate={validate}
@@ -313,10 +301,12 @@ const SignUpDialog = ({ open, startTime, handleClose }) => {
                 setSubmitting(false)
               }}
             />
-          }
-        </DialogContent>
-      </Box>
-    </Dialog>
+            <br />
+            <br />
+            <Link href="/login">Already have an account?</Link>
+          </Box>
+        }
+    </Box>
   )
 }
 

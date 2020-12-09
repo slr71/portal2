@@ -132,6 +132,10 @@ app.prepare()
         })
 
         // Public UI pages
+        server.get("/signup", (req, res) => { 
+            app.render(req, res, "/welcome", { signup: 1 })
+        })
+
         server.get("/password", (req, res) => { 
             app.render(req, res, "/password")
         })
