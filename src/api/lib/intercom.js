@@ -1,44 +1,33 @@
+/*
+ * Intercom interface
+ *
+ * Based on v1: https://gitlab.cyverse.org/core-services/portal/blob/master/portal/intercom/__init__.py
+ * 
+ * For Intercom API v1: https://developers.intercom.com/intercom-api-reference/v1.0/reference
+ * 
+ */
+
 const Intercom = require('intercom-client');
-const axios = require('axios');
-const models = require('../models');
-const AccessRequestConversation = models.api_accessrequestconversation;
 const { logger } = require('./logging');
 const config = require('../../config.json');
 
 const intercom = new Intercom.Client({ token: config.intercom.token });
 
-async function createContact(user) {
-    const contacts = await search('contacts', {
-        field: 'external_id',
-        operator: '=',
-        value: user.username
-    }); 
-    if (contacts)
-        return contacts[0];
+async function createUser(user) {
+    const existingUser = await intercom.users.find({ user_id: user.username });
+    if (existingUser && existingUser.body)
+        return existingUser.body;
 
-    const contact = await intercom.contacts.create({
-        role: "user",
+    const newUser = await intercom.users.create({
         email: user.email,
         name: user.first_name + ' ' + user.last_name,
-        external_id: user.username
+        user_id: user.username
     });
-    logger.info(`Created Intercom contact ${contact.id} for ${user.username}`);
-    return contact;
-}
+    //TODO check for error
 
-// Their Node client is pretty outdated and doesn't support the search endpoint yet
-async function search(resource, query) {
-    const res = await axios.post(
-        `${intercom.requestOpts.baseUrl}/${resource}/search`, 
-        { query },
-        { headers: { Authorization: `Bearer ${config.intercom.token}` } }
-    );
-    if (res && res.data && res.data.total_count > 0) {
-        if (res.data.type == 'list')
-            return res.data.data;
-        else
-            return res.data[resource];
-    }
+    logger.info(`Created Intercom user ${newUser.body.id} for ${user.username}`);
+
+    return newUser.body;
 }
 
 async function getConversation(id) {
@@ -47,23 +36,27 @@ async function getConversation(id) {
         if (res && res.body)
             return res.body;
     }
-    catch(error) {
-        console.log('getConversation:', error)
+    catch (error) {
+        logger.error('getConversation:', error)
     }
 }
 
 async function startConversation(user, body) {
-    // Make sure contact exists
-    const contact = await createContact(user);
+    // Make sure user exists
+    const intercomUser = await createUser(user);
 
-    // Create message (which will result in a new conversation)
+    // Create user-initiated message (which will result in creation of a new conversation)
     const message = await intercom.messages.create({
-        "from": {
-            "type": "user",
-            "email": contact.email
+        from: {
+            type: "user",
+            // "email": user.email, // mdb replaced 12/8/20 -- with user_id due to error "Multiple existing users match this email address - must be more specific using user_id"
+            id: intercomUser.id
         },
-        "body": body
+        body
     });
+    //TODO check for error
+
+    logger.info(`Created Intercom message ${message.body.id} for ${user.username}`);
 
     // Poll for conversation creation
     let tries = 10;
@@ -71,84 +64,25 @@ async function startConversation(user, body) {
     do {
         await new Promise(resolve => setTimeout(resolve, 1000)); // sleep 1 second
 
-        const conversations = await search('conversations', {
-            field: 'source.id',
-            operator: '=',
-            value: message.body.id
-        });
-        if (conversations)
-            conversation = conversations[0];
+        try {
+            const conversations = await intercom.conversations.list({ type: 'user', user_id: user.username });
+            if (conversations && conversations.body && conversations.body.conversations) {
+                conversation = conversations.body.conversations.find(c => c.conversation_message.id == message.body.id);
+            }
+        }
+        catch (error) {
+            // do nothing
+        }
+
     } while (!conversation && tries-- > 0);
 
-    return [conversation, message.body]
-}
-
-function getAtmosphereConversationBody(questions, answers) {
-    let body = "Atmosphere access requested.";
-
-    if (questions && questions.length > 0) {
-        body += " Here are the details:";
-
-        for (question of questions) {
-            body += "\n\n" + question.question;
-            const answer = answers.find(a => a.access_request_question_id == question.id);
-            if (!answer) {
-                body = body + "\n\n[blank]"
-                continue;
-            }
-
-            if (question.type == 'char')
-                body += "\n\n" + answer.value_char;
-            else if (question.type == 'text')
-                body += "\n\n" + answer.value_text;
-            else if (question.type == 'bool')
-                body += "\n\n" + answer.value_bool;
-        }
+    if (conversation) {
+        logger.info(`Started Intercom conversation ${conversation.id} for ${user.username}`);
+        return [conversation, message.body];
     }
-
-    return body;
-}
-
-async function sendAtmosphereSignupMessage(request, responseMessage) {
-    const service = request.service;
-    const user = request.user;
-
-    const body = getAtmosphereConversationBody(service.questions, request.answers);
-    const [conversation, message] = await startConversation(user, body);
-
-    await AccessRequestConversation.create({
-        access_request_id: request.id,
-        intercom_message_id: message.id,
-        intercom_conversation_id: conversation.id
-    });
-
-    await addNoteToConversation(conversation.id, `This request can be viewed at ${config.accessRequestsUrl}/${request.id}`);
-
-    await replyToConversation(conversation.id, responseMessage);
-    await assignConversationToAtmosphereTeam(conversation.id);
-}
-
-async function sendFormSubmissionConfirmationMessage(submission) {
-    const user = submission.user;
-    const intercomTeams = submission.intercomTeams;
-
-    const body = get_form_submission_conversation_body(user, submission);
-    connst [conversation, message] = await startConversation(user, body);
-
-    await FormSubmissionConversation.create(
-        form_submission=form_submission,
-        intercom_message_id=message.id,
-        intercom_conversation_id=conversation.id
-    );
-
-    await addNoteToConversation(conversation.id, `This form submission can be viewed at ${config.formSubmissionUrl}/${submission.id}`);
-   
-    await replyToConversation(conversation.id,
-        `Hi ${user.first_name}! Thanks for submitting the form. One of the staff will review it and get back to you. In the meantime, feel free to respond to this message if you'd like to chat more about your request.`
-    );
-
-    if (intercomTeams && intercomTeams.length > 0)
-        assignConversationToIntercomTeam(conversation.id, intercomTeams[0].id)
+    
+    logger.error(`Couldn't find conversation for message ${message.body.id}`);
+    return [];
 }
 
 async function addNoteToConversation(conversationId, message) {
@@ -156,13 +90,13 @@ async function addNoteToConversation(conversationId, message) {
         await intercom.conversations.reply({
             id: conversationId,
             type: 'admin',
-            admin_id: config.intercom.adminBotId,
+            admin_id: config.intercom.adminUserPortalBotId,
             message_type: 'note',
             body: message
         })
     }
     catch (e) {
-        console.log(e.body.errors)
+        logger.error(e.body.errors)
     }
 }
 
@@ -182,7 +116,7 @@ async function assignConversation(conversationId, assigneeId) {
     await intercom.conversations.reply({
         id: conversationId,
         type: 'admin',
-        admin_id: config.intercom.adminBotId,
+        admin_id: config.intercom.adminUserPortalBotId,
         assignee_id: assigneeId,
         message_type: 'assignment'
     })
@@ -192,14 +126,15 @@ async function replyToConversation(conversationId, message) {
     await intercom.conversations.reply({
         id: conversationId,
         type: 'admin',
-        admin_id: config.intercom.adminBotId,
+        admin_id: config.intercom.adminUserPortalBotId,
         message_type: 'comment',
         body: message
     });
 }
 
 module.exports = { 
-    getConversation, 
-    sendAtmosphereSignupMessage, 
-    sendFormSubmissionConfirmationMessage 
+    getConversation,
+    startConversation,
+    addNoteToConversation,
+    replyToConversation
 };

@@ -9,6 +9,8 @@ const FormSection = models.api_formsection;
 const FormField = models.api_formfield;
 const FormSubmission = models.api_formsubmission;
 const FormFieldSubmission = models.api_formfieldsubmission;
+const FormSubmissionConversation = models.api_formsubmissionconversation;
+const { UI_ADMIN_FORM_SUBMISSION_URL } = require('../constants');
 const intercom = require('./lib/intercom');
 
 //TODO move into module
@@ -65,9 +67,29 @@ router.get('/submissions', requireAdmin, asyncHandler(async (req, res) => {
 }));
 
 router.get('/submissions/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
-    let submission = await models.api_formsubmission.findByPk(req.params.id, {
-        include: [ 'user', 'form', 'fields', 'conversations' ]
+    const submission = await models.api_formsubmission.findByPk(req.params.id, {
+        include: [ 
+            'user', 
+            { 
+                model: Form,
+                as: 'form',
+                include: [ 'sections' ]
+            },
+            { 
+                model: FormField,
+                as: 'fields', 
+                include: [ 'options' ]
+            },
+            'conversations' 
+        ]
     });
+    if (!submission)
+        return res.send('Submission not found').status(404);
+
+    // Set field 'value' property based on type for convenience
+    for (const field of submission.fields) {
+        field.setDataValue('value', getFormFieldValue(field, field.api_formfieldsubmission))
+    }
 
     // Fetch conversations from Intercom
     for (let conversation of submission.conversations) {
@@ -82,6 +104,31 @@ router.get('/submissions/:id(\\d+)', requireAdmin, asyncHandler(async (req, res)
     return res.json(submission).status(200);
 }));
 
+function getFormFieldValue(field, submission) {
+    switch(field.type) {
+        case 'char':    
+            return submission.value_string;
+        case 'select':
+            if (submission.value_select_id)
+                return field.options.find(o => o.id == submission.value_select_id).name;
+            else
+                return submission.value_select_id;
+        default: 
+            return submission['value_' + field.type];
+    }
+  }
+
+function getFormFieldValueKey(type) {
+    switch(type) {
+        case 'char': 
+            return 'value_string';
+        case 'select': 
+            return 'value_select_id'
+        default: 
+            return 'value_' + type;
+    }
+}
+
 // Create new form submission
 router.put('/:id(\\d+)/submissions', getUser, asyncHandler(async (req, res) => {
     const formId = req.params.id;
@@ -90,7 +137,7 @@ router.put('/:id(\\d+)/submissions', getUser, asyncHandler(async (req, res) => {
         return res.send('Missing fields').status(400);
 
     // Fetch form
-    const form = await Form.findByPk(formId); //, { include: [] });
+    const form = await Form.findByPk(formId);
     if (!form)
         return res.send('Form not found').status(404);
 
@@ -103,18 +150,11 @@ router.put('/:id(\\d+)/submissions', getUser, asyncHandler(async (req, res) => {
         return res.send('Failed to create form submission').status(500);
 
     // Save field values 
-    //TODO check that submitted field IDs are valid for specified form
     for (const field of fields) {
         const fieldSubmission = await FormFieldSubmission.create({
             form_submission_id: submission.id,
             form_field_id: field.id,
-            value_string: field.value_string,
-            value_text: field.value_text,
-            value_boolean: field.value_boolean,
-            value_number: field.value_number,
-            //value_select_id: null, //FIXME!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            value_email: field.value_email,
-            value_date: field.value_date
+            [getFormFieldValueKey(field.type)]: field.value
         });
         if (!fieldSubmission)
             return res.send('Failed to create form field submission').status(500);
@@ -123,11 +163,16 @@ router.put('/:id(\\d+)/submissions', getUser, asyncHandler(async (req, res) => {
     // Refetch submission with additional info
     submission = await FormSubmission.findByPk(submission.id, {
         include: [ 
-            'fields',
+            'user',
+            { 
+                model: FormField,
+                as: 'fields',
+                include: [ 'options' ]
+            },
             { 
                 model: Form,
                 as: 'form',
-                include: [ 'intercom_teams' ]
+                include: [ 'intercom_teams' , 'sections' ]
             }
         ]
     });
@@ -136,8 +181,58 @@ router.put('/:id(\\d+)/submissions', getUser, asyncHandler(async (req, res) => {
     res.json(submission).status(201);
 
     // Send confirmation message via Intercom (do this after response as to not delay it)
-    intercom.sendFormSubmissionConfirmationMessage(submission);
+    sendFormSubmissionConfirmationMessage(submission);
 }));
+
+function getFormSubmissionConversationBody(submission) {
+    const form = submission.form;
+    const fields = submission.fields;
+    if (!form || !fields)
+        throw('Missing required property')
+
+    let body = `${form.name} form submitted.`;
+
+    body += " Here are the details:";
+
+    for (let section of form.sections) {
+        body += `\n\n${section.name}`;
+
+        for (let field of fields.filter(f => f.form_section_id == section.id)) {
+            body += `\n\n<strong>${field.name}</strong>:`;
+            body += "\n\n" + getFormFieldValue(field, field.api_formfieldsubmission);
+        }
+    }
+
+    return body;
+}
+
+async function sendFormSubmissionConfirmationMessage(submission) {
+    const user = submission.user;
+    if (!user)
+        throw('Missing required property');
+    
+    const body = getFormSubmissionConversationBody(submission);
+    const [conversation, message] = await intercom.startConversation(user, body);
+
+    await FormSubmissionConversation.create({
+        form_submission_id: submission.id,
+        intercom_message_id: message.id,
+        intercom_conversation_id: conversation.id
+    });
+
+    await intercom.addNoteToConversation(
+        conversation.id, 
+        `This form submission can be viewed at ${UI_ADMIN_FORM_SUBMISSION_URL}/${submission.id}`
+    );
+   
+    await intercom.replyToConversation(
+        conversation.id,
+        `Hi ${user.first_name}! Thanks for submitting the request. One of the staff will review it and get back to you. In the meantime, feel free to respond to this message if you'd like to chat more about your request.`
+    );
+
+    // if (intercomTeams && intercomTeams.length > 0)
+    //     assignConversationToIntercomTeam(conversation.id, intercomTeams[0].id)
+}
 
 // Fetch form by ID or name
 router.get('/:nameOrId([\\w\\%]+)', asyncHandler(async (req, res) => {

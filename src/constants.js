@@ -8,6 +8,7 @@ module.exports = {
   UI_CONFIRM_EMAIL_URL: `${config.uiBaseUrl}/confirm_email`,
   UI_WORKSHOPS_URL: `${config.uiBaseUrl}/workshops`,
   UI_SERVICES_URL: `${config.uiBaseUrl}/services`,
+  UI_ADMIN_FORM_SUBMISSION_URL: `${config.uiBaseUrl}/administrative/submissions`,
 
   // Cookie Names
   ACCOUNT_UPDATE_REMINDER_COOKIE: 'account_update_reminder',

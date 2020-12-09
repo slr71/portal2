@@ -58,9 +58,9 @@
     "intercom": { 
         "appId": "",
         "token": "", 
-        "adminBotId": "",
+        "adminUserPortalBotId": "",
         "adminTier1AtmosphereId": "", 
-        "adminTier1ScienceTeamId": "FIXME"
+        "adminTier1ScienceTeamId": ""
     },
 
     "mailchimp": {

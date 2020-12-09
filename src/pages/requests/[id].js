@@ -18,15 +18,15 @@ const Request = ({ form }) => {
   const api = useAPI()
   const [_, setError] = useError()
 
+  const [submitted, setSubmitted] = React.useState(true)
+
   const initialValues = 
-    allFields.reduce((acc, f) => 
-      { 
+    allFields.reduce((acc, f) => { 
         acc[f.id.toString()] = ''; 
         return acc 
       }, 
       {}
     )
-  console.log('initialValues:', initialValues)
   
   const submitForm = async (submission) => {
     try {
@@ -40,9 +40,11 @@ const Request = ({ form }) => {
 
   const formatSubmission = (values) => {
     return allFields.map(f => {
-      let val = { id: f.id }
-      val['value_' + f.type] = values[f.id]
-      return val
+      return {
+        id: f.id,
+        type: f.type,
+        value: values[f.id]
+      }
     })
   }
 
@@ -60,19 +62,34 @@ const Request = ({ form }) => {
             )}
           </Box>
           <br />
-          <Wizard
-            form={form}
-            initialValues={initialValues}
-            onSubmit={(values, { setSubmitting }) => {
-              submitForm(formatSubmission(values))
-              setSubmitting(false)
-            }}
-          />
+          {submitted 
+            ? <Submitted />
+            : <Wizard
+                form={form}
+                initialValues={initialValues}
+                onSubmit={(values, { setSubmitting }) => {
+                  submitForm(formatSubmission(values))
+                  setSubmitting(false)
+                  setSubmitted(true)
+                }}
+              />
+          }
         </Paper>
       </Container>
     </Layout>
   )
 }
+
+const Submitted = () => (
+  <Box mx={10} my={5}>
+    <Typography component="h1" variant="h5" color="primary">
+      Thanks! Your request has been submitted and will be reviewed by CyVerse staff.
+      <br />
+      <br />
+      We will email you once your request has been reviewed.
+    </Typography>
+  </Box>
+)
 
 export async function getServerSideProps({ req, query }) {
   const form = await req.api.form(query.id)

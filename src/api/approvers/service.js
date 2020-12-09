@@ -1,8 +1,10 @@
-const config = require('../../config.json');
+const models = require('../models');
+const AccessRequestConversation = models.api_accessrequestconversation;
 const Argo = require('../lib/argo');
-const { sendAtmosphereSignupMessage } = require('../lib/intercom');
 const { emailServiceAccessGranted } = require('../lib/email')
 const { logger } = require('../lib/logging');
+const intercom = require('../lib/intercom');
+const config = require('../../config.json');
 
 // Only the Atmosphere service has a special approval requirements, all other services are auto-approved.
 const APPROVERS = {
@@ -125,6 +127,52 @@ async function approveAtmosphere(request) {
     );
     await request.deny();
     return;
+}
+
+function getAtmosphereConversationBody(questions, answers) {
+    let body = "Atmosphere access requested.";
+
+    if (questions && questions.length > 0) {
+        body += " Here are the details:";
+
+        for (question of questions) {
+            body += "\n\n" + question.question;
+            const answer = answers.find(a => a.access_request_question_id == question.id);
+            if (!answer) {
+                body = body + "\n\n[blank]"
+                continue;
+            }
+
+            if (question.type == 'char')
+                body += "\n\n" + answer.value_char;
+            else if (question.type == 'text')
+                body += "\n\n" + answer.value_text;
+            else if (question.type == 'bool')
+                body += "\n\n" + answer.value_bool;
+        }
+    }
+
+    return body;
+}
+
+async function sendAtmosphereSignupMessage(request, responseMessage) {
+    const service = request.service;
+    const user = request.user;
+    if (!service || !user)
+        throw('Missing required property')
+
+    const body = getAtmosphereConversationBody(service.questions, request.answers);
+    const [conversation, message] = await intercom.startConversation(user, body);
+
+    await AccessRequestConversation.create({
+        access_request_id: request.id,
+        intercom_message_id: message.id,
+        intercom_conversation_id: conversation.id
+    });
+
+    await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${config.accessRequestsUrl}/${request.id}`);
+    await intercom.replyToConversation(conversation.id, responseMessage);
+    await intercom.assignConversationToAtmosphereTeam(conversation.id);
 }
 
 module.exports = { approveRequest, grantRequest };

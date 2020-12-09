@@ -43,29 +43,22 @@ const Form = ({ form, fields }) => (
   </Section>
 )
 
-//FIXME replace with Form.js components
-const FormField = props => {
+//FIXME replace with Form.js component
+const FormField = (props) => {
   if (props.api_formfieldsubmission.value_boolean != null) {
     return (
       <FormControlLabel
         control={
           <Checkbox
-            checked={false}
+            checked={props.value}
             name={props.id}
-            color="primary"
+            disabled={true}
           />
         }
         label={props.name}
       />
     )
   }
-
-  // Get value based on field type
-  const key = ["value_string", "value_text", "value_number", "value_select_id", "value_email", "value_date"]
-    .find(key => typeof(props.api_formfieldsubmission[key]) !== "undefined")
-  let value = props.api_formfieldsubmission[key]
-  if (value == null)
-    value = ""
 
   return ( // type is 'char', 'text', or 'select'
     <TextField 
@@ -76,7 +69,7 @@ const FormField = props => {
       id={props.id.toString()} 
       label={props.name} 
       helperText={props.description}
-      defaultValue={value}
+      defaultValue={props.value}
     >
     </TextField>
   )

@@ -248,8 +248,8 @@ const FormField = (props) => {
   const classes = useStyles()
 
   const commonProps = {
-    id: props.id,
-    name: props.id,
+    id: props.id.toString(),
+    name: props.id.toString(),
     label: props.name,
     error: props.errorText != null,
     helperText: props.errorText || props.description,
@@ -266,9 +266,12 @@ const FormField = (props) => {
   if (props.type === 'boolean') {
     return (
       <Field
+        id={props.id.toString()}
+        name={props.id.toString()}
         type="checkbox"
         component={CheckboxWithLabel}
         color="primary"
+        defaultValue={!!props.value}
         onChange={props.onChange}
         Label={{label: props.name, className: classes.checkbox}}
       />
