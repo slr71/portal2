@@ -162,8 +162,6 @@ const UpdateForm = ({ title, subtitle, fields, autosave, validate, onSubmit }) =
 }
 
 const Wizard = ({ form, initialValues, validate, onSelect, onSubmit }) => {
-  const classes = useStyles()
-
   const [stepNumber, setStepNumber] = useState(0)
   const [snapshot, setSnapshot] = useState(initialValues)
   const [isInitialValid, setInitialValid] = useState(false) // workaround for validateOnMount not working: https://github.com/formium/formik/issues/1950
@@ -196,16 +194,14 @@ const Wizard = ({ form, initialValues, validate, onSelect, onSubmit }) => {
       {({ handleChange, handleBlur, handleSubmit, isSubmitting, isValid, values, errors, touched }) => (
         <Form>
           {form.sections[stepNumber].fields.map(field => (
-            <div key={field.id}>
-              <FormField
-                onChange={handleChange}
-                onSelect={onSelect}
-                onBlur={handleBlur}
-                errorText={touched[field.id] && errors[field.id]}
-                value={values[field.id]}
-                {...field}
-              />
-            </div>
+            <FormField key={field.id}
+              onChange={handleChange}
+              onSelect={onSelect}
+              onBlur={handleBlur}
+              errorText={touched[field.id] && errors[field.id]}
+              value={values[field.id]}
+              {...field}
+            />
           ))}
           <br />
           <br />
@@ -251,10 +247,10 @@ const FormField = (props) => {
     id: props.id.toString(),
     name: props.id.toString(),
     label: props.name,
+    type: props.type,
     error: props.errorText != null,
     helperText: props.errorText || props.description,
     defaultValue: props.value,
-    type: props.type,
     fullWidth: true, 
     margin: "normal",
     required: props.is_required || props.required,
@@ -288,6 +284,7 @@ const FormField = (props) => {
           props.onChange && props.onChange(props.id.toString()) // workaround for "you didn't pass an id" error
         } 
         {...commonProps}
+        inputProps={{style: { textAlign: 'left' }}}
       >
         {props.options.map((option, index) => (
           <MenuItem 
@@ -325,6 +322,8 @@ const FormField = (props) => {
     ) 
   }
 
+  const fakeId = honeypotId(0); // 0 indicates that this is a honeypot field
+
   return ( // type is 'char' or 'text'
     <>
       <Field
@@ -337,15 +336,16 @@ const FormField = (props) => {
       />
       {props.honeypot &&
         <Field // honeypot field
-            id={honeypotId(0)} // 0 modulus indicates that this is a honeypot field
-            inputProps={{ tabIndex: "-1" }} // disable tabbing to this field
-            className={classes.honeypot} // hidden from real user but still visible to bots
-            component={TextField}
-            onChange={props.onChange}
-            onBlur={props.onBlur}
-            required={false}
-            label={props.name}
-            type={props.type}
+          component={TextField}
+          id={fakeId} 
+          name={fakeId}
+          label={props.name}
+          type={props.type}
+          inputProps={{ tabIndex: "-1" }} // disable tabbing to this field
+          className={classes.honeypot} // hidden from real user but still visible to bots
+          onChange={props.onChange}
+          onBlur={props.onBlur}
+          required={false}
         />
       }
     </>
@@ -367,9 +367,10 @@ const FormControls = ({ disabled, activeStep, numSteps, backHandler, nextHandler
         <div>
           {numSteps > 1 && activeStep > 0 &&
             <Button onClick={backHandler}>
-              Back
+              Previous
             </Button> 
           }
+          {' '}
           <Button
             disabled={disabled}
             variant="contained"

@@ -4,7 +4,6 @@ import { isEmpty, isEmail } from 'validator'
 import { Link, Box, Grid, Typography, TextField, Button, LinearProgress, makeStyles} from '@material-ui/core'
 import { MainLogo, Wizard, WelcomeAnimation, honeypotId } from '../components'
 import { useAPI } from '../contexts/api'
-import { useError } from '../contexts/error'
 import { generateHMAC } from '../api/lib/hmac'
 import { sortCountries } from '../lib/misc'
 const properties = require('../user-properties.json')
@@ -42,36 +41,70 @@ const Welcome = (props) => {
   )
 }
 
-const Left = () => {
-  const classes = useStyles()
-
-  return (
-    <div>
-      <Box pt={"15%"}>
-        <MainLogo size="large"/>
-      </Box>
+const Left = () => (
+  <div>
+    <Box pt={"15%"}>
+      <MainLogo size="large"/>
+    </Box>
+    <Box>
+      <WelcomeAnimation />
+    </Box>
       <Box>
-        <WelcomeAnimation />
+        <Typography variant="h5" style={{color: "white"}}>
+          The Open Science Workspace for
+          <br />
+          Collaborative Data-driven Discovery
+        </Typography>
       </Box>
-        <Box>
-          <Typography variant="h5" style={{color: "white"}}>
-            The Open Science Workspace for
-            <br />
-            Collaborative Data-driven Discovery
-          </Typography>
-        </Box>
-    </div>
-  )
-}
+  </div>
+)
 
 const Right = (props) => {
   const classes = useStyles()
   const router = useRouter()
-  const api = useAPI()
-  const [_, setError] = useError()
 
   const [signup, setSignup] = useState(!!router.query.signup)
   const [forgotPassword, setForgotPassword] = useState(false)
+
+  if (forgotPassword)
+    return <ForgotPassword cancelHandler={() => setForgotPassword(false)} />
+
+  if (signup)
+    return <SignUp {...props} />
+
+  return ( //FIXME use column grid here instead
+    <div>
+      <Box pt={"30%"}>
+        <Typography variant="h4" className={classes.title}>
+          Welcome to CyVerse!
+        </Typography>
+      </Box>
+      <Box pt={"5em"}>
+        <Typography variant="h6" gutterBottom>
+          New to CyVerse?
+        </Typography>
+      </Box>
+      <Box mt={2}>
+        <Button variant="contained" color="primary" size="large" disableElevation className={classes.button} onClick={() => setSignup(true)}>
+          Sign Up
+        </Button>
+      </Box>
+      <Box mt={3}>
+        <Button variant="outlined" color="primary" size="large" disableElevation className={classes.button} href="/login">
+          Login
+        </Button>
+      </Box>
+      <Box mt={2} mb={5}>
+        <Button variant="text" size="small" onClick={() => setForgotPassword(true)}>Forgot Password</Button>
+      </Box>
+    </div>
+  )
+}
+
+const ForgotPassword = ({ cancelHandler }) => {
+  const classes = useStyles()
+  const api = useAPI()
+
   const [email, setEmail] = useState()
   const [validationError, setValidationError] = useState()
   const [isSubmitting, setSubmitting] = useState(false)
@@ -110,118 +143,86 @@ const Right = (props) => {
     }
   }
 
-  //TODO move into separate component
-  if (forgotPassword) {
-    if (isSubmitted && !submitError) {
-      return (
-        <Box pt={"35vh"} style={{width:'30vw'}}>
-          <Typography variant="h5" className={classes.title}>
-            We sent an email containing a link to reset your password to
-          </Typography>
-          <br />
-          <Typography variant="h5">
-            {email}
-          </Typography>
-          <br />
-          <Typography variant="h5" className={classes.title}>
-            Please check your email now.
-          </Typography>
-          <br />
-          <br />
-          <Link onClick={() => setForgotPassword(false)}>Back to Sign-in/Sign-Up</Link>
-        </Box>
-      )
-    }
+  const backButton = <Link onClick={cancelHandler}>Back to Sign-in / Sign-Up</Link>
 
-    return ( //FIXME use column grid here instead
-      <Box width="60%" pt={"30%"}>
-        <Typography variant="h4" className={classes.title}>
-          Reset Password
+  if (isSubmitted && !submitError) {
+    return (
+      <Box pt={"35vh"} style={{width:'30vw'}}>
+        <Typography variant="h5" className={classes.title}>
+          We sent an email containing a link to reset your password to
         </Typography>
-        <Box mt={5}>
-          <Typography variant="button" gutterBottom>
-            Enter your email address and we will send you a link to reset your password.
-          </Typography>
-          </Box>
-        <Box mt={4}>
-          <TextField 
-            id="email" 
-            type="email" 
-            label="Email" 
-            required
-            variant="outlined" 
-            fullWidth
-            error={!!validationError}
-            helperText={validationError}
-            onChange={handleChangeEmail}
-          />
-          {isSubmitting && <LinearProgress />}
-        </Box>
-        <Box mt={1} display="flex" justifyContent="flex-end">
-          <Button 
-            variant="contained" 
-            color="primary" 
-            size="large"
-            disabled={isSubmitting || !!validationError || !email}
-            onClick={() => {
-              console.log('Submit')
-              setSubmitting(true)
-              setSubmitted(false)
-              setSubmitError(false)
-              submitForm(email)
-            }}
-          >
-            Submit
-          </Button>
-        </Box>
         <br />
-        <Typography variant="button" color="error">
-          {submitError}
+        <Typography variant="h5">
+          {email}
+        </Typography>
+        <br />
+        <Typography variant="h5" className={classes.title}>
+          Please check your email now.
         </Typography>
         <br />
         <br />
-        <Link onClick={() => setForgotPassword(false)}>Back to Sign-in/Sign-Up</Link>
+        {backButton}
       </Box>
     )
   }
 
-  if (signup)
-    return <SignUp startTime={props.startTime} />
-
   return ( //FIXME use column grid here instead
-    <div>
-      <Box pt={"30%"}>
-        <Typography variant="h4" className={classes.title}>
-          Welcome to CyVerse!
+    <Box width="60%" pt={"30%"}>
+      <Typography variant="h4" className={classes.title}>
+        Reset Password
+      </Typography>
+      <Box mt={5}>
+        <Typography variant="button" gutterBottom>
+          Enter your email address and we will send you a link to reset your password.
         </Typography>
+        </Box>
+      <Box mt={4}>
+        <TextField 
+          id="email" 
+          type="email" 
+          label="Email" 
+          required
+          variant="outlined" 
+          fullWidth
+          error={!!validationError}
+          helperText={validationError}
+          onChange={handleChangeEmail}
+        />
+        {isSubmitting && <LinearProgress />}
       </Box>
-      <Box pt={"5em"}>
-        <Typography variant="h6" gutterBottom>
-          New to CyVerse?
-        </Typography>
-      </Box>
-      <Box mt={2}>
-        <Button variant="contained" color="primary" size="large" disableElevation className={classes.button} onClick={() => setSignup(true)}>
-          Sign Up
+      <Box mt={1} display="flex" justifyContent="flex-end">
+        <Button 
+          variant="contained" 
+          color="primary" 
+          size="large"
+          disabled={isSubmitting || !!validationError || !email}
+          onClick={() => {
+            console.log('Submit')
+            setSubmitting(true)
+            setSubmitted(false)
+            setSubmitError(false)
+            submitForm(email)
+          }}
+        >
+          Submit
         </Button>
       </Box>
-      <Box mt={3}>
-        <Button variant="outlined" color="primary" size="large" disableElevation className={classes.button} href="/login">
-          Login
-        </Button>
-      </Box>
-      <Box mt={2} mb={5}>
-        <Button variant="text" size="small" onClick={() => setForgotPassword(true)}>Forgot Password</Button>
-      </Box>
-    </div>
+      <br />
+      <Typography variant="button" color="error">
+        {submitError}
+      </Typography>
+      <br />
+      <br />
+      {backButton}
+    </Box>
   )
 }
 
-const SignUp = ({ startTime }) => {
+const SignUp = ({ startTime, firstNameId, lastNameId }) => {
   const classes = useStyles()
   const api = useAPI()
 
-  const [form, setForm] = useState(getForm())
+  const [form, setForm] = useState(getForm(firstNameId, lastNameId))
   const [isSubmitted, setSubmitted] = useState(false)
   const [user, setUser] = useState() // newly created user
 
@@ -255,7 +256,7 @@ const SignUp = ({ startTime }) => {
   // Set region based on country
   const handleSelect = (field, option) => {
     if (field.id == 'country_id') 
-      setForm(getForm(option.id))
+      setForm(getForm(firstNameId, lastNameId, option.id))
   }
 
   const submitForm = async (submission) => {
@@ -310,19 +311,19 @@ const SignUp = ({ startTime }) => {
   )
 }
 
-const getForm = (countryId) => {
+const getForm = (firstNameId, lastNameId, countryId) => {
   return {
     sections: [
       { autosave: true,
         fields: [
-          { id: honeypotId(1), 
-            honeypot: true, // tells Wizard to generate honey pot duplicate field
+          { id: firstNameId, 
+            honeypot: true, // tells Wizard to generate a duplicate honey pot field
             name: "First Name",
             type: "text",
             required: true
           },
-          { id: honeypotId(2),
-            honeypot: true, // tells Wizard to generate honey pot duplicate field
+          { id: lastNameId,
+            honeypot: true, // tells Wizard to generate a duplicate honey pot field
             name: "Last Name",
             type: "text",
             required: true,
@@ -413,7 +414,16 @@ const getForm = (countryId) => {
 
 export async function getServerSideProps() {
   const startTime = generateHMAC(Date.now())
-  return { props: { startTime } }
+  const firstNameId = honeypotId(1)
+  const lastNameId = honeypotId(2)
+
+  return { 
+    props: { 
+      startTime,
+      firstNameId,
+      lastNameId
+    } 
+  }
 }
 
 export default Welcome
