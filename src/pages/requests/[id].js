@@ -18,7 +18,7 @@ const Request = ({ form }) => {
   const api = useAPI()
   const [_, setError] = useError()
 
-  const [submitted, setSubmitted] = React.useState(true)
+  const [submitted, setSubmitted] = React.useState(false)
 
   const initialValues = 
     allFields.reduce((acc, f) => { 
