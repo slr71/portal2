@@ -3,7 +3,7 @@ const { logger } = require('./lib/logging');
 const { emailNewAccountConfirmation, emailPasswordReset } = require('./lib/email');
 const { generateHMAC, decodeHMAC } = require('./lib/hmac');
 const { asyncHandler } = require('./lib/auth');
-const { checkLDAPPassword } = require('./lib/password')
+const { checkPassword } = require('./lib/password')
 const config = require('../config');
 const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants');
 const Argo = require('./lib/argo');
@@ -118,9 +118,6 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
     if (!newUser)
         return res.send('Error creating user').status(500);
 
-    // Fetch user fields/associations needed by workflow
-    // newUser = await User.unscoped().findByPk(newUser.id, { include: [ 'occupation' ] });
-
     // Create primary email address
     const emailAddress = await EmailAddress.create({
         user_id: newUser.id,
@@ -181,7 +178,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
     console.log(fields);
 
     if (!fields || !fields.hmac || !fields.password) 
-        return res.send('Missing required field(s)').status(400);
+        return res.send('Missing required field').status(400);
 
     if (fields.hmac) { // Password set (new user) or reset
         const decodedEmailId = decodeHMAC(fields.hmac)
@@ -241,16 +238,12 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         // Get user from token
         const user = getUser(req);
 
-        // Migrated from v1: /account/serializers/password_change.py
-        // Check the password according to whether it's in the LDAP format or the new format
-        let match = ldapPassword.startsWith('{SSHA}')
-            ? checkLDAPPassword(user.password, fields.oldPassword)
-            : false; //user.check_password(user.password, fields.oldPassword); //FIXME
-        if (!match)
+        // Check the password
+        if (!checkPassword(user.password, fields.oldPassword))
             return res.send('Invalid password').status(400);
     }
     else {
-        return res.send('Missing required field(s)').status(400);
+        return res.send('Invalid request').status(400);
     }
 
     //FIXME update password in LDAP and IRODS
