@@ -53,7 +53,7 @@ async function emailNewAccountConfirmation(email, hmac) {
     await renderEmail({
         to: newUser.email, 
         bcc: config.email.bccNewAccountConfirmation,
-        subject: 'Please Confirm Your E-Mail Address',
+        subject: '[CyVerse] Please Confirm Your E-Mail Address',
         templateName: 'email_confirmation_signup',
         fields: {
             "ACTIVATE_URL": confirmationUrl,

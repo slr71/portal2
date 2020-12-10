@@ -1,13 +1,16 @@
 const router = require('express').Router();
-const { renderEmail } = require('./lib/email')
-const { generateHMAC, decodeHMAC } = require('./lib/hmac')
-const { asyncHandler } = require('./lib/auth')
+const { logger } = require('./lib/logging');
+const { emailNewAccountConfirmation, emailPasswordReset } = require('./lib/email');
+const { generateHMAC, decodeHMAC } = require('./lib/hmac');
+const { asyncHandler } = require('./lib/auth');
+const { checkLDAPPassword } = require('./lib/password')
 const config = require('../config');
 const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants');
 const Argo = require('./lib/argo');
 const sequelize = require('sequelize');
 const models = require('./models');
 const User = models.account_user;
+const CyVerseService = models.api_cyverseservice;
 const RestrictedUsername = models.account_restrictedusername;
 const EmailAddress = models.account_emailaddress;
 const PasswordReset = models.account_passwordreset;
@@ -57,10 +60,7 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
         return res.send('Username already taken').status(400);
 
     // Detect bots using honeypot fields
-    // Index in array corresponds to modulus identifier
-    const HONEYPOT_FIELDS = [
-        'first_name', 'last_name'
-    ];
+    const HONEYPOT_FIELDS = [ 'first_name', 'last_name' ]; // index corresponds to modulus identifier
     for (let key in fields) {
         if (isNaN(key)) {
             if (HONEYPOT_FIELDS.includes(key)) // fields must be encoded
@@ -93,7 +93,7 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
         'country_id', 'region_id', 'gender_id', 'ethnicity_id', 'aware_channel_id'
     ];
     if (!REQUIRED_FIELDS.every(f => fields[f]))
-        return res.send('Missing required field(s)').status(400);
+        return res.send('Missing required field').status(400);
 
     // Check for existing email
     const user2 = await User.unscoped().findOne({ where: lowerEqualTo('email', fields['email']) });
@@ -103,23 +103,25 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
 
     // Set defaults
     fields['username'] = username;
-    fields['password'] = generateHMAC(username); //FIXME how is this initialized in previous version?
+    fields['password'] = '';
     fields['is_superuser'] = false;
     fields['is_staff'] = false;
     fields['is_active'] = true;
     fields['has_verified_email'] = false;
-    fields['participate_in_study'] = false; //FIXME should this be in sign-up form?
+    fields['participate_in_study'] = true;
     fields['subscribe_to_newsletter'] = true; 
     fields['orcid_id'] = '';
 
-    // Create user and email address
+    // Create user
+    logger.info('Creating user:', fields);
     let newUser = await User.create(fields)
     if (!newUser)
         return res.send('Error creating user').status(500);
 
     // Fetch user fields/associations needed by workflow
-    newUser = await User.unscoped().findByPk(newUser.id, { include: [ 'occupation' ] });
+    // newUser = await User.unscoped().findByPk(newUser.id, { include: [ 'occupation' ] });
 
+    // Create primary email address
     const emailAddress = await EmailAddress.create({
         user_id: newUser.id,
         email: newUser.email,
@@ -129,30 +131,11 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
     if (!emailAddress)
         return res.send('Error creating email address').status(500);
 
-    // Generate HMAC for temp password and confirmation email code
-    const hmac = generateHMAC(emailAddress.id);
-
     res.json(newUser).status(200);
-    // The following is executed after the response as to not delay it 
 
-    // Run user creation workflow //FIXME move to password set endpoint
-    const rc = await createUser(newUser)
-    
-    // Grant access to Discovery Environment and Data Commmons services
-    //TODO
-
-    // Send confirmation email //FIXME move this to last step of user creation workflow
-    const confirmationUrl = `${UI_PASSWORD_URL}?code=${hmac}`;
-    await renderEmail({
-        to: newUser.email, 
-        bcc: config.email.bccNewAccountConfirmation,
-        subject: 'Please Confirm Your E-Mail Address', //FIXME hardcoded
-        templateName: 'email_confirmation_signup',
-        fields: {
-            "ACTIVATE_URL": confirmationUrl,
-            "FORMS_URL": UI_REQUESTS_URL
-        }
-    })
+    // Send confirmation email (after the response as to not delay it)
+    const hmac = generateHMAC(emailAddress.id);
+    await emailNewAccountConfirmation(newUser.email, hmac)
 }));
 
 async function createUser(user) {
@@ -198,37 +181,90 @@ router.post('/users/password', asyncHandler(async (req, res) => {
     console.log(fields);
 
     if (!fields || !fields.hmac || !fields.password) 
-        return res.send('Missing email').status(400);
+        return res.send('Missing required field(s)').status(400);
 
-    const decodedEmailId = decodeHMAC(fields.hmac)
-    const emailId = parseInt(decodedEmailId)
-    if (isNaN(emailId))
-        return res.send('Invalid HMAC').status(400);
+    if (fields.hmac) { // Password set (new user) or reset
+        const decodedEmailId = decodeHMAC(fields.hmac)
+        const emailId = parseInt(decodedEmailId)
+        if (isNaN(emailId))
+            return res.send('Invalid HMAC').status(400);
 
-    let emailAddress = await EmailAddress.findByPk(emailId, {
-        include: [ 'user']
-    });
-    if (!emailAddress)
-        return res.send('Email address not found').status(404);
+        // Fetch email address
+        const emailAddress = await EmailAddress.findByPk(emailId);
+        if (!emailAddress)
+            return res.send('Email address not found').status(404);
 
-    // Confirm email address
-    emailAddress.verified = true
-    emailAddress.primary = true
-    emailAddress.save()
+        // Confirm email address
+        emailAddress.verified = true
+        emailAddress.primary = true
+        emailAddress.save()
 
-    const passwordReset = PasswordReset.create({
-        user_id: emailAddress.user.id,
-        key: fields.hmac
-    });
-    if (!passwordReset)
-        return res.send('Error creating password reset').status(500);
+        // Fetch user
+        const user = await User.findByPk(emailAddress.user_id);
+        if (!user)
+            return res.send('User not found').status(404); // should never happen
 
-    //TODO update LDAP
+        // New user
+        if (user.password == '') { 
+            // Run user creation workflow
+            logger.info("Running user creation workflow")
+            const rc = await createUser(user)
+
+            // Grant access to default services
+            logger.info("Granting access to default services")
+            const defaultServices = await CyVerseService.findAll({ where: { auto_add_new_users: true }});
+            for (let service of defaultServices) {
+                const serviceRequest = await AccessRequest.create({
+                    service_id: service.id,
+                    user_id: user.id,
+                    auto_approve: true,
+                    status: AccessRequest.constants.STATUS_REQUESTED,
+                    message: AccessRequest.constants.MESSAGE_REQUESTED
+                });
+    
+                serviceRequest.service = service;
+                serviceRequest.user = user;
+                serviceApprovers.grantRequest(serviceRequest)
+            }
+        }
+        // Existing user
+        else { 
+            const passwordReset = PasswordReset.create({
+                user_id: emailAddress.user.id,
+                key: fields.hmac
+            });
+            if (!passwordReset)
+                return res.send('Error creating password reset').status(500);
+        }
+    }
+    else if (fields.oldPassword) { // Existing user password change, must be authenticated
+        // Get user from token
+        const user = getUser(req);
+
+        // Migrated from v1: /account/serializers/password_change.py
+        // Check the password according to whether it's in the LDAP format or the new format
+        let match = ldapPassword.startsWith('{SSHA}')
+            ? checkLDAPPassword(user.password, fields.oldPassword)
+            : false; //user.check_password(user.password, fields.oldPassword); //FIXME
+        if (!match)
+            return res.send('Invalid password').status(400);
+    }
+    else {
+        return res.send('Missing required field(s)').status(400);
+    }
+
+    //FIXME update password in LDAP and IRODS
+    // ldap_set_user_password(user.id, password)
+    // irods_set_user_password(user.id, password)
+
+    // Update password
+    user.password = fields.password;
+    await user.save();
 
     res.send('success').status(200);
 }));
 
-// Send reset password link //TODO require API key or valid HMAC
+// Send reset password link //TODO require API key
 router.post('/users/reset_password', asyncHandler(async (req, res) => {
     const email = req.body.email;
     console.log(email);
@@ -236,12 +272,7 @@ router.post('/users/reset_password', asyncHandler(async (req, res) => {
     if (!email) 
         return res.send('Missing email').status(400);
 
-    let emailAddress = await EmailAddress.findOne({
-        where: {
-            email: email
-        },
-        include: [ 'user']
-    });
+    let emailAddress = await EmailAddress.findOne({ where: { email }, include: [ 'user'] });
     if (!emailAddress)
         return res.send('Email address not associated with an account').status(404);
 
@@ -261,18 +292,7 @@ router.post('/users/reset_password', asyncHandler(async (req, res) => {
     res.send('success').status(200);
 
     // Send email after response as to not delay it
-    const resetUrl = `${UI_PASSWORD_URL}?reset&code=${hmac}`;
-    console.log({resetUrl});
-    await renderEmail({
-        to: email, 
-        bcc: config.email.bccPasswordChangeRequest,
-        subject: 'CyVerse Password Reset', //FIXME hardcoded
-        templateName: 'password_reset',
-        fields: {
-            "PASSWORD_RESET_URL": resetUrl,
-            "USERNAME": emailAddress.user.username
-        }
-    })
+    await emailPasswordReset(email, hmac);
 }));
 
 router.post('/confirm_email', asyncHandler(async (req, res) => {
@@ -285,9 +305,7 @@ router.post('/confirm_email', asyncHandler(async (req, res) => {
     if (isNaN(emailId))
         return res.send('Invalid HMAC').status(400);
 
-    let emailAddress = await EmailAddress.findByPk(emailId, {
-        include: [ 'user']
-    });
+    let emailAddress = await EmailAddress.findByPk(emailId);
     if (!emailAddress)
         return res.send('Email address not found').status(404);
 

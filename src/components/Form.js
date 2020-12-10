@@ -238,7 +238,7 @@ const FormStepper = ({activeStep, steps}) => {
   )
 }
 
-const honeypotId = (modulus) => (honeypotDivisor * Math.floor(Math.random() * 10) + modulus).toString()
+const honeypotId = (modulus) => (honeypotDivisor * Math.floor(Math.random() * 1000) + modulus).toString()
 
 const FormField = (props) => {
   const classes = useStyles()

@@ -72,6 +72,8 @@ models.account_emailaddress.belongsTo(models.account_user, { as: 'user', foreign
 
 models.account_region.belongsTo(models.account_country, {as: 'country' });
 
+models.api_cyverseservice.belongsTo(models.api_service, { as: 'cyverse_service' });
+
 models.api_service.hasMany(models.api_poweredservice, { as: 'powered_services', foreignKey: 'service_ptr_id' });
 models.api_service.hasMany(models.api_contact, { as: 'contacts', foreignKey: 'service_id' });
 models.api_service.hasMany(models.api_serviceresource, { as: 'resources', foreignKey: 'service_id' });
