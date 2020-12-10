@@ -2,8 +2,8 @@ const router = require('express').Router();
 const { logger } = require('./lib/logging');
 const { emailNewAccountConfirmation, emailPasswordReset } = require('./lib/email');
 const { generateHMAC, decodeHMAC } = require('./lib/hmac');
-const { asyncHandler } = require('./lib/auth');
-const { checkPassword } = require('./lib/password')
+const { asyncHandler, getUser } = require('./lib/auth');
+const { checkPassword, encodePassword } = require('./lib/password')
 const config = require('../config');
 const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants');
 const Argo = require('./lib/argo');
@@ -172,15 +172,16 @@ async function createUser(user) {
     );
 }
 
-// Update user password //TODO require API key or is valid HMAC enough?
+// Update user password
 router.post('/users/password', asyncHandler(async (req, res) => {
     const fields = req.body;
     console.log(fields);
 
-    if (!fields || !fields.hmac || !fields.password) 
-        return res.send('Missing required field').status(400);
+    if (!fields) 
+        return res.send('Missing required fields').status(400);
 
-    if (fields.hmac) { // Password set (new user) or reset
+    let user;
+    if ('hmac' in fields && 'password' in fields) { // Password set (new user) or reset
         const decodedEmailId = decodeHMAC(fields.hmac)
         const emailId = parseInt(decodedEmailId)
         if (isNaN(emailId))
@@ -197,18 +198,18 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         emailAddress.save()
 
         // Fetch user
-        const user = await User.findByPk(emailAddress.user_id);
+        user = await User.findByPk(emailAddress.user_id);
         if (!user)
             return res.send('User not found').status(404); // should never happen
 
         // New user
         if (user.password == '') { 
             // Run user creation workflow
-            logger.info("Running user creation workflow")
+            logger.info(`Running user creation workflow for user ${user.username}`)
             const rc = await createUser(user)
 
             // Grant access to default services
-            logger.info("Granting access to default services")
+            logger.info(`Granting access to default services for user ${user.username}`)
             const defaultServices = await CyVerseService.findAll({ where: { auto_add_new_users: true }});
             for (let service of defaultServices) {
                 const serviceRequest = await AccessRequest.create({
@@ -234,13 +235,18 @@ router.post('/users/password', asyncHandler(async (req, res) => {
                 return res.send('Error creating password reset').status(500);
         }
     }
-    else if (fields.oldPassword) { // Existing user password change, must be authenticated
+    else if ('oldPassword' in fields) { // Existing user password change, must be authenticated
         // Get user from token
-        const user = getUser(req);
+        await getUser(req);
+
+        // Fetch unscoped so password is present
+        user = await User.unscoped().findByPk(req.user.id);
 
         // Check the password
         if (!checkPassword(user.password, fields.oldPassword))
             return res.send('Invalid password').status(400);
+
+        logger.info(`Updating password for user ${user.username}`)
     }
     else {
         return res.send('Invalid request').status(400);
@@ -250,8 +256,8 @@ router.post('/users/password', asyncHandler(async (req, res) => {
     // ldap_set_user_password(user.id, password)
     // irods_set_user_password(user.id, password)
 
-    // Update password
-    user.password = fields.password;
+    // Update password -- assumes password requirements were enforced in front-end
+    user.password = encodePassword(fields.password);
     await user.save();
 
     res.send('success').status(200);

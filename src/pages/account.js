@@ -25,7 +25,20 @@ const Account = () => {
   const api = useAPI()
   const [_, setError] = useError()
   const [user, setUser] = useUser()
-  const [forms, setForms] = useState(Forms(user, properties))
+
+  const submitPassword = async (values) => {
+    try {
+      const res = await api.updatePassword(values['old_password'], values['new_password'])
+      if (res !== 'success')
+        setError(res)
+    }
+    catch (error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
+  const [forms, setForms] = useState(Forms(user, properties, submitPassword))
 
   const initialValues = (fields) =>
       fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
@@ -35,7 +48,7 @@ const Account = () => {
     try {
       const newUser = await api.updateUser(user.id, submission)
       setUser(newUser)
-      setForms(Forms(newUser, properties))
+      setForms(Forms(newUser, properties, submitPassword))
     }
     catch(error) {
       console.log(error)
@@ -314,7 +327,7 @@ const MailingListItem = ({ email, list }) => {
   )
 }
 
-const Forms = (user, properties) => {
+const Forms = (user, properties, onPasswordUpdate) => { //FIXME passing submithandler is funky
   return [ 
     { title: "Identification",
       autosave: true,
@@ -350,9 +363,7 @@ const Forms = (user, properties) => {
     },
     { title: "Password",
       autosave: false,
-      submitHandler: (values) => {
-        //TODO
-      },
+      submitHandler: onPasswordUpdate,
       fields: [
         { id: "old_password",
           name: "Old Password",
