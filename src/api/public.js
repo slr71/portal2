@@ -161,7 +161,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
             return res.send('Email address not found').status(404);
 
         // Check if password was already reset using this HMAC
-        const passwordReset = PasswordReset.findOne({ 
+        const passwordReset = await PasswordReset.findOne({ 
             where: {
                 key: fields.hmac,
                 user_id: emailAddress.user_id
