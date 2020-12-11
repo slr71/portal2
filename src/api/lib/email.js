@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const config = require('../../config.json')
-const { UI_WORKSHOPS_URL, UI_SERVICES_URL, UI_PASSWORD_URL, UI_CONFIRM_EMAIL_URL } = require('../../constants')
+const { UI_WORKSHOPS_URL, UI_REQUESTS_URL, UI_SERVICES_URL, UI_PASSWORD_URL, UI_CONFIRM_EMAIL_URL } = require('../../constants')
 
 const sendmail = require('sendmail')({
     silent: true
