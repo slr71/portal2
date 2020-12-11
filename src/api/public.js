@@ -72,8 +72,10 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
                 const realKey = HONEYPOT_FIELDS[index];
                 fields[realKey] = fields[key]; // replace encoded key with actual field name
             }
-            else // a fake field was populated
+            else { // a fake field was populated
+                logger.error(`Honeypot field was populated: key=${key} index=${index} value=${fields[key]}`);
                 return res.send('Validity test failed (2)').status(400);
+            }
         }
     }
 
