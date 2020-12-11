@@ -143,7 +143,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
     if (!fields || !('password' in fields)) 
         return res.send('Missing required field').status(400);
 
-    let user;
+    let user, runWorkflow;
     if ('hmac' in fields && 'password' in fields) { // Password set (new user) or reset
         // Decode HMAC
         const obj = decodePasswordResetToken(fields.hmac)
@@ -208,6 +208,8 @@ router.post('/users/password', asyncHandler(async (req, res) => {
             });
             if (!passwordReset)
                 logger.error('Error creating password reset');
+            
+            runWorkflow = true;
         }
     }
     else if ('oldPassword' in fields) { // Existing user password change, must be authenticated
@@ -222,6 +224,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
             return res.send('Invalid password').status(400);
 
         logger.info(`Updating password for user ${user.username}`)
+        runWorkflow = true;
     }
     else {
         return res.send('Invalid request').status(400);
@@ -234,8 +237,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
     res.send('success').status(200);
 
     // Update password in LDAP and IRODS (do after response as to not delay it)
-    // Could be easier to just call ldap and irods command line utils via child_process.execFile() but will try Argo workflow for now
-    if ('oldPassword' in fields) { // Only do this for password change, not for new user
+    if (runWorkflow) { // only do this for password change/reset, not for new user
         user.password = fields.password; // kludgey, but use raw password
         await submitUserWorkflow('update-password', user);
     }
