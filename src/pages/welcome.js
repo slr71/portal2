@@ -264,7 +264,7 @@ const SignUp = ({ startTime, firstNameId, lastNameId }) => {
     try {
       const newUser = await api.createUser(submission.username, submission)
       if (!newUser || typeof newUser != object){
-        setError(error.message)
+        setError(newUser)
       }
       else {
         setUser(newUser)
