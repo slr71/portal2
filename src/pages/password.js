@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useAPI } from '../contexts/api'
-import { useError } from '../contexts/error'
 import { Box, Grid, Typography, Button, TextField, makeStyles } from '@material-ui/core'
 import { MainLogo } from '../components'
 import { validatePassword } from '../lib/misc'
@@ -48,7 +47,9 @@ const Left = () => {
       </Box>
       <Box pt={"2em"} p={"6em"}>
         <Typography variant="h5" style={{color: "white"}}>
-          An Open Science Workspace for Collaborative Data-driven Discovery
+          The Open Science Workspace for
+          <br />
+          Collaborative Data-driven Discovery
         </Typography>
       </Box>
     </div>
@@ -58,11 +59,11 @@ const Left = () => {
 const Right = (props) => {
   const classes = useStyles()
   const api = useAPI()
-  const [_, setError] = useError()
   const reset = 'reset' in props
   const hmac = props.code
   const setLabel = reset ? 'Reset' : 'Set'
 
+  const [pageError, setPageError] = useState()
   const [password1, setPassword1] = useState()
   const [password2, setPassword2] = useState()
   const [error1, setError1] = useState()
@@ -87,14 +88,17 @@ const Right = (props) => {
       return 'Passwords must match'
   }
 
-  const submitForm = async (password) => {
+  const submitPassword = async (password) => {
     try {
-      await api.updatePassword({ hmac, password })
-      setSubmitted(true)
+      const res = await api.updatePassword({ hmac, password })
+      if (res !== 'success')
+        setPageError(res)
+      else
+        setSubmitted(true)
     }
     catch(error) {
-      console.log(error)
-      setError(error.message)
+      console.log(error.response)
+      setPageError(error.response.data)
     }
   }
 
@@ -165,14 +169,20 @@ const Right = (props) => {
           display="flex" 
           disabled={isSubmitting || !!error1 || !!error2 || !password1 || !password2 }
           onClick={() => {
-            console.log('Submit')
             setSubmitting(true)
-            submitForm(password1)
+            submitPassword(password1)
           }}
         >
           {setLabel} Password
         </Button>
       </Box>
+      {pageError &&
+        <Box mt={3}>
+          <Typography variant="button" color="error">
+            An error occured: {pageError}
+          </Typography>
+        </Box>
+      }
     </div>
   )
 }
