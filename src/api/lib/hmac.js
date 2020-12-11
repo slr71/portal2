@@ -28,4 +28,20 @@ function decodeHMAC(hmac) {
   return decrypted.toString();
 }
 
-module.exports = { generateHMAC, decodeHMAC };
+function generatePasswordResetToken(key) {
+  const MAX_AGE = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+  const expires = Date.now() + MAX_AGE;
+  return generateHMAC(JSON.stringify({ key, expires }));
+}
+
+function decodePasswordResetToken(hmac) {
+  const json = decodeHMAC(hmac);
+  return JSON.parse(json);
+}
+
+module.exports = { 
+  generateHMAC, 
+  decodeHMAC, 
+  generatePasswordResetToken, 
+  decodePasswordResetToken
+};
