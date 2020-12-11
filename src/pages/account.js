@@ -28,7 +28,10 @@ const Account = () => {
 
   const submitPassword = async (values) => {
     try {
-      const res = await api.updatePassword(values['old_password'], values['new_password'])
+      const res = await api.updatePassword({ 
+        oldPassword: values['old_password'], 
+        password: values['new_password'] 
+      })
       if (res !== 'success')
         setError(res)
     }
