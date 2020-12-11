@@ -75,10 +75,10 @@ async function emailNewEmailConfirmation(email, hmac) {
     })
 }
 
-async function emailPasswordReset(email, hmac) {
+async function emailPasswordReset(emailAddress, hmac) {
     const resetUrl = `${UI_PASSWORD_URL}?reset&code=${hmac}`;
     await renderEmail({
-        to: email, 
+        to: emailAddress.email, 
         bcc: config.email.bccPasswordChangeRequest,
         subject: 'CyVerse Password Reset',
         templateName: 'password_reset',

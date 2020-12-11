@@ -42,7 +42,9 @@ const Left = () => {
       </Box>
       <Box pt={"2em"} p={"6em"}>
         <Typography variant="h5" style={{color: "white"}}>
-          An Open Science Workspace for Collaborative Data-driven Discovery
+          The Open Science Workspace for
+          <br />
+          Collaborative Data-driven Discovery
         </Typography>
       </Box>
     </div>

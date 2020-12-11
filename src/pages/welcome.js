@@ -44,7 +44,7 @@ const Welcome = (props) => {
 const Left = () => (
   <div>
     <Box pt={"15%"}>
-      <MainLogo size="large"/>
+      <MainLogo size="large" />
     </Box>
     <Box>
       <WelcomeAnimation />
@@ -148,7 +148,7 @@ const ForgotPassword = ({ cancelHandler }) => {
   if (isSubmitted && !submitError) {
     return (
       <Box pt={"35vh"} style={{width:'30vw'}}>
-        <Typography variant="h5" className={classes.title}>
+        <Typography variant="h5" color="primary">
           We sent an email containing a link to reset your password to
         </Typography>
         <br />
@@ -156,7 +156,7 @@ const ForgotPassword = ({ cancelHandler }) => {
           {email}
         </Typography>
         <br />
-        <Typography variant="h5" className={classes.title}>
+        <Typography variant="h5" color="primary">
           Please check your email now.
         </Typography>
         <br />
