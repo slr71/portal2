@@ -24,7 +24,6 @@ function checkLDAPPassword(hash, secret) {
 // From https://stackoverflow.com/questions/17544537/django-pbkdf2-sha256-js-implementation
 function checkDjangoPassword(hash, secret) {
     const parts = hash.split('$');
-    console.log(parts)
     if (parts.length < 4) {
         console.log('checkDjangoPassword: invalid hash:', hash);
         return false;

@@ -7,6 +7,26 @@ metadata:
 ###########
 spec:
   templates:
+  - name: update-password
+    steps:
+    - - name: irods-set-user-password
+        template: irods-set-user-password
+        arguments:
+          parameters:
+          - name: user_id
+            value: "{{workflow.parameters.user_id}}"
+          - name: password
+            value: "{{workflow.parameters.password}}"
+
+    - - name: ldap-change-password
+        template: ldap-change-password
+        arguments:
+          parameters:
+          - name: uid
+            value: "{{workflow.parameters.user_id}}"
+          - name: password
+            value: "{{workflow.parameters.password}}"
+
   - name: create-user
     steps:
     - - name: ldap-create-user
@@ -177,6 +197,21 @@ spec:
       image: localhost:5000/portal2
       command: [sh, -c]
       args: ['echo "dn: uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: {{inputs.parameters.first_name}}\nsn: {{inputs.parameters.last_name}}\ncn: {{inputs.parameters.first_name}} {{inputs.parameters.last_name}}\nuid: {{inputs.parameters.uid}}\nuserPassword: {{inputs.parameters.password}}\nmail: {{inputs.parameters.email}}\ndepartmentNumber: {{inputs.parameters.department}}\no: {{inputs.parameters.organization}}\ntitle: {{inputs.parameters.title}}\nhomeDirectory: /home/{{inputs.parameters.uid}}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: {{inputs.parameters.uidNumber}}\nshadowLastChange:{{workflow.parameters.daysSinceEpoch}}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H {{workflow.parameters.ldap_host}} -D {{workflow.parameters.ldap_admin}} -w {{workflow.parameters.ldap_password}}']
+
+  - name: ldap-change-password
+    inputs:
+      parameters:
+        - name: uid
+        - name: password
+    container:
+      image: localhost:5000/portal2
+      command: [ldappasswd]
+      args: [
+        "-H", "{{workflow.parameters.ldap_host}}", 
+        "-D", "uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org",
+        "-w", "{{workflow.parameters.ldap_password}}",
+        "-s", "{{inputs.parameters.password}}",
+      ]
 
   - name: ldap-delete-user
     inputs:

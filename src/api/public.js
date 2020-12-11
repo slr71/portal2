@@ -172,16 +172,15 @@ async function createUser(user) {
     );
 }
 
-// Update user password
+// Update user password -- assumes password requirements were enforced by front-end
 router.post('/users/password', asyncHandler(async (req, res) => {
     const fields = req.body;
-    console.log(fields);
-
-    if (!fields) 
-        return res.send('Missing required fields').status(400);
+    if (!fields || !('password' in fields)) 
+        return res.send('Missing required field').status(400);
 
     let user;
     if ('hmac' in fields && 'password' in fields) { // Password set (new user) or reset
+        // Decrypt HMAC into email ID
         const decodedEmailId = decodeHMAC(fields.hmac)
         const emailId = parseInt(decodedEmailId)
         if (isNaN(emailId))
@@ -199,11 +198,8 @@ router.post('/users/password', asyncHandler(async (req, res) => {
 
         // Fetch user
         user = await User.findByPk(emailAddress.user_id);
-        if (!user)
-            return res.send('User not found').status(404); // should never happen
-
-        // New user
-        if (user.password == '') { 
+        
+        if (user.password == '') { // New user
             // Run user creation workflow
             logger.info(`Running user creation workflow for user ${user.username}`)
             const rc = await createUser(user)
@@ -225,14 +221,14 @@ router.post('/users/password', asyncHandler(async (req, res) => {
                 serviceApprovers.grantRequest(serviceRequest)
             }
         }
-        // Existing user
-        else { 
+        else { // Existing user
+            // Log password reset
             const passwordReset = PasswordReset.create({
                 user_id: emailAddress.user.id,
                 key: fields.hmac
             });
             if (!passwordReset)
-                return res.send('Error creating password reset').status(500);
+                logger.error('Error creating password reset');
         }
     }
     else if ('oldPassword' in fields) { // Existing user password change, must be authenticated
@@ -252,16 +248,40 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         return res.send('Invalid request').status(400);
     }
 
-    //FIXME update password in LDAP and IRODS
-    // ldap_set_user_password(user.id, password)
-    // irods_set_user_password(user.id, password)
-
-    // Update password -- assumes password requirements were enforced in front-end
+    // Update password in DB
     user.password = encodePassword(fields.password);
     await user.save();
 
     res.send('success').status(200);
+
+    // Update password in LDAP and IRODS (do after response as to not delay it)
+    // Only do this for password change, not for new user
+    // Could be easier to just call ldap and irods command line utils via child_process.execFile() but will try Argo workflow for now
+    if ('oldPassword' in fields)
+        updatePassword(user)
 }));
+
+async function updatePassword(user) {
+    // Submit Argo workflow
+    await Argo.submit(
+        'user.yaml',
+        'update-password',
+        {
+            // User params
+            user_id: user.username,
+            password: user.password,
+
+            // Other params
+            // portal_api_base_url: config.apiBaseUrl,
+            ldap_host: config.ldap.host,
+            ldap_admin: config.ldap.admin,
+            ldap_password: config.ldap.password,
+            // mailchimp_api_url: config.mailchimp.baseUrl,
+            // mailchimp_api_key: config.mailchimp.apiKey,
+            // mailchimp_list_id: config.mailchimp.listId,
+        }
+    );
+}
 
 // Send reset password link //TODO require API key
 router.post('/users/reset_password', asyncHandler(async (req, res) => {
