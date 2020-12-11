@@ -5,11 +5,12 @@ const { decodeHMAC, generatePasswordResetToken, decodePasswordResetToken } = req
 const { asyncHandler, getUser } = require('./lib/auth');
 const { checkPassword, encodePassword } = require('./lib/password')
 const config = require('../config');
-const { UI_PASSWORD_URL, UI_REQUESTS_URL } = require('../constants');
 const Argo = require('./lib/argo');
+const serviceApprovers = require('./service');
 const sequelize = require('sequelize');
 const models = require('./models');
 const User = models.account_user;
+const AccessRequest = models.api_accessrequest;
 const CyVerseService = models.api_cyverseservice;
 const RestrictedUsername = models.account_restrictedusername;
 const EmailAddress = models.account_emailaddress;
@@ -143,7 +144,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
     if (!fields || !('password' in fields)) 
         return res.send('Missing required field').status(400);
 
-    let user, runWorkflow;
+    let user, isUpdate;
     if ('hmac' in fields && 'password' in fields) { // Password set (new user) or reset
         // Decode HMAC
         const obj = decodePasswordResetToken(fields.hmac)
@@ -209,7 +210,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
             if (!passwordReset)
                 logger.error('Error creating password reset');
             
-            runWorkflow = true;
+            isUpdate = true;
         }
     }
     else if ('oldPassword' in fields) { // Existing user password change, must be authenticated //TODO move to separate endpoint
@@ -224,7 +225,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
             return res.send('Invalid password').status(400);
 
         logger.info(`Updating password for user ${user.username}`)
-        runWorkflow = true;
+        isUpdate = true;
     }
     else {
         return res.send('Invalid request').status(400);
@@ -237,7 +238,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
     res.send('success').status(200);
 
     // Update password in LDAP and IRODS (do after response as to not delay it)
-    if (runWorkflow) { // only do this for password change/reset, not for new user
+    if (isUpdate) { // only do this for password change/reset, not for new user
         user.password = fields.password; // kludgey, but use raw password
         await submitUserWorkflow('update-password', user);
     }
