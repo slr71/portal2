@@ -25,12 +25,13 @@ spec:
             value: "{{workflow.parameters.user_id}}"
           - name: password
             value: "{{workflow.parameters.password}}"
-    - - name: ldap-update-shadow-last-change
+    - - name: ldap-update-shadow-last-change 
         template: ldap-update-shadow-last-change
         arguments:
           parameters:
           - name: uid
             value: "{{workflow.parameters.user_id}}"
+    #FIXME combine ldap-change-password and ldap-update-shadow-last-change into single ldapmodify command
 
   - name: create-user
     steps:

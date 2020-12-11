@@ -135,43 +135,6 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
     await emailNewAccountConfirmation(newUser.email, hmac)
 }));
 
-async function createUser(user) {
-    // Calculate number of days since epoch (needed for LDAP )
-    const daysSinceEpoch = Math.floor(new Date()/8.64e7);
-
-    // Calculate uidNumber
-    // Old method: /repos/portal/cyverse_ldap/utils/get_uid_number.py
-    const uidNumber = user.id + config.uidNumberOffset;
-
-    // Submit Argo workflow
-    await Argo.submit(
-        'user.yaml',
-        'create-user',
-        {
-            // User params
-            user_id_number: uidNumber,
-            user_id: user.username,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email: user.email,
-            password: user.password,
-            department: user.department,
-            organization: user.institution,
-            title: user.occupation.name,
-            daysSinceEpoch: daysSinceEpoch,
-
-            // Other params
-            portal_api_base_url: config.apiBaseUrl,
-            ldap_host: config.ldap.host,
-            ldap_admin: config.ldap.admin,
-            ldap_password: config.ldap.password,
-            mailchimp_api_url: config.mailchimp.baseUrl,
-            mailchimp_api_key: config.mailchimp.apiKey,
-            mailchimp_list_id: config.mailchimp.listId,
-        }
-    );
-}
-
 // Update user password -- assumes password requirements were enforced by front-end
 router.post('/users/password', asyncHandler(async (req, res) => {
     const fields = req.body;
@@ -202,7 +165,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         if (user.password == '') { // New user
             // Run user creation workflow
             logger.info(`Running user creation workflow for user ${user.username}`)
-            const rc = await createUser(user)
+            const rc = await submitUserWorkflow('create-user', user);
 
             // Grant access to default services
             logger.info(`Granting access to default services for user ${user.username}`)
@@ -258,31 +221,42 @@ router.post('/users/password', asyncHandler(async (req, res) => {
     // Only do this for password change, not for new user
     // Could be easier to just call ldap and irods command line utils via child_process.execFile() but will try Argo workflow for now
     if ('oldPassword' in fields)
-        updatePassword(user)
+        await submitUserWorkflow('update-password', user);
 }));
 
-async function updatePassword(user) {
+async function submitUserWorkflow(templateName, user) {
     // Calculate number of days since epoch (needed for LDAP)
     const daysSinceEpoch = Math.floor(new Date()/8.64e7);
 
+    // Calculate uidNumber
+    // Old method: /repos/portal/cyverse_ldap/utils/get_uid_number.py
+    const uidNumber = user.id + config.uidNumberOffset;
+
     // Submit Argo workflow
-    await Argo.submit(
+    return await Argo.submit(
         'user.yaml',
-        'update-password',
+        templateName,
         {
             // User params
+            user_id_number: uidNumber,
             user_id: user.username,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
             password: user.password,
+            department: user.department,
+            organization: user.institution,
+            title: user.occupation.name,
             daysSinceEpoch: daysSinceEpoch,
 
             // Other params
-            // portal_api_base_url: config.apiBaseUrl,
+            portal_api_base_url: config.apiBaseUrl,
             ldap_host: config.ldap.host,
             ldap_admin: config.ldap.admin,
             ldap_password: config.ldap.password,
-            // mailchimp_api_url: config.mailchimp.baseUrl,
-            // mailchimp_api_key: config.mailchimp.apiKey,
-            // mailchimp_list_id: config.mailchimp.listId,
+            mailchimp_api_url: config.mailchimp.baseUrl,
+            mailchimp_api_key: config.mailchimp.apiKey,
+            mailchimp_list_id: config.mailchimp.listId,
         }
     );
 }
