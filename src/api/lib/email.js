@@ -51,7 +51,7 @@ function renderEmail({ to, bcc, subject, templateName, fields }) {
 async function emailNewAccountConfirmation(email, hmac) {
     const confirmationUrl = `${UI_PASSWORD_URL}?code=${hmac}`;
     await renderEmail({
-        to: newUser.email, 
+        to: email, 
         bcc: config.email.bccNewAccountConfirmation,
         subject: '[CyVerse] Please Confirm Your E-Mail Address',
         templateName: 'email_confirmation_signup',
@@ -66,7 +66,7 @@ async function emailNewEmailConfirmation(email, hmac) {
     const confirmationUrl = `${UI_CONFIRM_EMAIL_URL}?code=${hmac}`;
     await renderEmail({
         to: email, 
-        bcc: null,
+        //bcc: null,
         subject: 'CyVerse Email Confirmation',
         templateName: 'add_email_confirmation',
         fields: {
