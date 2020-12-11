@@ -199,7 +199,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         await getUser(req);
 
         // Fetch unscoped so password is present
-        user = await User.unscoped().findByPk(req.user.id);
+        user = await User.unscoped().findByPk(req.user.id, { include: [ 'occupation' ] });
 
         // Check the password
         if (!checkPassword(user.password, fields.oldPassword))
@@ -218,10 +218,11 @@ router.post('/users/password', asyncHandler(async (req, res) => {
     res.send('success').status(200);
 
     // Update password in LDAP and IRODS (do after response as to not delay it)
-    // Only do this for password change, not for new user
     // Could be easier to just call ldap and irods command line utils via child_process.execFile() but will try Argo workflow for now
-    if ('oldPassword' in fields)
+    if ('oldPassword' in fields) { // Only do this for password change, not for new user
+        user.password = fields.password; // kludgey, but use raw password
         await submitUserWorkflow('update-password', user);
+    }
 }));
 
 async function submitUserWorkflow(templateName, user) {
