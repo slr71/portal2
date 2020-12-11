@@ -221,6 +221,7 @@ const ForgotPassword = ({ cancelHandler }) => {
 const SignUp = ({ startTime, firstNameId, lastNameId }) => {
   const classes = useStyles()
   const api = useAPI()
+  const [error, setError] = useState()
 
   const [form, setForm] = useState(getForm(firstNameId, lastNameId))
   const [isSubmitted, setSubmitted] = useState(false)
@@ -280,15 +281,15 @@ const SignUp = ({ startTime, firstNameId, lastNameId }) => {
     <Box width="60%" pt={"25%"}>
         {isSubmitted 
         ? <Box p={7}>
-            <Typography variant='h6' color='textSecondary'>
+            <Typography variant='h5' color='textSecondary'>
               A confirmation email was sent to
             </Typography>
             <br /><br />
-            <Typography variant='h6' color='primary'>		  
+            <Typography variant='h5' color='primary'>		  
               <b>{user ? user.email : '<error>'}</b>
             </Typography>
             <br /><br />
-            <Typography variant='h6' color='textSecondary'>
+            <Typography variant='h5' color='textSecondary'>
               Please click on the confirmation link in the email to activate your account.
             </Typography>
           </Box>
@@ -308,6 +309,7 @@ const SignUp = ({ startTime, firstNameId, lastNameId }) => {
               }}
             />
             <br />
+            {error && <Typography variant="button" color="error">{error}</Typography>}
             <br />
             <Link href="/login">Already have an account?</Link>
           </Box>
