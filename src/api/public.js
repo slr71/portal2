@@ -262,6 +262,9 @@ router.post('/users/password', asyncHandler(async (req, res) => {
 }));
 
 async function updatePassword(user) {
+    // Calculate number of days since epoch (needed for LDAP)
+    const daysSinceEpoch = Math.floor(new Date()/8.64e7);
+
     // Submit Argo workflow
     await Argo.submit(
         'user.yaml',
@@ -270,6 +273,7 @@ async function updatePassword(user) {
             // User params
             user_id: user.username,
             password: user.password,
+            daysSinceEpoch: daysSinceEpoch,
 
             // Other params
             // portal_api_base_url: config.apiBaseUrl,

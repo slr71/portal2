@@ -19,7 +19,7 @@ class ArgoApi {
     }
 
     async submit(yamlFilename, entryPoint, parameters) {
-        const yamlPath = path.join(__dirname, 'api', 'workflows', 'argo', yamlFilename);
+        const yamlPath = path.join(__dirname, '..', 'workflows', 'argo', yamlFilename);
         let doc;
         try {
             doc = yaml.safeLoad(fs.readFileSync(yamlPath, 'utf8'));
@@ -38,11 +38,12 @@ class ArgoApi {
             "namespace": "default",
             "workflow": doc
         };
-        console.log("body:", JSON.stringify(body, null, 4));
+        //console.log("body:", JSON.stringify(body, null, 4));
 
-        if (this.disabled)
+        if (this.disabled) // optional dry run for debug
             return;
 
+        console.log(`Submitting workflow ${yamlFilename}:${entryPoint}:`, parameters);
         try {
             const res = await this.axios.post(`/workflows/${this.namespace}`, body);
             console.log("res:", res.data);

@@ -17,7 +17,6 @@ spec:
             value: "{{workflow.parameters.user_id}}"
           - name: password
             value: "{{workflow.parameters.password}}"
-
     - - name: ldap-change-password
         template: ldap-change-password
         arguments:
@@ -26,6 +25,12 @@ spec:
             value: "{{workflow.parameters.user_id}}"
           - name: password
             value: "{{workflow.parameters.password}}"
+    - - name: ldap-update-shadow-last-change
+        template: ldap-update-shadow-last-change
+        arguments:
+          parameters:
+          - name: uid
+            value: "{{workflow.parameters.user_id}}"
 
   - name: create-user
     steps:
@@ -212,6 +217,16 @@ spec:
         "-w", "{{workflow.parameters.ldap_password}}",
         "-s", "{{inputs.parameters.password}}",
       ]
+
+  - name: ldap-update-shadow-last-change
+    inputs:
+      parameters:
+        - name: uid
+    container:
+      image: localhost:5000/portal2
+      command: [sh, -c]
+      args: ['echo "dn: uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org\nshadowLastChange:{{workflow.parameters.daysSinceEpoch}}" | ldapmodify -H {{workflow.parameters.ldap_host}} -D {{workflow.parameters.ldap_admin}} -w {{workflow.parameters.ldap_password}}']
+
 
   - name: ldap-delete-user
     inputs:
