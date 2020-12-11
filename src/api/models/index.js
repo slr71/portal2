@@ -80,7 +80,7 @@ models.api_service.belongsToMany(models.api_form,
 models.api_service.belongsTo(models.api_servicemaintainer, { as: 'service_maintainer' });
 // models.api_service.hasMany(models.api_accessrequest, { as: 'requests', foreignKey: 'service_id' });
 models.api_service.hasMany(models.api_accessrequestquestion, { as: 'questions', foreignKey: 'service_id' });
-models.api_service.belongsTo(models.api_cyverseservice, { as: 'cyverse_service' });
+// models.api_service.belongsTo(models.api_cyverseservice, { as: 'cyverse_service' });
 
 models.api_accessrequestquestion.hasMany(models.api_accessrequestanswer, { as: 'answers', foreignKey: 'access_request_question_id' });
 
