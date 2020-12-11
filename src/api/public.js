@@ -175,8 +175,8 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         emailAddress.primary = true
         emailAddress.save()
 
-        // Fetch user
-        user = await User.findByPk(emailAddress.user_id);
+        // Fetch user -- unscoped so password is present
+        user = await User.unscoped().findByPk(req.user.id, { include: [ 'occupation' ] });
         
         if (user.password == '') { // New user
             // Run user creation workflow
@@ -212,11 +212,11 @@ router.post('/users/password', asyncHandler(async (req, res) => {
             runWorkflow = true;
         }
     }
-    else if ('oldPassword' in fields) { // Existing user password change, must be authenticated
+    else if ('oldPassword' in fields) { // Existing user password change, must be authenticated //TODO move to separate endpoint
         // Get user from token
         await getUser(req);
 
-        // Fetch unscoped so password is present
+        // Fetch user -- unscoped so password is present
         user = await User.unscoped().findByPk(req.user.id, { include: [ 'occupation' ] });
 
         // Check the password
