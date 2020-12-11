@@ -176,8 +176,8 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         emailAddress.save()
 
         // Fetch user -- unscoped so password is present
-        user = await User.unscoped().findByPk(req.user.id, { include: [ 'occupation' ] });
-        
+        user = await User.unscoped().findByPk(emailAddress.user_id, { include: [ 'occupation' ] });
+
         if (user.password == '') { // New user
             // Run user creation workflow
             logger.info(`Running user creation workflow for user ${user.username}`)
