@@ -156,6 +156,8 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         if (!emailAddress)
             return res.send('Email address not found').status(404);
 
+        //TODO need to check if HMAC already used -- change HMAC to one-time password
+
         // Confirm email address
         emailAddress.verified = true
         emailAddress.primary = true
@@ -189,7 +191,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         else { // Existing user
             // Log password reset
             const passwordReset = PasswordReset.create({
-                user_id: emailAddress.user.id,
+                user_id: user.id,
                 key: fields.hmac
             });
             if (!passwordReset)
