@@ -106,7 +106,7 @@ const Right = (props) => {
     return (
       <div>
         <Box pt={"35vh"}>
-          <Typography variant="h4" color="primary">
+          <Typography variant="h5" color="primary">
             Your password was updated.
             <br />
             Please sign in to continue.
@@ -179,7 +179,7 @@ const Right = (props) => {
       {pageError &&
         <Box mt={3}>
           <Typography variant="button" color="error">
-            An error occured: {pageError}
+            Error: {pageError}
           </Typography>
         </Box>
       }
