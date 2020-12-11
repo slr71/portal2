@@ -73,12 +73,13 @@ const Right = (props) => {
   const handleChangePassword1 = (e) => {
     setPassword1(e.target.value)
     setError1(validatePassword(e.target.value))
-    setError2(validatePassword2(e.target.value, password2))
+    if (password2)
+      setError2(validatePassword2(e.target.value, password2))
   }
 
   const handleChangePassword2 = (e) => {
     setPassword2(e.target.value)
-    setError2(isMatching(password1, e.target.value))
+    setError2(validatePassword2(e.target.value, password1))
   }
 
   const validatePassword2 = (value1, value2) => {
@@ -100,9 +101,11 @@ const Right = (props) => {
   if (isSubmitted) {
     return (
       <div>
-        <Box pt={"30vh"}>
-          <Typography variant="h4" className={classes.title}>
-            Your password was updated.<br />Please sign in to continue.
+        <Box pt={"35vh"}>
+          <Typography variant="h4" color="primary">
+            Your password was updated.
+            <br />
+            Please sign in to continue.
           </Typography>
         </Box>
         <Box mt={5}>
@@ -160,12 +163,11 @@ const Right = (props) => {
           color="primary" 
           size="large" 
           display="flex" 
-          disabled={isSubmitting || !!error1 || !!error2}
+          disabled={isSubmitting || !!error1 || !!error2 || !password1 || !password2 }
           onClick={() => {
             console.log('Submit')
             setSubmitting(true)
             submitForm(password1)
-            //setSubmitting(false)
           }}
         >
           {setLabel} Password
