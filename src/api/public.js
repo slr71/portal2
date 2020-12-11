@@ -115,7 +115,7 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
     fields['orcid_id'] = '';
 
     // Create user
-    logger.info('Creating user:', fields);
+    logger.info(`Creating user ${username}`);
     let newUser = await User.create(fields)
     if (!newUser)
         return res.send('Error creating user').status(500);

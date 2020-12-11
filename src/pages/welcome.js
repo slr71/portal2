@@ -263,9 +263,8 @@ const SignUp = ({ startTime, firstNameId, lastNameId }) => {
   const submitForm = async (submission) => {
     try {
       const newUser = await api.createUser(submission.username, submission)
-      if (!newUser || typeof newUser != object){
-        setError(newUser)
-      }
+      if (!newUser || typeof newUser != 'object')
+        setError('An error occurred')
       else {
         setUser(newUser)
         setSubmitted(true)
