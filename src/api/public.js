@@ -189,7 +189,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
             const defaultServices = await CyVerseService.findAll({ where: { auto_add_new_users: true }});
             for (let service of defaultServices) {
                 const serviceRequest = await AccessRequest.create({
-                    service_id: service.id,
+                    service_id: service.service_ptr_id,
                     user_id: user.id,
                     auto_approve: true,
                     status: AccessRequest.constants.STATUS_REQUESTED,
