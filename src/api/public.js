@@ -350,7 +350,9 @@ router.post('/confirm_email', asyncHandler(async (req, res) => {
 router.post('/services/requests/:id(\\d+)', asyncHandler(async (req, res) => { //FIXME require API key
     const requestId = req.params.id;
 
-    const request = await AccessRequest.findByPk(requestId);
+    const request = await AccessRequest.findByPk(requestId, {
+        include: [ 'user', 'service' ] // needed by emailServiceAccessGranted()
+    });
     if (!request)
         return res.send("Request not found").status(404);
 
