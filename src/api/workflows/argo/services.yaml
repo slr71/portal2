@@ -265,11 +265,9 @@ spec:
       command: [curl]
       args: [
         "--verbose",
-        "--location",
         "--request", "POST",
         "--header", "Content-Type: application/json", 
         #FIXME add API key
-        "--data", "{ \"user\": \"{{workflow.parameters.user_id}}\", \"status\": \"granted\" }", 
         "{{workflow.parameters.portal_api_base_url}}/services/requests/{{workflow.parameters.request_id}}"
       ]
 
