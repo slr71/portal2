@@ -32,7 +32,7 @@ const GRANTERS = {
     SCI_APPS: 'sciapps-grant-access'
 };
 
-async function grantRequest(request, authToken) {
+async function grantRequest(request) {
     if (!request.service || !request.user)
         throw('Missing required property')
 
@@ -48,9 +48,9 @@ async function grantRequest(request, authToken) {
             workflow,
             {
                 // User params
+                request_id: request.id,
                 user_id: request.user.username,
                 email: request.user.email,
-                token: authToken,
 
                 // Other params
                 portal_api_base_url: config.apiBaseUrl,
@@ -63,7 +63,7 @@ async function grantRequest(request, authToken) {
             }
         );
 
-        // Status is set to "granted" in Argo workflow via POST to /api/services/[name]/requests
+        // Status is set to "granted" in Argo workflow via POST to /api/services/requests/[id]
     }
     else { // AUTO_APPROVE
         logger.info('grantRequest: AUTO_APPROVE');

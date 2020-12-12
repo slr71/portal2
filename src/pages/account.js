@@ -301,8 +301,7 @@ const MailingListItem = ({ email, list }) => {
   const [state, setState] = useState(list.api_emailaddressmailinglist.is_subscribed)
 
   useEffect(() => {
-      api.updateMailingListSubscription({ 
-        id: list.id,
+      api.updateMailingListSubscription(list.id, { 
         email: email.email,
         subscribe: state
       }).then((resp) => {

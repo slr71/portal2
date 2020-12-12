@@ -169,19 +169,17 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, asyncHandler(async (req
     if (created) // new request
         await approveRequest(request);
     if (request.isApproved())
-        await grantRequest(request, req.api.token);
+        await grantRequest(request);
 
     notifyClientOfServiceRequestStatusChange(req.ws, request);
 }));
 
 /*
- * Update request status
+ * Update request status (STAFF ONLY)
  * 
- * Called in 
- *     1. Admin "Access Requests" page to grant/deny request
- *     2. Service registration workflow (src/api/workflows/argo) to grant request
+ * Called in admin "Access Requests" page to grant/deny request
  */
-router.post('/:nameOrId(\\w+)/requests', getUser, asyncHandler(async (req, res) => {
+router.post('/:nameOrId(\\w+)/requests', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const nameOrId = req.params.nameOrId;
 
     const status = req.body.status;
@@ -223,7 +221,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, asyncHandler(async (req, res) 
 
     // Call granter (do this after response as to not delay it)
     if (request.isApproved())
-        await grantRequest(request, req.api.token);
+        await grantRequest(request);
     if (request.isGranted()) // callback from workflow
         await emailServiceAccessGranted(request);
 

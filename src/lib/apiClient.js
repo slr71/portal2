@@ -57,13 +57,13 @@ class PortalAPI {
 
   async createUser(username, params) { return await this.put(`/users/${username}`, params) }
 
-  async updateUser(id, fields) { return await this.post(`/users/${id}`, fields) }
-
-  async updateMailingListSubscription(params) { return await this.post(`/mailing_lists/subscriptions`, params) }
+  async updateUser(id, params) { return await this.post(`/users/${id}`, params) }
 
   async updatePassword(params) { return await this.post(`/users/password`, params) } // FIXME conflict if username is "password"
 
   async resetPassword(params) { return await this.post(`/users/reset_password`, params) } // FIXME conflict if username is "reset_password"
+
+  async updateMailingListSubscription(id, params) { return await this.post(`/mailing_lists/${id}/subscriptions`, params) }
 
   async createEmailAddress(params) { return await this.put(`/mailing_lists/email_addresses`, params) }
 

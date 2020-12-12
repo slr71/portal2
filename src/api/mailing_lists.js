@@ -1,14 +1,14 @@
+//TODO consider merging this module into users.js
+
 const router = require('express').Router();
 const { getUser, asyncHandler } = require('./lib/auth');
 const { emailNewEmailConfirmation } = require('./lib/email')
 const { generateHMAC } = require('./lib/email')
 const sequelize = require('sequelize');
 const models = require('./models');
-const User = models.account_user;
 const MailingList = models.api_mailinglist;
 const EmailAddress = models.account_emailaddress;
 const EmailAddressToMailingList = models.api_emailaddressmailinglist;
-const { UI_CONFIRM_EMAIL_URL } = require('../constants')
 
 //TODO move into module
 const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase()); 
@@ -63,30 +63,28 @@ router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, re
     res.send('success').status(200);
 }));
 
-router.post('/subscriptions', getUser, asyncHandler(async (req, res) => {
+/*
+ * Update mailing list subscription
+ * 
+ * Called in "Account" page to subscribe/unsubscribe
+ */
+router.post('/:id(\\d+)/subscriptions', getUser, asyncHandler(async (req, res) => {
     console.log(req.body)
-    const id = req.body.id // mailing list id
-    const name = req.body.name; // OR mailing list name, e.g. "de-users"
+    const id = req.params.id // mailing list id
     const email = req.body.email; // email address
     const subscribe = !!req.body.subscribe;
 
-    if ((!id && !name) || !email)
-        return res.send('Missing required field(s)').status(400);
+    if (!email)
+        return res.send('Missing required field').status(400);
 
-    const mailingList = await MailingList.findOne({
-        where:
-            sequelize.or(
-                { id: id ? id : 0 },
-                { list_name: name ? name : '' }
-            )
-    });
+    const mailingList = await MailingList.findByPk(id);
     if (!mailingList)
         return res.send('Mailing list not found').status(404);
 
     const emailAddress = await EmailAddress.findOne({ 
         where: { 
             email: email,
-            user_id: req.user.id 
+            user_id: req.user.id
         }
     });
     if (!emailAddress)

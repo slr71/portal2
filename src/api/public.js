@@ -340,6 +340,67 @@ router.post('/confirm_email', asyncHandler(async (req, res) => {
     res.send('success').status(200);
 }));
 
+/*
+ * Argo callback to set service access request status to "granted"
+ * 
+ * Called in service registration workflow (src/api/workflows/argo) to signal workflow completion
+ */
+router.post('/services/requests/:id(\\d+)', asyncHandler(async (req, res) => { //FIXME require API key
+    const requestId = req.params.id;
+
+    const request = await AccessRequest.findByPk(requestId);
+    if (!request)
+        return res.send("Request not found").status(404);
+
+    request.grant();
+
+    res.json(request).status(200);
+
+    // Send notification email to user (do this after response as to not delay it)
+    await emailServiceAccessGranted(request);
+
+    // Update status on client
+    notifyClientOfServiceRequestStatusChange(req.ws, request);
+}));
+
+/*
+ * Argo callback to subscribe to mailing list
+ * 
+ * Called in service registration workflow (src/api/workflows/argo) to subscribe to service mailing list
+ */
+router.post('/mailing_lists/:nameOrId(\\w+)/subscribe', asyncHandler(async (req, res) => { //FIXME require API key
+    console.log(req.body)
+    const nameOrId = req.params.nameOrId; // mailing list name (e.g. "de-users") or ID
+    const email = req.body.email; // email address to subscribe
+
+    if (!email)
+        return res.send('Missing required field').status(400);
+
+    const mailingList = await MailingList.findOne({
+        where:
+            sequelize.or(
+                { id: nameOrId ? nameOrId : 0 },
+                { list_name: nameOrId ? nameOrId : '' }
+            )
+    });
+    if (!mailingList)
+        return res.send('Mailing list not found').status(404);
+
+    const emailAddress = await EmailAddress.findOne({ where: { email } });
+    if (!emailAddress)
+        return res.send('Email address not found').status(404);
+
+    const emailAddressToMailingList = await EmailAddressToMailingList.create({ 
+        mailing_list_id: mailingList.id,
+        email_address_id: emailAddress.id,
+        is_subscribed: true
+    });
+    if (!emailAddressToMailingList)
+        return res.send('Failed to subscribe').status(500);
+    
+    return res.send('success').status(200);
+}));
+
 // This endpoint is no longer called directly.  It is used to generate the src/user-properties.json file for static compilation.
 // To update the file:  curl -s http://localhost:3000/api/users/properties | jq > user-properties.json
 router.get('/users/properties', asyncHandler(async (req, res) => {

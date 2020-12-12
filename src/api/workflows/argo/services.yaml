@@ -266,11 +266,11 @@ spec:
       args: [
         "--verbose",
         "--location",
-        "--request", "POST", 
+        "--request", "POST",
         "--header", "Content-Type: application/json", 
-        "--header", "Authorization: Token {{workflow.parameters.token}}"
-        "--data", "{ \"status\": \"granted\" }", 
-        "{{workflow.parameters.portal_api_base_url}}/services/{{inputs.parameters.service_name}}/requests"
+        #FIXME add API key
+        "--data", "{ \"user\": \"{{workflow.parameters.user_id}}\", \"status\": \"granted\" }", 
+        "{{workflow.parameters.portal_api_base_url}}/services/requests/{{workflow.parameters.request_id}}"
       ]
 
   - name: api-subscribe-mailing-list
@@ -283,9 +283,8 @@ spec:
       command: [curl]
       args: [
         "--verbose", 
-        "--request", "POST", 
         "--header", "Content-Type: application/json", 
-        "--header" "Authorization: Token {{workflow.parameters.token}}"
-        "--data", "{ \"name\": \"{{inputs.parameters.list_name}}\", \"email\": \"{{inputs.parameters.email}}\", \"subscribe\": true }", 
-        "{{workflow.parameters.portal_api_base_url}}/mailing_lists/subscriptions/"
+        #FIXME add API key
+        "--data", "{ \"email\": \"{{inputs.parameters.email}}\" }", 
+        "{{workflow.parameters.portal_api_base_url}}/mailing_lists/{{inputs.parameters.list_name}}/subscribe"
       ]
