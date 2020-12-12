@@ -186,17 +186,20 @@ router.post('/users/password', asyncHandler(async (req, res) => {
 
             // Grant access to default services
             logger.info(`Granting access to default services for user ${user.username}`)
-            const defaultServices = await CyVerseService.findAll({ where: { auto_add_new_users: true }});
-            for (let service of defaultServices) {
+            const defaultServices = await CyVerseService.findAll({ 
+                where: { auto_add_new_users: true },
+                include: [ 'service' ]
+            });
+            for (let cyverseService of defaultServices) {
                 const serviceRequest = await AccessRequest.create({
-                    service_id: service.service_ptr_id,
+                    service_id: cyverseService.service_ptr_id,
                     user_id: user.id,
                     auto_approve: true,
                     status: AccessRequest.constants.STATUS_REQUESTED,
                     message: AccessRequest.constants.MESSAGE_REQUESTED
                 });
     
-                serviceRequest.service = service;
+                serviceRequest.service = cyverseService.service;
                 serviceRequest.user = user;
                 serviceApprovers.grantRequest(serviceRequest)
             }

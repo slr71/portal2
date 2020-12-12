@@ -80,11 +80,10 @@ models.api_service.belongsToMany(models.api_form,
 models.api_service.belongsTo(models.api_servicemaintainer, { as: 'service_maintainer' });
 // models.api_service.hasMany(models.api_accessrequest, { as: 'requests', foreignKey: 'service_id' });
 models.api_service.hasMany(models.api_accessrequestquestion, { as: 'questions', foreignKey: 'service_id' });
-// models.api_service.belongsTo(models.api_cyverseservice, { as: 'cyverse_service' });
+models.api_cyverseservice.belongsTo(models.api_service, { as: 'service', foreignKey: 'service_id', otherKey: 'service_ptr_id' });
 
 models.api_accessrequestquestion.hasMany(models.api_accessrequestanswer, { as: 'answers', foreignKey: 'access_request_question_id' });
 
-//FIXME change back table name from 'request' to default 'api_accessrequest'
 models.api_accessrequest.belongsTo(models.account_user, { as: 'user' });
 models.api_accessrequest.belongsTo(models.api_service, { as: 'service' });
 models.api_accessrequest.hasMany(models.api_accessrequestlog, { as: 'logs', foreignKey: 'access_request_id' });
