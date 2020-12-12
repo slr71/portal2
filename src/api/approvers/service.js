@@ -25,14 +25,14 @@ async function approveRequest(request) {
 // Map service approval keys to Argo workflow templates
 const GRANTERS = {
     ATMOSPHERE: 'atmosphere-grant-access',
-    DATA_COMMONS: 'data-commmons-grant-access',
+    //DATA_COMMONS: 'data-commmons-grant-access', // use AUTO_APPROVE 
     DISCOVERY_ENVIRONMENT: 'discovery-environment-grant-access',
     COGE: 'coge-grant-access',
     BISQUE: 'bisque-grant-access',
     SCI_APPS: 'sciapps-grant-access'
 };
 
-async function grantRequest(request) {
+async function grantRequest(request, authToken) {
     if (!request.service || !request.user)
         throw('Missing required property')
 
@@ -50,6 +50,7 @@ async function grantRequest(request) {
                 // User params
                 user_id: request.user.username,
                 email: request.user.email,
+                token: authToken,
 
                 // Other params
                 portal_api_base_url: config.apiBaseUrl,

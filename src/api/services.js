@@ -169,13 +169,13 @@ router.put('/:id(\\d+)/requests', getUser, requireAdmin, asyncHandler(async (req
     if (created) // new request
         await approveRequest(request);
     if (request.isApproved())
-        await grantRequest(request);
+        await grantRequest(request, req.api.token);
 
     notifyClientOfServiceRequestStatusChange(req.ws, request);
 }));
 
 /*
- * Update request status //TODO require api key
+ * Update request status
  * 
  * Called in 
  *     1. Admin "Access Requests" page to grant/deny request
@@ -223,7 +223,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, asyncHandler(async (req, res) 
 
     // Call granter (do this after response as to not delay it)
     if (request.isApproved())
-        await grantRequest(request);
+        await grantRequest(request, req.api.token);
     if (request.isGranted()) // callback from workflow
         await emailServiceAccessGranted(request);
 
