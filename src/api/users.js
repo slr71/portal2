@@ -4,6 +4,7 @@ const sequelize = require('sequelize');
 const models = require('./models');
 const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
+const config = require('../config.json');
 
 //TODO move into module
 const likeAny = (key, vals) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: { [sequelize.Op.any]: vals.map(k => `%${k}%`) } }) 
