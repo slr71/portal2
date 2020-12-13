@@ -123,10 +123,10 @@ spec:
           - name: uid
             value: "{{workflow.parameters.user_id}}"
     - - name: irods-delete-user
-        template: ldap-delete-user
+        template: irods-delete-user
         arguments:
           parameters:
-          - name: uid
+          - name: user_id
             value: "{{workflow.parameters.user_id}}"
     - - name: mailchimp-unsubscribe-user
         template: mailchimp-unsubscribe-user
