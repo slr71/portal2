@@ -4,6 +4,8 @@ const Argo = require('../lib/argo');
 const { emailServiceAccessGranted } = require('../lib/email')
 const { logger } = require('../lib/logging');
 const intercom = require('../lib/intercom');
+const { notifyClientOfServiceRequestStatusChange } = require('../lib/ws');
+const { serviceRegistrationWorkflow } = require('../workflows/native/services.js');
 const config = require('../../config.json');
 
 // Only the Atmosphere service has a special approval requirements, all other services are auto-approved.
@@ -38,32 +40,38 @@ async function grantRequest(request) {
 
     const key = request.service.approval_key;
     if (key in GRANTERS) {
-        const workflow = GRANTERS[key];
+        if (config.argo) {
+            const workflow = GRANTERS[key];
+            logger.info('grantRequest:', key, workflow);
 
-        logger.info('grantRequest:', key, workflow);
+            // Submit Argo workflow
+            await Argo.submit(
+                'services.yaml',
+                workflow,
+                {
+                    // User params
+                    request_id: request.id,
+                    user_id: request.user.username,
+                    email: request.user.email,
 
-        // Submit Argo workflow
-        await Argo.submit(
-            'services.yaml',
-            workflow,
-            {
-                // User params
-                request_id: request.id,
-                user_id: request.user.username,
-                email: request.user.email,
+                    // Other params
+                    portal_api_base_url: config.apiBaseUrl,
+                    ldap_host: config.ldap.host,
+                    ldap_admin: config.ldap.admin,
+                    ldap_password: config.ldap.password,
+                    bisque_url: config.bisque.url,
+                    bisque_username: config.bisque.username,
+                    bisque_password: config.bisque.password
+                }
+            );
 
-                // Other params
-                portal_api_base_url: config.apiBaseUrl,
-                ldap_host: config.ldap.host,
-                ldap_admin: config.ldap.admin,
-                ldap_password: config.ldap.password,
-                bisque_url: config.bisque.url,
-                bisque_username: config.bisque.username,
-                bisque_password: config.bisque.password
-            }
-        );
-
-        // Status is set to "granted" in Argo workflow via POST to /api/services/requests/[id]
+            // Status is set to "granted" in Argo workflow via POST to /api/services/requests/[id]
+        }
+        else { // Argo disabled, fall back to native workflow
+            const rc = await serviceRegistrationWorkflow(request);
+            await request.grant();
+            await emailServiceAccessGranted(request);
+        }
     }
     else { // AUTO_APPROVE
         logger.info('grantRequest: AUTO_APPROVE');

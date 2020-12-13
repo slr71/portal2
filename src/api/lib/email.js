@@ -50,6 +50,7 @@ function renderEmail({ to, bcc, subject, templateName, fields }) {
 
 async function emailNewAccountConfirmation(email, hmac) {
     const confirmationUrl = `${UI_PASSWORD_URL}?code=${hmac}`;
+    console.log('emailNewAccountConfirmation:', email, confirmationUrl);
     await renderEmail({
         to: email, 
         bcc: config.email.bccNewAccountConfirmation,

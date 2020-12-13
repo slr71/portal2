@@ -9,6 +9,7 @@ const { notifyClientOfServiceRequestStatusChange } = require('./lib/ws');
 const config = require('../config');
 const Argo = require('./lib/argo');
 const serviceApprovers = require('./approvers/service');
+const { userCreationWorkflow } = require('./workflows/native/user.js');
 const sequelize = require('sequelize');
 const models = require('./models');
 const User = models.account_user;
@@ -18,6 +19,7 @@ const RestrictedUsername = models.account_restrictedusername;
 const EmailAddress = models.account_emailaddress;
 const PasswordReset = models.account_passwordreset;
 const PasswordResetRequest = models.account_passwordresetrequest;
+const EmailAddressToMailingList = models.api_emailaddressmailinglist;
 
 const MINIMUM_TIME_ON_PAGE = 1000*60 // one minute
 const MAXIMUM_TIME_ON_PAGE = 1000*60*60 // one hour
@@ -181,10 +183,14 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         // Fetch user -- unscoped so password is present
         user = await User.unscoped().findByPk(emailAddress.user_id, { include: [ 'occupation' ] });
 
-        if (user.password == '') { // New user
+        if (user.password == '') { // New user //FIXME move to after response
             // Run user creation workflow
             logger.info(`Running user creation workflow for user ${user.username}`)
-            const rc = await submitUserWorkflow('create-user', user);
+            let rc;
+            if ('argo' in config) 
+                rc = await submitUserWorkflow('create-user', user);
+            else
+                rc = await userCreationWorkflow(user);
 
             // Grant access to default services
             logger.info(`Granting access to default services for user ${user.username}`)

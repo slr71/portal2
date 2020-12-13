@@ -4,7 +4,7 @@ const Argo = require('./lib/argo');
 
 router.post('/bisque', async (req, res) => {
     console.log("BisQue test");
-    console.log(util.inspect(req.body, {showHidden: false, depth: null}));
+    console.log(req.body);
     return res.send("success").status(200);
 });
 
