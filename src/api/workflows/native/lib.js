@@ -1,7 +1,7 @@
 const { exec } = require('child_process');
 const config = require('../../../config.json');
 
-const dockerCmd = config.nativeWorkflow && config.nativeWorkflow.image ? `docker run -it ${config.nativeWorkflow.image}` : '';
+const dockerCmd = config.nativeWorkflow && config.nativeWorkflow.image ? `docker run ${config.nativeWorkflow.image}` : '';
 
 function run(strOrArray) {
     let cmdStr = strOrArray;
