@@ -47,7 +47,7 @@ async function serviceRegistrationWorkflow(request) {
 
     // IRODS: create service directory
     if (cfg.irodsPath) {
-        await run([ 'imkdir', '-p', cfg.irodsPath ]);
+        await run([ 'imkdir', '-p', `/iplant/home/${user.username}/${cfg.irodsPath}` ]);
         await run([ 'ichmod', 'inherit', cfg.irodsPath ]);
         await run([ 'ichmod', 'own', user.username, cfg.irodsPath ]);
 
