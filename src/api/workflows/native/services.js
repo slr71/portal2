@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const axios = require('axios');
-const { run, dockerCmd, ldapAddUserToGroup } = require('./lib');
+const { ldapAddUserToGroup, irodsMkDir, irodsChMod} = require('./lib');
 const { logger } = require('../../lib/logging');
 const models = require('../../models');
 const MailingList = models.api_mailinglist;
@@ -47,12 +47,12 @@ async function serviceRegistrationWorkflow(request) {
 
     // IRODS: create service directory
     if (cfg.irodsPath) {
-        await run([ dockerCmd, 'imkdir', '-p', `/iplant/home/${user.username}/${cfg.irodsPath}` ]);
-        await run([ dockerCmd, 'ichmod', 'inherit', cfg.irodsPath ]);
-        await run([ dockerCmd, 'ichmod', 'own', user.username, cfg.irodsPath ]);
+        await irodsMkDir(`/iplant/home/${user.username}/${cfg.irodsPath}`);
+        await irodsChMod('inherit', '', cfg.irodsPath);
+        await irodsChMod('own', user.username, cfg.irodsPath);
 
         if (cfg.irodsUser)
-            await run([ dockerCmd, 'ichmod', 'own', cfg.irodsUser, cfg.irodsPath ]);
+            await irodsChMod('own', cfg.irodsUser, cfg.irodsPath);
     }
 
     // Add user's primary email to service mailing list(s)

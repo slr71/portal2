@@ -1,6 +1,5 @@
-const { run, dockerCmd, ldapAddUserToGroup, irodsChown } = require('./lib');
+const { ldapCreateUser, ldapModify, ldapChangePassword, ldapAddUserToGroup, ldapDeleteUser, irodsCreateUser, irodsChMod, irodsChangePassword, irodsDeleteUser, mailchimpUpdateSubscription } = require('./lib');
 const { logger } = require('../../lib/logging');
-const models = require('../../models');
 const config = require('../../../config.json');
 
 async function userCreationWorkflow(user) {
@@ -9,46 +8,58 @@ async function userCreationWorkflow(user) {
 
     logger.info(`Running native workflow for user ${user.username} creation`);
 
-    // Calculate number of days since epoch (needed for LDAP)
-    const daysSinceEpoch = Math.floor(new Date()/8.64e7);
-
-    // Calculate uidNumber
-    // Old method: /repos/portal/cyverse_ldap/utils/get_uid_number.py
-    const uidNumber = user.id + config.uidNumberOffset;
-
     // LDAP: create user
-    await run(`echo "dn: uid=${user.username},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: ${user.first_name}\nsn: ${user.last_name}\ncn: ${user.first_name} ${user.last_name}\nuid: ${user.username}\nuserPassword: ${user.password}\nmail: ${user.email}\ndepartmentNumber: ${user.department}\no: ${user.institution}\ntitle: ${user.occupation.name}\nhomeDirectory: /home/${user.username}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: ${uidNumber}\nshadowLastChange:${daysSinceEpoch}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password}`);
+    await ldapCreateUser(user);
 
     // LDAP: add user to groups
     await ldapAddUserToGroup(user.username, "iplant-everyone");
     await ldapAddUserToGroup(user.username, "community");
 
     // IRODS: create user
-    await run([ dockerCmd, "iadmin", "mkuser", user.username, "rodsuser" ]);
+    await irodsCreateUser(user.username);
 
     // IRODS: set user password
-    await run([ dockerCmd, "iadmin", "moduser", user.username, "password", user.password ]);
+    await irodsChangePassword(user.username, user.password);
 
     // IRODS: grant access to user directory 
-    await irodsChown("ipcservices", `/iplant/home/${user.username}`);
-    await irodsChown("rodsadmin", `/iplant/home/${user.username}`);
+    await irodsChMod("own", "ipcservices", `/iplant/home/${user.username}`);
+    await irodsChMod("own", "rodsadmin", `/iplant/home/${user.username}`);
 
     // Mailchimp: subscribe user to newsletter 
-    const data = {
-        email_address: user.email,
-        status: "subscribed",
-        merge_fields: {
-            FNAME: user.first_name,
-            LNAME: user.last_name
-        }
-    }
-    await run([ 
-      "curl", "--verbose", "--location", 
-          "--header", `Authorization: Basic ${config.mailchimp.apiKey}`, 
-          "--header", "Content-Type: application/json",
-          "--data", JSON.stringify(data),
-          `${config.mailchimp.baseUrl}/lists/${config.mailchimp.listId}/members`
-    ]);
+    await mailchimpUpdateSubscription(user.email, user.first_name, user.last_name, true);
 }
 
-module.exports = { userCreationWorkflow };
+async function userPasswordUpdateWorkflow(user) {
+    if (!user)
+        throw('Missing required property');
+
+    logger.info(`Running native workflow for user ${user.username} password update`);
+
+    // LDAP: update user password
+    await ldapChangePassword(user.username, user.password);
+
+    // LDAP: update shadowLastChange 
+    const daysSinceEpoch = Math.floor(new Date()/8.64e7);
+    await ldapModify(user.username, 'shadowLastChange', daysSinceEpoch)
+
+    // IRODS: set user password
+    await irodsChangePassword(user.username, user.password);
+}
+
+async function userDeletionWorkflow(user) {
+    if (!user)
+        throw('Missing required property');
+
+    logger.info(`Running native workflow for user ${user.username} deletion`);
+
+    // LDAP: delete user
+    await ldapDeleteUser(user.username);
+
+    // IRODS: delete user
+    await irodsDeleteUser(user.username);
+
+    // Mailchimp: unsubscribe user from newsletter 
+    await mailchimpUpdateSubscription(user.email, user.first_name, user.last_name, false);
+}
+
+module.exports = { userCreationWorkflow, userDeletionWorkflow, userPasswordUpdateWorkflow };

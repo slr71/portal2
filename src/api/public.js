@@ -9,7 +9,7 @@ const { notifyClientOfServiceRequestStatusChange } = require('./lib/ws');
 const config = require('../config');
 const Argo = require('./lib/argo');
 const serviceApprovers = require('./approvers/service');
-const { userCreationWorkflow } = require('./workflows/native/user.js');
+const { userCreationWorkflow, userPasswordUpdateWorkflow } = require('./workflows/native/user.js');
 const sequelize = require('sequelize');
 const models = require('./models');
 const User = models.account_user;
@@ -251,7 +251,10 @@ router.post('/users/password', asyncHandler(async (req, res) => {
     // Update password in LDAP and IRODS (do after response as to not delay it)
     if (isUpdate) { // only do this for password change/reset, not for new user
         user.password = fields.password; // kludgey, but use raw password
-        await submitUserWorkflow('update-password', user);
+        if (config.argo)
+            await submitUserWorkflow('update-password', user);
+        else
+            await userPasswordUpdateWorkflow(user);
     }
 }));
 
