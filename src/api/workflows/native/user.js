@@ -1,4 +1,4 @@
-const { run, ldapAddUserToGroup, irodsChown } = require('./lib');
+const { run, dockerCmd, ldapAddUserToGroup, irodsChown } = require('./lib');
 const { logger } = require('../../lib/logging');
 const models = require('../../models');
 const config = require('../../../config.json');
@@ -24,10 +24,10 @@ async function userCreationWorkflow(user) {
     await ldapAddUserToGroup(user.username, "community");
 
     // IRODS: create user
-    await run([ "iadmin", "mkuser", user.username, "rodsuser" ]);
+    await run([ dockerCmd, "iadmin", "mkuser", user.username, "rodsuser" ]);
 
     // IRODS: set user password
-    await run([ "iadmin", "moduser", user.username, "password", user.password ]);
+    await run([ dockerCmd, "iadmin", "moduser", user.username, "password", user.password ]);
 
     // IRODS: grant access to user directory 
     await irodsChown("ipcservices", `/iplant/home/${user.username}`);

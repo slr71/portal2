@@ -1,6 +1,8 @@
 const { exec } = require('child_process');
 const config = require('../../../config.json');
 
+const dockerCmd = config.nativeWorkflow && config.nativeWorkflow.image ? `sudo docker run -it ${config.nativeWorkflow.image}` : '';
+
 function run(strOrArray) {
     let cmdStr = strOrArray;
     if (Array.isArray(strOrArray))
@@ -32,7 +34,7 @@ function ldapAddUserToGroup(username, group) {
 }
 
 function irodsChown(username, path) {
-    return run([ "ichmod", "own", username, path]);
+    return run([ dockerCmd, "ichmod", "own", username, path]);
 }
 
-module.exports = { run, ldapAddUserToGroup, irodsChown };
+module.exports = { run, dockerCmd, ldapAddUserToGroup, irodsChown };
