@@ -118,12 +118,9 @@ const Workshop = ({ workshop }) => {
         description={workshop.description}
         icon={<EventIcon />}
         action={
-          <Box m={1}>
-            {isHost 
-              ? <b>You are the workshop host</b>
-              : (isOrganizer ? <b>You are a workshop organizer</b> : null)
-            }
-          </Box>
+          isHost 
+            ? <b>You are the workshop host</b>
+            : (isOrganizer ? <b>You are a workshop organizer</b> : null)
         }
         largeHeader
       />
