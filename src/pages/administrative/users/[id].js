@@ -1,4 +1,4 @@
-import { makeStyles, Container, Box, Button, Paper, Typography } from '@material-ui/core'
+import { makeStyles, Container, Box, Button, Paper, Typography, Tooltip } from '@material-ui/core'
 import { Layout, DateSpan } from '../../../components'
 
 const useStyles = makeStyles((theme) => ({
@@ -21,7 +21,8 @@ const User = ({ user }) => {
           <br />
           <div>Joined: <DateSpan date={user.date_joined} /></div>
           <div>ORCID: {user.orcid_id ? user.orcid_id : '<None>'}</div>
-          <Button variant="contained" color="error" size="medium">DELETE</Button>
+          <Button variant="contained" color="error" disabled={!user.is_superuser} size="medium">DELETE</Button>
+          <Typography>Superuser permission is required to delete a user</Typography>
         </Paper>
 
         <Paper elevation={3} className={classes.paper}>
@@ -35,8 +36,8 @@ const User = ({ user }) => {
         <Paper elevation={3} className={classes.paper}>
           <Typography component="div" variant="h5">Mailing List Subscriptions</Typography> 
           <br />
-          {user.emails.map(email => (
-            <div>
+          {user.emails.map((email, index) => (
+            <div key={index}>
               <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
               <Box ml={2}>
                 {email.mailing_lists && email.mailing_lists.length > 0 

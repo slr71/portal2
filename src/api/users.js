@@ -92,19 +92,22 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     res.json(user).status(200);
 }));
 
-// Delete user (STAFF ONLY)
-router.delete('/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
+// Delete user (SUPERUSER ONLY)
+router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const id = req.params.id;
+
+    if (!req.user.is_superuser)
+        return res.send('Permission denied').status(403);
 
     if (id == req.user.id)
         return res.send('Cannot delete yourself').status(403);
 
-    let user = await User.findByPk(id);
+    let user = await User.unscoped().findByPk(id);
     if (!user)
         return res.send('User not found').status(404);
 
-    if (user.is_staff)
-        return res.send('Cannot delete staff user').status(403);
+    if (user.is_staff || user.is_superuser)
+        return res.send('Cannot delete privileged user').status(403);
 
     await user.destroy();
     res.send('success').status(200);
