@@ -5,7 +5,7 @@ import { useUser } from '../contexts/user'
 
 const Services = (props) => {
   const [user] = useUser()
-  const userServices = user.services
+  const userServices = user.services.filter(s => s.api_accessrequest.status != 'denied')
   const services = props.services
 
   const available = services.filter(s => s.approval_key != '' && !userServices.map(s => s.id).includes(s.id))
