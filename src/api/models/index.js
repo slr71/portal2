@@ -299,7 +299,7 @@ models.api_accessrequest.constants = {
     MESSAGE_GRANTED:   'Access granted',
     MESSAGE_APPROVED:  'Request approved',
     MESSAGE_PENDING:   'Sent message requesting more information',
-    MESSAGE_DENIED:    'You must have a *.edu or *.gov email address associated with your account in order to use Atmosphere'
+    MESSAGE_DENIED:    'Request denied'
 };
 
 models.api_accessrequest.prototype.pend = async function(message) {
