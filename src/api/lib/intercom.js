@@ -136,5 +136,8 @@ module.exports = {
     getConversation,
     startConversation,
     addNoteToConversation,
-    replyToConversation
+    replyToConversation,
+    assignConversationToAtmosphereTeam,
+    assignConversationToScienceTeam,
+    assignConversationToIntercomTeam
 };

@@ -4,7 +4,6 @@ const Argo = require('../lib/argo');
 const { emailServiceAccessGranted } = require('../lib/email')
 const { logger } = require('../lib/logging');
 const intercom = require('../lib/intercom');
-const { notifyClientOfServiceRequestStatusChange } = require('../lib/ws');
 const { serviceRegistrationWorkflow } = require('../workflows/native/services.js');
 const config = require('../../config.json');
 
