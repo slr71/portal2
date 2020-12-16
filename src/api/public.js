@@ -5,7 +5,6 @@ const { decodeHMAC, generatePasswordResetToken, decodePasswordResetToken } = req
 const { asyncHandler, getUser } = require('./lib/auth');
 const { checkPassword, encodePassword } = require('./lib/password')
 const { emailServiceAccessGranted } = require('./lib/email');
-const { notifyClientOfServiceRequestStatusChange } = require('./lib/ws');
 const config = require('../config');
 const Argo = require('./lib/argo');
 const serviceApprovers = require('./approvers/service');
@@ -372,8 +371,7 @@ router.post('/services/requests/:id(\\d+)', asyncHandler(async (req, res) => { /
     // Send notification email to user (do this after response as to not delay it)
     await emailServiceAccessGranted(request);
 
-    // Update status on client
-    notifyClientOfServiceRequestStatusChange(req.ws, request);
+    //FIXME can't call notifyClientOfServiceRequestStatusChange() to update status on client because req is not from client
 }));
 
 /*
