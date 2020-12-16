@@ -48,9 +48,10 @@ function ldapModify(username, attribute, value) {
 function ldapChangePassword(username, password) {
     return run([ "ldappasswd", 
         "-H", config.ldap.host, 
-        "-D", `uid=${username},ou=People,dc=iplantcollaborative,dc=org`,
+        "-D", config.ldap.admin,
         "-w", config.ldap.password, 
-        "-s", password
+        "-s", password,
+        `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
     ]);
 }
 
