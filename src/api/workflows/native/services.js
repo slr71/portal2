@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const axios = require('axios');
-const { ldapAddUserToGroup, irodsMkDir, irodsChMod} = require('./lib');
+const { ldapAddUserToGroup, irodsMkDir, irodsChMod, mailmanUpdateSubscription } = require('./lib');
 const { logger } = require('../../lib/logging');
 const models = require('../../models');
 const MailingList = models.api_mailinglist;
@@ -90,6 +90,8 @@ async function addEmailToMailingList(email, listName) {
           is_subscribed: true
         }
     });
+
+    await mailmanUpdateSubscription(listName, email, subscribe);
 }
 
 async function createBisqueUser(request) {

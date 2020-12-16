@@ -4,6 +4,7 @@ const router = require('express').Router();
 const { getUser, asyncHandler } = require('./lib/auth');
 const { emailNewEmailConfirmation } = require('./lib/email')
 const { generateHMAC } = require('./lib/email')
+const { mailmanUpdateSubscription } = require('./workflows/native/lib');
 const sequelize = require('sequelize');
 const models = require('./models');
 const MailingList = models.api_mailinglist;
@@ -99,10 +100,16 @@ router.post('/:id(\\d+)/subscriptions', getUser, asyncHandler(async (req, res) =
     if (!emailAddressToMailingList)
         return res.send('Email address to mailing list not found').status(404);
     
+    if (emailAddressToMailingList.is_subscribed == subscribe)
+        return res.send('success').status(200);
+
     emailAddressToMailingList.is_subscribed = subscribe;
     await emailAddressToMailingList.save();
 
-    return res.send('success').status(200);
+    res.send('success').status(200);
+
+    // Update subscription status in Mailman (do after response as to not delay it)
+    await mailmanUpdateSubscription(mailingList.list_name, email, subscribe);
 }));
 
 module.exports = router;

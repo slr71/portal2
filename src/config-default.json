@@ -69,6 +69,11 @@
         "listId": ""
     },
 
+    "mailman": {
+        "serverUrl": "https://maillist.cyverse.org:443",
+        "adminPassword": ""
+    },
+
     "bisque": {
         "url": "",
         "username": "",

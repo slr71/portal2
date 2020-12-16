@@ -99,6 +99,34 @@ function mailchimpUpdateSubscription(email, firstName, lastName, subscribe) {
     ]);
 }
 
+function mailmanUpdateSubscription(listName, email, subscribe) {
+    const baseUrl = `${config.mailman.serverUrl}/mailman/admin/${listName}/members`;
+
+    let params, endpoint;
+    if (subscribe) {
+        params = new URLSearchParams({
+            subscribe_or_invite: 0,
+            send_welcome_msg_to_this_batch: 0,
+            subscribees_upload: email,
+            adminpw: config.mailman.adminPassword
+        }).toString();
+
+        endpoint = 'add';
+    }
+    else {
+        params = new URLSearchParams({
+            send_unsub_ack_to_this_batch: 0,
+            send_unsub_notifications_to_list_owner: 0,
+            unsubscribees_upload: email,
+            adminpw: config.mailman.adminPassword
+        }).toString();
+
+        endpoint = 'remove';
+    }
+
+    return run([ "curl", "--verbose", "--location", `${baseUrl}/${endpoint}?${params}`]);
+}
+
 module.exports = { 
     run, 
     ldapCreateUser,
@@ -111,5 +139,6 @@ module.exports = {
     irodsChMod,
     irodsChangePassword,
     irodsDeleteUser,
-    mailchimpUpdateSubscription
+    mailchimpUpdateSubscription,
+    mailmanUpdateSubscription
 };
