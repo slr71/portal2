@@ -138,7 +138,7 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
 
     // Send confirmation email (after the response as to not delay it)
     const hmac = generatePasswordResetToken(emailAddress.id);
-    await emailNewAccountConfirmation(newUser.email, hmac)
+    await emailNewAccountConfirmation(newUser.email, hmac);
 }));
 
 // Update user password -- assumes password requirements were enforced by front-end
@@ -182,36 +182,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         // Fetch user -- unscoped so password is present
         user = await User.unscoped().findByPk(emailAddress.user_id, { include: [ 'occupation' ] });
 
-        if (user.password == '') { // New user //FIXME move to after response
-            // Run user creation workflow
-            logger.info(`Running user creation workflow for user ${user.username}`)
-            let rc;
-            if ('argo' in config) 
-                rc = await submitUserWorkflow('create-user', user);
-            else
-                rc = await userCreationWorkflow(user);
-
-            // Grant access to default services
-            logger.info(`Granting access to default services for user ${user.username}`)
-            const defaultServices = await CyVerseService.findAll({ 
-                where: { auto_add_new_users: true },
-                include: [ 'service' ]
-            });
-            for (let cyverseService of defaultServices) {
-                const serviceRequest = await AccessRequest.create({
-                    service_id: cyverseService.service_ptr_id,
-                    user_id: user.id,
-                    auto_approve: true,
-                    status: AccessRequest.constants.STATUS_REQUESTED,
-                    message: AccessRequest.constants.MESSAGE_REQUESTED
-                });
-    
-                serviceRequest.service = cyverseService.service;
-                serviceRequest.user = user;
-                serviceApprovers.grantRequest(serviceRequest)
-            }
-        }
-        else { // Existing user
+        if (user.password != '') { // Existing user
             // Log password reset
             const passwordReset = PasswordReset.create({
                 user_id: user.id,
@@ -247,13 +218,42 @@ router.post('/users/password', asyncHandler(async (req, res) => {
 
     res.status(200).send('success');
 
-    // Update password in LDAP and IRODS (do after response as to not delay it)
-    if (isUpdate) { // only do this for password change/reset, not for new user
-        user.password = fields.password; // kludgey, but use raw password
+    // Run appropriate workflow (do after response as to not delay it)
+    user.password = fields.password; // kludgey, but use raw password
+    if (isUpdate) { // password change/reset
         if (config.argo)
             await submitUserWorkflow('update-password', user);
         else
             await userPasswordUpdateWorkflow(user);
+    }
+    else { // new user
+        // Run user creation workflow
+        logger.info(`Running user creation workflow for user ${user.username}`)
+        let rc;
+        if (config.argo)
+            await submitUserWorkflow('create-user', user);
+        else
+            await userCreationWorkflow(user);
+
+        // Grant access to default services
+        logger.info(`Granting access to default services for user ${user.username}`)
+        const defaultServices = await CyVerseService.findAll({ 
+            where: { auto_add_new_users: true },
+            include: [ 'service' ]
+        });
+        for (let cyverseService of defaultServices) {
+            const serviceRequest = await AccessRequest.create({
+                service_id: cyverseService.service_ptr_id,
+                user_id: user.id,
+                auto_approve: true,
+                status: AccessRequest.constants.STATUS_REQUESTED,
+                message: AccessRequest.constants.MESSAGE_REQUESTED
+            });
+
+            serviceRequest.service = cyverseService.service;
+            serviceRequest.user = user;
+            serviceApprovers.grantRequest(serviceRequest)
+        }
     }
 }));
 
