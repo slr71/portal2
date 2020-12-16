@@ -7,15 +7,22 @@ const { getUserID } = require("./auth")
 const logLevel = 'debug'
 const logLabel = (process.env.NODE_ENV == 'production' ? 'PROD' : 'DEV')
 
+const formatMeta = (meta) => {
+    const splat = meta[Symbol.for('splat')];
+    if (splat && splat.length)
+        return splat.join(' ');
+    return '';
+};
+
 const logFormat = printf(
-    ({ level, message, label, timestamp }) =>
-        `${timestamp} [${label}] ${level}: ${message}`
+    ({ level, message, label, timestamp, ...meta }) =>
+        `${timestamp} [${label}] ${level}: ${message} ${formatMeta(meta)}`
 )
 
 const logger = createLogger({
     level: logLevel,
     format: combine(label({ label: logLabel }), timestamp(), logFormat, colorize({ all: true })),
-    transports: [new transports.Console()],
+    transports: [new transports.Console()]
 })
 
 addColors({
