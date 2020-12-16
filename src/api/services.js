@@ -98,7 +98,7 @@ router.get('/requests/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) =>
 }));
 
 // Create new access request
-router.put('/:id(\\d+)/requests', getUser, requireAdmin, asyncHandler(async (req, res) => {
+router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     const serviceId = req.params.id;
     const answers = req.body.answers; // [ { questionId, value } ]
 
