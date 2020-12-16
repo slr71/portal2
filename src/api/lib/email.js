@@ -48,7 +48,7 @@ function renderEmail({ to, bcc, subject, templateName, fields }) {
 
 async function emailNewAccountConfirmation(email, hmac) {
     const confirmationUrl = `${UI_PASSWORD_URL}?code=${hmac}`;
-    logger.debug('emailNewAccountConfirmation: %s %s', email, confirmationUrl);
+    logger.debug('emailNewAccountConfirmation:', email, confirmationUrl);
     await renderEmail({
         to: email, 
         bcc: config.email.bccNewAccountConfirmation,
@@ -63,7 +63,7 @@ async function emailNewAccountConfirmation(email, hmac) {
 
 async function emailNewEmailConfirmation(email, hmac) {
     const confirmationUrl = `${UI_CONFIRM_EMAIL_URL}?code=${hmac}`;
-    logger.debug('emailNewEmailConfirmation: %s %s', email, confirmationUrl);
+    logger.debug('emailNewEmailConfirmation:', email, confirmationUrl);
     await renderEmail({
         to: email, 
         //bcc: null,
@@ -77,7 +77,7 @@ async function emailNewEmailConfirmation(email, hmac) {
 
 async function emailPasswordReset(emailAddress, hmac) {
     const resetUrl = `${UI_PASSWORD_URL}?reset&code=${hmac}`;
-    logger.debug('emailPasswordReset: %s %s', emailAddress.email, resetUrl);
+    logger.debug('emailPasswordReset:', emailAddress.email, resetUrl);
     await renderEmail({
         to: emailAddress.email, 
         bcc: config.email.bccPasswordChangeRequest,
@@ -94,7 +94,7 @@ async function emailServiceAccessGranted(request) {
     const service = request.service;
     const user = request.user;
     const serviceUrl = `${UI_SERVICES_URL}/${service.id}`;
-    logger.debug('emailServiceAccessGranted: %s %s', user.email, serviceUrl);
+    logger.debug('emailServiceAccessGranted:', user.email, serviceUrl);
 
     await renderEmail({
         to: user.email, 
@@ -112,7 +112,7 @@ async function emailWorkshopEnrollmentRequest(request) {
     const workshop = request.workshop;
     const user = request.user;
     const workshopEnrollmentRequestUrl = `${UI_WORKSHOPS_URL}/${workshop.id}?t=requests`;
-    logger.debug('emailWorkshopEnrollmentRequest: %s %s', user.email, workshopEnrollmentRequestUrl);
+    logger.debug('emailWorkshopEnrollmentRequest:', user.email, workshopEnrollmentRequestUrl);
 
     await renderEmail({
         to: user.email, 
@@ -135,7 +135,7 @@ async function emailWorkshopEnrollmentConfirmation(request) {
     const workshop = request.workshop;
     const user = request.user;
     const workshopUrl = `${UI_WORKSHOPS_URL}/${workshop.id}`;
-    logger.debug('emailWorkshopEnrollmentConfirmation: %s %s', user.email, workshopUrl);
+    logger.debug('emailWorkshopEnrollmentConfirmation:', user.email, workshopUrl);
 
     await renderEmail({
         to: user.email, 
