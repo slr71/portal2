@@ -48,7 +48,7 @@ router.post('/exists', asyncHandler(async (req, res) => {
         result.email = !!(user || emailAddress);
     }
 
-    res.json(result).status(200);
+    res.status(200).json(result);
 }));
 
 // Create user //TODO require API key or valid HMAC
@@ -61,14 +61,14 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
     const user = await User.findOne({ where: { username } });
     const restricted = await RestrictedUsername.findOne({ where: { username } });
     if (user || restricted)
-        return res.send('Username already taken').status(400);
+        return res.status(400).send('Username already taken');
 
     // Detect bots using honeypot fields
     const HONEYPOT_FIELDS = [ 'first_name', 'last_name' ]; // index corresponds to modulus identifier
     for (let key in fields) {
         if (isNaN(key)) {
             if (HONEYPOT_FIELDS.includes(key)) // fields must be encoded
-                return res.send('Validity test failed (1)').status(400);
+                return res.status(400).send('Validity test failed (1)');
         }
         else {
             const index = (key % config.honeypotDivisor) - 1;
@@ -78,19 +78,19 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
             }
             else { // a fake field was populated
                 logger.error(`Honeypot field was populated: key=${key} index=${index} value=${fields[key]}`);
-                return res.send('Validity test failed (2)').status(400);
+                return res.status(400).send('Validity test failed (2)');
             }
         }
     }
 
     // Detect bots using page load time
     if (!fields['plt']) 
-        return res.send('Validity test failed (3)').status(400);
+        return res.status(400).send('Validity test failed (3)');
 
     const pageLoadTime = decodeHMAC(fields['plt']);
     const timeExpired = Date.now - pageLoadTime;
     if (timeExpired < MINIMUM_TIME_ON_PAGE || timeExpired >= MAXIMUM_TIME_ON_PAGE)
-        return res.send('Validity test failed (4)').status(400);
+        return res.status(400).send('Validity test failed (4)');
 
     // Validate fields
     const REQUIRED_FIELDS = [
@@ -99,13 +99,13 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
         'country_id', 'region_id', 'gender_id', 'ethnicity_id', 'aware_channel_id'
     ];
     if (!REQUIRED_FIELDS.every(f => fields[f]))
-        return res.send('Missing required field').status(400);
+        return res.status(400).send('Missing required field');
 
     // Check for existing email
     const user2 = await User.unscoped().findOne({ where: lowerEqualTo('email', fields['email']) });
     const emails = await EmailAddress.findOne({ where: lowerEqualTo('email', fields['email']) });
     if (user2 || emails)
-        return res.send('Email already in use').status(400);
+        return res.status(400).send('Email already in use');
 
     // Set defaults
     fields['username'] = username;
@@ -122,7 +122,7 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
     logger.info(`Creating user ${username}`);
     let newUser = await User.create(fields)
     if (!newUser)
-        return res.send('Error creating user').status(500);
+        return res.status(500).send('Error creating user');
 
     // Create primary email address
     const emailAddress = await EmailAddress.create({
@@ -132,9 +132,9 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
         verified: false
     });
     if (!emailAddress)
-        return res.send('Error creating email address').status(500);
+        return res.status(500).send('Error creating email address');
 
-    res.json(newUser).status(200);
+    res.status(200).json(newUser);
 
     // Send confirmation email (after the response as to not delay it)
     const hmac = generatePasswordResetToken(emailAddress.id);
@@ -145,24 +145,24 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
 router.post('/users/password', asyncHandler(async (req, res) => {
     const fields = req.body;
     if (!fields || !('password' in fields)) 
-        return res.send('Missing required field').status(400);
+        return res.status(400).send('Missing required field');
 
     let user, isUpdate;
     if ('hmac' in fields && 'password' in fields) { // Password set (new user) or reset
         // Decode HMAC
         const obj = decodePasswordResetToken(fields.hmac)
         if (!('key' in obj))
-            return res.send('Invalid HMAC (1)').status(400);
+            return res.status(400).send('Invalid HMAC (1)');
         const emailId = parseInt(obj.key)
         if (isNaN(emailId))
-            return res.send('Invalid HMAC (2)').status(400);
+            return res.status(400).send('Invalid HMAC (2)');
         if (Date.now() > obj.expires)
             return res.status(400).send('Expired HMAC');
 
         // Fetch email address
         const emailAddress = await EmailAddress.findByPk(emailId);
         if (!emailAddress)
-            return res.send('Email address not found').status(404);
+            return res.status(404).send('Email address not found');
 
         // Check if password was already reset using this HMAC
         const passwordReset = await PasswordReset.findOne({ 
@@ -172,7 +172,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
             }
         });
         if (passwordReset) 
-            return res.send('Password already reset').status(400);
+            return res.status(400).send('Password already reset');
 
         // Confirm email address
         emailAddress.verified = true
@@ -232,20 +232,20 @@ router.post('/users/password', asyncHandler(async (req, res) => {
 
         // Check the password
         if (!checkPassword(user.password, fields.oldPassword))
-            return res.send('Invalid password').status(400);
+            return res.status(400).send('Invalid password');
 
         logger.info(`Updating password for user ${user.username}`)
         isUpdate = true;
     }
     else {
-        return res.send('Invalid request').status(400);
+        return res.status(400).send('Invalid request');
     }
 
     // Update password in DB
     user.password = encodePassword(fields.password);
     await user.save();
 
-    res.send('success').status(200);
+    res.status(200).send('success');
 
     // Update password in LDAP and IRODS (do after response as to not delay it)
     if (isUpdate) { // only do this for password change/reset, not for new user
@@ -300,11 +300,11 @@ router.post('/users/reset_password', asyncHandler(async (req, res) => {
     console.log(email);
 
     if (!email) 
-        return res.send('Missing email').status(400);
+        return res.status(400).send('Missing email');
 
     let emailAddress = await EmailAddress.findOne({ where: { email }, include: [ 'user'] });
     if (!emailAddress)
-        return res.send('Email address not associated with an account').status(404);
+        return res.status(404).send('Email address not associated with an account');
 
     // Generate HMAC for confirmation email code
     const hmac = generatePasswordResetToken(emailAddress.id);
@@ -317,9 +317,9 @@ router.post('/users/reset_password', asyncHandler(async (req, res) => {
         key: hmac
     });
     if (!passwordResetRequest)
-        return res.send('Error creating password reset request').status(500);
+        return res.status(500).send('Error creating password reset request');
 
-    res.send('success').status(200);
+    res.status(200).send('success');
 
     // Send email after response as to not delay it
     await emailPasswordReset(emailAddress, hmac);
@@ -328,26 +328,26 @@ router.post('/users/reset_password', asyncHandler(async (req, res) => {
 router.post('/confirm_email', asyncHandler(async (req, res) => {
     const hmac = req.body.hmac
     if (!hmac) 
-        return res.send('Missing hmac').status(400);
+        return res.status(400).send('Missing hmac');
 
     // Decode HMAC
     const obj = decodePasswordResetToken(hmac)
     if (!('key' in obj))
-        return res.send('Invalid HMAC (1)').status(400);
+        return res.status(400).send('Invalid HMAC (1)');
     const emailId = parseInt(obj.key)
     if (isNaN(emailId))
-        return res.send('Invalid HMAC (2)').status(400);
+        return res.status(400).send('Invalid HMAC (2)');
 
     // Get email address
     let emailAddress = await EmailAddress.findByPk(emailId);
     if (!emailAddress)
-        return res.send('Email address not found').status(404);
+        return res.status(404).send('Email address not found');
 
     // Confirm email address
     emailAddress.verified = true
     emailAddress.save()
 
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 /*
@@ -362,11 +362,11 @@ router.post('/services/requests/:id(\\d+)', asyncHandler(async (req, res) => { /
         include: [ 'user', 'service' ] // needed by emailServiceAccessGranted()
     });
     if (!request)
-        return res.send("Request not found").status(404);
+        return res.status(404).send("Request not found");
 
     request.grant();
 
-    res.json(request).status(200);
+    res.status(200).json(request);
 
     // Send notification email to user (do this after response as to not delay it)
     await emailServiceAccessGranted(request);
@@ -385,7 +385,7 @@ router.post('/mailing_lists/:nameOrId(\\w+)/subscribe', asyncHandler(async (req,
     const email = req.body.email; // email address to subscribe
 
     if (!email)
-        return res.send('Missing required field').status(400);
+        return res.status(400).send('Missing required field');
 
     const mailingList = await MailingList.findOne({
         where:
@@ -395,11 +395,11 @@ router.post('/mailing_lists/:nameOrId(\\w+)/subscribe', asyncHandler(async (req,
             )
     });
     if (!mailingList)
-        return res.send('Mailing list not found').status(404);
+        return res.status(404).send('Mailing list not found');
 
     const emailAddress = await EmailAddress.findOne({ where: { email } });
     if (!emailAddress)
-        return res.send('Email address not found').status(404);
+        return res.status(404).send('Email address not found');
 
     const emailAddressToMailingList = await EmailAddressToMailingList.create({ 
         mailing_list_id: mailingList.id,
@@ -407,9 +407,9 @@ router.post('/mailing_lists/:nameOrId(\\w+)/subscribe', asyncHandler(async (req,
         is_subscribed: true
     });
     if (!emailAddressToMailingList)
-        return res.send('Failed to subscribe').status(500);
+        return res.status(500).send('Failed to subscribe');
     
-    return res.send('success').status(200);
+    return res.status(200).send('success');
 }));
 
 // This endpoint is no longer called directly.  It is used to generate the src/user-properties.json file for static compilation.
@@ -431,7 +431,7 @@ router.get('/users/properties', asyncHandler(async (req, res) => {
     ]))
     .forEach((e, i) => results[keys[i]] = e);
 
-    res.json(results).status(200);
+    res.status(200).json(results);
 }));
 
 module.exports = router;

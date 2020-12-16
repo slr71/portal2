@@ -21,7 +21,7 @@ router.put('/email_addresses', getUser, asyncHandler(async (req, res) => {
     const email = req.body.email; // email address
 
     if (!email)
-        return res.send('Missing required field(s)').status(400);
+        return res.status(400).send('Missing required field(s)');
 
     let emailAddress = await EmailAddress.findOne({ where: lowerEqualTo('email', email) });
     if (!emailAddress) {
@@ -32,15 +32,15 @@ router.put('/email_addresses', getUser, asyncHandler(async (req, res) => {
             verified: false
         });
         if (!emailAddress)
-            return res.send('Error creating email address').status(500);
+            return res.status(500).send('Error creating email address');
     }
     else if (emailAddress.user_id != req.user.id)
-        return res.send('Email address not found').status(500);
+        return res.status(404).send('Email address not found');
 
     // Generate HMAC for temp password and confirmation email code
     const hmac = generateHMAC(emailAddress.id);
 
-    res.send(emailAddress).status(200);
+    res.status(200).send(emailAddress);
 
     // Send email after response as to not delay it
     await emailNewEmailConfirmation(email, hmac)
@@ -56,12 +56,12 @@ router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, re
         }
     });
     if (!emailAddress)
-        return res.send('Email address not found').status(404);
+        return res.status(404).send('Email address not found');
     if (emailAddress.primary)
-        return res.send('Cannot delete primary email address').status(404);
+        return res.status(403).send('Cannot delete primary email address');
 
     await emailAddress.destroy();
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 /*
@@ -76,11 +76,11 @@ router.post('/:id(\\d+)/subscriptions', getUser, asyncHandler(async (req, res) =
     const subscribe = !!req.body.subscribe;
 
     if (!email)
-        return res.send('Missing required field').status(400);
+        return res.status(400).send('Missing required field');
 
     const mailingList = await MailingList.findByPk(id);
     if (!mailingList)
-        return res.send('Mailing list not found').status(404);
+        return res.status(404).send('Mailing list not found');
 
     const emailAddress = await EmailAddress.findOne({ 
         where: { 
@@ -89,7 +89,7 @@ router.post('/:id(\\d+)/subscriptions', getUser, asyncHandler(async (req, res) =
         }
     });
     if (!emailAddress)
-        return res.send('Email address not found').status(404);
+        return res.status(404).send('Email address not found');
 
     const emailAddressToMailingList = await EmailAddressToMailingList.findOne({ 
         where: {
@@ -98,15 +98,15 @@ router.post('/:id(\\d+)/subscriptions', getUser, asyncHandler(async (req, res) =
         } 
     });
     if (!emailAddressToMailingList)
-        return res.send('Email address to mailing list not found').status(404);
+        return res.status(404).send('Email address to mailing list not found');
     
     if (emailAddressToMailingList.is_subscribed == subscribe)
-        return res.send('success').status(200);
+        return res.status(200).send('success');
 
     emailAddressToMailingList.is_subscribed = subscribe;
     await emailAddressToMailingList.save();
 
-    res.send('success').status(200);
+    res.status(200).send('success');
 
     // Update subscription status in Mailman (do after response as to not delay it)
     await mailmanUpdateSubscription(mailingList.list_name, email, subscribe);

@@ -53,7 +53,7 @@ router.get('/requests', requireAdmin, asyncHandler(async (req, res) => {
         distinct: true
     });
 
-    return res.json({ count, results: rows }).status(200);
+    return res.status(200).json({ count, results: rows });
 }));
 
 router.get('/requests/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
@@ -74,7 +74,7 @@ router.get('/requests/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) =>
         order: [ [ 'logs', 'created_at', 'ASC' ] ]
     });
     if (!request)
-        return res.send('Request not found').status(404);
+        return res.status(404).send('Request not found');
 
     let answers = await AccessRequestAnswer.findAll({
         where: {
@@ -94,7 +94,7 @@ router.get('/requests/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) =>
         }
     }
 
-    return res.json(request).status(200);
+    return res.status(200).json(request);
 }));
 
 // Create new access request
@@ -105,13 +105,13 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     // Fetch service
     const service = await Service.findByPk(serviceId, { include: [ 'questions' ] });
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
     // Verify there is an answer for every question
     // for (question of service.questions) {
     //     const answer = answers ? answers.filter(a => a.questionId == question.id) : null;
     //     if (!answer || typeof answer.value == 'undefined')
-    //         return res.send('Missing answer to question ' + question.id).status(400);
+    //         return res.status(400).send('Missing answer to question ' + question.id);
     // }
 
     // Create access request if it doesn't already exist
@@ -126,7 +126,7 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
         }
     });
     if (!request)
-        return res.send('Failed to create request').status(500);
+        return res.status(500).send('Failed to create request');
 
     request.service = service;
     request.user = req.user;
@@ -160,10 +160,10 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
         message: request.message
     })
     if (!log)
-        return res.send('Failed to create access request log').status(500);
+        return res.status(500).send('Failed to create access request log');
     
     // Send response to client
-    res.json(request).status(201);
+    res.status(201).json(request);
 
     // Call approver and granter (do this after response as to not delay it)
     if (created) // new request
@@ -177,18 +177,21 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
 /*
  * Update request status (STAFF ONLY)
  * 
- * Called in admin "Access Requests" page to grant/deny request
+ * Called in admin "Access Requests" page to grant/deny request.
+ * 
+ * For Argo workflow completion callback see src/api/public.js:/services/requests/:id
+ * 
  */
 router.post('/:nameOrId(\\w+)/requests', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const nameOrId = req.params.nameOrId;
 
     const status = req.body.status;
     if (!status) //TODO verify valid status value
-        return res.send('Missing status').status(400);
+        return res.status(400).send('Missing status');
 
     const message = req.body.message;
     if (!message)
-        return res.send('Missing message').status(400);
+        return res.status(400).send('Missing message');
 
     // Get service
     const service = await Service.findOne({
@@ -199,7 +202,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, requireAdmin, asyncHandler(asy
             )
     });
     if (!service)
-        return res.send("Service not found").status(404);
+        return res.status(404).send("Service not found");
 
     // Get request
     const request = await AccessRequest.findOne({
@@ -209,7 +212,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, requireAdmin, asyncHandler(asy
         }
     });
     if (!request)
-        return res.send("Request not found").status(404);
+        return res.status(404).send("Request not found");
 
     // Update request
     request.set('status', status);
@@ -217,7 +220,7 @@ router.post('/:nameOrId(\\w+)/requests', getUser, requireAdmin, asyncHandler(asy
     await request.save();
 
     // Send response to client
-    res.json(request).status(200);
+    res.status(200).json(request);
 
     // Call granter (do this after response as to not delay it)
     if (request.isApproved())
@@ -235,7 +238,7 @@ router.get('/', asyncHandler(async (req, res) => {
         order: [ [ sequelize.fn('lower', sequelize.col('name')), 'ASC' ] ]
     });
 
-    return res.json(services).status(200);
+    return res.status(200).json(services);
 }));
 
 router.get('/:nameOrId(\\w+)', asyncHandler(async (req, res) => {
@@ -262,9 +265,9 @@ router.get('/:nameOrId(\\w+)', asyncHandler(async (req, res) => {
     });
 
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
-    return res.json(service).status(200);
+    return res.status(200).json(service);
 }));
 
 // Update service (STAFF ONLY)
@@ -286,19 +289,19 @@ router.post('/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) =
         ]
     });
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
     // Verify and update fields
     for (let key in fields) {
         const SUPPORTED_FIELDS = ['name', 'description', 'about', 'service_url', 'icon_url'];
         if (!SUPPORTED_FIELDS.includes(key))
-            return res.send('Unsupported field').status(400);
+            return res.status(400).send('Unsupported field');
         service[key] = fields[key];
     }
     await service.save();
     await service.reload();
 
-    res.json(service).status(200);
+    res.status(200).json(service);
 }));
 
 // Add question to service (STAFF ONLY)
@@ -306,11 +309,11 @@ router.put('/:id(\\d+)/questions', getUser, requireAdmin, asyncHandler(async (re
     const questionText = req.body.question;
     const is_required = true; //req.body.is_required;
     if (!questionText)
-        return res.send('Missing required fields').status(400);
+        return res.status(400).send('Missing required fields');
 
     const service = await Service.findByPk(req.params.id);
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
     const [question, created] = await AccessRequestQuestion.findOrCreate({ 
         where: { 
@@ -320,21 +323,21 @@ router.put('/:id(\\d+)/questions', getUser, requireAdmin, asyncHandler(async (re
             is_required
         } 
     });
-    res.json(question).status(201);
+    res.status(201).json(question);
 }));
 
 // Remove question from service (STAFF ONLY)
 router.delete('/:serviceId(\\d+)/questions/:questionId(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const service = await Service.findByPk(req.params.serviceId);
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
     const question = await AccessRequestQuestion.findByPk(req.params.questionId);
     if (!question)
-        return res.send('Question not found').status(404);
+        return res.status(404).send('Question not found');
 
     await question.destroy();
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 // Add contact to service (STAFF ONLY)
@@ -342,11 +345,11 @@ router.put('/:id(\\d+)/contacts', getUser, requireAdmin, asyncHandler(async (req
     const name = req.body.name;
     const email = req.body.email;
     if (!name || !email)
-        return res.send('Missing params').status(400);
+        return res.status(400).send('Missing params');
 
     const service = await Service.findByPk(req.params.id);
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
     const [contact, created] = await ServiceContact.findOrCreate({ 
         where: { 
@@ -355,21 +358,21 @@ router.put('/:id(\\d+)/contacts', getUser, requireAdmin, asyncHandler(async (req
             email
         } 
     });
-    res.json(contact).status(201);
+    res.status(201).json(contact);
 }));
 
 // Remove contact from service (STAFF ONLY)
 router.delete('/:serviceId(\\d+)/contacts/:contactId(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const service = await Service.findByPk(req.params.serviceId);
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
     const contact = await ServiceContact.findByPk(req.params.contactId);
     if (!contact)
-        return res.send('Contact not found').status(404);
+        return res.status(404).send('Contact not found');
 
     await contact.destroy();
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 // Add resource to service (STAFF ONLY)
@@ -377,11 +380,11 @@ router.put('/:id(\\d+)/resources', getUser, requireAdmin, asyncHandler(async (re
     const fields = req.body;
     console.log(fields);
     if (!fields.name || !fields.url)
-        return res.send('Missing required fields').status(400);
+        return res.status(400).send('Missing required fields');
 
     const service = await Service.findByPk(req.params.id);
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
     const [resource, created] = await ServiceResource.findOrCreate({ 
         where: { 
@@ -392,21 +395,21 @@ router.put('/:id(\\d+)/resources', getUser, requireAdmin, asyncHandler(async (re
             icon_url: fields.icon_url || ''
         } 
     });
-    res.json(resource).status(201);
+    res.status(201).json(resource);
 }));
 
 // Remove resource from service (STAFF ONLY)
 router.delete('/:serviceId(\\d+)/resources/:resourceId(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const service = await Service.findByPk(req.params.serviceId);
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
     const resource = await ServiceResource.findByPk(req.params.resourceId);
     if (!resource)
-        return res.send('Resource not found').status(404);
+        return res.status(404).send('Resource not found');
 
     await resource.destroy();
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 // Add form to service (STAFF ONLY)
@@ -414,11 +417,11 @@ router.put('/:id(\\d+)/forms', getUser, requireAdmin, asyncHandler(async (req, r
     const fields = req.body;
     console.log(fields)
     if (!fields.formId)
-        return res.send('Missing required fields').status(400);
+        return res.status(400).send('Missing required fields');
 
     const service = await Service.findByPk(req.params.id);
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
     const [form, created] = await ServiceForm.findOrCreate({ 
         where: { 
@@ -426,14 +429,14 @@ router.put('/:id(\\d+)/forms', getUser, requireAdmin, asyncHandler(async (req, r
             form_id: fields.formId
         } 
     });
-    res.json(form).status(201);
+    res.status(201).json(form);
 }));
 
 // Remove form from service (STAFF ONLY)
 router.delete('/:serviceId(\\d+)/forms/:formId(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const service = await Service.findByPk(req.params.serviceId);
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
     const serviceForm = await ServiceForm.findOne({
         where: { 
@@ -442,10 +445,10 @@ router.delete('/:serviceId(\\d+)/forms/:formId(\\d+)', getUser, requireAdmin, as
         }
     });
     if (!serviceForm)
-        return res.send('Form not found').status(404);
+        return res.status(404).send('Form not found');
 
     await serviceForm.destroy();
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 module.exports = router;

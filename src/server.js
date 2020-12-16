@@ -154,7 +154,7 @@ app.prepare()
         server.use('/api/workshops', keycloakClient.checkSso(), require('./api/workshops'))
         server.use('/api/forms', keycloakClient.checkSso(), require('./api/forms'))
         server.use('/api/mailing_lists', keycloakClient.checkSso(), require('./api/mailing_lists'))
-        server.use('/api/*', (_, res) => res.send('Resource not found').status(404))
+        server.use('/api/*', (_, res) => res.status(404).send('Resource not found'))
 
         // Require auth on all routes/page after this
         if (!config.debugUser) server.use(keycloakClient.protect())

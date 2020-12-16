@@ -36,7 +36,7 @@ const requireAdmin = async (req, res, next) => {
   if (!req.user)
     await getUser(req)
   if (!req.user || !req.user.is_staff)
-    res.send('User not authorized').status(403);
+    res.status(403).send('User not authorized');
   else if (next)
     next()
 }

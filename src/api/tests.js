@@ -5,7 +5,7 @@ const Argo = require('./lib/argo');
 router.post('/bisque', async (req, res) => {
     console.log("BisQue test");
     console.log(req.body);
-    return res.send("success").status(200);
+    return res.status(200).send("success");
 });
 
 router.get('/submit', async (req, res) => {
@@ -34,7 +34,7 @@ router.get('/submit', async (req, res) => {
         }
     );
     //await Argo.submit('/Users/mbomhoff/repos/portal2/src/workflows/argo/helloworld.yaml');
-    return res.send("success").status(200);
+    return res.status(200).send("success");
 });
 
 module.exports = router;

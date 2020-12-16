@@ -47,18 +47,18 @@ router.get('/', requireAdmin, asyncHandler(async (req, res) => {
         subQuery: false
     });
 
-    res.json({ count, results: rows }).status(200);
+    res.status(200).json({ count, results: rows });
 }));
 
 // Get current user based on token
 router.get('/mine', getUser, (req, res) => {
-    res.json(req.user).status(200);
+    res.status(200).json(req.user);
 });
 
 // Get individual user (STAFF ONLY)
 router.get('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     const user = await User.findByPk(req.params.id);
-    res.json(user).status(200);
+    res.status(200).json(user);
 }));
 
 // Update user 
@@ -69,11 +69,11 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
 
     // Check permission -- user can only update their own record unless admin
     if (id != req.user.id && !isAdmin(req))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     let user = await User.findByPk(id);
     if (!user)
-        return res.send('User not found').status(404);
+        return res.status(404).send('User not found');
 
     // Update
     const SUPPORTED_FIELDS = [
@@ -89,7 +89,7 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     await user.save();
     await user.reload();
 
-    res.json(user).status(200);
+    res.status(200).json(user);
 }));
 
 // Delete user (SUPERUSER ONLY)
@@ -97,20 +97,20 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const id = req.params.id;
 
     if (!req.user.is_superuser)
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     if (id == req.user.id)
-        return res.send('Cannot delete yourself').status(403);
+        return res.status(403).send('Cannot delete yourself');
 
     let user = await User.unscoped().findByPk(id);
     if (!user)
-        return res.send('User not found').status(404);
+        return res.status(404).send('User not found');
 
     if (user.is_staff || user.is_superuser)
-        return res.send('Cannot delete privileged user').status(403);
+        return res.status(403).send('Cannot delete privileged user');
 
     await user.destroy();
-    res.send('success').status(200);
+    res.status(200).send('success');
 
     // Submit user deletion workflow to remove user from subsystems (LDAP, IRODS, etc).
     // Do this after the response as to not block the transaction any longer than necessary.
@@ -142,24 +142,24 @@ router.get('/restricted', requireAdmin, asyncHandler(async (req, res) => {
         // limit: 10
     });
 
-    res.json(usernames).status(200);
+    res.status(200).json(usernames);
 }));
 
 // Add restricted username
 router.put('/restricted/:username(\\S+)', requireAdmin, asyncHandler(async (req, res) => {
     const [username, created] = await RestrictedUsername.findOrCreate({ where: { username: req.params.username } });
-    res.json(username).status(201);
+    res.status(201).json(username);
 }));
 
 // Delete restricted username
 router.delete('/restricted/:username(\\S+)', requireAdmin, asyncHandler(async (req, res) => {
     const username = await RestrictedUsername.findOne({ where: { username: req.params.username } });
     if (!username)
-        return res.send('Restricted username not found').status(404);
+        return res.status(404).send('Restricted username not found');
 
     await username.destroy();
 
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 module.exports = router;

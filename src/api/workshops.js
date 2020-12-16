@@ -36,7 +36,7 @@ router.get('/', asyncHandler(async (req, res) => {
         order: [ [ 'enrollment_begins', 'DESC' ] ]
     });
 
-    return res.json(workshops).status(200);
+    return res.status(200).json(workshops);
 }));
 
 // Get workshop by ID
@@ -64,13 +64,13 @@ router.get('/:id(\\d+)', asyncHandler(async (req, res) => {
         order: [ [ 'services', 'name', 'ASC' ] ]
     });
 
-    return res.json(workshop).status(200);
+    return res.status(200).json(workshop);
 }));
 
 // Create workshop (STAFF ONLY)
 router.put('/', getUser, requireAdmin, asyncHandler(async (req, res) => {
     if (!req.body.title)
-        return res.send('Missing title').status(400);
+        return res.status(400).send('Missing title');
     
     // Set default workshop properties
     const timeNow = Date.now()
@@ -90,9 +90,9 @@ router.put('/', getUser, requireAdmin, asyncHandler(async (req, res) => {
     // Create workshop
     const workshop = await Workshop.create(fields);
     if (!workshop)
-        return res.send('Failed to create workshop').status(500);
+        return res.status(500).send('Failed to create workshop');
 
-    res.json(workshop).status(201);
+    res.status(201).json(workshop);
 }));
 
 // Update workshop
@@ -123,26 +123,26 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
         ]
     });
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     // Verify and update fields
     for (let key in fields) {
         const SUPPORTED_FIELDS = ['title', 'description', 'about', 'enrollment_begins', 'enrollment_ends', 'creator_id'];
         const RESTRICTED_FIELDS = [ 'enrollment_begins', 'enrollment_ends', 'creator_id' ]
         if (RESTRICTED_FIELDS.includes(key) && !req.user.is_staff)
-            return res.send('Restricted field').status(403);
+            return res.status(403).send('Restricted field');
         if (!SUPPORTED_FIELDS.includes(key))
-            return res.send('Unsupported field').status(400);
+            return res.status(400).send('Unsupported field');
         workshop[key] = fields[key];
     }
     await workshop.save();
     await workshop.reload();
 
-    res.json(workshop).status(200);
+    res.status(200).json(workshop);
 }));
 
 // Get workshop participants (enrollees)
@@ -159,20 +159,20 @@ router.get('/:id(\\d+)/participants', getUser, asyncHandler(async (req, res) => 
         order: [ [ sequelize.fn('lower', sequelize.col('first_name')), 'ASC' ] ]
     });
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host/organizer and staff 
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
-    return res.json(workshop.users).status(200);
+    return res.status(200).json(workshop.users);
 }));
 
 // Add participant to workshop (enroll user)
 router.put('/:id(\\d+)/participants', getUser, asyncHandler(async (req, res) => {
     const userId = req.body.userId
     if (!userId)
-        return res.send('Missing user id').status(400);
+        return res.status(400).send('Missing user id');
 
     // Fetch workshop
     const workshop = await Workshop.findByPk(req.params.id, { 
@@ -182,11 +182,11 @@ router.put('/:id(\\d+)/participants', getUser, asyncHandler(async (req, res) => 
         ]
     });
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host/organizer and staff 
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     const [participant] = await WorkshopParticipant.findOrCreate({ 
         where: { 
@@ -195,7 +195,7 @@ router.put('/:id(\\d+)/participants', getUser, asyncHandler(async (req, res) => 
         } 
     });
 
-    res.json(participant).status(201);
+    res.status(201).json(participant);
 
     // Call granter (do this after response as to not delay it)
     const [request] = await WorkshopEnrollmentRequest.findOrCreate({
@@ -220,11 +220,11 @@ router.put('/:id(\\d+)/participants', getUser, asyncHandler(async (req, res) => 
 router.delete('/:workshopId(\\d+)/participants/:userId(\\d+)', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.workshopId);
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host/organizer and staff 
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     const participant = await WorkshopParticipant.findOne({ 
         where: { 
@@ -233,10 +233,10 @@ router.delete('/:workshopId(\\d+)/participants/:userId(\\d+)', getUser, asyncHan
         } 
     });
     if (!participant)
-        return res.send('Participant not found').status(404);
+        return res.status(404).send('Participant not found');
 
     await participant.destroy();
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 // Get workshop emails (pre-approved for enrollment)
@@ -252,24 +252,24 @@ router.get('/:id(\\d+)/emails', getUser, asyncHandler(async (req, res) => {
         order: [ [ sequelize.fn('lower', sequelize.col('email')), 'ASC' ] ]
     });
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host/organizer and staff 
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
-    return res.json(workshop.emails).status(200);
+    return res.status(200).json(workshop.emails);
 }));
 
 // Add email to workshop (pre-approve for enrollment)
 router.put('/:id(\\d+)/emails', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id);
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host/organizer and staff 
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     const [email, created] = await WorkshopEmail.findOrCreate({ 
         where: { 
@@ -277,18 +277,18 @@ router.put('/:id(\\d+)/emails', getUser, asyncHandler(async (req, res) => {
             email: req.body.email
         }
     });
-    res.json(email).status(201);
+    res.status(201).json(email);
 }));
 
 // Remove email from workshop
 router.delete('/:workshopId(\\d+)/emails/:email(\\S+)', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.workshopId);
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host/organizer and staff 
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     const email = await WorkshopEmail.findOne({ 
         where: { 
@@ -297,25 +297,25 @@ router.delete('/:workshopId(\\d+)/emails/:email(\\S+)', getUser, asyncHandler(as
         } 
     });
     if (!email)
-        return res.send('Email not found').status(404);
+        return res.status(404).send('Email not found');
 
     await email.destroy();
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 // Add organizer to workshop
 router.put('/:id(\\d+)/organizers', getUser, asyncHandler(async (req, res) => {
     const userId = req.body.userId
     if (!userId)
-        return res.send('Missing user id').status(400);
+        return res.status(400).send('Missing user id');
 
     const workshop = await Workshop.findByPk(req.params.id);
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host and staff 
     if (!hasHostAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     const [organizer, created] = await WorkshopOrganizer.findOrCreate({ 
         where: { 
@@ -323,18 +323,18 @@ router.put('/:id(\\d+)/organizers', getUser, asyncHandler(async (req, res) => {
             organizer_id: userId
         } 
     });
-    res.json(organizer).status(201);
+    res.status(201).json(organizer);
 }));
 
 // Remove organizer from workshop
 router.delete('/:workshopId(\\d+)/organizers/:userId(\\d+)', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.workshopId);
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host and staff
     if (!hasHostAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     const organizer = await WorkshopOrganizer.findOne({ 
         where: { 
@@ -343,10 +343,10 @@ router.delete('/:workshopId(\\d+)/organizers/:userId(\\d+)', getUser, asyncHandl
         } 
     });
     if (!organizer)
-        return res.send('Organizer not found').status(404);
+        return res.status(404).send('Organizer not found');
 
     await organizer.destroy();
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 // Add contact to workshop
@@ -354,7 +354,7 @@ router.put('/:id(\\d+)/contacts', getUser, asyncHandler(async (req, res) => {
     const name = req.body.name;
     const email = req.body.email;
     if (!name || !email)
-        return res.send('Missing params').status(400);
+        return res.status(400).send('Missing required param');
 
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ //TODO create scope for this
@@ -367,11 +367,11 @@ router.put('/:id(\\d+)/contacts', getUser, asyncHandler(async (req, res) => {
         ]
     });
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host/organizer and staff 
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     const [contact, created] = await WorkshopContact.findOrCreate({ 
         where: { 
@@ -380,7 +380,7 @@ router.put('/:id(\\d+)/contacts', getUser, asyncHandler(async (req, res) => {
             email
         } 
     });
-    res.json(contact).status(201);
+    res.status(201).json(contact);
 }));
 
 // Remove contact from workshop
@@ -396,11 +396,11 @@ router.delete('/:workshopId(\\d+)/contacts/:email(\\S+)', getUser, asyncHandler(
         ]
     });
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host/organizer and staff
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     const contact = await WorkshopContact.findOne({ 
         where: {
@@ -409,17 +409,17 @@ router.delete('/:workshopId(\\d+)/contacts/:email(\\S+)', getUser, asyncHandler(
         } 
     });
     if (!contact)
-        return res.send('Contact not found').status(404);
+        return res.status(404).send('Contact not found');
 
     await contact.destroy();
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 // Add service to workshop
 router.put('/:id(\\d+)/services', getUser, asyncHandler(async (req, res) => {
     const serviceId = req.body.serviceId
     if (!serviceId)
-        return res.send('Missing service id').status(400);
+        return res.status(400).send('Missing service id');
 
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ //TODO create scope for this
@@ -432,11 +432,11 @@ router.put('/:id(\\d+)/services', getUser, asyncHandler(async (req, res) => {
         ]
     });
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host/organizer or staff
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     const [service, created] = await WorkshopService.findOrCreate({ 
         where: { 
@@ -444,7 +444,7 @@ router.put('/:id(\\d+)/services', getUser, asyncHandler(async (req, res) => {
             service_id: serviceId
         } 
     });
-    res.json(service).status(201);
+    res.status(201).json(service);
 }));
 
 // Remove service from workshop
@@ -460,11 +460,11 @@ router.delete('/:workshopId(\\d+)/services/:serviceId(\\d+)', getUser, asyncHand
         ]
     });
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host and staff
     if (!hasHostAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     const service = await WorkshopService.findOne({
         where: {
@@ -473,10 +473,10 @@ router.delete('/:workshopId(\\d+)/services/:serviceId(\\d+)', getUser, asyncHand
         }
     });
     if (!service)
-        return res.send('Service not found').status(404);
+        return res.status(404).send('Service not found');
 
     await service.destroy();
-    res.send('success').status(200);
+    res.status(200).send('success');
 }));
 
 // Get workshop enrollment requests 
@@ -486,11 +486,11 @@ router.get('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     // Fetch workshop
     const workshop = await Workshop.findByPk(workshopId);
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Check permission -- only workshop host/organizer or staff
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     const requests = await WorkshopEnrollmentRequest.findAll({ 
         where: { 
@@ -517,7 +517,7 @@ router.get('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
         ],
         order: [ [ 'logs', 'created_at', 'ASC' ] ]
     });
-    return res.json(requests).status(200);
+    return res.status(200).json(requests);
 }));
 
 // Create new enrollment request
@@ -532,7 +532,7 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
         ]
     });
     if (!workshop)
-        return res.send('Workshop not found').status(404);
+        return res.status(404).send('Workshop not found');
 
     // Create enrolllment request if it doesn't already exist
     const [request, created] = await WorkshopEnrollmentRequest.findOrCreate({
@@ -547,7 +547,7 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
         }
     });
     if (!request)
-        return res.send('Failed to create request').status(500);
+        return res.status(500).send('Failed to create request');
 
     // Create initial enrollment request log entry to record that user requested to enroll.
     // Subsequent entries will be automatically created each time the request is updated (see "afterUpdateRequest" hook in src/api/models/index.js).
@@ -557,10 +557,10 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
         message: request.message
     })
     if (!log)
-        return res.send('Failed to create enrollment request log').status(500);
+        return res.status(500).send('Failed to create enrollment request log');
     
     // Send response to client
-    res.json(request).status(201);
+    res.status(201).json(request);
 
     // Call approver and granter (do this after response as to not delay it)
     request.user = req.user;
@@ -579,11 +579,11 @@ router.post('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
 
     const status = req.body.status;
     if (!status) //TODO verify valid status value
-        return res.send('Missing status').status(400);
+        return res.status(400).send('Missing status');
 
     const message = req.body.message;
     if (!message)
-        return res.send('Missing message').status(400);
+        return res.status(400).send('Missing message');
 
     // Fetch workshop
     const workshop = await Workshop.findByPk(workshopId, {
@@ -592,11 +592,11 @@ router.post('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
         ]
     });
     if (!workshop)
-        return res.send("Workshop not found").status(404);
+        return res.status(404).send("Workshop not found");
 
     // Check permission -- only workshop host/organizer or staff
     if (!hasOrganizerAccess(workshop, req.user))
-        return res.send('Permission denied').status(403);
+        return res.status(403).send('Permission denied');
 
     // Fetch request
     const request = await WorkshopEnrollmentRequest.findOne({
@@ -606,7 +606,7 @@ router.post('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
         }
     });
     if (!request)
-        return res.send("Request not found").status(404);
+        return res.status(404).send("Request not found");
 
     // Update request
     request.set('status', status);
@@ -614,7 +614,7 @@ router.post('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     await request.save();
 
     // Send response to client
-    res.json(request).status(200);
+    res.status(200).json(request);
 
     // Call granter (do this after response as to not delay it)
     request.user = req.user;
