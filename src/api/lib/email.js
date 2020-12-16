@@ -1,11 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const config = require('../../config.json')
-const { UI_WORKSHOPS_URL, UI_REQUESTS_URL, UI_SERVICES_URL, UI_PASSWORD_URL, UI_CONFIRM_EMAIL_URL } = require('../../constants')
-
-const sendmail = require('sendmail')({
-    silent: true
-});
+const sendmail = require('sendmail')({ silent: false });
+const { logger } = require('./logging');
+const config = require('../../config.json');
+const { UI_WORKSHOPS_URL, UI_REQUESTS_URL, UI_SERVICES_URL, UI_PASSWORD_URL, UI_CONFIRM_EMAIL_URL } = require('../../constants');
 
 function renderEmail({ to, bcc, subject, templateName, fields }) {
     let body = {};
@@ -37,7 +35,7 @@ function renderEmail({ to, bcc, subject, templateName, fields }) {
     if (bcc) {
         if (Array.isArray(bcc))
             bcc = bcc.join(',');
-            cfg['bcc'] = bcc;
+        cfg['bcc'] = bcc;
     }
 
     if (body['html'])
@@ -50,7 +48,7 @@ function renderEmail({ to, bcc, subject, templateName, fields }) {
 
 async function emailNewAccountConfirmation(email, hmac) {
     const confirmationUrl = `${UI_PASSWORD_URL}?code=${hmac}`;
-    console.log('emailNewAccountConfirmation:', email, confirmationUrl);
+    logger.debug('emailNewAccountConfirmation: %s %s', email, confirmationUrl);
     await renderEmail({
         to: email, 
         bcc: config.email.bccNewAccountConfirmation,
@@ -65,6 +63,7 @@ async function emailNewAccountConfirmation(email, hmac) {
 
 async function emailNewEmailConfirmation(email, hmac) {
     const confirmationUrl = `${UI_CONFIRM_EMAIL_URL}?code=${hmac}`;
+    logger.debug('emailNewEmailConfirmation: %s %s', email, confirmationUrl);
     await renderEmail({
         to: email, 
         //bcc: null,
@@ -78,6 +77,7 @@ async function emailNewEmailConfirmation(email, hmac) {
 
 async function emailPasswordReset(emailAddress, hmac) {
     const resetUrl = `${UI_PASSWORD_URL}?reset&code=${hmac}`;
+    logger.debug('emailPasswordReset: %s %s', emailAddress.email, resetUrl);
     await renderEmail({
         to: emailAddress.email, 
         bcc: config.email.bccPasswordChangeRequest,
@@ -94,6 +94,7 @@ async function emailServiceAccessGranted(request) {
     const service = request.service;
     const user = request.user;
     const serviceUrl = `${UI_SERVICES_URL}/${service.id}`;
+    logger.debug('emailServiceAccessGranted: %s %s', user.email, serviceUrl);
 
     await renderEmail({
         to: user.email, 
@@ -111,6 +112,7 @@ async function emailWorkshopEnrollmentRequest(request) {
     const workshop = request.workshop;
     const user = request.user;
     const workshopEnrollmentRequestUrl = `${UI_WORKSHOPS_URL}/${workshop.id}?t=requests`;
+    logger.debug('emailWorkshopEnrollmentRequest: %s %s', user.email, workshopEnrollmentRequestUrl);
 
     await renderEmail({
         to: user.email, 
@@ -133,6 +135,7 @@ async function emailWorkshopEnrollmentConfirmation(request) {
     const workshop = request.workshop;
     const user = request.user;
     const workshopUrl = `${UI_WORKSHOPS_URL}/${workshop.id}`;
+    logger.debug('emailWorkshopEnrollmentConfirmation: %s %s', user.email, workshopUrl);
 
     await renderEmail({
         to: user.email, 
