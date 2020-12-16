@@ -17,8 +17,8 @@ RUN rm ./irods-icommands-4.1.12-ubuntu14-x86_64.deb
 
 # Configure iCommands
 ARG IRODS_ENVIRONMENT_FILE
-COPY $IRODS_ENVIRONMENT_FILE .
-ENV IRODS_ENVIRONMENT_FILE /usr/src/app/$IRODS_ENVIRONMENT_FILE
+COPY $IRODS_ENVIRONMENT_FILE /usr/src/app/irods_environment.json
+ENV IRODS_ENVIRONMENT_FILE /usr/src/app/irods_environment.json
 ARG IRODS_PASSWORD
 COPY iinit.expect .
 RUN expect ./iinit.expect
