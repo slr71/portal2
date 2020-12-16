@@ -398,7 +398,7 @@ const Forms = (user, properties, onPasswordUpdate) => { //FIXME passing submitha
           subtitle="Manage which services you would like to receive maintenance-related emails from" 
         />
     },
-    { title: "Institution",
+    { title: "Institution / Research",
       autosave: true,
       fields: [
         { id: "institution",
