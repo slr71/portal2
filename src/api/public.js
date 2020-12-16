@@ -141,13 +141,20 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
     await emailNewAccountConfirmation(newUser.email, hmac);
 }));
 
-// Update user password -- assumes password requirements were enforced by front-end
+/*
+ * Update user password -- assumes password requirements were enforced by front-end
+ *
+ * This endpoint is called for:
+ *     - new user set password
+ *     - password reset
+ *     - password change (TODO: move to separate endpoint)
+ */
 router.post('/users/password', asyncHandler(async (req, res) => {
     const fields = req.body;
     if (!fields || !('password' in fields)) 
         return res.status(400).send('Missing required field');
 
-    let user, isUpdate;
+    let user;
     if ('hmac' in fields && 'password' in fields) { // Password set (new user) or reset
         // Decode HMAC
         const obj = decodePasswordResetToken(fields.hmac)
@@ -164,15 +171,15 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         if (!emailAddress)
             return res.status(404).send('Email address not found');
 
-        // Check if password was already reset using this HMAC
+        // Check if password was already set/reset using this HMAC
         const passwordReset = await PasswordReset.findOne({ 
             where: {
                 key: fields.hmac,
                 user_id: emailAddress.user_id
             }
         });
-        if (passwordReset) 
-            return res.status(400).send('Password already reset');
+        if (passwordReset)
+            return res.status(400).send('Password already set/reset');
 
         // Confirm email address
         emailAddress.verified = true
@@ -182,17 +189,13 @@ router.post('/users/password', asyncHandler(async (req, res) => {
         // Fetch user -- unscoped so password is present
         user = await User.unscoped().findByPk(emailAddress.user_id, { include: [ 'occupation' ] });
 
-        if (user.password != '') { // Existing user
-            // Log password reset
-            const passwordReset = PasswordReset.create({
-                user_id: user.id,
-                key: fields.hmac
-            });
-            if (!passwordReset)
-                logger.error('Error creating password reset');
-            
-            isUpdate = true;
-        }
+        // Log password set/reset
+        const newPasswordReset = PasswordReset.create({
+            user_id: user.id,
+            key: fields.hmac
+        });
+        if (!newPasswordReset)
+            logger.error('Error creating password reset');
     }
     else if ('oldPassword' in fields) { // Existing user password change, must be authenticated //TODO move to separate endpoint
         // Get user from token
@@ -206,7 +209,6 @@ router.post('/users/password', asyncHandler(async (req, res) => {
             return res.status(400).send('Invalid password');
 
         logger.info(`Updating password for user ${user.username}`)
-        isUpdate = true;
     }
     else {
         return res.status(400).send('Invalid request');
@@ -220,7 +222,7 @@ router.post('/users/password', asyncHandler(async (req, res) => {
 
     // Run appropriate workflow (do after response as to not delay it)
     user.password = fields.password; // kludgey, but use raw password
-    if (isUpdate) { // password change/reset
+    if ('oldPassword' in fields) { // existing user password change/reset
         if (config.argo)
             await submitUserWorkflow('update-password', user);
         else
@@ -229,7 +231,6 @@ router.post('/users/password', asyncHandler(async (req, res) => {
     else { // new user
         // Run user creation workflow
         logger.info(`Running user creation workflow for user ${user.username}`)
-        let rc;
         if (config.argo)
             await submitUserWorkflow('create-user', user);
         else
