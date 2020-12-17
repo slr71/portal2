@@ -92,6 +92,37 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     res.status(200).json(user);
 }));
 
+/*
+ * Update password (password change in Account page)
+ *
+ * For password reset see src/api/public.js:/users/password
+ */
+router.post('/password', getUser, asyncHandler(async (req, res) => {
+    const fields = req.body;
+    if (!fields || !('password' in fields) || !('oldPassword' in fields)) 
+        return res.status(400).send('Missing required field');
+
+    // Re-fetch user unscoped so password is present
+    const user = await User.unscoped().findByPk(req.user.id, { include: [ 'occupation' ] });
+
+    // Check the password
+    if (!checkPassword(user.password, fields.oldPassword))
+        return res.status(400).send('Invalid password');
+
+    res.status(200).send('success');
+
+    // Update password in LDAP (do after response as to not delay it)
+    logger.info(`Updating password for user ${user.username}`);
+    if (config.argo)
+        await submitUserWorkflow('update-password', user);
+    else
+        await userPasswordUpdateWorkflow(user);
+
+    // Update password in DB
+    user.password = encodePassword(fields.password);
+    await user.save();
+}));
+
 // Delete user (SUPERUSER ONLY)
 router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const id = req.params.id;

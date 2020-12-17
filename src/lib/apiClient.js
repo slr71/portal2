@@ -59,6 +59,8 @@ class PortalAPI {
 
   async updateUser(id, params) { return await this.post(`/users/${id}`, params) }
 
+  async resetPassword(params) { return await this.put(`/users/password`, params) } // FIXME conflict if username is "password"
+
   async updatePassword(params) { return await this.post(`/users/password`, params) } // FIXME conflict if username is "password"
 
   async resetPassword(params) { return await this.post(`/users/reset_password`, params) } // FIXME conflict if username is "reset_password"

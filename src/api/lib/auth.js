@@ -25,6 +25,8 @@ const getUser = async (req, _, next) => {
   const userId = config.debugUser || getUserID(req)
   if (userId) {
       const user = await User.findOne({ where: { username: userId } })
+      if (!user) // should never happen
+          return;
       req.user = JSON.parse(JSON.stringify(user.get({ plain: true })))
   }
   if (next) next()
