@@ -23,7 +23,8 @@ async function createUser(user) {
         name: user.first_name + ' ' + user.last_name,
         user_id: user.username
     });
-    //TODO check for error
+    if (!newUser || !newUser.body)
+        return;
 
     logger.info(`Created Intercom user ${newUser.body.id} for ${user.username}`);
 
@@ -44,6 +45,11 @@ async function getConversation(id) {
 async function startConversation(user, body) {
     // Make sure user exists
     const intercomUser = await createUser(user);
+    if (!intercomUser) {
+        logger.error(`Error creating Intercom user ${user.username}`);
+        return;
+    }
+    logger.debug(intercomUser);
 
     // Create user-initiated message (which will result in creation of a new conversation)
     const message = await intercom.messages.create({
@@ -54,7 +60,11 @@ async function startConversation(user, body) {
         },
         body
     });
-    //TODO check for error
+    if (!message) {
+        logger.error(`Error creating Intercom message for user ${user.username}`);
+        return;
+    }
+    logger.debug(intercomUser);
 
     logger.info(`Created Intercom message ${message.body.id} for ${user.username}`);
 
