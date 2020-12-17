@@ -1,18 +1,20 @@
 import React from 'react'
-// import { makeStyles } from '@material-ui/core/styles'
 import Link from "next/link"
 import { useRouter } from 'next/router'
-import { ListItem, ListItemIcon, ListItemText } from '@material-ui/core'
+import { ListItem, ListItemIcon, ListItemText, makeStyles } from '@material-ui/core'
 import { menuItems } from './menuItems'
 
-// const useStyles = makeStyles((theme) => ({
-//   nested: {
-//     paddingLeft: theme.spacing(4)
-//   }
-// }))
+const useStyles = makeStyles((theme) => ({
+  // nested: {
+  //   paddingLeft: theme.spacing(4)
+  // }
+  listItem: {
+    marginBottom: '1em'
+  }
+}))
 
 const NavButton = props => {
-  // const classes = useStyles()
+  const classes = useStyles()
 
   // let subMenu = <></> 
   // if (props.open) {
@@ -32,7 +34,7 @@ const NavButton = props => {
   return (
     <div>
       <Link href={props.path}>
-        <ListItem button selected={props.selected}>
+        <ListItem button selected={props.selected} className={classes.listItem}>
           <ListItemIcon>
             {props.icon}
           </ListItemIcon>
