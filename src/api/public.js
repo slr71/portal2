@@ -205,7 +205,16 @@ router.put('/users/password', asyncHandler(async (req, res) => {
 
     // Run appropriate workflow (do after response as to not delay it)
     user.password = fields.password; // kludgey, but use raw password
-    if (passwordReset) { // existing user password reset
+
+    const passwordResetRequest = await PasswordResetRequest.find({ 
+        where: {
+            user_id: emailAddress.user.id,
+            email_address_id: emailAddress.id,
+            key: hmac
+        }
+    });
+
+    if (passwordResetRequest) { // existing user password reset
         if (config.argo)
             await submitUserWorkflow('update-password', user);
         else
