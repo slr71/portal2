@@ -47,7 +47,7 @@ class PortalAPI {
    * User endpoints
    */
 
-  async user(id) { return await this.get(`/users/${id || 'mine'}`) } // FIXME conflict if username is "mine" -- is it a restricted username?
+  async user(id) { return await this.get(`/users/${id || 'mine'}`) }
 
   async users(params) { return await this.get(`/users`, params) }
 
@@ -55,15 +55,15 @@ class PortalAPI {
 
   async checkEmail(email) { return await this.post(`/exists`, { email }) }
 
-  async createUser(username, params) { return await this.put(`/users/${username}`, params) }
+  async createUser(params) { return await this.put(`/users`, params) }
 
   async updateUser(id, params) { return await this.post(`/users/${id}`, params) }
 
-  async resetPassword(params) { return await this.put(`/users/password`, params) } // FIXME conflict if username is "password"
+  async createPassword(params) { return await this.put(`/users/password`, params) }
 
-  async updatePassword(params) { return await this.post(`/users/password`, params) } // FIXME conflict if username is "password"
+  async updatePassword(params) { return await this.post(`/users/password`, params) }
 
-  async resetPassword(params) { return await this.post(`/users/reset_password`, params) } // FIXME conflict if username is "reset_password"
+  async resetPassword(params) { return await this.post(`/users/reset_password`, params) }
 
   async updateMailingListSubscription(id, params) { return await this.post(`/mailing_lists/${id}/subscriptions`, params) }
 
@@ -73,14 +73,14 @@ class PortalAPI {
 
   async confirmEmailAddress(hmac) { return await this.post(`/confirm_email`, { hmac }) }
 
-  async restrictedUsernames() { return await this.get(`/users/restricted`) } // FIXME conflict if username is "restricted"
+  async restrictedUsernames() { return await this.get(`/users/restricted`) }
 
   async createRestrictedUsername(username) { return await this.put(`/users/restricted/${username}`) }
 
   async deleteRestrictedUsername(id) { return await this.delete(`/users/restricted/${id}`) }
 
   // This endpoint is no longer called directly. Instead, use the cached copy in src/user-properties.json
-  // async userProperties() { return await this.get(`/users/properties`) } // FIXME conflict if username is "properties"
+  // async userProperties() { return await this.get(`/users/properties`) }
 
   /*
    * Service endpoints

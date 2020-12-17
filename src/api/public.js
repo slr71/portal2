@@ -52,14 +52,16 @@ router.post('/exists', asyncHandler(async (req, res) => {
 }));
 
 // Create user //TODO require API key or valid HMAC
-router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
-    const username = req.params.username;
+router.put('/users', asyncHandler(async (req, res) => {
     let fields = req.body;
     console.log("fields:", fields);
 
+    if (!('username' in fields))
+        return res.status(400).send('Missing required field');
+
     // Check for existing username
-    const user = await User.findOne({ where: { username } });
-    const restricted = await RestrictedUsername.findOne({ where: { username } });
+    const user = await User.findOne({ where: { username: fields['username'] } });
+    const restricted = await RestrictedUsername.findOne({ where: { username: fields['username'] } });
     if (user || restricted)
         return res.status(400).send('Username already taken');
 
@@ -108,7 +110,6 @@ router.put('/users/:username(\\w+)', asyncHandler(async (req, res) => {
         return res.status(400).send('Email already in use');
 
     // Set defaults
-    fields['username'] = username;
     fields['password'] = '';
     fields['is_superuser'] = false;
     fields['is_staff'] = false;

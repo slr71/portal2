@@ -90,7 +90,7 @@ const Right = (props) => {
 
   const submitPassword = async (password) => {
     try {
-      const res = await api.resetPassword({ hmac, password })
+      const res = await api.createPassword({ hmac, password })
       if (res !== 'success')
         setPageError(res)
       else
