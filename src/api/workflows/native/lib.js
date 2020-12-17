@@ -42,7 +42,7 @@ function ldapCreateUser(user) {
 }
 
 function ldapModify(username, attribute, value) {
-    return run(`echo "dn: uid={${username},ou=People,dc=iplantcollaborative,dc=org\n${attribute}:${value}" | ldapmodify -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password}`);
+    return run(`echo "dn: uid=${username},ou=People,dc=iplantcollaborative,dc=org\nreplace: ${attribute}\n${attribute}: ${value}" | ldapmodify -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password}`);
 }
 
 function ldapChangePassword(username, password) {
