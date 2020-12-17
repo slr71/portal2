@@ -15,7 +15,7 @@ function CustomIntercom(props) {
     React.useEffect(() => {
         if (user) {
             intercomLogin(
-                user.id,
+                user.username,
                 user.email,
                 config.intercom.appId,
                 // config.intercom.companyId,
