@@ -8,6 +8,7 @@ module.exports = {
   UI_CONFIRM_EMAIL_URL: `${config.uiBaseUrl}/confirm_email`,
   UI_WORKSHOPS_URL: `${config.uiBaseUrl}/workshops`,
   UI_SERVICES_URL: `${config.uiBaseUrl}/services`,
+  UI_ADMIN_SERVICE_ACCESS_REQUEST_URL: `${config.uiBaseUrl}/administrative/requests`,
   UI_ADMIN_FORM_SUBMISSION_URL: `${config.uiBaseUrl}/administrative/submissions`,
 
   // Cookie Names
