@@ -101,6 +101,7 @@ models.api_workshop.hasMany(models.api_workshopcontact, { as: 'contacts', foreig
 models.api_workshop.hasMany(models.api_workshopenrollmentrequest, { as: 'requests', foreignKey: 'workshop_id' });
 
 models.api_workshopenrollmentrequest.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id' });
+models.api_workshopenrollmentrequest.belongsTo(models.api_workshop, { as: 'workshop', foreignKey: 'workshop_id' });
 models.api_workshopenrollmentrequest.hasMany(models.api_workshopenrollmentrequestlog, { as: 'logs', foreignKey: 'workshop_enrollment_request_id' });
 
 models.api_formgroup.belongsToMany(models.api_form, 

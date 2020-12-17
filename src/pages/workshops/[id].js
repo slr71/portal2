@@ -399,9 +399,9 @@ const WorkshopEditor = (props) => {
     }
   }
 
-  const updateRequest = async (status, message) => {
+  const updateRequest = async (requestId, status, message) => {
     try {
-      await api.updateWorkshopRequest(workshop.id, { status, message })
+      await api.updateWorkshopRequest(requestId, { status, message })
       const newRequests = await api.workshopRequests(workshop.id)
       setRequests(newRequests)
     }
@@ -901,7 +901,7 @@ const Requests = ({ requests, submitHandler }) => {
     return <Typography color={color}>{value.toUpperCase()}</Typography>
   }
 
-  const Row = ({ user, created_at, status, logs }) => {
+  const Row = ({ id, user, created_at, status, logs }) => {
     const [open, setOpen] = React.useState(false)
     return (
       <>
@@ -925,7 +925,7 @@ const Requests = ({ requests, submitHandler }) => {
               color="primary" 
               size="small" 
               disabled={status == 'denied' || status == 'granted'}
-              onClick={() => submitHandler('denied', `Request denied by ${user.username}`)}
+              onClick={() => submitHandler(id, 'denied', `Request denied by ${user.username}`)}
             >
               Deny
             </Button>
@@ -933,7 +933,7 @@ const Requests = ({ requests, submitHandler }) => {
               color="primary" 
               size="small"
               disabled={status == 'approved' || status == 'granted'}
-              onClick={() => submitHandler('approved', `Request approved by ${user.username}`)}
+              onClick={() => submitHandler(id, 'approved', `Request approved by ${user.username}`)}
             >
               Approve
             </Button>

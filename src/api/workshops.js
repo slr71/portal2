@@ -574,39 +574,31 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
 }));
 
 // Update enrollment request status 
-router.post('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
-    const workshopId = req.params.id;
-
+router.post('/requests/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
+    const requestId = req.params.id;
     const status = req.body.status;
-    if (!status) //TODO verify valid status value
-        return res.status(400).send('Missing status');
-
     const message = req.body.message;
-    if (!message)
-        return res.status(400).send('Missing message');
 
-    // Fetch workshop
-    const workshop = await Workshop.findByPk(workshopId, {
-        include: [ 
-            'services'
-        ]
-    });
-    if (!workshop)
-        return res.status(404).send("Workshop not found");
-
-    // Check permission -- only workshop host/organizer or staff
-    if (!hasOrganizerAccess(workshop, req.user))
-        return res.status(403).send('Permission denied');
+    if (!status || !message) //TODO verify valid status value
+        return res.status(400).send('Missing required field');
 
     // Fetch request
-    const request = await WorkshopEnrollmentRequest.findOne({
-        where: { 
-            workshop_id: workshop.id,
-            user_id: req.user.id
-        }
+    const request = await WorkshopEnrollmentRequest.findByPk(requestId, { 
+        include: [ 
+            'user', 
+            { 
+                model: models.api_workshop,
+                as: 'workshop',
+                include: [ 'services' ]
+            }
+        ] 
     });
     if (!request)
         return res.status(404).send("Request not found");
+
+    // Check permission -- only workshop host/organizer or staff
+    if (!hasOrganizerAccess(request.workshop, req.user))
+        return res.status(403).send('Permission denied');
 
     // Update request
     request.set('status', status);
@@ -617,8 +609,6 @@ router.post('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     res.status(200).json(request);
 
     // Call granter (do this after response as to not delay it)
-    request.user = req.user;
-    request.workshop = workshop;
     if (request.isApproved())
         await grantRequest(request);
 
