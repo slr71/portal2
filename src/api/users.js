@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { requireAdmin, isAdmin, getUser, asyncHandler } = require('./lib/auth');
+const { checkPassword, encodePassword } = require('./lib/password');
 const sequelize = require('sequelize');
 const models = require('./models');
 const User = models.account_user;
