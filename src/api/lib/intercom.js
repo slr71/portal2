@@ -14,10 +14,12 @@ const config = require('../../config.json');
 const intercom = new Intercom.Client({ token: config.intercom.token });
 
 async function createUser(user) {
-    const existingUser = await intercom.users.find({ user_id: user.username });
-    if (existingUser && existingUser.body)
-        return existingUser.body;
+    // Get user if already exists
+    // const existingUser = await intercom.users.find({ user_id: user.username });
+    // if (existingUser && existingUser.body)
+    //     return existingUser.body;
 
+    // The create method will return the user if it already exists
     const newUser = await intercom.users.create({
         email: user.email,
         name: user.first_name + ' ' + user.last_name,
@@ -26,7 +28,7 @@ async function createUser(user) {
     if (!newUser || !newUser.body)
         return;
 
-    logger.info(`Created Intercom user ${newUser.body.id} for ${user.username}`);
+    logger.info(`Found/created Intercom user ${newUser.body.id} for ${user.username}`);
 
     return newUser.body;
 }
