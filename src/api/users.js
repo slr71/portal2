@@ -112,18 +112,19 @@ router.post('/password', getUser, asyncHandler(async (req, res) => {
     if (!checkPassword(user.password, fields.oldPassword))
         return res.status(400).send('Invalid password');
 
+    // Update password in DB
+    user.password = encodePassword(fields.password);
+    await user.save();
+
     res.status(200).send('success');
 
     // Update password in LDAP (do after response as to not delay it)
     logger.info(`Updating password for user ${user.username}`);
+    user.password = fields.password; // kludgey, but use raw password
     if (config.argo)
         await submitUserWorkflow('update-password', user);
     else
         await userPasswordUpdateWorkflow(user);
-
-    // Update password in DB
-    user.password = encodePassword(fields.password);
-    await user.save();
 }));
 
 // Delete user (SUPERUSER ONLY)
