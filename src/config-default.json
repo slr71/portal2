@@ -58,6 +58,7 @@
     "intercom": { 
         "appId": "",
         "token": "", 
+        "companyId": "",
         "adminUserPortalBotId": "",
         "adminTier1AtmosphereId": "", 
         "adminTier1ScienceTeamId": ""

@@ -18,7 +18,7 @@ function CustomIntercom(props) {
                 user.username,
                 user.email,
                 config.intercom.appId,
-                // config.intercom.companyId,
+                config.intercom.companyId,
                 // config.intercom.companyName
             )
 
