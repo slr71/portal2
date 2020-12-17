@@ -120,7 +120,7 @@ router.put('/users', asyncHandler(async (req, res) => {
     fields['orcid_id'] = '';
 
     // Create user
-    logger.info(`Creating user ${username}`);
+    logger.info('Creating user', fields['username']);
     let newUser = await User.create(fields)
     if (!newUser)
         return res.status(500).send('Error creating user');
@@ -206,11 +206,11 @@ router.put('/users/password', asyncHandler(async (req, res) => {
     // Run appropriate workflow (do after response as to not delay it)
     user.password = fields.password; // kludgey, but use raw password
 
-    const passwordResetRequest = await PasswordResetRequest.find({ 
+    const passwordResetRequest = await PasswordResetRequest.findOne({ 
         where: {
-            user_id: emailAddress.user.id,
+            user_id: user.id,
             email_address_id: emailAddress.id,
-            key: hmac
+            key: fields.hmac
         }
     });
 
