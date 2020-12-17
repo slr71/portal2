@@ -1,4 +1,5 @@
-import { makeStyles, Container, Box, Button, Paper, Typography, Tooltip } from '@material-ui/core'
+import { makeStyles, Container, Box, Button, Paper, Typography } from '@material-ui/core'
+import Alert from '@material-ui/lab/Alert';
 import { Layout, DateSpan } from '../../../components'
 
 const useStyles = makeStyles((theme) => ({
@@ -14,6 +15,8 @@ const User = ({ user }) => {
   return (
     <Layout title={user.username} breadcrumbs>
       <Container maxWidth='lg'>
+        <br />
+        <Alert severity="warning" variant="filled">This page needs improvement</Alert>
         <br />
 
         <Paper elevation={3} className={classes.paper}>
