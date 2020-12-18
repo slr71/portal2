@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, Switch, Typography, Link, Button, IconButton, TextField, Avatar, List, ListItem, ListItemText, ListItemAvatar, ListItemSecondaryAction, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
 import { Person as PersonIcon, Mail as MailIcon, Delete as DeleteIcon } from '@material-ui/icons'
@@ -20,20 +20,36 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
+//FIXME the state management is a little kludgey
 const Account = () => {
   const classes = useStyles()
   const api = useAPI()
   const [_, setError] = useError()
   const [user, setUser] = useUser()
+  const [sentEmails, setSentEmails] = useState([])
 
-  const submitPassword = async (values) => {
+  const changeHandler = async (data) => {
     try {
-      const res = await api.updatePassword({ 
-        oldPassword: values['old_password'], 
-        password: values['new_password'] 
-      })
-      if (res !== 'success')
-        setError(res)
+      if (data && 'old_password' in data && 'new_password' in data) {
+        const res = await api.updatePassword({ 
+          oldPassword: values['old_password'], 
+          password: values['new_password'] 
+        })
+        if (res !== 'success')
+          setError(res)
+        return
+      }
+
+      // Reload user
+      const newUser = await api.user()
+      if (data && data.email) {
+        sentEmails.push(data.email)
+        setSentEmails(sentEmails)
+        for (const email of newUser.emails) // set sent flag for "resend confirmation email" on newly added email addresses
+          email.sent = email.email == data.email.email
+      }
+      setUser(newUser)
+      setForms(Forms(newUser, properties, changeHandler, submitForm))
     }
     catch (error) {
       console.log(error)
@@ -41,23 +57,25 @@ const Account = () => {
     }
   }
 
-  const [forms, setForms] = useState(Forms(user, properties, submitPassword))
-
   const initialValues = (fields) =>
       fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
 
-  // Default submit handler for forms
+  // Default submit handler for all forms
   const submitForm = async (submission) => {
     try {
       const newUser = await api.updateUser(user.id, submission)
+      for (let email of newUser.emails) // set sent flag for "resend confirmation email" on newly added email addresses
+        email.sent = !!sentEmails.find(e => e.email == email.email)
       setUser(newUser)
-      setForms(Forms(newUser, properties, submitPassword))
+      setForms(Forms(newUser, properties, changeHandler, submitForm))
     }
     catch(error) {
       console.log(error)
       setError(error.message)
     }
   }
+
+  const [forms, setForms] = useState(Forms(user, properties, changeHandler, submitForm))
 
   const title = 
     <div style={{display: 'flex', alignItems: 'center'}}>
@@ -114,21 +132,20 @@ const Account = () => {
   )
 }
 
-const EmailForm = ({ user, title, subtitle }) => {
+const EmailForm = ({ emails, title, subtitle, onChange }) => {
   const api = useAPI()
   const [_, setError] = useError()
-  const [emails, setEmails] = useState(user.emails)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [emailToAdd, setEmailToAdd] = useState('')
   const [validationError, setValidationError] = useState()
 
+  const handleCloseDialog = () => {
+    setDialogOpen(false)
+  }
+
   const handleChangeEmail = async (event) => {
     setEmailToAdd(event.target.value)
     setValidationError(await validateEmail(event.target.value))
-  }
-
-  const handleCloseDialog = () => {
-    setDialogOpen(false)
   }
 
   const validateEmail = async (value) => {
@@ -136,8 +153,6 @@ const EmailForm = ({ user, title, subtitle }) => {
       return 'A valid email address is required'
 
     const res = await api.checkEmail(value)
-    console.log(res)
-    //TODO add error checking here
     if (res && res.email)
       return 'Email already assigned to an account'
 
@@ -146,8 +161,8 @@ const EmailForm = ({ user, title, subtitle }) => {
 
   const submitEmail = async () => {
     try {
-      const newEmails = await api.createEmailAddress({ email: emailToAdd })
-      setEmails(emails.concat(newEmails))
+      await api.createEmailAddress({ email: emailToAdd })
+      if (onChange) await onChange()
       handleCloseDialog()
     }
     catch(error) {
@@ -158,11 +173,8 @@ const EmailForm = ({ user, title, subtitle }) => {
 
   const resendConfirmationEmail = async (email) => {
     try {
-      const newEmail = await api.createEmailAddress({ email: email.email })
-      const newEmails = emails.map(email2 => {
-        return {...email2, sent: (email2.email == email.email) } 
-      })
-      setEmails(newEmails)
+      await api.createEmailAddress({ email: email.email })
+      if (onChange) await onChange({ email })
       handleCloseDialog()
     }
     catch(error) {
@@ -174,9 +186,8 @@ const EmailForm = ({ user, title, subtitle }) => {
   const removeEmailAddress = async (id) => {
     try {
       await api.deleteEmailAddress(id)
-      const newEmails = emails.filter(email => email.id != id)
-        setEmails(newEmails)
-        handleCloseDialog()
+      if (onChange) await onChange()
+      handleCloseDialog()
     }
     catch(error) {
       console.log(error)
@@ -189,7 +200,7 @@ const EmailForm = ({ user, title, subtitle }) => {
     : <>
         A confirmation email has been sent. 
         Click on the link in the email to verify that this is your address.<br />
-        {email.sent 
+        {email.sent
           ? '[ Sent! ]'
           : <Link onClick={() => resendConfirmationEmail(email)}>[ Resend Confirmation Email ]</Link>
         }
@@ -262,7 +273,7 @@ const AddEmailAddressDialog = ({ open, error, handleChange, handleClose, handleS
       />
     </DialogContent>
     <DialogActions>
-      <Button onClick={handleClose} variant="outlined">
+      <Button onClick={handleClose}>
         Cancel
       </Button>
       <Button onClick={handleSubmit} variant="contained" color="primary" disabled={!handleSubmit}>
@@ -301,17 +312,19 @@ const MailingListItem = ({ email, list }) => {
 
   const [state, setState] = useState(list.api_emailaddressmailinglist.is_subscribed)
 
-  useEffect(() => {
-      api.updateMailingListSubscription(list.id, { 
+  const updateSubscription = async (state) => {
+    try {
+      await api.updateMailingListSubscription(list.id, { 
         email: email.email,
         subscribe: state
-      }).then((resp) => {
-        console.log(resp)
-        setError(resp.data)
       })
-    },
-    [state]
-  )
+      setState(state)
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
   return (
     <ListItem key={list.id}>
@@ -323,14 +336,14 @@ const MailingListItem = ({ email, list }) => {
           color="primary"
           variant="caption"
           edge="end"
-          onChange={(event) => setState(event.target.checked)}
+          onChange={(event) => updateSubscription(event.target.checked)}
         />
       </ListItemSecondaryAction>
     </ListItem>
   )
 }
 
-const Forms = (user, properties, onPasswordUpdate) => { //FIXME passing submithandler is funky
+const Forms = (user, properties, onChange) => {
   return [ 
     { title: "Identification",
       autosave: true,
@@ -366,7 +379,7 @@ const Forms = (user, properties, onPasswordUpdate) => { //FIXME passing submitha
     },
     { title: "Password",
       autosave: false,
-      submitHandler: onPasswordUpdate,
+      submitHandler: onChange,
       fields: [
         { id: "old_password",
           name: "Old Password",
@@ -387,9 +400,10 @@ const Forms = (user, properties, onPasswordUpdate) => { //FIXME passing submitha
     },
     { render: 
         <EmailForm 
-          user={user} 
+          emails={user.emails} 
           title="Email" 
           subtitle="Email addresses associated with this account" 
+          onChange={onChange}
         />
     },
     { render: 

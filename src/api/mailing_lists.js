@@ -47,10 +47,15 @@ router.put('/email_addresses', getUser, asyncHandler(async (req, res) => {
     });
     if (primaryEmail) { // should always be true
         for (let list of primaryEmail.mailing_lists) {
-            await EmailAddressToMailingList.create({
-                email_address_id: emailAddress.id,
-                mailing_list_id: list.id,
-                is_subscribed: false
+            // There shouldn't be any mailing list associations since this is a new email, but just in case do findOrCreate
+            await EmailAddressToMailingList.findOrCreate({
+                where: {
+                    email_address_id: emailAddress.id,
+                    mailing_list_id: list.id
+                },
+                defaults: {
+                    is_subscribed: false
+                }
             });
         }
     }
@@ -69,21 +74,30 @@ router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, re
         where: {
             id: id,
             user_id: req.user.id
-        }
+        },
+        include: [ 'mailing_lists' ]
     });
     if (!emailAddress)
-        return res.status(404).send('Email address not found');
+        return res.status(404).send('Email address not found for user');
     if (emailAddress.primary)
         return res.status(403).send('Cannot delete primary email address');
 
-    await EmailAddressToMailingList.destroy({ 
+    const subscriptions = await EmailAddressToMailingList.findAll({ 
         where: { 
             email_address_id: emailAddress.id
         }
-    })
+    });
 
+    for (const sub of subscriptions)
+        await sub.destroy();
     await emailAddress.destroy();
     res.status(200).send('success');
+
+    // Unsubscribe from all subscribed mailing lists in Mailman (do after response as to not delay it)
+    for (const list of emailAddress.mailing_lists) {
+        if (subscriptions.find(s => s.mailing_list_id == list.id && s.is_subscribed))
+            await mailmanUpdateSubscription(list.list_name, emailAddress.email, false);
+    }
 }));
 
 /*
