@@ -65,7 +65,7 @@ const Account = () => {
     </div>
 
   const logoutButton =
-    <Button variant="contained" color="primary" href="/logout">Sign Out</Button>
+    <Button variant="contained" color="primary" style={{"width": "8em"}} href="/logout">Sign Out</Button>
 
   const validate = (field, value, values) => {
     if (field.id == 'confirm_password' && value != values['new_password'])
@@ -116,6 +116,7 @@ const Account = () => {
 
 const EmailForm = ({ user, title, subtitle }) => {
   const api = useAPI()
+  const [_, setError] = useError()
   const [emails, setEmails] = useState(user.emails)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [emailToAdd, setEmailToAdd] = useState('')
@@ -184,7 +185,7 @@ const EmailForm = ({ user, title, subtitle }) => {
   }
 
   const statusMsg = (email) => email.verified 
-    ? 'Verified' + (email.primary ? ', Primary' : '')
+    ? 'Confirmed' + (email.primary ? ', Primary' : '')
     : <>
         A confirmation email has been sent. 
         Click on the link in the email to verify that this is your address.<br />

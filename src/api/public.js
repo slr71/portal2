@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { logger } = require('./lib/logging');
 const { emailNewAccountConfirmation, emailPasswordReset } = require('./lib/email');
-const { decodeHMAC, generatePasswordResetToken, decodePasswordResetToken } = require('./lib/hmac');
+const { decodeHMAC, generateToken, decodeToken } = require('./lib/hmac');
 const { asyncHandler } = require('./lib/auth');
 const { encodePassword } = require('./lib/password');
 const { emailServiceAccessGranted } = require('./lib/email');
@@ -138,7 +138,7 @@ router.put('/users', asyncHandler(async (req, res) => {
     res.status(200).json(newUser);
 
     // Send confirmation email (after the response as to not delay it)
-    const hmac = generatePasswordResetToken(emailAddress.id);
+    const hmac = generateToken(emailAddress.id);
     await emailNewAccountConfirmation(newUser.email, hmac);
 }));
 
@@ -157,14 +157,13 @@ router.put('/users/password', asyncHandler(async (req, res) => {
         return res.status(400).send('Missing required field');
 
     // Decode HMAC
-    const obj = decodePasswordResetToken(fields.hmac)
-    if (!('key' in obj))
-        return res.status(400).send('Invalid HMAC (1)');
-    const emailId = parseInt(obj.key)
-    if (isNaN(emailId))
-        return res.status(400).send('Invalid HMAC (2)');
-    if (Date.now() > obj.expires)
-        return res.status(400).send('Expired HMAC');
+    let emailId;
+    try {
+        emailId = decodeToken(fields.hmac);
+    }
+    catch (error) {
+        return res.status(400).send(error.message);
+    }
 
     // Fetch email address
     const emailAddress = await EmailAddress.findByPk(emailId);
@@ -300,7 +299,7 @@ router.post('/users/reset_password', asyncHandler(async (req, res) => {
         return res.status(404).send('Email address not associated with an account');
 
     // Generate HMAC for confirmation email code
-    const hmac = generatePasswordResetToken(emailAddress.id);
+    const hmac = generateToken(emailAddress.id);
 
     const passwordResetRequest = PasswordResetRequest.create({
         user_id: emailAddress.user.id,
@@ -321,15 +320,13 @@ router.post('/users/reset_password', asyncHandler(async (req, res) => {
 router.post('/confirm_email', asyncHandler(async (req, res) => {
     const hmac = req.body.hmac
     if (!hmac) 
-        return res.status(400).send('Missing hmac');
+        return res.status(400).send('Missing HMAC');
 
     // Decode HMAC
-    const obj = decodePasswordResetToken(hmac)
-    if (!('key' in obj))
-        return res.status(400).send('Invalid HMAC (1)');
-    const emailId = parseInt(obj.key)
+    const key = decodeHMAC(hmac)
+    const emailId = parseInt(key)
     if (isNaN(emailId))
-        return res.status(400).send('Invalid HMAC (2)');
+        return res.status(400).send('Invalid HMAC');
 
     // Get email address
     let emailAddress = await EmailAddress.findByPk(emailId);

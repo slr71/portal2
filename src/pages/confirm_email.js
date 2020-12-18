@@ -52,17 +52,21 @@ const Left = () => {
 }
 
 const Right = ({ confirmed, response }) => {
-  const classes = useStyles()
   const message = confirmed
     ? <>Thanks! Your email address was confirmed.<br /><br />Please sign in to continue.</>
     : <>An error occurred: {response}</>
 
   return (
     <div>
-      <Box pt={"30vh"} style={{width:'30vw'}} >
-        <Typography variant="h4" className={classes.title}>
-          {message}
-        </Typography>
+      <Box pt={"30vh"} style={{width:'30vw'}}>
+        {confirmed
+          ? <Typography variant="h4" color="primary">
+              {message}
+            </Typography>
+          : <Typography variant="h4" color="error">
+              An error occurred: {response}
+            </Typography>
+        }
       </Box>
       <Box mt={5}>
         <Button 
@@ -71,6 +75,7 @@ const Right = ({ confirmed, response }) => {
           size="large" 
           display="flex" 
           href="/login"
+          style={{width: "10em"}}
         >
           Sign In
         </Button>

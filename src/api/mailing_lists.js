@@ -2,8 +2,8 @@
 
 const router = require('express').Router();
 const { getUser, asyncHandler } = require('./lib/auth');
-const { emailNewEmailConfirmation } = require('./lib/email')
-const { generateHMAC } = require('./lib/email')
+const { emailNewEmailConfirmation } = require('./lib/email');
+const { generateHMAC } = require('./lib/hmac');
 const { mailmanUpdateSubscription } = require('./workflows/native/lib');
 const sequelize = require('sequelize');
 const models = require('./models');
@@ -59,6 +59,12 @@ router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, re
         return res.status(404).send('Email address not found');
     if (emailAddress.primary)
         return res.status(403).send('Cannot delete primary email address');
+
+    await EmailAddressToMailingList.destroy({ 
+        where: { 
+            email_address_id: emailAddress.id
+        }
+    })
 
     await emailAddress.destroy();
     res.status(200).send('success');
