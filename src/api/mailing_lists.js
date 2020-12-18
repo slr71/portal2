@@ -27,7 +27,7 @@ router.put('/email_addresses', getUser, asyncHandler(async (req, res) => {
     if (!emailAddress) {
         emailAddress = await EmailAddress.create({
             user_id: req.user.id,
-            email: email,
+            email: email.toLowerCase(),
             primary: false,
             verified: false
         });

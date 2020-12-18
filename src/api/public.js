@@ -111,6 +111,7 @@ router.put('/users', asyncHandler(async (req, res) => {
 
     // Set defaults
     fields['password'] = '';
+    fields['email'] = fields['email'].toLowerCase();
     fields['is_superuser'] = false;
     fields['is_staff'] = false;
     fields['is_active'] = true;
