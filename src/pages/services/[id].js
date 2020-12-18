@@ -534,7 +534,7 @@ const AddRequestDialog = ({ open, forms, allForms, handleClose, handleSubmit }) 
         <br />
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setSelected(null) || handleClose()} variant="outlined">
+        <Button onClick={() => setSelected(null) || handleClose()}>
           Cancel
         </Button>
         <Button 

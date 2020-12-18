@@ -93,7 +93,7 @@ const AddQuestionDialog = ({ open, handleClose, handleSubmit }) => {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} variant="outlined">
+        <Button onClick={handleClose}>
           Cancel
         </Button>
         <Button 

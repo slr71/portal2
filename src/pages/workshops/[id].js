@@ -1105,7 +1105,6 @@ const SearchUsersDialog = ({ open, title, description, handleClose, handleSubmit
       </DialogContent>
       <DialogActions>
         <Button 
-          variant="outlined"
           onClick={() => reset() || handleClose()}
           onBlur={() => reset() || handleClose()}
         >
@@ -1149,7 +1148,7 @@ const AddServiceDialog = ({ open, services, allServices, handleClose, handleSubm
         <br />
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setSelected(null) || handleClose()} variant="outlined">
+        <Button onClick={() => setSelected(null) || handleClose()}>
           Cancel
         </Button>
         <Button 
