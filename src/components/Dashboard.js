@@ -174,7 +174,7 @@ export default function Dashboard(props) {
           <div style={{flexGrow: 1}} />
           <CustomIntercom />
           <Link href="/account">
-            <Tooltip title="Account Info">
+            <Tooltip title="Manage your account">
               <Button
                 variant="text"
                 color="inherit"
