@@ -29,7 +29,6 @@ const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequeli
 // Check for existing username and/or email address
 router.post('/exists', asyncHandler(async (req, res) => {
     let fields = req.body;
-    console.log("fields:", fields);
     let result = {}
 
     // Check for existing username
@@ -54,7 +53,6 @@ router.post('/exists', asyncHandler(async (req, res) => {
 // Create user //TODO require API key or valid HMAC
 router.put('/users', asyncHandler(async (req, res) => {
     let fields = req.body;
-    console.log("fields:", fields);
 
     if (!('username' in fields))
         return res.status(400).send('Missing required field');
@@ -290,7 +288,6 @@ async function submitUserWorkflow(templateName, user) {
 // Send reset password link //TODO require API key
 router.post('/users/reset_password', asyncHandler(async (req, res) => {
     const email = req.body.email;
-    console.log(email);
 
     if (!email) 
         return res.status(400).send('Missing email');
@@ -371,7 +368,6 @@ router.post('/services/requests/:id(\\d+)', asyncHandler(async (req, res) => { /
  * Called in service registration workflow (src/api/workflows/argo) to subscribe to service mailing list
  */
 router.post('/mailing_lists/:nameOrId(\\w+)/subscribe', asyncHandler(async (req, res) => { //FIXME require API key
-    console.log(req.body)
     const nameOrId = req.params.nameOrId; // mailing list name (e.g. "de-users") or ID
     const email = req.body.email; // email address to subscribe
 

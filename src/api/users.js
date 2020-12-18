@@ -65,10 +65,10 @@ router.get('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
 }));
 
 // Update user 
+// If body is empty then will just return the user
 router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
-    console.log(fields);
 
     // Check permission -- user can only update their own record unless admin
     if (id != req.user.id && !isAdmin(req))
@@ -84,10 +84,12 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
         'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id',
         'occupation_id', 'research_area_id', 'region_id', 'settings'
     ]
-    for (let key in fields) {
-        // Ignore any non-updateable fields
-        if (SUPPORTED_FIELDS.includes(key))
-            user[key] = fields[key];
+    if (fields) {
+        for (let key in fields) {
+            // Ignore any non-updateable fields
+            if (SUPPORTED_FIELDS.includes(key))
+                user[key] = fields[key];
+        }
     }
     await user.save();
     await user.reload();

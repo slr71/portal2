@@ -17,7 +17,6 @@ const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequeli
 // Create email address
 // Can be submitted again for existing email address to resend confirmation email
 router.put('/email_addresses', getUser, asyncHandler(async (req, res) => {
-    console.log(req.body)
     const email = req.body.email; // email address
 
     if (!email)
@@ -106,7 +105,6 @@ router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, re
  * Called in "Account" page to subscribe/unsubscribe
  */
 router.post('/:id(\\d+)/subscriptions', getUser, asyncHandler(async (req, res) => {
-    console.log(req.body)
     const id = req.params.id // mailing list id
     const email = req.body.email; // email address
     const subscribe = !!req.body.subscribe;

@@ -274,7 +274,6 @@ router.get('/:nameOrId(\\w+)', asyncHandler(async (req, res) => {
 router.post('/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
-    console.log(fields);
 
     const service = await Service.findByPk(id, {
         include: [ //TODO create scope for this
@@ -378,7 +377,6 @@ router.delete('/:serviceId(\\d+)/contacts/:contactId(\\d+)', getUser, requireAdm
 // Add resource to service (STAFF ONLY)
 router.put('/:id(\\d+)/resources', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const fields = req.body;
-    console.log(fields);
     if (!fields.name || !fields.url)
         return res.status(400).send('Missing required fields');
 
@@ -415,7 +413,6 @@ router.delete('/:serviceId(\\d+)/resources/:resourceId(\\d+)', getUser, requireA
 // Add form to service (STAFF ONLY)
 router.put('/:id(\\d+)/forms', getUser, requireAdmin, asyncHandler(async (req, res) => {
     const fields = req.body;
-    console.log(fields)
     if (!fields.formId)
         return res.status(400).send('Missing required fields');
 

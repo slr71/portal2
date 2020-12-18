@@ -99,7 +99,6 @@ router.put('/', getUser, requireAdmin, asyncHandler(async (req, res) => {
 router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
-    console.log(fields);
 
     const workshop = await Workshop.findByPk(id, {
         include: [ //TODO create scope for this
