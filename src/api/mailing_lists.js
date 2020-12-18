@@ -37,12 +37,28 @@ router.put('/email_addresses', getUser, asyncHandler(async (req, res) => {
     else if (emailAddress.user_id != req.user.id)
         return res.status(404).send('Email address not found');
 
-    // Generate HMAC for temp password and confirmation email code
-    const hmac = generateHMAC(emailAddress.id);
+    // Associate new email with existing mailing lists
+    const primaryEmail = await EmailAddress.findOne({
+        where: {
+            user_id: req.user.id,
+            primary: true
+        },
+        include: [ 'mailing_lists' ]
+    });
+    if (primaryEmail) { // should always be true
+        for (let list of primaryEmail.mailing_lists) {
+            await EmailAddressToMailingList.create({
+                email_address_id: emailAddress.id,
+                mailing_list_id: list.id,
+                is_subscribed: false
+            });
+        }
+    }
 
     res.status(200).send(emailAddress);
 
-    // Send email after response as to not delay it
+    // Send confirmation email (after response as to not delay it)
+    const hmac = generateHMAC(emailAddress.id);
     await emailNewEmailConfirmation(email, hmac)
 }));
 
