@@ -1,4 +1,4 @@
-import { makeStyles, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
+import { Button, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
 
 export default function ConfirmationDialog({ open, title, handleClose, handleSubmit }) {
   return (

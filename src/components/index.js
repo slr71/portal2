@@ -16,8 +16,10 @@ import { CustomIntercom, intercomShow } from './CustomIntercom'
 import MainLogo from './MainLogo'
 import { menuItems, getMenuItem } from './menuItems'
 import WelcomeAnimation from './WelcomeAnimation'
+import ConfirmationDialog from './ConfirmationDialog'
 
 export { 
+  ConfirmationDialog,
   ContactsEditor,
   Conversations,
   CustomIntercom,
