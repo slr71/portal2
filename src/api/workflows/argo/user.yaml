@@ -214,9 +214,10 @@ spec:
       command: [ldappasswd]
       args: [
         "-H", "{{workflow.parameters.ldap_host}}", 
-        "-D", "uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org",
+        "-D", "{{workflow.parameters.ldap_admin}}",
         "-w", "{{workflow.parameters.ldap_password}}",
         "-s", "{{inputs.parameters.password}}",
+        "uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org"
       ]
 
   - name: ldap-update-shadow-last-change
@@ -234,8 +235,13 @@ spec:
       - name: uid
     container:
       image: localhost:5000/portal2
-      command: [sh, -c]
-      args: ['echo "dn: uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org" | ldapdelete -H {{workflow.parameters.ldap_host}} -D {{workflow.parameters.ldap_admin}} -w {{workflow.parameters.ldap_password}}']
+      command: [ldapdelete]
+      args: [
+        "-H", "{{workflow.parameters.ldap_host}}", 
+        "-D", "{{workflow.parameters.ldap_admin}}", 
+        "-w", "{{workflow.parameters.ldap_password}}", 
+        "uid={{inputs.parameters.uid}},ou=People,dc=iplantcollaborative,dc=org"
+      ]
 
   - name: mailchimp-subscribe-user
     inputs:

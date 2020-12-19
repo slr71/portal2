@@ -60,7 +60,12 @@ function ldapAddUserToGroup(username, group) {
 }
 
 function ldapDeleteUser(username) {
-    return run(`echo "dn: uid=${username},ou=People,dc=iplantcollaborative,dc=org" | ldapdelete -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password}`);
+    return run(["ldapdelete",
+        "-H", config.ldap.host, 
+	"-D", config.ldap.admin, 
+	"-w", config.ldap.password,
+	`uid=${username},ou=People,dc=iplantcollaborative,dc=org`
+    ]);
 }
 
 function irodsCreateUser(username) {
