@@ -1,0 +1,22 @@
+import { makeStyles, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
+
+export default function ConfirmationDialog({ open, title, handleClose, handleSubmit }) {
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth aria-labelledby="form-dialog-title">
+      <DialogTitle id="form-dialog-title">{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Are you sure?
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose}>
+          Cancel
+        </Button>
+        <Button onClick={handleSubmit} variant="contained" color="primary">
+          Yes
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}

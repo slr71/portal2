@@ -2,7 +2,7 @@ const router = require('express').Router();
 const { logger } = require('./lib/logging');
 const { requireAdmin, isAdmin, getUser, asyncHandler } = require('./lib/auth');
 const { checkPassword, encodePassword } = require('./lib/password');
-const { userPasswordUpdateWorkflow } = require('./workflows/native/user.js');
+const { userPasswordUpdateWorkflow, userDeletionWorkflow } = require('./workflows/native/user.js');
 const sequelize = require('sequelize');
 const models = require('./models');
 const User = models.account_user;
@@ -149,26 +149,30 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     await user.destroy();
     res.status(200).send('success');
 
-    // Submit user deletion workflow to remove user from subsystems (LDAP, IRODS, etc).
-    // Do this after the response as to not block the transaction any longer than necessary.
-    await Argo.submit(
-        'user.yaml',
-        'delete-user',
-        {
-            // User params
-            user_id: user.username,
-            email: user.email,
+    // Submit user deletion workflow to remove user from subsystems (LDAP, IRODS, etc) (do after response as to not delay it)
+    if (config.argo) {
+        await Argo.submit(
+            'user.yaml',
+            'delete-user',
+            {
+                // User params
+                user_id: user.username,
+                email: user.email,
 
-            // Other params
-            portal_api_base_url: config.apiBaseUrl,
-            ldap_host: config.ldap.host,
-            ldap_admin: config.ldap.admin,
-            ldap_password: config.ldap.password,
-            mailchimp_api_url: config.mailchimp.baseUrl,
-            mailchimp_api_key: config.mailchimp.apiKey,
-            mailchimp_list_id: config.mailchimp.listId,
-        }
-    );
+                // Other params
+                portal_api_base_url: config.apiBaseUrl,
+                ldap_host: config.ldap.host,
+                ldap_admin: config.ldap.admin,
+                ldap_password: config.ldap.password,
+                mailchimp_api_url: config.mailchimp.baseUrl,
+                mailchimp_api_key: config.mailchimp.apiKey,
+                mailchimp_list_id: config.mailchimp.listId,
+            }
+        );
+    }
+    else {
+        await userDeletionWorkflow(user);
+    }
 }));
 
 // Get restricted usernames

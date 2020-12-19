@@ -60,7 +60,7 @@ models.account_user.belongsTo(models.account_occupation, { as: 'occupation' });
 models.account_user.belongsTo(models.account_region, { as: 'region' });
 models.account_user.belongsTo(models.account_researcharea, { as: 'research_area' });
 models.account_user.belongsTo(models.account_awarechannel, { as: 'aware_channel' });
-models.account_user.hasMany(models.account_emailaddress, { as: 'emails', foreignKey: 'user_id' });
+models.account_user.hasMany(models.account_emailaddress, { as: 'emails', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
 models.account_user.belongsToMany(models.api_service, 
   { as: 'services', through: models.api_accessrequest, foreignKey: 'user_id', otherKey: 'service_id' });
 models.account_user.belongsToMany(models.api_workshop, 

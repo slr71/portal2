@@ -57,6 +57,8 @@ class PortalAPI {
 
   async createUser(params) { return await this.put(`/users`, params) }
 
+  async deleteUser(id) { return await this.delete(`/users/${id}`) }
+
   async updateUser(id, params) { return await this.post(`/users/${id}`, params) }
 
   async createPassword(params) { return await this.put(`/users/password`, params) }

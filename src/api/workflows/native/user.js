@@ -6,7 +6,7 @@ async function userCreationWorkflow(user) {
     if (!user)
         throw('Missing required property');
 
-    logger.info(`Running native workflow for user ${user.username} creation`);
+    logger.info(`Running native workflow for user ${user.username}: creation`);
 
     // LDAP: create user
     await ldapCreateUser(user);
@@ -33,7 +33,7 @@ async function userPasswordUpdateWorkflow(user) {
     if (!user)
         throw('Missing required property');
 
-    logger.info(`Running native workflow for user ${user.username} password update`);
+    logger.info(`Running native workflow for user ${user.username}: password update`);
 
     // LDAP: update user password
     await ldapChangePassword(user.username, user.password);
@@ -46,11 +46,12 @@ async function userPasswordUpdateWorkflow(user) {
     await irodsChangePassword(user.username, user.password);
 }
 
+// Based on v1 portal:/account/views/user.py:perform_destroy()
 async function userDeletionWorkflow(user) {
     if (!user)
         throw('Missing required property');
 
-    logger.info(`Running native workflow for user ${user.username} deletion`);
+    logger.info(`Running native workflow for user ${user.username}: deletion`);
 
     // LDAP: delete user
     await ldapDeleteUser(user.username);

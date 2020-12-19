@@ -1,16 +1,44 @@
-import { makeStyles, Container, Box, Button, Paper, Typography } from '@material-ui/core'
+import { useRouter } from 'next/router'
+import { makeStyles, Container, Box, Button, Paper, Typography, Backdrop, CircularProgress } from '@material-ui/core'
 import Alert from '@material-ui/lab/Alert';
-import { Layout, DateSpan } from '../../../components'
+import { Layout, DateSpan, ConfirmationDialog } from '../../../components'
+import { useAPI } from '../../../contexts/api'
+import { useError } from '../../../contexts/error'
+import { useUser } from '../../../contexts/user'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
     padding: '3em',
     marginBottom: '2em'
-  }
+  },
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1,
+    color: '#fff',
+  },
 }))
 
 const User = ({ user }) => {
   const classes = useStyles()
+  const router = useRouter()
+  const [me] = useUser()
+  const api = useAPI()
+  const [_, setError] = useError()
+  
+  const [openDeleteConfirmationDialog, setOpenDeleteConfirmationDialog] = React.useState(false)
+  const [deletingUser, setDeletingUser] = React.useState(false)
+
+  const deleteUser = async () => {
+    try {
+      setDeletingUser(true)
+      setOpenDeleteConfirmationDialog(false)
+      await api.deleteUser(user.id)
+      router.push('/administrative/users')
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
   return (
     <Layout title={user.username} breadcrumbs>
@@ -24,7 +52,15 @@ const User = ({ user }) => {
           <br />
           <div>Joined: <DateSpan date={user.date_joined} /></div>
           <div>ORCID: {user.orcid_id ? user.orcid_id : '<None>'}</div>
-          <Button variant="contained" color="error" disabled={!user.is_superuser} size="medium">DELETE</Button>
+          <Button 
+            variant="contained" 
+            color="error" 
+            disabled={!me.is_superuser} 
+            size="medium"
+            onClick={() => setOpenDeleteConfirmationDialog(true)} 
+          >
+            DELETE
+          </Button>
           <Typography>Superuser permission is required to delete a user</Typography>
         </Paper>
 
@@ -97,6 +133,15 @@ const User = ({ user }) => {
           }      
         </Paper>
       </Container>
+      <Backdrop className={classes.backdrop} open={deletingUser}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
+      <ConfirmationDialog 
+        open={openDeleteConfirmationDialog}
+        title="Delete user"
+        handleClose={() => setOpenDeleteConfirmationDialog(false)} 
+        handleSubmit={deleteUser}
+      />
     </Layout>
   )
 }

@@ -80,7 +80,7 @@ function irodsChangePassword(username, password) {
 }
 
 function irodsDeleteUser(username) {
-    return run([ "iadmin", "rmuser", username ]);
+    return run([ dockerCmd, "iadmin", "rmuser", username ]);
 }
 
 function mailchimpUpdateSubscription(email, firstName, lastName, subscribe) {
