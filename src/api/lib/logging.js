@@ -37,17 +37,20 @@ const getLoggableUserID = (req) => getUserID(req) || "logged-out-user"
 const requestLogger = expressWinston.logger({
   transports: [new transports.Console()],
   msg: (req, res) => {
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress; // due to NGINX
       const body = JSON.stringify(req.body);
-      return `HTTP ${req.ip} ${JSON.stringify(req.ips)} ${getLoggableUserID(req)} ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms` +
-          (body.length > 2 ? "\n" + body : '')
+      return `HTTP ${ip} ${getLoggableUserID(req)} ${req.method} ${req.url} ${res.statusCode} ${res.responseTime}ms` +
+          (body.length > 2 ? "\n" + body : '');
   },
   format: combine(label({ label: logLabel }), timestamp(), logFormat, colorize({ all: true })),
 })
 
 const errorLogger = expressWinston.errorLogger({
   transports: [new transports.Console()],
-  msg: (req, res, err) =>
-      `HTTP Error ${req.ip} ${JSON.stringify(req.ips)} ${getLoggableUserID(req)} ${req.method} ${req.url} ${err.message} ${res.statusCode} ${res.responseTime}ms`,
+  msg: (req, res, err) => {
+      const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress; // due to NGINX
+      return `HTTP Error ${ip} ${getLoggableUserID(req)} ${req.method} ${req.url} ${err.message} ${res.statusCode} ${res.responseTime}ms`;
+  },
   format: combine(label({ label: logLabel }), timestamp(), logFormat, colorize({ all: true })),
 })
 
