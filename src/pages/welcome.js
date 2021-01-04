@@ -9,6 +9,43 @@ import { sortCountries } from '../lib/misc'
 const properties = require('../user-properties.json')
 
 const useStyles = makeStyles((theme) => ({
+  //MOBILE STYLES
+  boxWelcome: {
+    paddingTop:'30%',
+    [theme.breakpoints.down('md')]:
+    {paddingTop:'10%',},
+    [theme.breakpoints.down('xs')]: {
+      paddingTop:'5%',
+    },
+  },
+  tagline: {
+    [theme.breakpoints.down('md')]:
+    {fontSize:"1.5rem",
+      marginTop:"3%"},
+    [theme.breakpoints.down('sm')]:
+    {fontSize:"1.7rem",
+      marginTop:"5%"},
+      [theme.breakpoints.down('xs')]:
+    {fontSize:"1.3rem",
+      marginTop:"5%"},
+  },
+  blueSection: {
+    height: "100vh",
+    width: "50vw",
+    [theme.breakpoints.down('md')]: {
+      height: '30vh',
+    },
+    // [theme.breakpoints.down('sm')]: {
+    //   height: '30vh',
+    // },
+    // [theme.breakpoints.down('xs')]: {
+    //   height: '30vh',
+    // },
+    [theme.breakpoints.up('md')]: {
+      height: '100vh',
+    },
+  },
+  //DESKTOP STYLES
   grid: {
     height: "100vh",
     width: "50vw",
@@ -30,7 +67,7 @@ const Welcome = (props) => {
   return (
     <div>
       <Grid container>
-        <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" className={classes.grid} style={{backgroundColor: '#0971ab'}}>
+        <Grid className={classes.blueSection} item xs={12} sm={12} md={6} lg={6} xl={6} align="center" style={{backgroundColor: '#0971ab'}}>
           <Left {...props} />
         </Grid>
         <Grid item xs={12} sm={12} md={6} lg={6} xl={6} align="center" className={classes.grid} style={{backgroundColor: '#ffffff'}}>
@@ -41,7 +78,9 @@ const Welcome = (props) => {
   )
 }
 
-const Left = () => (
+const Left = () => {
+  const classes = useStyles()
+return(
   <div>
     <Box pt={"15%"}>
       <MainLogo size="large" />
@@ -50,7 +89,7 @@ const Left = () => (
       <WelcomeAnimation />
     </Box>
       <Box>
-        <Typography variant="h5" style={{color: "white"}}>
+        <Typography className={classes.tagline} variant="h5" style={{color: "white"}}>
           The Open Science Workspace for
           <br />
           Collaborative Data-driven Discovery
@@ -58,6 +97,7 @@ const Left = () => (
       </Box>
   </div>
 )
+}
 
 const Right = (props) => {
   const classes = useStyles()
@@ -74,7 +114,7 @@ const Right = (props) => {
 
   return ( //FIXME use column grid here instead
     <div>
-      <Box pt={"30%"}>
+      <Box className={classes.boxWelcome}>
         <Typography variant="h4" className={classes.title}>
           Welcome to CyVerse!
         </Typography>
@@ -167,7 +207,7 @@ const ForgotPassword = ({ cancelHandler }) => {
   }
 
   return ( //FIXME use column grid here instead
-    <Box width="60%" pt={"30%"}>
+    <Box width="60%" className={classes.boxWelcome}>
       <Typography variant="h4" className={classes.title}>
         Reset Password
       </Typography>
@@ -277,7 +317,7 @@ const SignUp = ({ startTime, firstNameId, lastNameId }) => {
   }
 
   return (
-    <Box width="60%" pt={"25%"}>
+    <Box width="60%" className={classes.boxWelcome}>
         {isSubmitted 
         ? <Box p={7}>
             <Typography variant='h5' color='textSecondary'>
