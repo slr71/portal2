@@ -4,6 +4,7 @@ import React from 'react';
 import Document, { Html, Head, Main, NextScript } from 'next/document';
 import { ServerStyleSheets } from '@material-ui/core/styles';
 import theme from '../theme';
+import { googleAnalyticsId } from '../config';
 
 export default class MyDocument extends Document {
   render() {
@@ -22,6 +23,30 @@ export default class MyDocument extends Document {
             type="image/x-icon"
             href="/icons/favicon.ico"
           />
+
+          {/* Google Analytics 
+            * From https://github.com/vercel/next.js/blob/canary/examples/with-google-analytics/pages/_document.js 
+            */}
+          {googleAnalyticsId && (
+            <>
+              <script
+                async
+                src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+              />
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${googleAnalyticsId}', {
+                    page_path: window.location.pathname,
+                  });
+                  `,
+                }}
+              />
+            </>
+          )}
         </Head>
         <body>
           <Main />
