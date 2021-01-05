@@ -3,6 +3,8 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const session = require('express-session')
 const pgsimple = require('connect-pg-simple')
+const Sentry = require("@sentry/node");
+const Tracing = require("@sentry/tracing");
 const Keycloak = require('keycloak-connect')
 const next = require('next')
 const { logger, requestLogger, errorLogger } = require('./api/lib/logging')
@@ -15,6 +17,18 @@ const ws = require('ws')
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const app = next({ dev: isDevelopment })
 const nextHandler = app.getRequestHandler()
+
+// Configure Sentry error tracking -- should be done as early as possible
+if (config.sentryDSN) {
+    console.log('Configuring Sentry')
+    Sentry.init({
+        dsn: config.sentryDSN,
+        environment: process.env.NODE_ENV
+    });
+}
+else {
+    console.log('Missing Sentry configuration')
+}
 
 // Configure the session store
 const pgSession = pgsimple(session)
@@ -59,6 +73,9 @@ app.prepare()
         // Setup logging
         server.use(errorLogger)
         server.use(requestLogger)
+
+        // Setup Sentry error handling
+        server.use(Sentry.Handlers.requestHandler());
 
         // Support CORS requests -- needed for service icon image requests
         server.use(cors())
@@ -165,7 +182,7 @@ app.prepare()
         })
 
         // Catch errors
-        server.use(errorHandler)
+        server.use(Sentry.Handlers.errorHandler());
 
         server.listen(config.port, (err) => {
             if (err) throw err
@@ -180,13 +197,3 @@ app.prepare()
         logger.error(exception.stack)
         process.exit(1)
     })
-
-function errorHandler(error, req, res) {
-    console.log("ERROR ".padEnd(80, "!"));
-    console.log(error.stack);
-
-    const statusCode = error.statusCode || 500;
-    const message = error.message || "Unknown error";
-
-    res.status(statusCode).send(message);
-}

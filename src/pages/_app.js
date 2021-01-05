@@ -1,6 +1,7 @@
 // From https://github.com/mui-org/material-ui/tree/master/examples/nextjs
 
 import React from 'react'
+import * as Sentry from "@sentry/react";
 import PropTypes from 'prop-types'
 import Head from 'next/head'
 import { ThemeProvider } from '@material-ui/core/styles'
@@ -12,6 +13,13 @@ import { UserProvider } from '../contexts/user'
 import { CookiesProvider } from 'react-cookie'
 import { ErrorProvider } from '../contexts/error'
 import config from '../config.json'
+
+if (config.sentryDSN) {
+  Sentry.init({ 
+    dsn: config.sentryDSN,
+    environment: process.env.NODE_ENV
+  });
+}
 
 export default function MyApp(props) {
   const { Component, pageProps, kauth, user, baseUrl, token } = props
@@ -35,23 +43,25 @@ export default function MyApp(props) {
   }, [])
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <CookiesProvider>
-        {/* <KeycloakProvider kauth={kauth}> */}
-          <APIProvider baseUrl={baseUrl} token={token}>
-            <UserProvider user={user}>
-              <Head>
-                <title>User Portal - CyVerse</title>
-              </Head>
-              <ErrorProvider>
-                <Component {...pageProps} />
-              </ErrorProvider>
-            </UserProvider>
-          </APIProvider>
-        {/* </KeycloakProvider> */}
-      </CookiesProvider>
-    </ThemeProvider>
+    <Sentry.ErrorBoundary fallback={"An error has occurred"}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <CookiesProvider>
+          {/* <KeycloakProvider kauth={kauth}> */}
+            <APIProvider baseUrl={baseUrl} token={token}>
+              <UserProvider user={user}>
+                <Head>
+                  <title>User Portal - CyVerse</title>
+                </Head>
+                <ErrorProvider>
+                  <Component {...pageProps} />
+                </ErrorProvider>
+              </UserProvider>
+            </APIProvider>
+          {/* </KeycloakProvider> */}
+        </CookiesProvider>
+      </ThemeProvider>
+    </Sentry.ErrorBoundary>
   )
 }
 
