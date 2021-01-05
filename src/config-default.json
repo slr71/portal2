@@ -45,6 +45,8 @@
         "confidential-port": 0
     },
 
+    "googleAnalyticsId": "",
+
     "sentryDSN": "",
 
     "argo": {

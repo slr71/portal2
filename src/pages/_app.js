@@ -21,7 +21,7 @@ if (config.sentryDSN) {
   });
 }
 
-export default function MyApp(props) {
+function MyApp(props) {
   const { Component, pageProps, kauth, user, baseUrl, token } = props
 
   React.useEffect(() => {
@@ -52,6 +52,26 @@ export default function MyApp(props) {
               <UserProvider user={user}>
                 <Head>
                   <title>User Portal - CyVerse</title>
+
+                  {/* Google Analytics 
+                    * From https://github.com/vercel/next.js/blob/canary/examples/with-google-analytics/pages/_document.js 
+                    */}
+                  <script
+                    async
+                    src={`https://www.googletagmanager.com/gtag/js?id=${config.googleAnalyticsId}`}
+                  />
+                  <script
+                    dangerouslySetInnerHTML={{
+                      __html: `
+                      window.dataLayer = window.dataLayer || [];
+                      function gtag(){dataLayer.push(arguments);}
+                      gtag('js', new Date());
+                      gtag('config', '${config.googleAnalyticsId}', {
+                        page_path: window.location.pathname,
+                      });
+                      `,
+                    }}
+                  />
                 </Head>
                 <ErrorProvider>
                   <Component {...pageProps} />
@@ -81,3 +101,17 @@ MyApp.getInitialProps = async ({ Component, ctx }) => {
     pageProps: Component.getInitialProps ? await Component.getInitialProps(ctx) : {},
   }
 }
+
+// From https://github.com/vercel/next.js/blob/canary/examples/with-google-analytics/pages/_document.js
+export function reportWebVitals({ id, name, label, value }) {
+  console.log('reportWebVitals')
+  window.gtag('event', name, {
+    event_category:
+      label === 'web-vital' ? 'Web Vitals' : 'Next.js custom metric',
+    value: Math.round(name === 'CLS' ? value * 1000 : value), // values must be integers
+    event_label: id, // id unique to current page load
+    non_interaction: true, // avoids affecting bounce rate.
+  })
+}
+
+export default MyApp
