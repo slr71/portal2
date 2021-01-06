@@ -5,9 +5,6 @@ import { ListItem, ListItemIcon, ListItemText, makeStyles } from '@material-ui/c
 import { menuItems } from './menuItems'
 
 const useStyles = makeStyles((theme) => ({
-  // nested: {
-  //   paddingLeft: theme.spacing(4)
-  // }
   listItem: {
     marginBottom: '1em'
   }
@@ -15,21 +12,6 @@ const useStyles = makeStyles((theme) => ({
 
 const NavButton = props => {
   const classes = useStyles()
-
-  // let subMenu = <></> 
-  // if (props.open) {
-  //   subMenu = (
-  //     <List component="div">
-  //       {props.items.map(item => (
-  //         <Link key={item.path} href={item.path}>
-  //           <ListItem button className={classes.nested}>
-  //             <ListItemText primary={item.label} />
-  //           </ListItem>
-  //         </Link>
-  //       ))}
-  //     </List>
-  //   )
-  // }
 
   return (
     <div>
@@ -41,7 +23,6 @@ const NavButton = props => {
           <ListItemText primary={props.label} />
         </ListItem>
       </Link>
-      {/* {subMenu} */}
     </div>
   )
 }

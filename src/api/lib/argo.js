@@ -8,7 +8,7 @@ class ArgoApi {
     constructor(params) {
     if (!params)
         if (!('argo' in config)) {
-            console.warn('Missing argo configuration');
+            console.warn('Missing Argo configuration');
             return;
         }
 	    params = config.argo;

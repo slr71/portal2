@@ -20,7 +20,6 @@ const nextHandler = app.getRequestHandler()
 
 // Configure Sentry error tracking -- should be done as early as possible
 if (config.sentryDSN) {
-    console.log('Configuring Sentry')
     Sentry.init({
         dsn: config.sentryDSN,
         environment: process.env.NODE_ENV
