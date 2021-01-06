@@ -33565,22 +33565,6 @@
   ],
   "research_areas": [
     {
-      "id": 51,
-      "name": "Electrical and Communication Systems"
-    },
-    {
-      "id": 52,
-      "name": "Elementary Particle Physics"
-    },
-    {
-      "id": 53,
-      "name": "Emerging Technologies Initiation"
-    },
-    {
-      "id": 58,
-      "name": "Environmental Biology"
-    },
-    {
       "id": 1,
       "name": "Advanced Scientific Computing"
     },
@@ -33779,6 +33763,22 @@
     {
       "id": 50,
       "name": "Educational Infrastructure"
+    },
+    {
+      "id": 51,
+      "name": "Electrical and Communication Systems"
+    },
+    {
+      "id": 52,
+      "name": "Elementary Particle Physics"
+    },
+    {
+      "id": 53,
+      "name": "Emerging Technologies Initiation"
+    },
+    {
+      "id": 58,
+      "name": "Environmental Biology"
     },
     {
       "id": 59,
