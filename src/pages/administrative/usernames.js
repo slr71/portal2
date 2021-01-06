@@ -4,7 +4,7 @@ import { Container, Paper, Grid, Typography, TextField, Button, IconButton, Tabl
 import DeleteIcon from '@material-ui/icons/Delete'
 import Layout from '../../components/Layout'
 import { useAPI } from '../../contexts/api'
-import { useError } from '../../contexts/error'
+import { useError, withGetServerSideError } from '../../contexts/error'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -135,9 +135,11 @@ const AddUsernameDialog = ({ open, handleChange, handleClose, handleSubmit }) =>
   </Dialog>
 )
 
-export async function getServerSideProps({ req }) {
-  const usernames = await req.api.restrictedUsernames()
-  return { props: { usernames } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req }) => {
+    const usernames = await req.api.restrictedUsernames()
+    return { props: { usernames } }
+  }
+)
 
 export default RestrictedUsernames

@@ -3,7 +3,7 @@ import { makeStyles, Container, Box, Button, Paper, Typography, Backdrop, Circul
 import Alert from '@material-ui/lab/Alert';
 import { Layout, DateSpan, ConfirmationDialog } from '../../../components'
 import { useAPI } from '../../../contexts/api'
-import { useError } from '../../../contexts/error'
+import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useUser } from '../../../contexts/user'
 
 const useStyles = makeStyles((theme) => ({
@@ -146,9 +146,11 @@ const User = ({ user }) => {
   )
 }
 
-export async function getServerSideProps({ req, query }) {
-  const user = await req.api.user(query.id)
-  return { props: { user } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req, query }) => {
+    const user = await req.api.user(query.id)
+    return { props: { user } }
+  }
+)
 
 export default User

@@ -2,6 +2,7 @@ import { Link, Grid, Button, IconButton, Divider, Box, Typography } from '@mater
 import { Launch as LaunchIcon, HelpOutlineOutlined as HelpIcon } from '@material-ui/icons'
 import { Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
+import { withGetServerSideError } from '../contexts/error'
 
 const Services = (props) => {
   const [user] = useUser()
@@ -105,9 +106,11 @@ const Service = ({ id, name, description, icon_url, service_url, launch }) => {
   )
 }
 
-export async function getServerSideProps({ req }) {
-  const services = await req.api.services()
-  return { props: { services } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req }) => {
+    const services = await req.api.services()
+    return { props: { services } }
+  }
+)
 
 export default Services

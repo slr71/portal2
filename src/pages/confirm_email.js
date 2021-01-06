@@ -1,5 +1,6 @@
 import { Grid, Box, Button, Typography, makeStyles } from '@material-ui/core'
 import { MainLogo } from '../components'
+import { withGetServerSideError } from '../contexts/error'
 
 //FIXME Duplicated in welcome.js
 const useStyles = makeStyles((theme) => ({
@@ -84,19 +85,21 @@ const Right = ({ confirmed, response }) => {
   )
 }
 
-export async function getServerSideProps({ req, res }) {
-  // Require "code" query param
-  if (!req.query.code)
-    res.redirect('/')
+export const getServerSideProps = withGetServerSideError(
+  async ({ req }) => {
+    // Require "code" query param
+    if (!req.query.code)
+      res.redirect('/')
 
-  const resp = await req.api.confirmEmailAddress(req.query.code)
+    const resp = await req.api.confirmEmailAddress(req.query.code)
 
-  return { 
-    props: { 
-      confirmed: resp === 'success',
-      response: resp
-    } 
+    return { 
+      props: { 
+        confirmed: resp === 'success',
+        response: resp
+      } 
+    }
   }
-}
+)
 
 export default ConfirmEmail

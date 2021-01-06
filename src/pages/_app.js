@@ -11,6 +11,8 @@ import { APIProvider } from '../contexts/api'
 import { UserProvider } from '../contexts/user'
 import { CookiesProvider } from 'react-cookie'
 import { ErrorProvider } from '../contexts/error'
+import Custom404 from './404'
+import Custom500 from './500'
 import config from '../config.json'
 
 if (config.sentryDSN) {
@@ -22,17 +24,27 @@ if (config.sentryDSN) {
 
 // From https://github.com/vercel/next.js/blob/canary/examples/with-google-analytics/pages/_document.js
 export function reportWebVitals({ id, name, label, value }) {
-  window.gtag('event', name, {
-    event_category:
-      label === 'web-vital' ? 'Web Vitals' : 'Next.js custom metric',
-    value: Math.round(name === 'CLS' ? value * 1000 : value), // values must be integers
-    event_label: id, // id unique to current page load
-    non_interaction: true, // avoids affecting bounce rate.
-  })
+  if (window.gtag)
+    window.gtag('event', name, {
+      event_category:
+        label === 'web-vital' ? 'Web Vitals' : 'Next.js custom metric',
+      value: Math.round(name === 'CLS' ? value * 1000 : value), // values must be integers
+      event_label: id, // id unique to current page load
+      non_interaction: true, // avoids affecting bounce rate.
+    })
 }
 
 function MyApp(props) {
   const { Component, pageProps, kauth, user, baseUrl, token } = props
+
+  // Added to handle errors from API during SSR
+  if (pageProps.error) {
+    console.log('Error in getServerSideProps:', pageProps.error)
+    if (pageProps.error.statusCode == 404)
+      return Custom404()
+    else
+      return Custom500()
+  }
 
   React.useEffect(() => {
     // Remove the server-side injected CSS.

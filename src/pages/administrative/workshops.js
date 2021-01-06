@@ -5,6 +5,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Grid, Button, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
 import { Layout, FormDialog, DateRange } from '../../components'
 import { useAPI } from '../../contexts/api'
+import { withGetServerSideError } from '../../contexts/error'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -98,9 +99,11 @@ const WorkshopTable = ({ workshops }) => (
   </TableContainer>
 )
 
-export async function getServerSideProps({ req }) {
-  const workshops = await req.api.workshops()
-  return { props: { workshops } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req }) => {
+    const workshops = await req.api.workshops()
+    return { props: { workshops } }
+  }
+)
 
 export default Workshops

@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Paper, Typography, TextField, CircularProgress, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import Layout from '../../components/Layout'
 import { useAPI } from '../../contexts/api'
+import { withGetServerSideError } from '../../contexts/error'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -146,15 +147,17 @@ const UserTable = ({ rows, rowsPerPage, count, page, handleChangePage, handleCha
   </TableContainer>
 )
 
-export async function getServerSideProps({ req }) {
-  const { count, results } = await req.api.users()
+export const getServerSideProps = withGetServerSideError(
+  async ({ req }) => {
+    const { count, results } = await req.api.users()
 
-  return {
-    props: {
-      count,
-      results
+    return {
+      props: {
+        count,
+        results
+      }
     }
   }
-}
+)
 
 export default Users

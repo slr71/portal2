@@ -22,4 +22,22 @@ function ErrorProvider(props) {
   return <ErrorContext.Provider value={value} {...props} />
 }
 
-export { ErrorProvider, useError };
+// From https://github.com/vercel/next.js/discussions/11281#discussioncomment-48777
+function withGetServerSideError(getServerSideFn) {
+  return async function wrappedGetServerSideProps(ctx) {
+    try {
+      const result = await getServerSideFn(ctx)
+      return result;
+    } 
+    catch (err) {
+      // Return Axios error response
+      const error = {
+        statusCode: err.response.status,
+        message: err.response.statusText,
+      };
+      return { props: { error } }
+    }
+  }
+}
+
+export { ErrorProvider, useError, withGetServerSideError };

@@ -1,7 +1,7 @@
 import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, Grid, makeStyles } from '@material-ui/core'
 import { Layout, UpdateForm } from '../../../components'
 import { useAPI } from '../../../contexts/api'
-import { useError } from '../../../contexts/error'
+import { useError, withGetServerSideError} from '../../../contexts/error'
 import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 
@@ -301,9 +301,11 @@ const FieldEditor = props => {
   )
 }
 
-export async function getServerSideProps({ req, query }) {
-  const form = await req.api.form(query.id)
-  return { props: { form } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req, query }) => {
+    const form = await req.api.form(query.id)
+    return { props: { form } }
+  }
+)
 
 export default FormEditor

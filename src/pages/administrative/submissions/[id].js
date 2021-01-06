@@ -1,6 +1,7 @@
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Box, FormControlLabel, TextField, Checkbox, Link } from '@material-ui/core'
+import { Container, Grid, FormControlLabel, TextField, Checkbox } from '@material-ui/core'
 import { Layout, Section, User, Conversations } from '../../../components'
+import { withGetServerSideError } from '../../../contexts/error'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -75,9 +76,11 @@ const FormField = (props) => {
   )
 }
 
-export async function getServerSideProps({ req, query }) {
-  const submission = await req.api.formSubmission(query.id)
-  return { props: { submission } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req, query }) => {
+    const submission = await req.api.formSubmission(query.id)
+    return { props: { submission } }
+  }
+)
 
 export default FormSubmission

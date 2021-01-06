@@ -4,7 +4,7 @@ import { makeStyles, Container, Grid, Link, Box, Button, IconButton, Paper, Tabs
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon, Delete as DeleteIcon } from '@material-ui/icons'
 import { Layout, ServiceActionButton, TabPanel, UpdateForm, QuestionsEditor, ContactsEditor, ResourcesEditor } from '../../components'
 import { useAPI } from '../../contexts/api'
-import { useError } from '../../contexts/error'
+import { useError, withGetServerSideError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
 const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } = require('../../constants')
@@ -550,9 +550,11 @@ const AddRequestDialog = ({ open, forms, allForms, handleClose, handleSubmit }) 
   )
 }
 
-export async function getServerSideProps({ req, query }) {
-  const service = await req.api.service(query.id)
-  return { props: { service } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req, query }) => {
+    const service = await req.api.service(query.id)
+    return { props: { service } }
+  }
+)
 
 export default Service

@@ -8,7 +8,7 @@ import DateFnsUtils from '@date-io/date-fns'
 import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
 import { Layout, DateRange, DateSpan, TabPanel, UpdateForm, FormDialog, ContactsEditor } from '../../components'
 import { useAPI } from '../../contexts/api'
-import { useError } from '../../contexts/error'
+import { useError, withGetServerSideError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
 const { WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE } = require('../../constants')
@@ -1164,10 +1164,11 @@ const AddServiceDialog = ({ open, services, allServices, handleClose, handleSubm
   )
 }
 
-
-export async function getServerSideProps({ req, query }) {
-  const workshop = await req.api.workshop(query.id)
-  return { props: { workshop } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req, query }) => {
+    const workshop = await req.api.workshop(query.id)
+    return { props: { workshop } }
+  }
+)
 
 export default Workshop

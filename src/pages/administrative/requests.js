@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Grid, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
 import { Layout, DateSpan } from '../../components'
 import { useAPI } from '../../contexts/api'
+import { withGetServerSideError } from '../../contexts/error'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -139,15 +140,17 @@ const RequestTable = ({ rows, rowsPerPage, count, page, handleChangePage, handle
   </TableContainer>
 )
 
-export async function getServerSideProps({ req }) {
-  const { count, results } = await req.api.serviceRequests()
+export const getServerSideProps = withGetServerSideError(
+  async ({ req }) => {
+    const { count, results } = await req.api.serviceRequests()
 
-  return {
-    props: {
-      count,
-      results
+    return {
+      props: {
+        count,
+        results
+      }
     }
   }
-}
+)
 
 export default AccessRequests

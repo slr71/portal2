@@ -2,6 +2,7 @@ import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Paper, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
 import { Layout } from '../../components'
+import { withGetServerSideError } from '../../contexts/error'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -43,14 +44,16 @@ const FormTable = props => (
   </TableContainer>
 )
 
-export async function getServerSideProps({ req }) {
-  const formsByGroup = await req.api.forms()
-  const forms = formsByGroup
-    .map(s => s.forms)
-    .reduce((acc, forms) => acc.concat(forms))
-    .sort((a, b) => (a.name > b.name) ? 1 : -1)
-
-  return { props: { forms } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req }) => {
+    const formsByGroup = await req.api.forms()
+    const forms = formsByGroup
+      .map(s => s.forms)
+      .reduce((acc, forms) => acc.concat(forms))
+      .sort((a, b) => (a.name > b.name) ? 1 : -1)
+  
+    return { props: { forms } }
+  }
+)
 
 export default Forms

@@ -1,6 +1,7 @@
 import { Link, Box, Grid, Divider, Typography } from '@material-ui/core'
 import { List as ListIcon } from '@material-ui/icons'
 import { Layout, SummaryCard } from '../components'
+import { withGetServerSideError } from '../contexts/error'
 
 const Requests = ({ forms }) => (
   <Layout title="Requests">
@@ -39,9 +40,11 @@ const Request = ({ form }) => (
   </Link>
 )
 
-export async function getServerSideProps({ req }) {
-  const forms = await req.api.forms()
-  return { props: { forms } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req }) => {
+    const forms = await req.api.forms()
+    return { props: { forms } }
+  }
+)
 
 export default Requests

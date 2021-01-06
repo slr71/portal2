@@ -2,6 +2,7 @@ import { Grid, Link, Box, Divider, Typography, makeStyles } from '@material-ui/c
 import { Event as EventIcon } from '@material-ui/icons'
 import { DateRange, Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
+import { withGetServerSideError } from '../contexts/error'
 
 const useStyles = makeStyles((theme) => ({
   nowrap: {
@@ -128,9 +129,11 @@ const Workshop = ({ workshop }) => {
   )
 }
 
-export async function getServerSideProps({ req }) {
-  const workshops = await req.api.workshops()
-  return { props: { workshops } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req }) => {
+    const workshops = await req.api.workshops()
+    return { props: { workshops } }
+  }
+)
 
 export default Workshops

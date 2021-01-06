@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Paper, Typography } from '@material-ui/core'
 import { Layout, Wizard } from '../../components'
 import { useAPI } from '../../contexts/api'
-import { useError } from '../../contexts/error'
+import { useError, withGetServerSideError } from '../../contexts/error'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -91,9 +91,11 @@ const Submitted = () => (
   </Box>
 )
 
-export async function getServerSideProps({ req, query }) {
-  const form = await req.api.form(query.id)
-  return { props: { form } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req, query }) => {
+    const form = await req.api.form(query.id)
+    return { props: { form } }
+  }
+)
 
 export default Request

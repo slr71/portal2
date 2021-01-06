@@ -1,7 +1,8 @@
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Box, Typography, Button, Card, CardHeader, CardContent, CardActions, Divider, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@material-ui/core'
+import { Container, Grid, Box, Typography, Button, Divider } from '@material-ui/core'
 import { Layout, Section, User, Conversations } from '../../../components'
 import { useUser } from '../../../contexts/user'
+import { withGetServerSideError } from '../../../contexts/error'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -126,9 +127,11 @@ const History = props => {
   )
 }
 
-export async function getServerSideProps({ req, query }) {
-  const request = await req.api.serviceRequest(query.id)
-  return { props: { request } }
-}
+export const getServerSideProps = withGetServerSideError(
+  async ({ req, query }) => {
+    const request = await req.api.serviceRequest(query.id)
+    return { props: { request } }
+  }
+)
 
 export default AccessRequest
