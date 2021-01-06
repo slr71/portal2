@@ -47,12 +47,13 @@ async function serviceRegistrationWorkflow(request) {
 
     // IRODS: create service directory
     if (cfg.irodsPath) {
-        await irodsMkDir(`/iplant/home/${user.username}/${cfg.irodsPath}`);
-        await irodsChMod('inherit', '', cfg.irodsPath);
-        await irodsChMod('own', user.username, cfg.irodsPath);
+        const fullPath = `/iplant/home/${user.username}/${cfg.irodsPath}`
+        await irodsMkDir(fullPath);
+        await irodsChMod('inherit', '', fullPath);
+        await irodsChMod('own', user.username, fullPath);
 
         if (cfg.irodsUser)
-            await irodsChMod('own', cfg.irodsUser, cfg.irodsPath);
+            await irodsChMod('own', cfg.irodsUser, fullPath);
     }
 
     // Add user's primary email to service mailing list(s)
