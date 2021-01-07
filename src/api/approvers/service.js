@@ -105,7 +105,7 @@ async function approveAtmosphere(request) {
 
 We are no longer approving student access for Atmosphere unless you are part of a workshop. Please ask your instructor for details on enrolling into the workshop.
 
-For more information on the changes happening to Atmosphere, check out this FAQ: ${faqUrl}`
+For more information please see the FAQ: ${faqUrl}`
         );
         await request.pend();
         return;
@@ -118,20 +118,7 @@ For more information on the changes happening to Atmosphere, check out this FAQ:
 
 We are no longer accepting new accounts as Atmosphere is being changed from a general purpose cloud computing environment to one that supports cloud-native development projects.
 
-What can I use instead of Atmosphere?
-
-The CyVerse Discovery Environment (https://de.cyverse.org/) is a simple web interface for managing data, running analyses, and visualizing results. See Getting Started with the Discovery Environment: https://learning.cyverse.org/projects/discovery-environment-guide/en/latest/
-
-In addition, the NSF recently extended CyVerse’s long-term partnership with Jetstream (https://jetstream-cloud.org/) through 2025 to provide similar capabilities and interfaces of Atmosphere yet with significantly larger CPU, GPU, and storage infrastructure. This presents an exciting option for our U.S. users. 
-https://cyverse.org/national-science-foundation-10M-award-to-jetstream-2-brings-new-opportunities-for-cyverse
-
-What if I already had images on Atmosphere?
-
-CyVerse staff will provide assistance for U.S.-based researchers to migrate their cloud images to Jetstream, which uses CyVerse Atmosphere as its primary interface. The CyVerse Atmosphere image must be owned by the user and must meet Jetstream’s requirements for importing images. CyVerse cannot guarantee 100% success when exporting a virtual disk image from CyVerse Atmosphere to Jetstream Atmosphere. Jetstream staff will not provide support for imported images, and instead recommends images be recreated in their cloud. For more information about Jetstream, see Getting Started with Jetstream: https://iujetstream.atlassian.net/wiki/spaces/JWT/pages/29720582/Quick+Start+Guide
-
-For more information please see the FAQ: ${faqUrl}
-
-Thank you, please let us know if there anything else we can help you with.`
+For more information please see the FAQ: ${faqUrl}`
     );
     await request.deny();
     return;
