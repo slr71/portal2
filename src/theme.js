@@ -52,6 +52,11 @@ const theme = createMuiTheme({
       divider: 'rgba(0,0,0,.12)',
     },
     overrides: {
+      MuiCardHeader:{
+        root: {
+          height:'0',
+        },
+      },
         MuiListItem: {
           root: {
             "& .MuiSvgIcon-root": {

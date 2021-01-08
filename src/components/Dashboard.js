@@ -16,7 +16,7 @@ import { useError } from '../contexts/error'
 import { useCookies } from 'react-cookie'
 import { ACCOUNT_UPDATE_REMINDER_COOKIE } from '../constants'
 
-const drawerWidth = 200
+const drawerWidth = 240
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -93,6 +93,13 @@ const useStyles = makeStyles((theme) => ({
     paddingRight: theme.spacing(5),
     backgroundColor: '#EEEEEE',
     maxWidth: '100%',
+    [theme.breakpoints.down('md')]:
+      {paddingLeft: theme.spacing(4),
+        paddingRight: theme.spacing(4),
+       },
+      [theme.breakpoints.down('xs')]: {
+        paddingLeft: theme.spacing(1),
+    paddingRight: theme.spacing(1), },
   },
   paper: {
     padding: theme.spacing(2),
@@ -205,7 +212,7 @@ export default function Dashboard(props) {
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <TopBar title={props.title} breadcrumbs={props.breadcrumbs} back={props.back} actions={props.actions} />
-        <Container maxWidth="lg" className={classes.container}>
+        <Container className={classes.container}>
           {props.children}
           <Box pt={10}>
             <Copyright />
