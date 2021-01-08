@@ -62,24 +62,24 @@ const theme = createMuiTheme({
           backgroundColor:'#0971ab',
         },
       },
-        MuiListItem: {
-          root: {
+      MuiListItem: {
+        root: {
+          "& .MuiSvgIcon-root": {
+            fill: "white"
+          },
+          "&$selected": {
+            backgroundColor: '#0971ab',
+            color: "white",
+            "&:hover": {
+              backgroundColor: '#0971ab',
+            },
             "& .MuiSvgIcon-root": {
               fill: "white"
-            },
-            "&$selected": {
-              backgroundColor: '#0971ab',
-              color: "white",
-              "&:hover": {
-                backgroundColor: '#0971ab',
-              },
-              "& .MuiSvgIcon-root": {
-                fill: "white"
-              }
             }
           }
         }
       }
+    }
   });
 
 export default theme;
