@@ -11,9 +11,12 @@ const useStyles = makeStyles((theme) => ({
   box: {
     borderBottom: "1px solid lightgray",
     height: "3.75em",
+    [theme.breakpoints.down('xs')]: {
+      display: 'none'
+    }
   },
   breadcrumbs: {
-    paddingTop:'0.35em',
+    paddingTop: '0.35em',
   }
 }))
 
