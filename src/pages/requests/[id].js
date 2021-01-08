@@ -6,9 +6,26 @@ import { useAPI } from '../../contexts/api'
 import { useError, withGetServerSideError } from '../../contexts/error'
 
 const useStyles = makeStyles((theme) => ({
+  formContainer: {
+    maxWidth:'70vw',
+    [theme.breakpoints.down('md')]:
+      {maxWidth:'100vw',
+       },
+  },
+  formTitle:{
+    [theme.breakpoints.down('md')]:
+      {fontSize:'1.5em',
+       },
+      [theme.breakpoints.down('xs')]: {
+        fontSize:'1.5em',
+       fontWeight: '400' },
+    },
   paper: {
     padding: '3em'
-  }
+  },
+  [theme.breakpoints.down('md')]:
+      {padding:'1em',
+       },
 }))
 
 const Request = ({ form }) => {
@@ -50,10 +67,10 @@ const Request = ({ form }) => {
 
   return (
     <Layout title={form.name} breadcrumbs>
-      <Container maxWidth='md'>
+      <Container className={classes.formContainer}>
         <Paper elevation={3} className={classes.paper}>
           <Box>
-            <Typography component="h1" variant="h4" gutterBottom>{form.name}</Typography>
+            <Typography component="h1" variant="h4" gutterBottom className={classes.formTitle}>{form.name}</Typography>
             <Typography color="textSecondary" gutterBottom>{form.description}</Typography>
             {form.explanation !== form.description && (
               <Typography color="textSecondary">
