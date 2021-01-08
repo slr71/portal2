@@ -20,9 +20,6 @@ const PasswordReset = models.account_passwordreset;
 const PasswordResetRequest = models.account_passwordresetrequest;
 const EmailAddressToMailingList = models.api_emailaddressmailinglist;
 
-const MINIMUM_TIME_ON_PAGE = 1000*60 // one minute
-const MAXIMUM_TIME_ON_PAGE = 1000*60*60 // one hour
-
 //TODO move into module
 const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase()); 
 
@@ -50,9 +47,11 @@ router.post('/exists', asyncHandler(async (req, res) => {
     res.status(200).json(result);
 }));
 
-// Create user //TODO require API key or valid HMAC
+// Create user
 router.put('/users', asyncHandler(async (req, res) => {
     let fields = req.body;
+    const MINIMUM_TIME_ON_PAGE = 1000*60 // one minute
+    const MAXIMUM_TIME_ON_PAGE = 1000*60*60 // one hour
 
     if (!('username' in fields))
         return res.status(400).send('Missing required field');
@@ -85,12 +84,14 @@ router.put('/users', asyncHandler(async (req, res) => {
 
     // Detect bots using page load time
     if (!fields['plt']) 
-        return res.status(400).send('Validity test failed (3)');
+        return res.status(400).send('Missing HMAC');
 
     const pageLoadTime = decodeHMAC(fields['plt']);
-    const timeExpired = Date.now - pageLoadTime;
+    if (isNaN(pageLoadTime))
+        return res.status(400).send('Invalid HMAC');
+    const timeExpired = Date.now() - pageLoadTime;
     if (timeExpired < MINIMUM_TIME_ON_PAGE || timeExpired >= MAXIMUM_TIME_ON_PAGE)
-        return res.status(400).send('Validity test failed (4)');
+        return res.status(400).send('Signup window expired, please reload page and try again');
 
     // Validate fields
     const REQUIRED_FIELDS = [
@@ -288,6 +289,9 @@ async function submitUserWorkflow(templateName, user) {
 // Send reset password link //TODO require API key
 router.post('/users/reset_password', asyncHandler(async (req, res) => {
     const email = req.body.email;
+    const pltHMAC = req.body.hmac;
+    const MINIMUM_TIME_ON_PAGE = 1000*5 // 5 seconds
+    const MAXIMUM_TIME_ON_PAGE = 1000*60*60 // one hour
 
     if (!email) 
         return res.status(400).send('Missing email');
@@ -295,6 +299,18 @@ router.post('/users/reset_password', asyncHandler(async (req, res) => {
     let emailAddress = await EmailAddress.findOne({ where: { email }, include: [ 'user'] });
     if (!emailAddress)
         return res.status(404).send('Email address not associated with an account');
+
+    // Detect bots using page load time
+    if (!pltHMAC) 
+        return res.status(400).send('Missing HMAC');
+
+    const pageLoadTime = decodeHMAC(pltHMAC);
+    if (isNaN(pageLoadTime))
+        return res.status(400).send('Invalid HMAC');
+    const timeExpired = Date.now() - pageLoadTime;
+    console.log('timeExpired', timeExpired)
+    if (timeExpired < MINIMUM_TIME_ON_PAGE || timeExpired >= MAXIMUM_TIME_ON_PAGE)
+        return res.status(400).send('Reset window expired, please reload page and try again');
 
     // Generate HMAC for confirmation email code
     const hmac = generateToken(emailAddress.id);

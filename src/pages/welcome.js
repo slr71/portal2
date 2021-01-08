@@ -107,7 +107,7 @@ const Right = (props) => {
   const [forgotPassword, setForgotPassword] = useState(false)
 
   if (forgotPassword)
-    return <ForgotPassword cancelHandler={() => setForgotPassword(false)} />
+    return <ForgotPassword {...props} cancelHandler={() => setForgotPassword(false)} />
 
   if (signup)
     return <SignUp {...props} />
@@ -141,7 +141,7 @@ const Right = (props) => {
   )
 }
 
-const ForgotPassword = ({ cancelHandler }) => {
+const ForgotPassword = ({ startTimeHMAC, cancelHandler }) => {
   const classes = useStyles()
   const api = useAPI()
 
@@ -171,15 +171,14 @@ const ForgotPassword = ({ cancelHandler }) => {
 
   const submitForm = async (email) => {
     try {
-      const resp = await api.resetPassword({ email })
+      const resp = await api.resetPassword({ email, hmac: startTimeHMAC })
       setSubmitting(false)
       setSubmitted(true)
       if (resp !== 'success') 
         setSubmitError(resp)
     }
     catch(error) {
-      console.log(error)
-      setSubmitError(error.message)
+      setSubmitError(error.response ? error.response.data : error.message)
     }
   }
 
@@ -258,7 +257,7 @@ const ForgotPassword = ({ cancelHandler }) => {
   )
 }
 
-const SignUp = ({ startTime, firstNameId, lastNameId }) => {
+const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
   const classes = useStyles()
   const api = useAPI()
   const [error, setError] = useState()
@@ -312,7 +311,7 @@ const SignUp = ({ startTime, firstNameId, lastNameId }) => {
     }
     catch(error) {
       console.log(error)
-      setError(error.message)
+      setSubmitError(error.response ? error.response.data : error.message)
     }
   }
 
@@ -341,7 +340,7 @@ const SignUp = ({ startTime, firstNameId, lastNameId }) => {
               validate={validate}
               onSelect={handleSelect}
               onSubmit={(values, { setSubmitting }) => {
-                values['plt'] = startTime // encrypted page load time
+                values['plt'] = startTimeHMAC // encrypted page load time
                 console.log('Submit', values)
                 submitForm(values)
                 setSubmitting(false)
@@ -459,13 +458,13 @@ const getForm = (firstNameId, lastNameId, countryId) => {
 }
 
 export async function getServerSideProps() {
-  const startTime = generateHMAC(Date.now())
+  const startTimeHMAC = generateHMAC(Date.now()) // for securing create user and password reset
   const firstNameId = honeypotId(1)
   const lastNameId = honeypotId(2)
 
   return { 
     props: { 
-      startTime,
+      startTimeHMAC,
       firstNameId,
       lastNameId
     } 

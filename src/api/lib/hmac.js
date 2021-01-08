@@ -41,6 +41,8 @@ function decodeToken(hmac) {
         throw('Invalid HMAC (1)');
     if (!('key' in obj) || !('expires' in obj))
         throw('Invalid HMAC (2)');
+    if (isNaN(obj.expires))
+        throw('Invalid HMAC (3)');
     if (Date.now() > obj.expires)
         throw('Expired HMAC');
     
