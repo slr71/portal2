@@ -311,7 +311,7 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
     }
     catch(error) {
       console.log(error)
-      setSubmitError(error.response ? error.response.data : error.message)
+      setError(error.response ? error.response.data : error.message)
     }
   }
 
