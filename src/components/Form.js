@@ -10,6 +10,10 @@ import { CheckboxWithLabel } from "formik-material-ui"
 import { honeypotDivisor } from '../config.json'
 
 const useStyles = makeStyles((theme) => ({
+  formStepper: {
+    [theme.breakpoints.down('xs')]: {
+      display:'none',},
+  },
   checkbox: {
     paddingTop: '2em'
   },
@@ -226,9 +230,9 @@ const Wizard = ({ form, initialValues, validate, onSelect, onSubmit }) => {
 const FormStepper = ({activeStep, steps}) => {
   if (steps.length <= 1)
     return (<></>)
-
+const classes = useStyles()
   return (
-    <Stepper>
+    <Stepper className={classes.formStepper}>
       {steps.map((title, index) => (
         <Step key={index} completed={activeStep > index} active={activeStep == index}>
           <StepLabel>{title}</StepLabel>
