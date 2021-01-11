@@ -338,20 +338,6 @@ const FormField = (props) => {
         InputLabelProps={{ shrink: true }} // to prevent "mm/dd/yyyy" placeholder bug
         {...commonProps}
       />
-      {props.honeypot &&
-        <Field // honeypot field
-          component={TextField}
-          id={fakeId} 
-          name={fakeId}
-          label={props.name}
-          type={props.type}
-          inputProps={{ tabIndex: "-1" }} // disable tabbing to this field
-          className={classes.honeypot} // hidden from real user but still visible to bots
-          onChange={props.onChange}
-          onBlur={props.onBlur}
-          required={false}
-        />
-      }
     </>
   )
 }
