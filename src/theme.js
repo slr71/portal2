@@ -73,9 +73,6 @@ const theme = createMuiTheme({
             "&:hover": {
               backgroundColor: '#0971ab',
             },
-            "& .MuiSvgIcon-root": {
-              fill: "white"
-            }
           }
         }
       }
