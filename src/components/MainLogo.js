@@ -12,5 +12,5 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 export default function MainLogo({ size }) {
-  return <img src="/cyverse_upLogo_white.svg" alt="CyVerse Logo" className={useStyles()[size]} />
+  return <img src="/cyverse_upLogo_white.svg" alt="CyVerse User Portal" className={useStyles()[size]} />
 }
