@@ -57,6 +57,11 @@ const theme = createMuiTheme({
           height:'0',
         },
       },
+      MuiAvatar:{
+        colorDefault:{
+          backgroundColor:'#0971ab',
+        },
+      },
         MuiListItem: {
           root: {
             "& .MuiSvgIcon-root": {
