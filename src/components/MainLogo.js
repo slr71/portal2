@@ -2,7 +2,9 @@ import { makeStyles } from '@material-ui/core/styles'
 
 const useStyles = makeStyles((theme) => ({
   medium: {
-    width: '13em'
+    width: '13em',
+    [theme.breakpoints.down('xs')]: {
+      width:'9em',},
   },
   large: {
     width: '55%'
