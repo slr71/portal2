@@ -286,7 +286,7 @@ async function submitUserWorkflow(templateName, user) {
     );
 }
 
-// Send reset password link //TODO require API key
+// Send reset password link
 router.post('/users/reset_password', asyncHandler(async (req, res) => {
     const email = req.body.email;
     const pltHMAC = req.body.hmac;
