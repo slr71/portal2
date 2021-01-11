@@ -13,6 +13,7 @@ module.exports = {
 
   // Cookie Names
   ACCOUNT_UPDATE_REMINDER_COOKIE: 'account_update_reminder',
+  WELCOME_BANNER_COOKIE: 'welcome_banner',
 
   // Websocket Events
   WS_CONNECTED: 'WS_CONNECTED',
