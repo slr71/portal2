@@ -1,11 +1,20 @@
 import { Grid, Link, Box } from '@material-ui/core'
 import { Layout, SummaryCard, intercomShow, getMenuItem } from '../components'
+import { makeStyles } from '@material-ui/core/styles'
+
+const useStyles = makeStyles((theme) => ({
+    helpLink:{
+    [theme.breakpoints.down('xs')]:
+    {display: 'none',},
+    }
+}))
+
 
 const Support = () => {
   const menuItem = getMenuItem('Support')
-
+const classes = useStyles()
   const chatLink = 
-    <Link onClick={intercomShow}>
+    <Link onClick={intercomShow} className={classes.helpLink}>
       Need help? Click here to chat live with CyVerse Support!
     </Link>
 
