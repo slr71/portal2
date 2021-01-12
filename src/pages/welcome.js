@@ -169,13 +169,7 @@ const ForgotPassword = ({ startTimeHMAC, cancelHandler }) => {
     return null
   }
 
-  const submitCreateUser = async (email) => {
-    // Make sure not submitted twice (should never happen)
-    if (isSubmitted) {
-      console.log('submitCreateUser: Blocking second submit')
-      return
-    }
-
+  const submitPasswordReset = async (email) => {
     try {
       const resp = await api.resetPassword({ email, hmac: startTimeHMAC })
       setSubmitting(false)
@@ -246,7 +240,7 @@ const ForgotPassword = ({ startTimeHMAC, cancelHandler }) => {
             setSubmitting(true)
             setSubmitted(false)
             setSubmitError(false)
-            submitForm(email)
+            submitPasswordReset(email)
           }}
         >
           Submit
@@ -305,7 +299,13 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
       setForm(getForm(firstNameId, lastNameId, option.id))
   }
 
-  const submitForm = async (submission) => {
+  const submitCreateUser = async (submission) => {
+    // Make sure not submitted twice (should never happen)
+    if (isSubmitted) {
+      console.log('submitCreateUser: Blocking second submit')
+      return
+    }
+
     try {
       const newUser = await api.createUser(submission)
       if (!newUser || typeof newUser != 'object')
