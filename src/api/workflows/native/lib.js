@@ -130,7 +130,7 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
         endpoint = 'remove';
     }
 
-    return run([ "curl", "--verbose", "--location", `${baseUrl}/${endpoint}?${params}`]);
+    return run([ "curl", "--verbose", "--location", "-X", "POST", `${baseUrl}/${endpoint}?${params}`]);
 }
 
 module.exports = { 
