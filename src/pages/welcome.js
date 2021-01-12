@@ -169,7 +169,13 @@ const ForgotPassword = ({ startTimeHMAC, cancelHandler }) => {
     return null
   }
 
-  const submitForm = async (email) => {
+  const submitCreateUser = async (email) => {
+    // Make sure not submitted twice (should never happen)
+    if (isSubmitted) {
+      console.log('submitCreateUser: Blocking second submit')
+      return
+    }
+
     try {
       const resp = await api.resetPassword({ email, hmac: startTimeHMAC })
       setSubmitting(false)
@@ -342,7 +348,7 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
               onSubmit={(values, { setSubmitting }) => {
                 values['plt'] = startTimeHMAC // encrypted page load time
                 console.log('Submit', values)
-                submitForm(values)
+                submitCreateUser(values)
                 setSubmitting(false)
               }}
             />
