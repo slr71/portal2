@@ -100,6 +100,7 @@ async function approveAtmosphere(request) {
     // Check if user is a student
     if (user.occupation.name && user.occupation.name.toLowerCase().indexOf('student') >= 0) {
         logger.info(`approveAtmosphere: Pend student user "${user.username}" for request ${request.id}`);
+        await request.pend();
         await sendAtmosphereSignupMessage(request,
 `${intro}
 
@@ -107,12 +108,12 @@ We are no longer approving student access for Atmosphere unless you are part of 
 
 For more information please see the FAQ: ${faqUrl}`
         );
-        await request.pend();
         return;
     }
 
     // Deny all other requests
     logger.info(`approveAtmosphere: Deny user "${user.username}" for request ${request.id}`);
+    await request.deny();
     await sendAtmosphereSignupMessage(request, 
 `${intro}
 
@@ -120,7 +121,6 @@ We are no longer accepting new accounts as Atmosphere is being changed from a ge
 
 For more information please see the FAQ: ${faqUrl}`
     );
-    await request.deny();
     return;
 }
 
