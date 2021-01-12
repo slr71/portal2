@@ -251,7 +251,7 @@ export default function Dashboard(props) {
           {error}
         </Alert>
       </Snackbar>
-      <Snackbar
+      {/* <Snackbar
         anchorOrigin={{
           vertical: 'bottom',
           horizontal: 'center',
@@ -268,7 +268,7 @@ export default function Dashboard(props) {
             </IconButton>
           </React.Fragment>
         }
-      />
+      /> */}
       <WelcomeDialog 
         open={welcomeOpen}
         handleClose={handleCloseWelcome} 
