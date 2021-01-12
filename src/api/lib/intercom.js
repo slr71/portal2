@@ -51,7 +51,7 @@ async function startConversation(user, body) {
         logger.error(`Error creating Intercom user ${user.username}`);
         return;
     }
-    logger.debug(intercomUser);
+    logger.debug(JSON.stringify(intercomUser));
 
     // Create user-initiated message (which will result in creation of a new conversation)
     const message = await intercom.messages.create({
@@ -66,7 +66,7 @@ async function startConversation(user, body) {
         logger.error(`Error creating Intercom message for user ${user.username}`);
         return;
     }
-    logger.debug(intercomUser);
+    logger.debug(JSON.stringify(message));
 
     logger.info(`Created Intercom message ${message.body.id} for ${user.username}`);
 
@@ -108,6 +108,7 @@ async function addNoteToConversation(conversationId, message) {
         })
     }
     catch (e) {
+        logger.error('Failed in addNoteToConversation:')
         logger.error(e.body.errors)
     }
 }
