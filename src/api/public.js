@@ -50,7 +50,7 @@ router.post('/exists', asyncHandler(async (req, res) => {
 // Create user
 router.put('/users', asyncHandler(async (req, res) => {
     let fields = req.body;
-    const MINIMUM_TIME_ON_PAGE = 1000*60 // one minute
+    const MINIMUM_TIME_ON_PAGE = 1000*30 // 30 seconds
     const MAXIMUM_TIME_ON_PAGE = 1000*60*60 // one hour
 
     if (!('username' in fields))
