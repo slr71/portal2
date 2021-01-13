@@ -39,6 +39,12 @@ const sessionStore = new pgSession({
 })
 
 // Configure the Keycloak client
+Keycloak.prototype.accessDenied = function (request, response) {
+    console.log('Access denied, redirecting !!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    response.redirect(config.uiBaseUrl);
+    //response.status(403);
+    //response.end('Access denied');
+};
 const keycloakClient = new Keycloak(
     { store: sessionStore },
     config.keycloak
