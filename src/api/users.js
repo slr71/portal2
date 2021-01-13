@@ -6,6 +6,9 @@ const { userPasswordUpdateWorkflow, userDeletionWorkflow } = require('./workflow
 const sequelize = require('sequelize');
 const models = require('./models');
 const User = models.account_user;
+const EmailAddress = models.account_emailaddress;
+const MailingList = models.api_mailinglist;
+const EmailAddressToMailingList = models.api_emailaddressmailinglist;
 const RestrictedUsername = models.account_restrictedusername;
 const config = require('../config.json');
 
@@ -139,17 +142,28 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     if (id == req.user.id)
         return res.status(403).send('Cannot delete yourself');
 
-    let user = await User.unscoped().findByPk(id);
+    let user = await User.unscoped().findByPk(id, {
+        include: [
+            {
+                model: EmailAddress,
+                as: 'emails',
+                include: [
+                    {
+                        model: MailingList,
+                        as: 'mailing_lists'
+                    }
+                ]
+            }
+        ]
+    });
+    console.log(JSON.stringify(user.emails))
     if (!user)
         return res.status(404).send('User not found');
 
     if (user.is_staff || user.is_superuser)
         return res.status(403).send('Cannot delete privileged user');
 
-    await user.destroy();
-    res.status(200).send('success');
-
-    // Submit user deletion workflow to remove user from subsystems (LDAP, IRODS, etc) (do after response as to not delay it)
+    // Submit user deletion workflow to remove user from subsystems (LDAP, IRODS, etc)
     if (config.argo) {
         await Argo.submit(
             'user.yaml',
@@ -173,6 +187,25 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     else {
         await userDeletionWorkflow(user);
     }
+
+    // Remove user from database
+    for (const email of user.emails) {
+        for (const mailingList of email.mailing_lists) {
+            logger.info(`Deleting from api_emailaddressmailinglist: mailing_list_id ${mailingList.id}, email_address_id ${email.id}`);
+            await EmailAddressToMailingList.destroy({ 
+                where: { 
+                    mailing_list_id: mailingList.id, 
+                    email_address_id: email.id
+                } 
+            });
+        }
+        logger.info(`Deleting email ${email.email} id=${email.id}`);
+        email.destroy();
+    }
+    logger.info(`Deleting user "${user.username}" id=${user.id}`);
+    await user.destroy();
+
+    res.status(200).send('success');
 }));
 
 // Get restricted usernames

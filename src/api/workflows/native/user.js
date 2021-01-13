@@ -48,7 +48,7 @@ async function userPasswordUpdateWorkflow(user) {
 
 // Based on v1 portal:/account/views/user.py:perform_destroy()
 async function userDeletionWorkflow(user) {
-    if (!user)
+    if (!user || !user.emails)
         throw('Missing required property');
 
     logger.info(`Running native workflow for user ${user.username}: deletion`);
@@ -61,6 +61,13 @@ async function userDeletionWorkflow(user) {
 
     // Mailchimp: unsubscribe user from newsletter 
     await mailchimpUpdateSubscription(user.email, user.first_name, user.last_name, false);
+
+    // Mailman: unsubscribe from mailing lists
+    for (const email of user.emails) {
+        for (const mailingList of email.mailing_lists) {
+            await mailmanUpdateSubscription(mailingList.list_name, user.email, false);
+        }
+    }
 }
 
 module.exports = { userCreationWorkflow, userDeletionWorkflow, userPasswordUpdateWorkflow };
