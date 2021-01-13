@@ -32,8 +32,8 @@ const Account = () => {
     try {
       if (data && 'old_password' in data && 'new_password' in data) {
         const res = await api.updatePassword({ 
-          oldPassword: values['old_password'], 
-          password: values['new_password'] 
+          oldPassword: data['old_password'], 
+          password: data['new_password'] 
         })
         if (res !== 'success')
           setError(res)
