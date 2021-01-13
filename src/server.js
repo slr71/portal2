@@ -154,7 +154,7 @@ app.prepare()
         })
 
         // Public UI pages
-        server.get("/signup", (req, res) => { 
+        server.get(["/signup", "/register"], (req, res) => {  
             app.render(req, res, "/welcome", { signup: 1 })
         })
 
