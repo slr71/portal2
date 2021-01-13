@@ -97,7 +97,8 @@ function mailchimpUpdateSubscription(email, firstName, lastName, subscribe) {
             LNAME: lastName
         }
     }
-    return run([ "curl", "--verbose", "--location", 
+    return run([ "curl", 
+        "--location", 
         "--header", `Authorization: Basic ${config.mailchimp.apiKey}`, 
         "--header", "Content-Type: application/json",
         "--data", JSON.stringify(data),
@@ -130,7 +131,7 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
         endpoint = 'remove';
     }
 
-    return run([ "curl", "--verbose", "--location", "-X", "POST", `"${baseUrl}/${endpoint}?${params}"`]);
+    return run([ "curl", "--location", "-X", "POST", `"${baseUrl}/${endpoint}?${params}"`]);
 }
 
 module.exports = { 
