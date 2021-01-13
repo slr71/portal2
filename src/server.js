@@ -182,7 +182,11 @@ app.prepare()
         if (!config.debugUser) server.use(keycloakClient.protect())
 
         // Restricted UI pages
-        server.get("*", (req, res) => {
+        server.get("/forms*", (req, res) => { // alias "/requests" as "/forms" for old links on cyverse.org
+            var url = req.url.replace(/^\/forms/, '/requests');
+            app.render(req, res, url);
+        })
+        server.get("*", (req, res) => { // all other pages
             return nextHandler(req, res)
         })
 
