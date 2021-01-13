@@ -1,4 +1,4 @@
-const { ldapCreateUser, ldapModify, ldapChangePassword, ldapAddUserToGroup, ldapDeleteUser, irodsCreateUser, irodsChMod, irodsChangePassword, irodsDeleteUser, mailchimpUpdateSubscription } = require('./lib');
+const { ldapCreateUser, ldapModify, ldapChangePassword, ldapAddUserToGroup, ldapDeleteUser, irodsCreateUser, irodsChMod, irodsChangePassword, irodsDeleteUser, mailchimpUpdateSubscription, mailmanUpdateSubscription } = require('./lib');
 const { logger } = require('../../lib/logging');
 const config = require('../../../config.json');
 
