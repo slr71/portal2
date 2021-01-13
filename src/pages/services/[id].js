@@ -115,7 +115,7 @@ const ServiceViewer = (props) => {
             <Grid item xs={12}>
               <Box>
                 <Typography component="div" variant="h5">Contacts</Typography>
-                <Typography color="textSecondary">Contact(s) for questions or problems.</Typography>
+                <Typography color="textSecondary">Contacts for questions or problems.</Typography>
                 <List>
                   {service.contacts.map(contact => (
                     <div key={contact.id}>
