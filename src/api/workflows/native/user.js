@@ -54,18 +54,30 @@ async function userDeletionWorkflow(user) {
     logger.info(`Running native workflow for user ${user.username}: deletion`);
 
     // LDAP: delete user
-    await ldapDeleteUser(user.username);
+    try {
+        await ldapDeleteUser(user.username);
+    }
+    catch(e) {}
 
     // IRODS: delete user
-    await irodsDeleteUser(user.username);
+    try {
+        await irodsDeleteUser(user.username);
+    }
+    catch(e) {}
 
     // Mailchimp: unsubscribe user from newsletter 
-    await mailchimpUpdateSubscription(user.email, user.first_name, user.last_name, false);
+    try {
+        await mailchimpUpdateSubscription(user.email, user.first_name, user.last_name, false);
+    }
+    catch(e) {}
 
     // Mailman: unsubscribe from mailing lists
     for (const email of user.emails) {
         for (const mailingList of email.mailing_lists) {
-            await mailmanUpdateSubscription(mailingList.list_name, user.email, false);
+            try {
+                await mailmanUpdateSubscription(mailingList.list_name, user.email, false);
+            }
+            catch(e) {}
         }
     }
 }
