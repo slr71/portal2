@@ -19,7 +19,7 @@ class PortalAPI {
     // Add custom parameter serializer to encode spaces with %20 instead of '+' 
     options.paramsSerializer = (params) => qs.stringify(params)
 
-    console.log(`axios request: token ${this.token != null}, ${options.method} ${options.url}`)
+    //console.log(`axios request: token ${this.token != null}, ${options.method} ${options.url}`)
     return axios.request(options)
   }
   
