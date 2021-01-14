@@ -50,7 +50,7 @@ function ldapChangePassword(username, password) {
         "-H", config.ldap.host, 
         "-D", config.ldap.admin,
         "-w", config.ldap.password, 
-        "-s", `"${password}"`,
+        "-s", escapeShell(password),
         "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
         `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
     ]);
@@ -134,6 +134,10 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
     }
 
     return run([ "curl", "--location", "-X", "POST", `"${baseUrl}/${endpoint}?${params}"`]);
+}
+
+function escapeShell(cmd) {
+    return '"'+cmd.replace(/(["\s'$`\\])/g,'\\$1')+'"';
 }
 
 module.exports = { 
