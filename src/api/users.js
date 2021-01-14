@@ -185,6 +185,7 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     }
 
     // Remove user from database
+    //TODO automate cascading deletes
     logger.info(`Deleting account_passwordreset for user ${user.username} id=${user.id}`);
     await models.account_passwordreset.destroy({ where: { user_id: user.id } });
 
@@ -197,9 +198,8 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
         include: [ 'logs' ]
     });
     for (const request of accessRequests) {
-        for (const log of request.logs) {
+        for (const log of request.logs) 
             await log.destroy();
-        }
         await request.destroy();
     }
 
@@ -209,21 +209,21 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
         include: [ 'logs' ]
     });
     for (const request of enrollmentRequests) {
-        for (const log of request.logs) {
+        for (const log of request.logs) 
             await log.destroy();
-        }
         await request.destroy();
     }
 
     logger.info(`Deleting api_formsubmission for user ${user.username} id=${user.id}`);
     const submissions = await models.api_formsubmission.findAll({ 
         where: { user_id: user.id },
-        include: [ 'conversations' ]
+        include: [ 'conversations', 'fields' ]
     });
     for (const submission of submissions) {
-        for (const conversation of submission.conversations) {
+        for (const conversation of submission.conversations)
             await conversation.destroy();
-        }
+        for (const field of submission.fields)
+            await field.destroy();
         await submission.destroy();
     }
     
