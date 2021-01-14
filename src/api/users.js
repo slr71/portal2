@@ -6,9 +6,6 @@ const { userPasswordUpdateWorkflow, userDeletionWorkflow } = require('./workflow
 const sequelize = require('sequelize');
 const models = require('./models');
 const User = models.account_user;
-const EmailAddress = models.account_emailaddress;
-const MailingList = models.api_mailinglist;
-const EmailAddressToMailingList = models.api_emailaddressmailinglist;
 const RestrictedUsername = models.account_restrictedusername;
 const config = require('../config.json');
 
@@ -145,18 +142,17 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     let user = await User.unscoped().findByPk(id, {
         include: [
             {
-                model: EmailAddress,
+                model: models.account_emailaddress,
                 as: 'emails',
                 include: [
                     {
-                        model: MailingList,
+                        model: models.api_mailinglist,
                         as: 'mailing_lists'
                     }
                 ]
             }
         ]
     });
-    console.log(JSON.stringify(user.emails))
     if (!user)
         return res.status(404).send('User not found');
 
@@ -189,20 +185,34 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     }
 
     // Remove user from database
+    logger.info(`Deleting account_passwordreset for user ${user.username} id=${user.id}`);
+    await models.account_passwordreset.destroy({ where: { user_id: user.id } });
+
+    logger.info(`Deleting account_passwordresetrequest for user ${user.username} id=${user.id}`);
+    await models.account_passwordresetrequest.destroy({ where: { user_id: user.id } });
+
+    logger.info(`Deleting api_accessrequest for user ${user.username} id=${user.id}`);
+    await models.api_accessrequest.destroy({ where: { user_id: user.id } });
+
+    logger.info(`Deleting api_workshopenrollmentrequest for user ${user.username} id=${user.id}`);
+    await models.api_workshopenrollmentrequest.destroy({ where: { user_id: user.id } });
+    
     for (const email of user.emails) {
         for (const mailingList of email.mailing_lists) {
             logger.info(`Deleting from api_emailaddressmailinglist: mailing_list_id ${mailingList.id}, email_address_id ${email.id}`);
-            await EmailAddressToMailingList.destroy({ 
+            await models.api_emailaddressmailinglist.destroy({ 
                 where: { 
                     mailing_list_id: mailingList.id, 
                     email_address_id: email.id
                 } 
             });
         }
+
         logger.info(`Deleting email ${email.email} id=${email.id}`);
         email.destroy();
     }
-    logger.info(`Deleting user "${user.username}" id=${user.id}`);
+
+    logger.info(`Deleting user ${user.username} id=${user.id}`);
     await user.destroy();
 
     res.status(200).send('success');
