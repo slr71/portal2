@@ -147,17 +147,15 @@ const UserTable = ({ rows, rowsPerPage, count, page, handleChangePage, handleCha
   </TableContainer>
 )
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req }) => {
-    const { count, results } = await req.api.users()
+export async function getServerSideProps({ req }) {
+  const { count, results } = await req.api.users()
 
-    return {
-      props: {
-        count,
-        results
-      }
+  return {
+    props: {
+      count,
+      results
     }
   }
-)
+}
 
 export default Users
