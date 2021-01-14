@@ -49,11 +49,10 @@ const Account = () => {
           email.sent = email.email == data.email.email
       }
       setUser(newUser)
-      setForms(Forms(newUser, properties, changeHandler, submitForm))
+      setForms(Forms(newUser, properties, changeHandler))
     }
     catch (error) {
-      console.log(error)
-      setError(error.message)
+      setError(error.response && error.response.data ? error.response.data : error.message)
     }
   }
 
@@ -67,7 +66,7 @@ const Account = () => {
       for (let email of newUser.emails) // set sent flag for "resend confirmation email" on newly added email addresses
         email.sent = !!sentEmails.find(e => e.email == email.email)
       setUser(newUser)
-      setForms(Forms(newUser, properties, changeHandler, submitForm))
+      setForms(Forms(newUser, properties, changeHandler))
     }
     catch(error) {
       console.log(error)
@@ -75,7 +74,7 @@ const Account = () => {
     }
   }
 
-  const [forms, setForms] = useState(Forms(user, properties, changeHandler, submitForm))
+  const [forms, setForms] = useState(Forms(user, properties, changeHandler))
 
   const title = 
     <div style={{display: 'flex', alignItems: 'center'}}>
