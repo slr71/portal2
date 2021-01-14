@@ -192,10 +192,29 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     await models.account_passwordresetrequest.destroy({ where: { user_id: user.id } });
 
     logger.info(`Deleting api_accessrequest for user ${user.username} id=${user.id}`);
-    await models.api_accessrequest.destroy({ where: { user_id: user.id } });
+    const accessRequests = await models.api_accessrequest.findAll({ 
+        where: { user_id: user.id },
+        include: [ 'logs' ]
+    });
+    for (const request of accessRequests) {
+        for (const log of request.logs) {
+            await log.destroy();
+        }
+        await request.destroy();
+    }
 
     logger.info(`Deleting api_workshopenrollmentrequest for user ${user.username} id=${user.id}`);
     await models.api_workshopenrollmentrequest.destroy({ where: { user_id: user.id } });
+    const enrollmentRequests = await models.api_workshopenrollmentrequest.findAll({ 
+        where: { user_id: user.id },
+        include: [ 'logs' ]
+    });
+    for (const request of enrollmentRequests) {
+        for (const log of request.logs) {
+            await log.destroy();
+        }
+        await request.destroy();
+    }
     
     for (const email of user.emails) {
         for (const mailingList of email.mailing_lists) {
