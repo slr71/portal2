@@ -135,11 +135,9 @@ const AddUsernameDialog = ({ open, handleChange, handleClose, handleSubmit }) =>
   </Dialog>
 )
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req }) => {
-    const usernames = await req.api.restrictedUsernames()
-    return { props: { usernames } }
-  }
-)
+export async function getServerSideProps({ req }) {
+  const usernames = await req.api.restrictedUsernames()
+  return { props: { usernames } }
+}
 
 export default RestrictedUsernames

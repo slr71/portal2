@@ -85,21 +85,19 @@ const Right = ({ confirmed, response }) => {
   )
 }
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req }) => {
-    // Require "code" query param
-    if (!req.query.code)
-      res.redirect('/')
+export async function getServerSideProps({ req }) {
+  // Require "code" query param
+  if (!req.query.code)
+    res.redirect('/')
 
-    const resp = await req.api.confirmEmailAddress(req.query.code)
+  const resp = await req.api.confirmEmailAddress(req.query.code)
 
-    return { 
-      props: { 
-        confirmed: resp === 'success',
-        response: resp
-      } 
-    }
+  return { 
+    props: { 
+      confirmed: resp === 'success',
+      response: resp
+    } 
   }
-)
+}
 
 export default ConfirmEmail

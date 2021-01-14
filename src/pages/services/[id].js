@@ -550,11 +550,9 @@ const AddRequestDialog = ({ open, forms, allForms, handleClose, handleSubmit }) 
   )
 }
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req, query }) => {
-    const service = await req.api.service(query.id)
-    return { props: { service } }
-  }
-)
+export async function getServerSideProps({ req, query }) {
+  const service = await req.api.service(query.id)
+  return { props: { service } }
+}
 
 export default Service

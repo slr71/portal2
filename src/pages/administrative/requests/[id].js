@@ -127,11 +127,9 @@ const History = props => {
   )
 }
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req, query }) => {
-    const request = await req.api.serviceRequest(query.id)
-    return { props: { request } }
-  }
-)
+export async function getServerSideProps({ req, query }) {
+  const request = await req.api.serviceRequest(query.id)
+  return { props: { request } }
+}
 
 export default AccessRequest

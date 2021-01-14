@@ -301,11 +301,9 @@ const FieldEditor = props => {
   )
 }
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req, query }) => {
-    const form = await req.api.form(query.id)
-    return { props: { form } }
-  }
-)
+export async function getServerSideProps({ req, query }) {
+  const form = await req.api.form(query.id)
+  return { props: { form } }
+}
 
 export default FormEditor

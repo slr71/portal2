@@ -76,11 +76,9 @@ const FormField = (props) => {
   )
 }
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req, query }) => {
-    const submission = await req.api.formSubmission(query.id)
-    return { props: { submission } }
-  }
-)
+export async function getServerSideProps({ req, query }) {
+  const submission = await req.api.formSubmission(query.id)
+  return { props: { submission } }
+}
 
 export default FormSubmission

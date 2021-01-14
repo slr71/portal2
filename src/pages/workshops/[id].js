@@ -1165,11 +1165,9 @@ const AddServiceDialog = ({ open, services, allServices, handleClose, handleSubm
   )
 }
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req, query }) => {
-    const workshop = await req.api.workshop(query.id)
-    return { props: { workshop } }
-  }
-)
+export async function getServerSideProps({ req, query }) {
+  const workshop = await req.api.workshop(query.id)
+  return { props: { workshop } }
+}
 
 export default Workshop

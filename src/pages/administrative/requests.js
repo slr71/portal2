@@ -140,17 +140,15 @@ const RequestTable = ({ rows, rowsPerPage, count, page, handleChangePage, handle
   </TableContainer>
 )
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req }) => {
-    const { count, results } = await req.api.serviceRequests()
+export async function getServerSideProps({ req }) {
+  const { count, results } = await req.api.serviceRequests()
 
-    return {
-      props: {
-        count,
-        results
-      }
+  return {
+    props: {
+      count,
+      results
     }
   }
-)
+}
 
 export default AccessRequests

@@ -146,11 +146,9 @@ const User = ({ user }) => {
   )
 }
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req, query }) => {
-    const user = await req.api.user(query.id)
-    return { props: { user } }
-  }
-)
+export async function getServerSideProps({ req, query }) {
+  const user = await req.api.user(query.id)
+  return { props: { user } }
+}
 
 export default User

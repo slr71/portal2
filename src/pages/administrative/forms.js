@@ -44,16 +44,14 @@ const FormTable = props => (
   </TableContainer>
 )
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req }) => {
-    const formsByGroup = await req.api.forms()
-    const forms = formsByGroup
-      .map(s => s.forms)
-      .reduce((acc, forms) => acc.concat(forms))
-      .sort((a, b) => (a.name > b.name) ? 1 : -1)
-  
-    return { props: { forms } }
-  }
-)
+export async function getServerSideProps({ req }) {
+  const formsByGroup = await req.api.forms()
+  const forms = formsByGroup
+    .map(s => s.forms)
+    .reduce((acc, forms) => acc.concat(forms))
+    .sort((a, b) => (a.name > b.name) ? 1 : -1)
+
+  return { props: { forms } }
+}
 
 export default Forms

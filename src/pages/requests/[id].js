@@ -108,11 +108,9 @@ const Submitted = () => (
   </Box>
 )
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req, query }) => {
-    const form = await req.api.form(query.id)
-    return { props: { form } }
-  }
-)
+export async function getServerSideProps({ req, query }) {
+  const form = await req.api.form(query.id)
+  return { props: { form } }
+}
 
 export default Request

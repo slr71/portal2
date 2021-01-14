@@ -121,17 +121,15 @@ const FormSubmissionTable = ({ rows, rowsPerPage, count, page, handleChangePage,
   </TableContainer>
 )
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req }) => {
-    const { count, results } = await req.api.formSubmissions()
+export async function getServerSideProps({ req }) {
+  const { count, results } = await req.api.formSubmissions()
 
-    return {
-      props: {
-        count,
-        results
-      }
+  return {
+    props: {
+      count,
+      results
     }
   }
-)
+}
 
 export default FormSubmissions
