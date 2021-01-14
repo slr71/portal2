@@ -40,11 +40,9 @@ const Request = ({ form }) => (
   </Link>
 )
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req }) => {
-    const forms = await req.api.forms()
-    return { props: { forms } }
-  }
-)
+export async function getServerSideProps({ req }) {
+  const forms = await req.api.forms()
+  return { props: { forms } }
+}
 
 export default Requests

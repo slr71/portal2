@@ -106,11 +106,9 @@ const Service = ({ id, name, description, icon_url, service_url, launch }) => {
   )
 }
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req }) => {
-    const services = await req.api.services()
-    return { props: { services } }
-  }
-)
+export async function getServerSideProps({ req }) {
+  const services = await req.api.services()
+  return { props: { services } }
+}
 
 export default Services

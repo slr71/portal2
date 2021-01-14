@@ -129,11 +129,9 @@ const Workshop = ({ workshop }) => {
   )
 }
 
-export const getServerSideProps = withGetServerSideError(
-  async ({ req }) => {
-    const workshops = await req.api.workshops()
-    return { props: { workshops } }
-  }
-)
+export async function getServerSideProps({ req }) {
+  const workshops = await req.api.workshops()
+  return { props: { workshops } }
+}
 
 export default Workshops
