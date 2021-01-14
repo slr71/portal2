@@ -32,8 +32,8 @@ function withGetServerSideError(getServerSideFn) {
     catch (err) {
       // Return Axios error response
       const error = {
-        statusCode: err.response.status,
-        message: err.response.statusText,
+        statusCode: err.response && err.response.status ? err.response.status : 500,
+        message: err.response && err.response.statusText ? err.response.statusText : 'Server Error',
       };
       return { props: { error } }
     }
