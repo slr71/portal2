@@ -116,6 +116,7 @@ models.api_formsubmission.belongsTo(models.api_form, { as: 'form', foreignKey: '
 models.api_formsubmission.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id' } );
 models.api_formsubmission.belongsToMany(models.api_formfield, 
   { as: 'fields', through: models.api_formfieldsubmission, foreignKey: 'form_submission_id', otherKey: 'form_field_id' });
+models.api_formsubmission.hasMany(models.api_formfieldsubmission, { as: 'field_submissions', foreignKey: 'form_submission_id' });
 models.api_formsubmission.hasMany(models.api_formsubmissionconversation, { as: 'conversations', foreignKey: 'form_submission_id' });
 
 

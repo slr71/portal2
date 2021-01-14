@@ -219,17 +219,14 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
         where: { user_id: user.id },
         include: [ 
             'conversations',  
-            { 
-                model: models.api_formfieldsubmission,
-                as: 'fields'
-            }
+            'field_submissions'
         ]
     });
     for (const submission of submissions) {
         for (const conversation of submission.conversations)
             await conversation.destroy();
-        for (const field of submission.fields)
-            await field.destroy();
+        for (const fieldSubmission of submission.field_submissions)
+            await fieldSubmission.destroy();
         await submission.destroy();
     }
     
