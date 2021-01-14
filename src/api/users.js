@@ -185,67 +185,26 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     }
 
     // Remove user from database
-    //TODO automate cascading deletes
-    logger.info(`Deleting account_passwordreset for user ${user.username} id=${user.id}`);
-    await models.account_passwordreset.destroy({ where: { user_id: user.id } });
-
-    logger.info(`Deleting account_passwordresetrequest for user ${user.username} id=${user.id}`);
-    await models.account_passwordresetrequest.destroy({ where: { user_id: user.id } });
-
-    logger.info(`Deleting api_accessrequest for user ${user.username} id=${user.id}`);
-    const accessRequests = await models.api_accessrequest.findAll({ 
-        where: { user_id: user.id },
-        include: [ 'logs' ]
-    });
-    for (const request of accessRequests) {
-        for (const log of request.logs) 
-            await log.destroy();
-        await request.destroy();
-    }
-
-    logger.info(`Deleting api_workshopenrollmentrequest for user ${user.username} id=${user.id}`);
-    const enrollmentRequests = await models.api_workshopenrollmentrequest.findAll({ 
-        where: { user_id: user.id },
-        include: [ 'logs' ]
-    });
-    for (const request of enrollmentRequests) {
-        for (const log of request.logs) 
-            await log.destroy();
-        await request.destroy();
-    }
-
-    logger.info(`Deleting api_formsubmission for user ${user.username} id=${user.id}`);
-    const submissions = await models.api_formsubmission.findAll({ 
-        where: { user_id: user.id },
-        include: [ 
-            'conversations',  
-            'field_submissions'
-        ]
-    });
-    for (const submission of submissions) {
-        for (const conversation of submission.conversations)
-            await conversation.destroy();
-        for (const fieldSubmission of submission.field_submissions)
-            await fieldSubmission.destroy();
-        await submission.destroy();
-    }
-    
-    for (const email of user.emails) {
-        for (const mailingList of email.mailing_lists) {
-            logger.info(`Deleting from api_emailaddressmailinglist: mailing_list_id ${mailingList.id}, email_address_id ${email.id}`);
-            await models.api_emailaddressmailinglist.destroy({ 
-                where: { 
-                    mailing_list_id: mailingList.id, 
-                    email_address_id: email.id
-                } 
-            });
-        }
-
-        logger.info(`Deleting email ${email.email} id=${email.id}`);
-        email.destroy();
-    }
-
     logger.info(`Deleting user ${user.username} id=${user.id}`);
+    const opts = { where: { user_id: user.id } };
+
+    //TODO remove these tables eventually (leftover from v1 and no longer used)
+    await models.django_cyverse_auth_token.destroy(opts);
+    await models.django_cyverse_auth_token.destroy(opts);
+    await models.django_admin_log.destroy(opts);
+    await models.warden_atmosphereinternationalrequest.destroy(opts);
+    await models.warden_atmospherestudentrequest.destroy(opts);
+
+    await models.account_passwordreset.destroy(opts);
+    await models.account_passwordresetrequest.destroy(opts);
+    await models.api_userservice.destroy(opts);
+    for (const request of await models.api_accessrequest.findAll(opts)) { // loop through logs because "onDelete: cascade" isn't working for some reason
+        await models.api_accessrequestlog.destroy({ where: { access_request_id: request.id } });
+        await request.destroy();
+    }
+    await models.api_workshoporganizer.destroy({ where: { organizer_id: user.id } });
+    await models.api_workshopenrollmentrequest.destroy(opts);
+    await models.api_formsubmission.destroy(opts);
     await user.destroy();
 
     res.status(200).send('success');

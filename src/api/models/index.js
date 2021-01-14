@@ -61,6 +61,7 @@ models.account_user.belongsTo(models.account_region, { as: 'region' });
 models.account_user.belongsTo(models.account_researcharea, { as: 'research_area' });
 models.account_user.belongsTo(models.account_awarechannel, { as: 'aware_channel' });
 models.account_user.hasMany(models.account_emailaddress, { as: 'emails', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
+models.account_user.hasMany(models.api_accessrequestanswer, { foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
 models.account_user.belongsToMany(models.api_service, 
   { as: 'services', through: models.api_accessrequest, foreignKey: 'user_id', otherKey: 'service_id' });
 models.account_user.belongsToMany(models.api_workshop, 
@@ -68,6 +69,7 @@ models.account_user.belongsToMany(models.api_workshop,
 
 models.account_emailaddress.belongsToMany(models.api_mailinglist, 
   { as: 'mailing_lists', through: models.api_emailaddressmailinglist, foreignKey: 'email_address_id', otherKey: 'mailing_list_id' });
+models.account_emailaddress.hasMany(models.api_emailaddressmailinglist, { foreignKey: 'email_address_id', onDelete: 'cascade', hooks: true });
 models.account_emailaddress.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id' });
 
 models.account_region.belongsTo(models.account_country, {as: 'country' });
@@ -86,8 +88,8 @@ models.api_accessrequestquestion.hasMany(models.api_accessrequestanswer, { as: '
 
 models.api_accessrequest.belongsTo(models.account_user, { as: 'user' });
 models.api_accessrequest.belongsTo(models.api_service, { as: 'service' });
-models.api_accessrequest.hasMany(models.api_accessrequestlog, { as: 'logs', foreignKey: 'access_request_id' });
-models.api_accessrequest.hasMany(models.api_accessrequestconversation, { as: 'conversations', foreignKey: 'access_request_id' });
+models.api_accessrequest.hasMany(models.api_accessrequestlog, { as: 'logs', foreignKey: 'access_request_id', onDelete: 'cascade', hooks: true });
+models.api_accessrequest.hasMany(models.api_accessrequestconversation, { as: 'conversations', foreignKey: 'access_request_id', onDelete: 'cascade', hooks: true });
 
 models.api_workshop.belongsTo(models.account_user, { as: 'owner', foreignKey: 'creator_id' });
 models.api_workshop.hasMany(models.api_workshopuseremail, { as: 'emails', foreignKey: 'workshop_id' });
@@ -102,7 +104,7 @@ models.api_workshop.hasMany(models.api_workshopenrollmentrequest, { as: 'request
 
 models.api_workshopenrollmentrequest.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id' });
 models.api_workshopenrollmentrequest.belongsTo(models.api_workshop, { as: 'workshop', foreignKey: 'workshop_id' });
-models.api_workshopenrollmentrequest.hasMany(models.api_workshopenrollmentrequestlog, { as: 'logs', foreignKey: 'workshop_enrollment_request_id' });
+models.api_workshopenrollmentrequest.hasMany(models.api_workshopenrollmentrequestlog, { as: 'logs', foreignKey: 'workshop_enrollment_request_id', onDelete: 'cascade', hooks: true });
 
 models.api_formgroup.belongsToMany(models.api_form, 
   { as: 'forms', through: models.api_formgroupform, foreignKey: 'form_group_id', otherKey: 'form_id' });
@@ -116,8 +118,8 @@ models.api_formsubmission.belongsTo(models.api_form, { as: 'form', foreignKey: '
 models.api_formsubmission.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id' } );
 models.api_formsubmission.belongsToMany(models.api_formfield, 
   { as: 'fields', through: models.api_formfieldsubmission, foreignKey: 'form_submission_id', otherKey: 'form_field_id' });
-models.api_formsubmission.hasMany(models.api_formfieldsubmission, { as: 'field_submissions', foreignKey: 'form_submission_id' });
-models.api_formsubmission.hasMany(models.api_formsubmissionconversation, { as: 'conversations', foreignKey: 'form_submission_id' });
+models.api_formsubmission.hasMany(models.api_formfieldsubmission, { as: 'field_submissions', foreignKey: 'form_submission_id', onDelete: 'cascade', hooks: true });
+models.api_formsubmission.hasMany(models.api_formsubmissionconversation, { as: 'conversations', foreignKey: 'form_submission_id', onDelete: 'cascade', hooks: true });
 
 
 /**
