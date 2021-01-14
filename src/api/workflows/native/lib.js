@@ -38,11 +38,11 @@ function ldapCreateUser(user) {
     // Old method: /repos/portal/cyverse_ldap/utils/get_uid_number.py
     const uidNumber = user.id + config.uidNumberOffset;
 
-    return run(`echo "dn: uid=${user.username},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: ${user.first_name}\nsn: ${user.last_name}\ncn: ${user.first_name} ${user.last_name}\nuid: ${user.username}\nuserPassword: ${user.password}\nmail: ${user.email}\ndepartmentNumber: ${user.department}\no: ${user.institution}\ntitle: ${user.occupation.name}\nhomeDirectory: /home/${user.username}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: ${uidNumber}\nshadowLastChange:${daysSinceEpoch}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password}`);
+    return run(`echo "dn: uid=${user.username},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: ${user.first_name}\nsn: ${user.last_name}\ncn: ${user.first_name} ${user.last_name}\nuid: ${user.username}\nuserPassword: ${user.password}\nmail: ${user.email}\ndepartmentNumber: ${user.department}\no: ${user.institution}\ntitle: ${user.occupation.name}\nhomeDirectory: /home/${user.username}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: ${uidNumber}\nshadowLastChange:${daysSinceEpoch}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password} -o nettimeout=5`);
 }
 
 function ldapModify(username, attribute, value) {
-    return run(`echo "dn: uid=${username},ou=People,dc=iplantcollaborative,dc=org\nreplace: ${attribute}\n${attribute}: ${value}" | ldapmodify -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password}`);
+    return run(`echo "dn: uid=${username},ou=People,dc=iplantcollaborative,dc=org\nreplace: ${attribute}\n${attribute}: ${value}" | ldapmodify -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password} -o nettimeout=5`);
 }
 
 function ldapChangePassword(username, password) {
@@ -51,20 +51,22 @@ function ldapChangePassword(username, password) {
         "-D", config.ldap.admin,
         "-w", config.ldap.password, 
         "-s", password,
+        "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
         `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
     ]);
 }
 
 function ldapAddUserToGroup(username, group) {
-    return run(`echo "dn: cn=${group},ou=Groups,dc=iplantcollaborative,dc=org\nchangetype: modify\nadd: memberUid\nmemberUid: ${username}" | ldapmodify -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password}`);
+    return run(`echo "dn: cn=${group},ou=Groups,dc=iplantcollaborative,dc=org\nchangetype: modify\nadd: memberUid\nmemberUid: ${username}" | ldapmodify -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password} -o nettimeout=5`);
 }
 
 function ldapDeleteUser(username) {
     return run(["ldapdelete",
         "-H", config.ldap.host, 
-	"-D", config.ldap.admin, 
-	"-w", config.ldap.password,
-	`uid=${username},ou=People,dc=iplantcollaborative,dc=org`
+        "-D", config.ldap.admin, 
+        "-w", config.ldap.password,
+        "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
+        `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
     ]);
 }
 
