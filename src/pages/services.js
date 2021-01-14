@@ -3,6 +3,7 @@ import { Launch as LaunchIcon, HelpOutlineOutlined as HelpIcon } from '@material
 import { Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
 import { withGetServerSideError } from '../contexts/error'
+const inlineIcons = require('../inline_icons.json')
 
 const Services = (props) => {
   const [user] = useUser()
@@ -93,6 +94,10 @@ const Service = ({ id, name, description, icon_url, service_url, launch }) => {
       : <Button size="small" color="primary" href={`services/${id}`}>
           REQUEST ACCESS 
         </Button>
+
+  // Icons were moved inline for performance
+  if (icon_url in inlineIcons)
+    icon_url = inlineIcons[icon_url] // replace with inline image data
 
   return (
     <Link underline='none' href={`services/${id}`}>
