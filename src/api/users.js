@@ -217,7 +217,13 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     logger.info(`Deleting api_formsubmission for user ${user.username} id=${user.id}`);
     const submissions = await models.api_formsubmission.findAll({ 
         where: { user_id: user.id },
-        include: [ 'conversations', 'fields' ]
+        include: [ 
+            'conversations',  
+            { 
+                model: api_formfieldsubmission,
+                as: 'fields'
+            }
+        ]
     });
     for (const submission of submissions) {
         for (const conversation of submission.conversations)
