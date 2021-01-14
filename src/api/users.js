@@ -204,7 +204,6 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     }
 
     logger.info(`Deleting api_workshopenrollmentrequest for user ${user.username} id=${user.id}`);
-    await models.api_workshopenrollmentrequest.destroy({ where: { user_id: user.id } });
     const enrollmentRequests = await models.api_workshopenrollmentrequest.findAll({ 
         where: { user_id: user.id },
         include: [ 'logs' ]
@@ -214,6 +213,18 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
             await log.destroy();
         }
         await request.destroy();
+    }
+
+    logger.info(`Deleting api_formsubmission for user ${user.username} id=${user.id}`);
+    const submissions = await models.api_formsubmission.findAll({ 
+        where: { user_id: user.id },
+        include: [ 'conversations' ]
+    });
+    for (const submission of submissions) {
+        for (const conversation of submission.conversations) {
+            await conversation.destroy();
+        }
+        await submission.destroy();
     }
     
     for (const email of user.emails) {
