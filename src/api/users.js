@@ -220,7 +220,7 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
         include: [ 
             'conversations',  
             { 
-                model: api_formfieldsubmission,
+                model: models.api_formfieldsubmission,
                 as: 'fields'
             }
         ]
