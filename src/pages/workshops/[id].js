@@ -887,6 +887,7 @@ const Emails = ({ emails, submitHandler, deleteHandler }) => {
 
 const Requests = ({ requests, submitHandler }) => {
   const classes = useStyles()
+  const [myUser] = useUser()
 
   const Status = ({ value }) => {
     let color = 'black';
@@ -925,7 +926,7 @@ const Requests = ({ requests, submitHandler }) => {
               color="primary" 
               size="small" 
               disabled={status == 'denied' || status == 'granted'}
-              onClick={() => submitHandler(id, 'denied', `Request denied by ${user.username}`)}
+              onClick={() => submitHandler(id, 'denied', `Request denied by ${myUser.username}`)}
             >
               Deny
             </Button>
@@ -933,7 +934,7 @@ const Requests = ({ requests, submitHandler }) => {
               color="primary" 
               size="small"
               disabled={status == 'approved' || status == 'granted'}
-              onClick={() => submitHandler(id, 'approved', `Request approved by ${user.username}`)}
+              onClick={() => submitHandler(id, 'approved', `Request approved by ${myUser.username}`)}
             >
               Approve
             </Button>
