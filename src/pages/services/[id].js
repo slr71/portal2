@@ -8,6 +8,7 @@ import { useError, withGetServerSideError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
 const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } = require('../../constants')
+const inlineIcons = require('../../inline_icons.json')
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -80,6 +81,9 @@ const ServiceViewer = (props) => {
     });
   }, [])
 
+  // Icons were moved inline for performance
+  const icon_url = service.icon_url in inlineIcons ? inlineIcons[service.icon_url] : service.icon_url
+
   return (
     <div>
       <Paper elevation={3} className={classes.paper}>
@@ -88,7 +92,7 @@ const ServiceViewer = (props) => {
             <Grid item>
               <Box display='flex' flexWrap="wrap" alignSelf="flex-end">
                 <Box mr={2}>
-                  <Avatar alt={service.name} src={service.icon_url} />
+                  <Avatar alt={service.name} src={icon_url} />
                 </Box>
                 <Typography component="h1" variant="h4" gutterBottom>{service.name}</Typography>
               </Box>
