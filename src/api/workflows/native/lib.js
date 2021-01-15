@@ -1,9 +1,7 @@
-const { exec } = require('child_process');
+const { exec, execFile } = require('child_process');
 const config = require('../../../config.json');
 
-const dockerCmd = config.nativeWorkflow && config.nativeWorkflow.image ? `docker run ${config.nativeWorkflow.image}` : '';
-//TODO run all commands via docker image
-
+// Escape args with escapeShell() or use runFile() instead
 function run(strOrArray) {
     let cmdStr = strOrArray;
     if (Array.isArray(strOrArray))
@@ -30,6 +28,33 @@ function run(strOrArray) {
     });
 }
 
+// Safer than run, escaping of args not required
+function runFile(cmd, args) {
+    console.log("run:", cmd, args.join(' '));
+
+    return new Promise(function(resolve, reject) {
+        const child = execFile(
+            cmd, args,
+            (error, stdout, stderr) => {
+                console.log('run:stdout:', stdout);
+                console.log('run:stderr:', stderr);
+
+                if (error) {
+                    console.log('run:error:', error);
+                    reject(error);
+                }
+                else {
+                    resolve(stdout);
+                }
+            }
+        );
+    });
+}
+
+function dockerRun(args) {
+    return runFile("docker", [ "run", config.nativeWorkflow.image, ...args ])
+}
+
 function ldapCreateUser(user) {
     // Calculate number of days since epoch (needed for LDAP)
     const daysSinceEpoch = Math.floor(new Date()/8.64e7);
@@ -46,7 +71,7 @@ function ldapModify(username, attribute, value) {
 }
 
 function ldapChangePassword(username, password) {
-    return run([ "ldappasswd", 
+    return runFile("ldappasswd", [
         "-H", config.ldap.host, 
         "-D", config.ldap.admin,
         "-w", config.ldap.password, 
@@ -61,7 +86,7 @@ function ldapAddUserToGroup(username, group) {
 }
 
 function ldapDeleteUser(username) {
-    return run(["ldapdelete",
+    return runFile("ldapdelete", [
         "-H", config.ldap.host, 
         "-D", config.ldap.admin, 
         "-w", config.ldap.password,
@@ -71,23 +96,23 @@ function ldapDeleteUser(username) {
 }
 
 function irodsCreateUser(username) {
-    return run([ dockerCmd, "iadmin", "mkuser", username, "rodsuser" ]);
+    return dockerRun([ "iadmin", "mkuser", username, "rodsuser" ]);
 }
 
 function irodsMkDir(path) {
-    return run([ dockerCmd, 'imkdir', '-p', path ])
+    return dockerRun([ 'imkdir', '-p', path ])
 }
 
 function irodsChMod(permission, username, path) {
-    return run([ dockerCmd, "ichmod", permission, username, path]);
+    return dockerRun([ "ichmod", permission, username, path]);
 }
 
 function irodsChangePassword(username, password) {
-    return run([ dockerCmd, "iadmin", "moduser", username, "password", password ])
+    return dockerRun([ "iadmin", "moduser", username, "password", password ])
 }
 
 function irodsDeleteUser(username) {
-    return run([ dockerCmd, "iadmin", "rmuser", username ]);
+    return dockerRun([ "iadmin", "rmuser", username ]);
 }
 
 function mailchimpUpdateSubscription(email, firstName, lastName, subscribe) {
@@ -99,7 +124,7 @@ function mailchimpUpdateSubscription(email, firstName, lastName, subscribe) {
             LNAME: lastName
         }
     }
-    return run([ "curl", 
+    return runFile("curl", [
         "--location", 
         "--header", `Authorization: Basic ${config.mailchimp.apiKey}`, 
         "--header", "Content-Type: application/json",
@@ -133,7 +158,7 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
         endpoint = 'remove';
     }
 
-    return run([ "curl", "--location", "-X", "POST", `"${baseUrl}/${endpoint}?${params}"`]);
+    return runFile("curl", [ "--location", "-X", "POST", `"${baseUrl}/${endpoint}?${params}"`]);
 }
 
 function escapeShell(cmd) {
