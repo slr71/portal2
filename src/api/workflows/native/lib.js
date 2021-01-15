@@ -1,4 +1,5 @@
 const { exec, execFile } = require('child_process');
+var crypto = require('crypto');
 const config = require('../../../config.json');
 
 // Escape args with escapeShell() or use runFile() instead
@@ -117,10 +118,10 @@ function irodsDeleteUser(username) {
     return dockerRun([ "iadmin", "rmuser", username ]);
 }
 
-function mailchimpUpdateSubscription(email, firstName, lastName, subscribe) {
+function mailchimpSubscribe(email, firstName, lastName) {
     const data = {
         email_address: email,
-        status: subscribe ? "subscribe" : "unsubscribed",
+        status: "subscribe",
         merge_fields: {
             FNAME: firstName,
             LNAME: lastName
@@ -132,6 +133,15 @@ function mailchimpUpdateSubscription(email, firstName, lastName, subscribe) {
         "--header", "Content-Type: application/json",
         "--data", JSON.stringify(data),
         `${config.mailchimp.baseUrl}/lists/${config.mailchimp.listId}/members`
+    ]);
+}
+
+function mailchimpDelete(email) {
+    const hash = crypto.createHash('md5').update(email).digest('hex');
+    return runFile("curl", [
+        "--location", 
+        "--header", `Authorization: Basic ${config.mailchimp.apiKey}`, 
+        `${config.mailchimp.baseUrl}/lists/${config.mailchimp.listId}/members/${hash}/actions/delete-permanent`
     ]);
 }
 
@@ -181,6 +191,7 @@ module.exports = {
     irodsChMod,
     irodsChangePassword,
     irodsDeleteUser,
-    mailchimpUpdateSubscription,
+    mailchimpSubscribe,
+    mailchimpDelete,
     mailmanUpdateSubscription
 };

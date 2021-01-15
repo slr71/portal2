@@ -1,4 +1,4 @@
-const { ldapCreateUser, ldapModify, ldapChangePassword, ldapAddUserToGroup, ldapDeleteUser, irodsCreateUser, irodsChMod, irodsChangePassword, irodsDeleteUser, mailchimpUpdateSubscription, mailmanUpdateSubscription } = require('./lib');
+const { ldapCreateUser, ldapModify, ldapChangePassword, ldapAddUserToGroup, ldapDeleteUser, irodsCreateUser, irodsChMod, irodsChangePassword, irodsDeleteUser, mailchimpSubscribe, mailchimpDelete, mailmanUpdateSubscription } = require('./lib');
 const { logger } = require('../../lib/logging');
 const config = require('../../../config.json');
 
@@ -29,7 +29,7 @@ async function userCreationWorkflow(user) {
     await irodsChMod("own", "rodsadmin", `/iplant/home/${user.username}`);
 
     // Mailchimp: subscribe user to newsletter 
-    await mailchimpUpdateSubscription(user.email, user.first_name, user.last_name, true);
+    await mailchimpSubscribe(user.email, user.first_name, user.last_name);
 }
 
 async function userPasswordUpdateWorkflow(user) {
@@ -70,7 +70,7 @@ async function userDeletionWorkflow(user) {
 
     // Mailchimp: unsubscribe user from newsletter 
     try {
-        await mailchimpUpdateSubscription(user.email, user.first_name, user.last_name, false);
+        await mailchimpDelete(user.email);
     }
     catch(e) {}
 
