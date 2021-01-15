@@ -164,7 +164,7 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
 }
 
 function escapeShell(cmd) {
-    return '"'+cmd.replace(/(["\s'$`\\])/g,'\\$1')+'"';
+    return cmd.replace(/(["\s'$\@\&`\\])/g,'\\$1');
 }
 
 module.exports = { 
