@@ -75,7 +75,7 @@ function ldapChangePassword(username, password) {
         "-H", config.ldap.host, 
         "-D", config.ldap.admin,
         "-w", config.ldap.password, 
-        "-s", escapeShell(password),
+        "-s", password,
         "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
         `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
     ]);
