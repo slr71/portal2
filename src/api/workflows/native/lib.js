@@ -125,9 +125,11 @@ function mailchimpSubscribe(email, firstName, lastName) {
         merge_fields: {
             FNAME: firstName,
             LNAME: lastName
-        }
+        },
+        tags: config.mailchimp.tags || []
     }
     return runFile("curl", [
+        "--request", "POST",
         "--location", 
         "--header", `Authorization: Basic ${config.mailchimp.apiKey}`, 
         "--header", "Content-Type: application/json",

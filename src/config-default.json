@@ -71,7 +71,8 @@
     "mailchimp": {
         "baseUrl": "",
         "apiKey": "",
-        "listId": ""
+        "listId": "",
+        "tags": []
     },
 
     "mailman": {
