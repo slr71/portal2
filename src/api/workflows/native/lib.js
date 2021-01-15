@@ -121,7 +121,7 @@ function irodsDeleteUser(username) {
 function mailchimpSubscribe(email, firstName, lastName) {
     const data = {
         email_address: email,
-        status: "subscribe",
+        status: "subscribed",
         merge_fields: {
             FNAME: firstName,
             LNAME: lastName
