@@ -11,6 +11,9 @@ async function userCreationWorkflow(user) {
     // LDAP: create user
     await ldapCreateUser(user);
 
+    // LDAP: set user password
+    await ldapChangePassword(user.username, user.password);
+
     // LDAP: add user to groups
     await ldapAddUserToGroup(user.username, "iplant-everyone");
     await ldapAddUserToGroup(user.username, "community");
