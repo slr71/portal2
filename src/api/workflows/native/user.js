@@ -39,7 +39,7 @@ async function userPasswordUpdateWorkflow(user) {
     await ldapChangePassword(user.username, user.password);
 
     // LDAP: update shadowLastChange 
-    const daysSinceEpoch = Math.floor(new Date()/8.64e7);
+    const daysSinceEpoch = Math.floor(new Date()/8.64e7).toString();
     await ldapModify(user.username, 'shadowLastChange', daysSinceEpoch)
 
     // IRODS: set user password
