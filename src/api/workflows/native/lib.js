@@ -139,6 +139,7 @@ function mailchimpSubscribe(email, firstName, lastName) {
 function mailchimpDelete(email) {
     const hash = crypto.createHash('md5').update(email).digest('hex');
     return runFile("curl", [
+        "--request", "POST",
         "--location", 
         "--header", `Authorization: Basic ${config.mailchimp.apiKey}`, 
         `${config.mailchimp.baseUrl}/lists/${config.mailchimp.listId}/members/${hash}/actions/delete-permanent`
