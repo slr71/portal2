@@ -183,8 +183,11 @@ app.prepare()
 
         // Restricted UI pages
         server.get("/forms*", (req, res) => { // alias "/requests" as "/forms" for old links on cyverse.org
-            var url = req.url.replace(/^\/forms/, '/requests');
-            app.render(req, res, url);
+            var url = req.url.replace(/^\/forms/, '/requests')
+            app.render(req, res, url)
+        })
+        server.get(["/services/mine", "/services/available", "/services/powered-services"], (req, res) => { // aliases for old links on cyverse.org
+            res.redirect("/services")
         })
         server.get("*", (req, res) => { // all other pages
             return nextHandler(req, res)
