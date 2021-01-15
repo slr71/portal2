@@ -10,7 +10,7 @@ function run(strOrArray) {
     console.log("run: " + cmdStr);
 
     return new Promise(function(resolve, reject) {
-        const child = exec(
+        exec(
             cmdStr,
             (error, stdout, stderr) => {
                 console.log('run:stdout:', stdout);
@@ -33,7 +33,7 @@ function runFile(cmd, args) {
     console.log("run:", cmd, args.join(' '));
 
     return new Promise(function(resolve, reject) {
-        const child = execFile(
+        execFile(
             cmd, args,
             (error, stdout, stderr) => {
                 console.log('run:stdout:', stdout);
@@ -158,7 +158,7 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
         endpoint = 'remove';
     }
 
-    return runFile("curl", [ "--location", "-X", "POST", `"${baseUrl}/${endpoint}?${params}"`]);
+    return runFile("curl", [ "--location", "-X", "POST", `${baseUrl}/${endpoint}?${params}`]);
 }
 
 function escapeShell(cmd) {
