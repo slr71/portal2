@@ -63,11 +63,13 @@ function ldapCreateUser(user) {
     // Old method: /repos/portal/cyverse_ldap/utils/get_uid_number.py
     const uidNumber = user.id + config.uidNumberOffset;
 
-    return run(`echo "dn: uid=${user.username},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: ${user.first_name}\nsn: ${user.last_name}\ncn: ${user.first_name} ${user.last_name}\nuid: ${user.username}\nuserPassword: ${user.password}\nmail: ${user.email}\ndepartmentNumber: ${user.department}\no: ${user.institution}\ntitle: ${user.occupation.name}\nhomeDirectory: /home/${user.username}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: ${uidNumber}\nshadowLastChange:${daysSinceEpoch}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password} -o nettimeout=5`);
+    // username, password, and occupation name will be shell safe values but others should be escaped
+    return run(`echo "dn: uid=${user.username},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: ${escapeShell(user.first_name)}\nsn: ${escapeShell(user.last_name)}\ncn: ${escapeShell(user.first_name + ' ' + user.last_name)}\nuid: ${user.username}\nuserPassword: ${user.password}\nmail: ${escapeShell(user.email)}\ndepartmentNumber: ${escapeShell(user.department)}\no: ${escapeShell(user.institution)}\ntitle: ${user.occupation.name}\nhomeDirectory: /home/${user.username}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: ${uidNumber}\nshadowLastChange:${daysSinceEpoch}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password} -o nettimeout=5`);
 }
 
 function ldapModify(username, attribute, value) {
-    return run(`echo "dn: uid=${username},ou=People,dc=iplantcollaborative,dc=org\nreplace: ${attribute}\n${attribute}: ${value}" | ldapmodify -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password} -o nettimeout=5`);
+    // username and attribute will be shell safe values but value should be escaped
+    return run(`echo "dn: uid=${username},ou=People,dc=iplantcollaborative,dc=org\nreplace: ${attribute}\n${attribute}: ${escapeShell(value)}" | ldapmodify -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password} -o nettimeout=5`);
 }
 
 function ldapChangePassword(username, password) {
