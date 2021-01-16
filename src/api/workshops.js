@@ -71,8 +71,6 @@ router.get('/:id(\\d+)', asyncHandler(async (req, res) => {
 router.get('/:id(\\d+)/download', asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id);
 
-    const uid = 'workshop' + workshop.id + '@user.cyverse.org'
-
     res.setHeader('Content-disposition', 'attachment;filename=' + workshop.title + '.ics');
     res.setHeader('Content-type', 'application/octet-stream');
     res.write(`BEGIN:VCALENDAR
@@ -80,15 +78,24 @@ CALSCALE:GREGORIAN
 PRODID:-//CyVerse//User Portal//EN
 VERSION:2.0
 BEGIN:VEVENT
-DTSTAMP:${new Date(workshop.updated_at)}
-DTSTART:${new Date(workshop.start_date)}
-DTEND:${new Date(workshop.end_date)}
+DTSTAMP:${convertToICSDate(new Date(workshop.updated_at))}
+DTSTART:${convertToICSDate(new Date(workshop.start_date))}
+DTEND:${convertToICSDate(new Date(workshop.end_date))}
 SUMMARY:${workshop.title}
-UID:${uid}
+UID:${'workshop' + workshop.id + '@user.cyverse.org'}
 END:VEVENT
 END:VCALENDAR`);
     res.end();
 }));
+
+function convertToICSDate(date) {
+    const year = date.getFullYear().toString();
+    const month = (date.getMonth() + 1) < 10 ? "0" + (date.getMonth() + 1).toString() : (date.getMonth() + 1).toString();
+    const day = date.getDate() < 10 ? "0" + date.getDate().toString() : date.getDate().toString();
+    const hours = date.getHours() < 10 ? "0" + date.getHours().toString() : date.getHours().toString();
+    const minutes = date.getMinutes() < 10 ? "0" +date.getMinutes().toString() : date.getMinutes().toString();
+    return year + month + day + "T" + hours + minutes + "00";
+}
 
 // Create workshop (STAFF ONLY)
 router.put('/', getUser, requireAdmin, asyncHandler(async (req, res) => {
@@ -153,8 +160,8 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
 
     // Verify and update fields
     for (let key in fields) {
-        const SUPPORTED_FIELDS = ['title', 'description', 'about', 'enrollment_begins', 'enrollment_ends', 'creator_id'];
-        const RESTRICTED_FIELDS = [ 'enrollment_begins', 'enrollment_ends', 'creator_id' ]
+        const SUPPORTED_FIELDS = ['title', 'description', 'about', 'enrollment_begins', 'enrollment_ends', 'start_date', 'end_date', 'creator_id'];
+        const RESTRICTED_FIELDS = [ 'enrollment_begins', 'enrollment_ends', 'start_date', 'end_date', 'creator_id' ]
         if (RESTRICTED_FIELDS.includes(key) && !req.user.is_staff)
             return res.status(403).send('Restricted field');
         if (!SUPPORTED_FIELDS.includes(key))
