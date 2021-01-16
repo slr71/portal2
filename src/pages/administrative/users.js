@@ -129,7 +129,7 @@ const UserTable = ({ rows, rowsPerPage, count, page, handleChangePage, handleCha
                 <TableCell>{user.occupation.name}</TableCell>
                 <TableCell>{user.region.name}</TableCell>
                 <TableCell>{user.region.country.name}</TableCell>
-                <TableCell style={{whiteSpace:'nowrap'}}>{(d.getMonth()+1)+'/'+d.getDay()+'/'+d.getFullYear()}</TableCell>
+                <TableCell style={{whiteSpace:'nowrap'}}>{(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear()}</TableCell>
               </TableRow>
             </Link>
           )
