@@ -13,6 +13,7 @@ const WorkshopParticipant = models.api_userworkshop;
 const WorkshopEmail= models.api_workshopuseremail;
 const { approveRequest, grantRequest } = require('./approvers/workshop');
 const { notifyClientOfWorkshopRequestStatusChange } = require('./lib/ws');
+const config = require('../config');
 
 function hasHostAccess(workshop, user) {
     return workshop.creator_id == user.id || user.is_staff
@@ -63,6 +64,8 @@ router.get('/:id(\\d+)', asyncHandler(async (req, res) => {
         ],
         order: [ [ 'services', 'name', 'ASC' ] ]
     });
+    if (!workshop)
+        return res.status(404).send('Workshop not found');
 
     return res.status(200).json(workshop);
 }));
@@ -70,22 +73,52 @@ router.get('/:id(\\d+)', asyncHandler(async (req, res) => {
 // Download workshop ICS file
 router.get('/:id(\\d+)/download', asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id);
+    if (!workshop)
+        return res.status(404).send('Workshop not found');
 
-    res.setHeader('Content-disposition', 'attachment;filename=' + workshop.title + '.ics');
-    res.setHeader('Content-type', 'application/octet-stream');
-    res.write(`BEGIN:VCALENDAR
+    try {
+        const updateDate = new Date(workshop.updated_at)
+        const startDate = new Date(workshop.start_date)
+        const endDate = new Date(workshop.end_date)
+
+        const dates = []
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const end = new Date(d);
+            end.setHours(endDate.getHours());
+            end.setMinutes(endDate.getMinutes());
+            dates.push({ start: new Date(d), end: new Date(end) })
+        }
+
+        if (!dates || dates.length > 5)
+            return res.status(500).send('Invalid date range');
+
+        res.setHeader('Content-disposition', 'attachment;filename=' + workshop.title + '.ics');
+        res.setHeader('Content-type', 'application/octet-stream');
+        res.write(`BEGIN:VCALENDAR
 CALSCALE:GREGORIAN
 PRODID:-//CyVerse//User Portal//EN
 VERSION:2.0
-BEGIN:VEVENT
-DTSTAMP:${convertToICSDate(new Date(workshop.updated_at))}
-DTSTART:${convertToICSDate(new Date(workshop.start_date))}
-DTEND:${convertToICSDate(new Date(workshop.end_date))}
+`);
+
+        for (let i = 0; i < dates.length; i++) {
+            res.write(`BEGIN:VEVENT
+DTSTAMP:${convertToICSDate(updateDate)}
+DTSTART:${convertToICSDate(dates[i].start)}
+DTEND:${convertToICSDate(dates[i].end)}
 SUMMARY:${workshop.title}
-UID:${'workshop' + workshop.id + '@user.cyverse.org'}
+UID:${'workshop' + workshop.id + '-' + i + '@user.cyverse.org'}
+URL:${config.uiBaseUrl}/workshops/${workshop.id}
 END:VEVENT
-END:VCALENDAR`);
-    res.end();
+`);
+        }
+
+        res.write('END:VCALENDAR');
+        res.end();
+    }
+    catch(error) {
+        console.log(error);
+        res.end();
+    }
 }));
 
 function convertToICSDate(date) {

@@ -119,7 +119,7 @@ const WorkshopViewer = (props) => {
               <Typography color="textSecondary">
                 Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
               </Typography>
-              <Link href={`/api/workshops/${workshop.id}/download`}>
+              <Link href={`/api/workshops/${workshop.id}/download`} target="_blank">
                 Download event to your calendar
               </Link>
             </Grid>
@@ -623,7 +623,7 @@ const WorkshopPeriod = ({ start_date, end_date, enrollment_begins, submitHandler
     <Paper elevation={3} className={classes.paper}>
       <Typography component="div" variant="h5">Attendance Period</Typography> 
       <Typography color="textSecondary">
-        Set the date range for when users will attend in the workshop.
+        Set the date range for when users will attend the workshop.
         NOTE: these fields can only be changed by CyVerse staff.
       </Typography>
       <br />
