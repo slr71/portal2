@@ -83,7 +83,7 @@ const Users = props => {
             </Grid>
           </Grid>
           <Typography color="textSecondary" gutterBottom>
-            Search across first name, last name, username, email, institution, occupation, region, and country.<br />
+            Search across name, username, email, institution, occupation, region, and country.<br />
             Enter multiple keywords separated by spaces.
           </Typography>
           <br />
@@ -106,31 +106,34 @@ const UserTable = ({ rows, rowsPerPage, count, page, handleChangePage, handleCha
     <Table size="small">
       <TableHead>
         <TableRow>
-          <TableCell>First Name</TableCell>
-          <TableCell>Last Name</TableCell>
+          <TableCell>Name</TableCell>
           <TableCell>Username</TableCell>
           <TableCell>Email</TableCell>
           <TableCell>Institution</TableCell>
           <TableCell>Occupation</TableCell>
           <TableCell>Region</TableCell>
           <TableCell>Country</TableCell>
+          <TableCell>Joined</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
-        {rows.map((user, index) => (
-          <Link key={index} href={`/administrative/users/${user.id}`}>
-            <TableRow hover style={{cursor: 'pointer'}}>
-              <TableCell>{user.first_name}</TableCell>
-              <TableCell>{user.last_name}</TableCell>
-              <TableCell>{user.username}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>{user.institution}</TableCell>
-              <TableCell>{user.occupation.name}</TableCell>
-              <TableCell>{user.region.name}</TableCell>
-              <TableCell>{user.region.country.name}</TableCell>
-            </TableRow>
-          </Link>
-        ))}
+        {rows.map((user, index) => {
+          const d = new Date(user.date_joined)
+          return (
+            <Link key={index} href={`/administrative/users/${user.id}`}>
+              <TableRow hover style={{cursor: 'pointer'}}>
+                <TableCell style={{whiteSpace:'nowrap'}}>{user.first_name} {user.last_name}</TableCell>
+                <TableCell>{user.username}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.institution}</TableCell>
+                <TableCell>{user.occupation.name}</TableCell>
+                <TableCell>{user.region.name}</TableCell>
+                <TableCell>{user.region.country.name}</TableCell>
+                <TableCell style={{whiteSpace:'nowrap'}}>{(d.getMonth()+1)+'/'+d.getDay()+'/'+d.getFullYear()}</TableCell>
+              </TableRow>
+            </Link>
+          )
+        })}
       </TableBody>
       <TableFooter>
         <TableRow>

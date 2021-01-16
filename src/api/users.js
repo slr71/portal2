@@ -42,7 +42,7 @@ router.get('/', requireAdmin, asyncHandler(async (req, res) => {
                 include: [ 'country' ]
             }
         ],
-        attributes: [ 'id', 'username', 'first_name', 'last_name', 'email', 'institution' ],
+        attributes: [ 'id', 'username', 'first_name', 'last_name', 'email', 'institution', 'date_joined' ],
         order: [ ['id', 'DESC'] ],
         offset: offset,
         limit: limit,
