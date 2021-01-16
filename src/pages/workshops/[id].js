@@ -107,17 +107,20 @@ const WorkshopViewer = (props) => {
             <Grid item xs={12}>
               <Typography color="textSecondary">{workshop.description}</Typography>
               <br />
+              {isHost &&
+                <Typography>
+                  <b>Your are the workshop host</b>
+                </Typography>
+              }
               <Typography color="textSecondary">
                 Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} hideTime />
               </Typography>
               <Typography color="textSecondary">
                 Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
               </Typography>
-              {isHost &&
-                <Typography>
-                  <b>Your are the workshop host</b>
-                </Typography>
-              }
+              <Link href={`/api/workshops/${workshop.id}/download`}>
+                Download event to your calendar
+              </Link>
             </Grid>
           </Grid>
           {workshop.about &&

@@ -67,6 +67,29 @@ router.get('/:id(\\d+)', asyncHandler(async (req, res) => {
     return res.status(200).json(workshop);
 }));
 
+// Download workshop ICS file
+router.get('/:id(\\d+)/download', asyncHandler(async (req, res) => {
+    const workshop = await Workshop.findByPk(req.params.id);
+
+    const uid = 'workshop' + workshop.id + '@user.cyverse.org'
+
+    res.setHeader('Content-disposition', 'attachment;filename=' + workshop.title + '.ics');
+    res.setHeader('Content-type', 'application/octet-stream');
+    res.write(`BEGIN:VCALENDAR
+CALSCALE:GREGORIAN
+PRODID:-//CyVerse//User Portal//EN
+VERSION:2.0
+BEGIN:VEVENT
+DTSTAMP:${new Date(workshop.updated_at)}
+DTSTART:${new Date(workshop.start_date)}
+DTEND:${new Date(workshop.end_date)}
+SUMMARY:${workshop.title}
+UID:${uid}
+END:VEVENT
+END:VCALENDAR`);
+    res.end();
+}));
+
 // Create workshop (STAFF ONLY)
 router.put('/', getUser, requireAdmin, asyncHandler(async (req, res) => {
     if (!req.body.title)
