@@ -5,7 +5,7 @@ import { makeStyles, Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip
 import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@material-ui/icons'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import DateFnsUtils from '@date-io/date-fns'
-import { MuiPickersUtilsProvider, KeyboardDatePicker } from '@material-ui/pickers'
+import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
 import { Layout, DateRange, DateSpan, TabPanel, UpdateForm, FormDialog, ContactsEditor } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { useError, withGetServerSideError } from '../../contexts/error'
@@ -438,6 +438,8 @@ const WorkshopEditor = (props) => {
         <br /><br />
         <EnrollmentPeriod {...workshop} submitHandler={submitWorkshop} />
         <br /><br />
+        <WorkshopPeriod {...workshop} submitHandler={submitWorkshop} />
+        <br /><br />
         <Host {...workshop} submitHandler={submitWorkshop} />
         <br /><br />
         <Organizers {...workshop} submitHandler={submitOrganizer} deleteHandler={deleteOrganizer} />
@@ -524,7 +526,7 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
     <Paper elevation={3} className={classes.paper}>
       <Typography component="div" variant="h5">Enrollment Period</Typography> 
       <Typography color="textSecondary">
-        Set the date range for when users will be able to enroll in the workshop and gain access to the relevant services.
+        Set the date range for when users can enroll in the workshop and gain access to the relevant services.
         NOTE: these fields can only be changed by CyVerse staff.
       </Typography>
       <br />
@@ -532,14 +534,13 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
         <Grid container justify="space-around">
           <KeyboardDatePicker
             disabled={!isEditor}
-            disableToolbar
             variant="inline"
             format="MM/dd/yyyy"
             margin="normal"
             style={{width: '45%'}}
             id="enrollment_begins"
             label="Enrollment Begins"
-            helperText="When should enrollment begin? This is the earliest users with an authorized email will be able to enroll and get access to the workshop services."
+            helperText="This is the earliest that users with an authorized email will be able to enroll and get access to the workshop services."
             value={enrollment_begins}
             onChange={(value) => handleChange({'enrollment_begins': value})}
             KeyboardButtonProps={{
@@ -548,16 +549,110 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
           />
           <KeyboardDatePicker
             disabled={!isEditor}
-            disableToolbar
             variant="inline"
             format="MM/dd/yyyy"
             margin="normal"
             style={{width: '45%'}}
             id="enrollment_ends"
             label="Enrollment Ends"
-            helperText="When should enrollment end? After this date users will not be able to enroll in the workshop, even if their email is authorized."
+            helperText="After this date users will not be able to enroll in the workshop, even if their email is authorized."
             value={enrollment_ends}
             onChange={(value) => handleChange({'enrollment_ends': value})}
+            KeyboardButtonProps={{
+              'aria-label': 'change date',
+            }}
+          />
+        </Grid>
+      </MuiPickersUtilsProvider>
+    </Paper>
+  )
+}
+
+//FIXME similar to EnrollmentPeriod, move into shared component
+const WorkshopPeriod = ({ start_date, end_date, enrollment_begins, submitHandler }) => {
+  const classes = useStyles()
+  const [user] = useUser()
+  const [errors, setErrors] = useState({})
+  const isEditor = user.is_staff
+
+  const validate = (values) => {
+    const errors = {}
+
+    if ('start_date' in values) {
+      if (!isDate(values['start_date']))
+        errors['start_date'] = 'Invalid date'
+      // else if (new Date(values['start_date']) > new Date(end_date))
+      //   errors['start_date'] = 'Start date must come before end date'
+    }
+
+    if ('end_date' in values) {
+      if (!isDate(values['end_date']))
+        errors['end_date'] = 'Invalid date'
+      // else if (new Date(values['end_date']) < new Date(start_date))
+      //   errors['end_date'] = 'End date must come after start date'
+    }
+
+    return errors
+  }
+
+  const handleChange = (values) => {
+    console.log('Submit:', values)
+
+    const errors = validate(values)
+    console.log('errors', errors)
+    setErrors(errors)
+    if (Object.keys(errors).length > 0)
+      return
+
+    submitHandler(values)
+  }
+
+  const isDate = (d) => {
+    if (!(d instanceof Date) || isNaN(d))
+      return false
+    return true
+  }
+
+  return (
+    <Paper elevation={3} className={classes.paper}>
+      <Typography component="div" variant="h5">Attendance Period</Typography> 
+      <Typography color="textSecondary">
+        Set the date range for when users will attend in the workshop.
+        NOTE: these fields can only be changed by CyVerse staff.
+      </Typography>
+      <br />
+      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+        <Grid container justify="space-around">
+          <KeyboardDateTimePicker
+            disabled={!isEditor}
+            variant="inline"
+            format="MM/dd/yyyy hh:mm a"
+            margin="normal"
+            style={{width: '45%'}}
+            id="start_date"
+            label="Workshop Begins"
+            error={!!errors["start_date"]}
+            helperText={errors["start_date"]}
+            value={start_date}
+            minDate={enrollment_begins}
+            onChange={(value) => handleChange({'start_date': value})}
+            KeyboardButtonProps={{
+              'aria-label': 'change date',
+            }}
+          />
+          <KeyboardDateTimePicker
+            disabled={!isEditor}
+            variant="inline"
+            format="MM/dd/yyyy hh:mm a"
+            margin="normal"
+            style={{width: '45%'}}
+            id="end_date"
+            label="Workshop Ends"
+            error={!!errors["end_date"]}
+            helperText={errors["end_date"]}
+            value={end_date}
+            minDate={enrollment_begins}
+            onChange={(value) => handleChange({'end_date': value})}
             KeyboardButtonProps={{
               'aria-label': 'change date',
             }}
