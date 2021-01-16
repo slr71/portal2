@@ -81,7 +81,7 @@ const ServiceViewer = (props) => {
     });
   }, [])
 
-  // Icons were moved inline for performance
+  // Icons were moved inline for performance //TODO move into component
   const icon_url = service.icon_url in inlineIcons ? inlineIcons[service.icon_url] : service.icon_url
 
   return (

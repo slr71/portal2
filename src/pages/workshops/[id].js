@@ -12,6 +12,7 @@ import { useError, withGetServerSideError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
 const { WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE } = require('../../constants')
+const inlineIcons = require('../../inline_icons.json')
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -134,16 +135,21 @@ const WorkshopViewer = (props) => {
               <Typography component="div" variant="h5">Services</Typography>
               <Typography color="textSecondary">Services used in the workshop.</Typography>
               <List>
-                {workshop.services.map((service, index) => (
-                  <Link key={index} underline='none' href={`/services/${service.id}`}>
-                    <ListItem>
-                      <ListItemAvatar>
-                        <Avatar alt={service.name} src={service.iconUrl} />
-                      </ListItemAvatar>
-                      <ListItemText primary={service.name} secondary={service.description}/>
-                    </ListItem>
-                  </Link>
-                ))}
+                {workshop.services.map((service, index) => {
+                  // Icons were moved inline for performance //TODO move into component
+                  const icon_url = service.icon_url in inlineIcons ? inlineIcons[service.icon_url] : service.icon_url
+
+                  return (
+                    <Link key={index} underline='none' href={`/services/${service.id}`}>
+                      <ListItem>
+                        <ListItemAvatar>
+                          <Avatar alt={service.name} src={icon_url} />
+                        </ListItemAvatar>
+                        <ListItemText primary={service.name} secondary={service.description}/>
+                      </ListItem>
+                    </Link>
+                  )
+                })}
               </List>
             </Grid>
           }
@@ -796,25 +802,30 @@ const Services = ({ workshop, services, submitHandler, deleteHandler }) => {
         <Typography color="textSecondary">Services users need access to for this workshop.</Typography>
         <br />
         <List>
-          {workshop.services.map((service, index) => (
-            <Grid container key={index} justify="space-between" alignItems="center">
-              <Grid item>
-                <Link href={service.service_url}>
-                  <ListItem>
-                    <ListItemAvatar>
-                      <Avatar src={service.icon_url} />
-                    </ListItemAvatar>
-                    <ListItemText primary={service.name} />
-                  </ListItem>
-                </Link>
+          {workshop.services.map((service, index) => {
+            // Icons were moved inline for performance //TODO move into component
+            const icon_url = service.icon_url in inlineIcons ? inlineIcons[service.icon_url] : service.icon_url
+
+            return (
+              <Grid container key={index} justify="space-between" alignItems="center">
+                <Grid item>
+                  <Link href={service.service_url}>
+                    <ListItem>
+                      <ListItemAvatar>
+                        <Avatar src={icon_url} />
+                      </ListItemAvatar>
+                      <ListItemText primary={service.name} />
+                    </ListItem>
+                  </Link>
+                </Grid>
+                <Grid item>
+                  <IconButton onClick={() => deleteHandler(service.id)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Grid>
               </Grid>
-              <Grid item>
-                <IconButton onClick={() => deleteHandler(service.id)}>
-                  <DeleteIcon />
-                </IconButton>
-              </Grid>
-            </Grid>
-          ))}
+            )
+          })}
         </List>
         <Box display="flex" justifyContent="flex-end">
           <Button 
