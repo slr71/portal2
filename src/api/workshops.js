@@ -77,21 +77,30 @@ router.get('/:id(\\d+)/download', asyncHandler(async (req, res) => {
         return res.status(404).send('Workshop not found');
 
     try {
+        const MAX_EVENTS = 1000*60*60*24*5; // 5 days
         const updateDate = new Date(workshop.updated_at)
         const startDate = new Date(workshop.start_date)
         const endDate = new Date(workshop.end_date)
 
         const dates = []
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-            const end = new Date(d);
-            end.setHours(endDate.getHours());
-            end.setMinutes(endDate.getMinutes());
-            dates.push({ start: new Date(d), end: new Date(end) })
+        if (endDate.getTime() - startDate.getTime() <= MAX_EVENTS) {
+            // Generate an event for each day
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const endOfDay = new Date(d);
+                endOfDay.setHours(endDate.getHours());
+                endOfDay.setMinutes(endDate.getMinutes());
+                dates.push({ start: new Date(d), end: endOfDay })
+            }
+        }
+        else {
+            // Generate one multi-day event
+            dates.push({ start: startDate, end: endDate})
         }
 
-        if (!dates || dates.length > 5)
+        if (!dates)
             return res.status(500).send('Invalid date range');
 
+        // Send ICS file
         res.setHeader('Content-disposition', 'attachment;filename=' + workshop.title + '.ics');
         res.setHeader('Content-type', 'application/octet-stream');
         res.write(`BEGIN:VCALENDAR
