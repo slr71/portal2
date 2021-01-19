@@ -186,6 +186,9 @@ app.prepare()
             var url = req.url.replace(/^\/forms/, '/requests')
             app.render(req, res, url)
         })
+        server.get("/workshops/:id(\\d+)/overview", (req, res) => { // aliases for old links on cyverse.org
+            res.redirect(`/workshops/${req.params.id}`)
+        })
         server.get(["/services/mine", "/services/available", "/services/powered-services"], (req, res) => { // aliases for old links on cyverse.org
             res.redirect("/services")
         })
