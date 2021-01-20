@@ -158,6 +158,10 @@ app.prepare()
             app.render(req, res, "/welcome", { signup: 1 })
         })
 
+        server.get("/forgot", (req, res) => {  
+            app.render(req, res, "/welcome", { forgot: 1 })
+        })
+
         server.get("/password", (req, res) => { 
             app.render(req, res, "/password")
         })

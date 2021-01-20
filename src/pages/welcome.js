@@ -104,7 +104,7 @@ const Right = (props) => {
   const router = useRouter()
 
   const [signup, setSignup] = useState(!!router.query.signup)
-  const [forgotPassword, setForgotPassword] = useState(false)
+  const [forgotPassword, setForgotPassword] = useState(!!router.query.forgot)
 
   if (forgotPassword)
     return <ForgotPassword {...props} cancelHandler={() => setForgotPassword(false)} />
@@ -120,21 +120,21 @@ const Right = (props) => {
         </Typography>
       </Box>
       <Box pt={"5em"}>
-        <Typography variant="h6" gutterBottom>
+        <Typography gutterBottom>
           New to CyVerse?
         </Typography>
       </Box>
-      <Box mt={2}>
+      <Box>
         <Button variant="contained" color="primary" size="large" disableElevation className={classes.button} onClick={() => setSignup(true)}>
           Sign Up
         </Button>
       </Box>
-      <Box mt={3}>
+      <Box mt={5}>
         <Button variant="outlined" color="primary" size="large" disableElevation className={classes.button} href="/login">
           Login
         </Button>
       </Box>
-      <Box mt={2} mb={5}>
+      <Box mt={7} mb={5}>
         <Button variant="text" size="small" onClick={() => setForgotPassword(true)}>Forgot Password</Button>
       </Box>
     </div>
