@@ -56,6 +56,18 @@ function dockerRun(args) {
     return runFile("docker", [ "run", config.nativeWorkflow.image, ...args ])
 }
 
+function ldapGetUser(username) {
+    return runFile("ldapsearch", [
+        "-H", config.ldap.host, 
+        // "-D", config.ldap.admin,
+        // "-w", config.ldap.password, 
+        "-x",
+        "-LLL",
+        "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
+        `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
+    ]);
+}
+
 function ldapCreateUser(user) {
     // Calculate number of days since epoch (needed for LDAP)
     const daysSinceEpoch = Math.floor(new Date()/8.64e7);
@@ -184,6 +196,7 @@ function escapeShell(cmd) {
 
 module.exports = { 
     run, 
+    ldapGetUser,
     ldapCreateUser,
     ldapModify,
     ldapChangePassword,

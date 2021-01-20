@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { makeStyles, Container, Box, Button, Paper, Typography, Backdrop, CircularProgress, Divider } from '@material-ui/core'
+import { makeStyles, Container, Box, Button, Paper, Typography, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
 import Alert from '@material-ui/lab/Alert';
 import { Layout, DateSpan, ConfirmationDialog } from '../../../components'
 import { useAPI } from '../../../contexts/api'
@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const User = ({ user, history }) => {
+const User = ({ user, history, ldap }) => {
   const classes = useStyles()
   const router = useRouter()
   const [me] = useUser()
@@ -33,6 +33,8 @@ const User = ({ user, history }) => {
   const [_, setError] = useError()
   
   const [openDeleteConfirmationDialog, setOpenDeleteConfirmationDialog] = React.useState(false)
+  const [openLDAPDialog, setOpenLDAPDialog] = React.useState(false)
+  const [ldapRecord, setLDAPRecord] = React.useState()
   const [deletingUser, setDeletingUser] = React.useState(false)
 
   const deleteUser = async () => {
@@ -70,6 +72,13 @@ const User = ({ user, history }) => {
             DELETE
           </Button>
           <Typography>Superuser permission is required to delete a user</Typography>
+          <Button 
+            variant="contained" 
+            size="medium"
+            onClick={() => setOpenLDAPDialog(true)} 
+          >
+            VIEW LDAP RECORD
+          </Button>
         </Paper>
 
         <Paper elevation={3} className={classes.paper}>
@@ -166,14 +175,38 @@ const User = ({ user, history }) => {
         handleClose={() => setOpenDeleteConfirmationDialog(false)} 
         handleSubmit={deleteUser}
       />
+      <LDAPRecordDialog
+        open={openLDAPDialog}
+        content={ldap}
+        handleClose={() => setOpenLDAPDialog(false)} 
+      />
     </Layout>
+  )
+}
+
+const LDAPRecordDialog = ({ open, content, handleClose }) => {
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth aria-labelledby="form-dialog-title">
+    <DialogTitle id="form-dialog-title">LDAP Record</DialogTitle>
+    <DialogContent>
+      <DialogContentText>
+        {content}
+      </DialogContentText>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleClose} variant="contained" color="primary">
+        OK
+      </Button>
+    </DialogActions>
+    </Dialog>
   )
 }
 
 export async function getServerSideProps({ req, query }) {
   const user = await req.api.user(query.id)
   const history = await req.api.userHistory(query.id)
-  return { props: { user, history } }
+  const ldap = await req.api.userLDAP(query.id)
+  return { props: { user, history, ldap } }
 }
 
 export default User

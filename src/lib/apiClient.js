@@ -58,6 +58,8 @@ class PortalAPI {
 
   async userHistory(id) { return await this.get(`/users/${id}/history`) }
 
+  async userLDAP(id) { return await this.get(`/users/${id}/ldap`) }
+
   async users(params) { return await this.get(`/users`, params) }
 
   async checkUsername(username) { return await this.post(`/exists`, { username }) }

@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { logger } = require('./lib/logging');
 const { requireAdmin, isAdmin, getUser, asyncHandler } = require('./lib/auth');
 const { checkPassword, encodePassword } = require('./lib/password');
+const { ldapGetUser } = require('./workflows/native/lib.js');
 const { userPasswordUpdateWorkflow, userDeletionWorkflow } = require('./workflows/native/user.js');
 const sequelize = require('sequelize');
 const models = require('./models');
@@ -137,6 +138,19 @@ router.get('/:id(\\d+)/history', requireAdmin, asyncHandler(async (req, res) => 
 
     res.status(200).json(history);
 }));
+
+// Get individual user's LDAP record for debug (STAFF ONLY)
+router.get('/:id(\\d+)/ldap', requireAdmin, asyncHandler(async (req, res) => {
+    const user = await User.findByPk(req.params.id);
+    try {
+        const record = ldapGetUser(user.username);
+        console.log(record);
+        res.status(200).send(record);
+    }
+    catch(error) {
+        res.status(200).send('An error occurred');
+    }
+})); 
 
 // Update user 
 // If body is empty then will just return the user
