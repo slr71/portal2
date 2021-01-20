@@ -202,6 +202,7 @@ router.post('/requests/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (re
     request.set('status', status);
     request.set('message', message);
     await request.save();
+    await request.reload();
 
     // Send response to client
     res.status(200).json(request);

@@ -69,7 +69,7 @@ async function grantRequest(request) {
             // Status is set to "granted" in Argo workflow via POST to /api/services/requests/[id]
         }
         else { // Argo disabled, fall back to native workflow
-            const rc = await serviceRegistrationWorkflow(request);
+            await serviceRegistrationWorkflow(request);
             await request.grant();
             await emailServiceAccessGranted(request);
         }
