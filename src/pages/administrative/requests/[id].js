@@ -3,6 +3,7 @@ import { Container, Grid, Box, Typography, Button, Divider } from '@material-ui/
 import { Layout, Section, User, Conversations } from '../../../components'
 import { useUser } from '../../../contexts/user'
 import { withGetServerSideError } from '../../../contexts/error'
+import { useAPI } from '../../../contexts/api'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -67,10 +68,17 @@ const Actions = (props) => {
   const [user] = useUser()
   const [request, setRequest] = React.useState(props.request)
   const classes = useStyles()
+  const api = useAPI()
 
   const updateStatus = async (status) => {
-    const newRequest = await props.api.updateServiceRequest(request.service.id, { status, message: `Request ${status} by ${user.username}` })
-    setRequest(newRequest)
+    try {
+      const newRequest = await api.updateServiceRequest(request.service.id, { status, message: `Request ${status} by ${user.username}` })
+      setRequest(newRequest)
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
   }
 
   const approveButton = <Button color="primary" size="medium" onClick={() => updateStatus('approved')}>APPROVE</Button>
