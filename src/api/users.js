@@ -87,20 +87,20 @@ router.get('/:id(\\d+)/history', requireAdmin, asyncHandler(async (req, res) => 
     )
     history = history.concat( 
         user.password_resets.map(r => {
-            return { date: r.created_at, message: `Password reset (HMAC ${r.key})` }
+            return { date: r.created_at, message: `Password set/reset (HMAC ${r.key})` }
         })
     )
     history = history.concat(
         user.access_requests.map(r => {
             const service = services.find(s => s.id == r.service_id);
-            return { date: r.created_at, message: `Access requested to service ${service.name}` }
+            return { date: r.created_at, message: `Access requested to service ${service.name}` + (r.auto_approve ? ' (auto approve)' : '') }
         })
     )
     for (const request of user.access_requests) {
         history = history.concat(
             request.logs.map(l => {
                 const service = services.find(s => s.id == request.service_id);
-                return { date: r.created_at, message: l.message}
+                return { date: l.created_at, message: `${l.message} to service ${service.name}` }
             })
         )
     }

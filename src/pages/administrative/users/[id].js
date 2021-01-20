@@ -143,7 +143,7 @@ const User = ({ user, history }) => {
             ? history.map((entry, index) => (
                 <Box key={index}>
                   <Typography variant='subtitle2' color='textSecondary'>{new Date(entry.date).toLocaleString()}</Typography>
-                  <Typography>{entry.message}</Typography>
+                  <Typography variant='subtitle2'>{entry.message}</Typography>
                   {index == history.length - 1 ? <></> : <Divider className={classes.divider} />}
                 </Box>
               ))
