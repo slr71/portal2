@@ -209,8 +209,6 @@ router.post('/requests/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (re
     // Call granter (do this after response as to not delay it)
     if (request.isApproved())
         await grantRequest(request);
-    if (request.isGranted()) // callback from workflow
-        await emailServiceAccessGranted(request);
 
     // Update status on client
     notifyClientOfServiceRequestStatusChange(req.ws, request);

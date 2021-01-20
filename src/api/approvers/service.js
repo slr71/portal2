@@ -35,6 +35,7 @@ const GRANTERS = {
 };
 
 async function grantRequest(request) {
+    logger.info(`grant: Service ${request.service.name} for user ${request.user.username} (approval_key="${request.service.approval_key}")`);
     if (!request.service || !request.user)
         throw('service:grantRequest: Missing required property')
 
