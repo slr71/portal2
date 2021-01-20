@@ -83,7 +83,7 @@ const User = ({ user, history, ldap, startTimeHMAC }) => {
               VIEW LDAP RECORD
             </Button>
             {' '}
-            <Button color="primary" style={{width:'17em'}} onClick={sendPasswordResetEmail}>
+            <Button color="primary" style={{width:'17em'}} disabled={resetPassword} onClick={sendPasswordResetEmail}>
               {resetPassword ? 'EMAIL SENT!' : 'SEND PASSWORD RESET EMAIL'}
             </Button>
             {' '}
