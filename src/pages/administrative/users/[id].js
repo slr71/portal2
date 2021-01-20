@@ -207,7 +207,9 @@ const LDAPRecordDialog = ({ open, content, handleClose }) => {
     <DialogTitle id="form-dialog-title">LDAP Record</DialogTitle>
     <DialogContent>
       <DialogContentText>
-        {content}
+        {content.split('\n').map((line, index) => 
+            <div key={index}>{line}</div>
+	)}
       </DialogContentText>
     </DialogContent>
     <DialogActions>
