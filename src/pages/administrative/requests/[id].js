@@ -73,7 +73,7 @@ const Actions = (props) => {
 
   const updateStatus = async (status) => {
     try {
-      const newRequest = await api.updateServiceRequest(request.service.id, { status, message: `Request ${status} by ${user.username}` })
+      const newRequest = await api.updateServiceRequest(request.id, { status, message: `Request ${status} by ${user.username}` })
       setRequest(newRequest)
     }
     catch(error) {
@@ -87,6 +87,10 @@ const Actions = (props) => {
 
   let buttons, text
   switch (props.request.status) {
+    case "requested":
+      buttons = [ denyButton, approveButton ]
+      break
+
     case "pending":
       buttons = [ denyButton, approveButton ]
       break
@@ -126,7 +130,7 @@ const History = props => {
   return (
     <Section title="History">
       {logs.map((log, i) => (
-        <Box key={log.id}>
+        <Box key={i}>
           <Typography>{log.message}</Typography>
           <Typography variant='subtitle2' color='textSecondary'>{log.created_at}</Typography>
           {i == logs.length - 1 ? <></> : <Divider className={classes.divider} />}

@@ -182,35 +182,19 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
  * For Argo workflow completion callback see src/api/public.js:/services/requests/:id
  * 
  */
-router.post('/:nameOrId(\\w+)/requests', getUser, requireAdmin, asyncHandler(async (req, res) => {
-    const nameOrId = req.params.nameOrId;
-
+router.post('/requests/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
+    const id = req.params.id;
     const status = req.body.status;
+    const message = req.body.message;
+    
     if (!status) //TODO verify valid status value
         return res.status(400).send('Missing status');
-
-    const message = req.body.message;
+    
     if (!message)
         return res.status(400).send('Missing message');
 
-    // Get service
-    const service = await Service.findOne({
-        where:
-            sequelize.or(
-                { id: isNaN(nameOrId) ? 0 : nameOrId },
-                sequelize.where(sequelize.fn('lower', sequelize.col('name')), nameOrId.toLowerCase())
-            )
-    });
-    if (!service)
-        return res.status(404).send("Service not found");
-
     // Get request
-    const request = await AccessRequest.findOne({
-        where: { 
-            service_id: service.id,
-            user_id: req.user.id
-        }
-    });
+    const request = await AccessRequest.findByPk(id, { include: ['service', 'user'] });
     if (!request)
         return res.status(404).send("Request not found");
 
@@ -223,8 +207,6 @@ router.post('/:nameOrId(\\w+)/requests', getUser, requireAdmin, asyncHandler(asy
     res.status(200).json(request);
 
     // Call granter (do this after response as to not delay it)
-    request.service = service;
-    request.user = req.user;
     if (request.isApproved())
         await grantRequest(request);
     if (request.isGranted()) // callback from workflow
