@@ -35,7 +35,7 @@ async function serviceRegistrationWorkflow(request) {
     const user = request.user;
     const service = request.service;
     if (!user || !service)
-        throw('Missing required property');
+        throw('serviceRegistrationWorkflow: Missing required property');
 
     logger.info(`Running native workflow for service ${service.name} and user ${user.username}`);
 

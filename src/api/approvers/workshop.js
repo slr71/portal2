@@ -7,7 +7,7 @@ const serviceApprovers = require('./service');
 
 async function approveRequest(request) {
     if (!request.workshop || !request.user)
-        throw('Missing required property');
+        throw('workshop:approveRequest: Missing required property');
 
     if (request.auto_approve)
         await request.approve();
@@ -32,7 +32,7 @@ async function grantRequest(request) {
     const user = request.user
     const workshop = request.workshop
     if (!user || !workshop || !workshop.services)
-        throw('Missing required property')
+        throw('workshop:grantRequest: Missing required property')
 
     await request.grant();
     logger.info(`grant: Set workshop enrollment request ${request.id} status to "${request.status}"`);

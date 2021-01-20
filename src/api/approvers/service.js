@@ -36,7 +36,7 @@ const GRANTERS = {
 
 async function grantRequest(request) {
     if (!request.service || !request.user)
-        throw('Missing required property')
+        throw('service:grantRequest: Missing required property')
 
     const key = request.service.approval_key;
     if (key in GRANTERS) {
@@ -92,7 +92,7 @@ async function grantRequest(request) {
 async function approveAtmosphere(request) {
     const user = request.user;
     if (!user)
-        throw('Missing required property');
+        throw('service:approveAtmosphere: Missing required property');
 
     const intro = `Hi ${user.first_name}! Thanks for requesting access to Atmosphere.`;
     const faqUrl = 'https://learning.cyverse.org/projects/faq/en/latest/atmosphere-faq.html';
@@ -154,7 +154,7 @@ async function sendAtmosphereSignupMessage(request, responseMessage) {
     const service = request.service;
     const user = request.user;
     if (!service || !user)
-        throw('Missing required property')
+        throw('service:sendAtmosphereSignupMessage: Missing required property')
 
     const body = getAtmosphereConversationBody(service.questions, request.answers);
     const [conversation, message] = await intercom.startConversation(user, body);
