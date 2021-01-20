@@ -66,9 +66,11 @@ models.account_user.belongsToMany(models.api_service,
   { as: 'services', through: models.api_accessrequest, foreignKey: 'user_id', otherKey: 'service_id' });
 models.account_user.belongsToMany(models.api_workshop, 
   { as: 'workshops', through: models.api_workshopenrollmentrequest, foreignKey: 'user_id', otherKey: 'workshop_id' });
+models.account_user.hasMany(models.api_accessrequest, { as: 'access_requests', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
+models.account_user.hasMany(models.api_workshopenrollmentrequest, { as: 'enrollment_requests', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
+models.account_user.hasMany(models.api_formsubmission, { as: 'form_submissions', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
 models.account_user.hasMany(models.account_passwordresetrequest, { as: 'password_reset_requests', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
 models.account_user.hasMany(models.account_passwordreset, { as: 'password_resets', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
-models.account_user.hasMany(models.api_accessrequest, { as: 'access_requests', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
 
 models.account_emailaddress.belongsToMany(models.api_mailinglist, 
   { as: 'mailing_lists', through: models.api_emailaddressmailinglist, foreignKey: 'email_address_id', otherKey: 'mailing_list_id' });

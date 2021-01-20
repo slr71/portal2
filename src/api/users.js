@@ -67,16 +67,24 @@ router.get('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
 // Get individual user's history (STAFF ONLY)
 router.get('/:id(\\d+)/history', requireAdmin, asyncHandler(async (req, res) => {
     const services = await models.api_service.findAll();
+    const workshops = await models.api_workshop.findAll();
+    const forms = await models.api_form.findAll();
     const user = await User.findByPk(req.params.id, { 
         include: [ 
             'password_reset_requests',
             'password_resets',
+            'form_submissions',
             {
                 model: models.api_accessrequest,
                 as: 'access_requests',
                 include: [ 'logs' ]
+            },
+            {
+                model: models.api_workshopenrollmentrequest,
+                as: 'enrollment_requests',
+                include: [ 'logs' ]
             }
-        ] 
+        ]
     });
 
     let history = [];
@@ -93,17 +101,37 @@ router.get('/:id(\\d+)/history', requireAdmin, asyncHandler(async (req, res) => 
     history = history.concat(
         user.access_requests.map(r => {
             const service = services.find(s => s.id == r.service_id);
-            return { date: r.created_at, message: `Access requested to service ${service.name}` + (r.auto_approve ? ' (auto approve)' : '') }
+            return { date: r.created_at, message: `Access requested for service ${service.name}` + (r.auto_approve ? ' (auto approve)' : '') }
         })
     )
     for (const request of user.access_requests) {
         history = history.concat(
             request.logs.map(l => {
                 const service = services.find(s => s.id == request.service_id);
-                return { date: l.created_at, message: `${l.message} to service ${service.name}` }
+                return { date: l.created_at, message: `${l.message} for service ${service.name}` }
             })
         )
     }
+    history = history.concat(
+        user.enrollment_requests.map(r => {
+            const workshop = workshops.find(w => w.id == r.workshop_id);
+            return { date: r.created_at, message: `Enrollment requested for workshop ${workshop.title}` + (r.auto_approve ? ' (auto approve)' : '') }
+        })
+    )
+    for (const request of user.enrollment_requests) {
+        history = history.concat(
+            request.logs.map(l => {
+                const workshop = workshops.find(w => w.id == request.workshop_id);
+                return { date: l.created_at, message: `${l.message} for workshop ${workshop.title}` }
+            })
+        )
+    }
+    history = history.concat(
+        user.form_submissions.map(r => {
+            const form = forms.find(f => f.id == r.form_id);
+            return { date: r.created_at, message: `Submission for form ${form.name}` }
+        })
+    )
 
     history.sort((a,b) => new Date(b.date) - new Date(a.date));
 
@@ -249,8 +277,8 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     //     await request.destroy();
     // }
     await models.api_workshoporganizer.destroy({ where: { organizer_id: user.id } });
-    await models.api_workshopenrollmentrequest.destroy(opts);
-    await models.api_formsubmission.destroy(opts);
+    //await models.api_workshopenrollmentrequest.destroy(opts);
+    //await models.api_formsubmission.destroy(opts);
     await user.destroy();
 
     res.status(200).send('success');

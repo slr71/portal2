@@ -18,6 +18,10 @@ const useStyles = makeStyles((theme) => ({
   divider: {
     marginTop: '1em',
     marginBottom: '1em'
+  },
+  history: {
+    overflowY: 'auto',
+    maxHeight: '30em'
   }
 }))
 
@@ -139,16 +143,18 @@ const User = ({ user, history }) => {
         <Paper elevation={3} className={classes.paper}>
           <Typography component="div" variant="h5">History</Typography> 
           <br />
-          {history && history.length > 0
-            ? history.map((entry, index) => (
-                <Box key={index}>
-                  <Typography variant='subtitle2' color='textSecondary'>{new Date(entry.date).toLocaleString()}</Typography>
-                  <Typography variant='subtitle2'>{entry.message}</Typography>
-                  {index == history.length - 1 ? <></> : <Divider className={classes.divider} />}
-                </Box>
-              ))
-            : 'None'
-          }  
+          <div className={classes.history}>
+            {history && history.length > 0
+              ? history.map((entry, index) => (
+                  <Box key={index}>
+                    <Typography variant='subtitle2' color='textSecondary'>{new Date(entry.date).toLocaleString()}</Typography>
+                    <Typography variant='subtitle2'>{entry.message}</Typography>
+                    {index == history.length - 1 ? <></> : <Divider className={classes.divider} />}
+                  </Box>
+                ))
+              : 'None'
+            }  
+          </div>
         </Paper>
       </Container>
       <Backdrop className={classes.backdrop} open={deletingUser}>
