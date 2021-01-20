@@ -143,7 +143,7 @@ router.get('/:id(\\d+)/history', requireAdmin, asyncHandler(async (req, res) => 
 router.get('/:id(\\d+)/ldap', requireAdmin, asyncHandler(async (req, res) => {
     const user = await User.findByPk(req.params.id);
     try {
-        const record = ldapGetUser(user.username);
+        const record = await ldapGetUser(user.username);
         console.log(record);
         res.status(200).send(record);
     }
