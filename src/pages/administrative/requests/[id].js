@@ -2,7 +2,7 @@ import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Box, Typography, Button, Divider } from '@material-ui/core'
 import { Layout, Section, User, Conversations } from '../../../components'
 import { useUser } from '../../../contexts/user'
-import { withGetServerSideError } from '../../../contexts/error'
+import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useAPI } from '../../../contexts/api'
 
 //FIXME duplicated elsewhere
@@ -69,6 +69,7 @@ const Actions = (props) => {
   const [request, setRequest] = React.useState(props.request)
   const classes = useStyles()
   const api = useAPI()
+  const [_, setError] = useError()
 
   const updateStatus = async (status) => {
     try {
