@@ -64,6 +64,52 @@ router.get('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     res.status(200).json(user);
 }));
 
+// Get individual user's history (STAFF ONLY)
+router.get('/:id(\\d+)/history', requireAdmin, asyncHandler(async (req, res) => {
+    const services = await models.api_service.findAll();
+    const user = await User.findByPk(req.params.id, { 
+        include: [ 
+            'password_reset_requests',
+            'password_resets',
+            {
+                model: models.api_accessrequest,
+                as: 'access_requests',
+                include: [ 'logs' ]
+            }
+        ] 
+    });
+
+    let history = [];
+    history = history.concat( 
+        user.password_reset_requests.map(r => {
+            return { date: r.created_at, message: `Password reset request (HMAC ${r.key})` }
+        })
+    )
+    history = history.concat( 
+        user.password_resets.map(r => {
+            return { date: r.created_at, message: `Password reset (HMAC ${r.key})` }
+        })
+    )
+    history = history.concat(
+        user.access_requests.map(r => {
+            const service = services.find(s => s.id == r.service_id);
+            return { date: r.created_at, message: `Access requested to service ${service.name}` }
+        })
+    )
+    for (const request of user.access_requests) {
+        history = history.concat(
+            request.logs.map(l => {
+                const service = services.find(s => s.id == request.service_id);
+                return { date: r.created_at, message: l.message}
+            })
+        )
+    }
+
+    history.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+    res.status(200).json(history);
+}));
+
 // Update user 
 // If body is empty then will just return the user
 router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
@@ -195,13 +241,13 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     await models.warden_atmosphereinternationalrequest.destroy(opts);
     await models.warden_atmospherestudentrequest.destroy(opts);
 
-    await models.account_passwordreset.destroy(opts);
-    await models.account_passwordresetrequest.destroy(opts);
+    // await models.account_passwordreset.destroy(opts);
+    // await models.account_passwordresetrequest.destroy(opts);
     await models.api_userservice.destroy(opts);
-    for (const request of await models.api_accessrequest.findAll(opts)) { // loop through logs because "onDelete: cascade" isn't working for some reason
-        await models.api_accessrequestlog.destroy({ where: { access_request_id: request.id } });
-        await request.destroy();
-    }
+    // for (const request of await models.api_accessrequest.findAll(opts)) { // loop through logs because "onDelete: cascade" isn't working for some reason
+    //     await models.api_accessrequestlog.destroy({ where: { access_request_id: request.id } });
+    //     await request.destroy();
+    // }
     await models.api_workshoporganizer.destroy({ where: { organizer_id: user.id } });
     await models.api_workshopenrollmentrequest.destroy(opts);
     await models.api_formsubmission.destroy(opts);

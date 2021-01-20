@@ -1,3 +1,10 @@
+/*
+ * Backend API Client Adapter
+ *
+ * Could someday be turned into an npm package for external users.
+ * 
+ */
+
 const axios = require('axios')
 const qs = require('qs');
 
@@ -48,6 +55,8 @@ class PortalAPI {
    */
 
   async user(id) { return await this.get(`/users/${id || 'mine'}`) }
+
+  async userHistory(id) { return await this.get(`/users/${id}/history`) }
 
   async users(params) { return await this.get(`/users`, params) }
 
@@ -117,7 +126,6 @@ class PortalAPI {
   async createServiceForm(serviceId, formId) { return await this.put(`/services/${serviceId}/forms`, { formId }) }
 
   async deleteServiceForm(serviceId, formId) { return await this.delete(`/services/${serviceId}/forms/${formId}`) }
-
 
   /*
    * Workshop endpoints

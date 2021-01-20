@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { makeStyles, Container, Box, Button, Paper, Typography, Backdrop, CircularProgress } from '@material-ui/core'
+import { makeStyles, Container, Box, Button, Paper, Typography, Backdrop, CircularProgress, Divider } from '@material-ui/core'
 import Alert from '@material-ui/lab/Alert';
 import { Layout, DateSpan, ConfirmationDialog } from '../../../components'
 import { useAPI } from '../../../contexts/api'
@@ -15,9 +15,13 @@ const useStyles = makeStyles((theme) => ({
     zIndex: theme.zIndex.drawer + 1,
     color: '#fff',
   },
+  divider: {
+    marginTop: '1em',
+    marginBottom: '1em'
+  }
 }))
 
-const User = ({ user }) => {
+const User = ({ user, history }) => {
   const classes = useStyles()
   const router = useRouter()
   const [me] = useUser()
@@ -132,6 +136,20 @@ const User = ({ user }) => {
             : 'None'
           }      
         </Paper>
+        <Paper elevation={3} className={classes.paper}>
+          <Typography component="div" variant="h5">History</Typography> 
+          <br />
+          {history && history.length > 0
+            ? history.map((entry, index) => (
+                <Box key={index}>
+                  <Typography variant='subtitle2' color='textSecondary'>{new Date(entry.date).toLocaleString()}</Typography>
+                  <Typography>{entry.message}</Typography>
+                  {index == history.length - 1 ? <></> : <Divider className={classes.divider} />}
+                </Box>
+              ))
+            : 'None'
+          }  
+        </Paper>
       </Container>
       <Backdrop className={classes.backdrop} open={deletingUser}>
         <CircularProgress color="inherit" />
@@ -148,7 +166,8 @@ const User = ({ user }) => {
 
 export async function getServerSideProps({ req, query }) {
   const user = await req.api.user(query.id)
-  return { props: { user } }
+  const history = await req.api.userHistory(query.id)
+  return { props: { user, history } }
 }
 
 export default User
