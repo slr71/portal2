@@ -129,7 +129,7 @@ const History = props => {
 
   return (
     <Section title="History">
-      {logs.map((log, i) => (
+      {logs.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).map((log, i) => (
         <Box key={i}>
           <Typography>{log.message}</Typography>
           <Typography variant='subtitle2' color='textSecondary'>{log.created_at}</Typography>
