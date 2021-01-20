@@ -223,6 +223,8 @@ router.post('/:nameOrId(\\w+)/requests', getUser, requireAdmin, asyncHandler(asy
     res.status(200).json(request);
 
     // Call granter (do this after response as to not delay it)
+    request.service = service;
+    request.user = req.user;
     if (request.isApproved())
         await grantRequest(request);
     if (request.isGranted()) // callback from workflow
