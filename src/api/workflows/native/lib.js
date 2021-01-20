@@ -59,12 +59,10 @@ function dockerRun(args) {
 function ldapGetUser(username) {
     return runFile("ldapsearch", [
         "-H", config.ldap.host, 
-        // "-D", config.ldap.admin,
-        // "-w", config.ldap.password, 
         "-x",
         "-LLL",
         "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
-        `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
+        `uid=${username}`
     ]);
 }
 

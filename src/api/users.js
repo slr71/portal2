@@ -144,7 +144,6 @@ router.get('/:id(\\d+)/ldap', requireAdmin, asyncHandler(async (req, res) => {
     const user = await User.findByPk(req.params.id);
     try {
         const record = await ldapGetUser(user.username);
-        console.log(record);
         res.status(200).send(record);
     }
     catch(error) {
