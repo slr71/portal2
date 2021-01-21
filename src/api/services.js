@@ -70,7 +70,7 @@ router.get('/requests/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) =>
             'conversations',
             'logs'
         ],
-        order: [ [ 'logs', 'created_at', 'ASC' ] ]
+        order: [ [ 'logs', 'created_at', 'DESC' ] ]
     });
     if (!request)
         return res.status(404).send('Request not found');
