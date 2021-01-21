@@ -44,6 +44,8 @@ router.post('/exists', asyncHandler(async (req, res) => {
         result.email = !!(user || emailAddress);
     }
 
+    console.log(result);
+
     res.status(200).json(result);
 }));
 
