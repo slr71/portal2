@@ -3,6 +3,7 @@ import { Container, Grid, Box, Typography, Button, Divider } from '@material-ui/
 import { Layout, Section, User, Conversations } from '../../../components'
 import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useAPI } from '../../../contexts/api'
+import { useUser } from '../../../contexts/user'
 
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
@@ -17,12 +18,13 @@ const useStyles = makeStyles((theme) => ({
 
 const AccessRequest = (props) => {
   const api = useAPI()
+  const [me] = useUser()
   const [_, setError] = useError()
   const [request, setRequest] = React.useState(props.request)
 
   const updateStatus = async (status) => {
     try {
-      await api.updateServiceRequest(request.id, { status, message: `Request ${status} by ${user.username}` })
+      await api.updateServiceRequest(request.id, { status, message: `Request ${status} by ${me.username}` })
       const newRequest = await api.serviceRequest(request.id)
       setRequest(newRequest)
     }
