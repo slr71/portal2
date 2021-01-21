@@ -1,7 +1,6 @@
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Box, Typography, Button, Divider } from '@material-ui/core'
 import { Layout, Section, User, Conversations } from '../../../components'
-import { useUser } from '../../../contexts/user'
 import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useAPI } from '../../../contexts/api'
 
@@ -17,7 +16,21 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const AccessRequest = (props) => {
-  const request = props.request
+  const api = useAPI()
+  const [_, setError] = useError()
+  const [request, setRequest] = React.useState(props.request)
+
+  const updateStatus = async (status) => {
+    try {
+      await api.updateServiceRequest(request.id, { status, message: `Request ${status} by ${user.username}` })
+      const newRequest = await api.serviceRequest(request.id)
+      setRequest(newRequest)
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
 
   return (
     <Layout title={request.service.name} breadcrumbs>
@@ -26,13 +39,13 @@ const AccessRequest = (props) => {
           <Grid container spacing={4}>
             <Grid item xs={6}>
               <Section title="User">
-                <User summaryOnly {...props.request.user} />
+                <User summaryOnly {...request.user} />
               </Section>
               <Questions questions={request.service.questions} answers={request.answers} />
-              <History {...props} />
+              <History logs={request.logs} />
             </Grid>
             <Grid item xs={6}>
-              <Actions {...props} />
+              <Actions request={request} updateHandler={updateStatus} />
               <Section title="Conversations">
                 <Conversations conversations={request.conversations} />
               </Section>
@@ -64,27 +77,9 @@ const Questions = ({ questions, answers }) => {
   )
 }
 
-const Actions = (props) => {
-  const [user] = useUser()
-  const [request, setRequest] = React.useState(props.request)
-  const classes = useStyles()
-  const api = useAPI()
-  const [_, setError] = useError()
-
-  const updateStatus = async (status) => {
-    try {
-      await api.updateServiceRequest(request.id, { status, message: `Request ${status} by ${user.username}` })
-      const newRequest = await api.serviceRequest(request.id)
-      setRequest(newRequest)
-    }
-    catch(error) {
-      console.log(error)
-      setError(error.message)
-    }
-  }
-
-  const approveButton = <Button color="primary" size="medium" onClick={() => updateStatus('approved')}>APPROVE</Button>
-  const denyButton = <Button color="secondary" size="medium" onClick={() => updateStatus('denied')}>DENY</Button>
+const Actions = ({ request, updateHandler }) => {
+  const approveButton = <Button color="primary" size="medium" onClick={() => updateHandler('approved')}>APPROVE</Button>
+  const denyButton = <Button color="secondary" size="medium" onClick={() => updateHandler('denied')}>DENY</Button>
 
   let buttons, text
   switch (request.status) {
@@ -124,13 +119,12 @@ const Actions = (props) => {
   )
 }
 
-const History = props => {
-  const logs = props.request.logs
+const History = ({ logs }) => {
   const classes = useStyles()
 
   return (
     <Section title="History">
-      {logs.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).map((log, i) => (
+      {logs.map((log, i) => (
         <Box key={i}>
           <Typography>{log.message}</Typography>
           <Typography variant='subtitle2' color='textSecondary'>{new Date(log.created_at).toLocaleString()}</Typography>
