@@ -73,7 +73,8 @@ const Actions = (props) => {
 
   const updateStatus = async (status) => {
     try {
-      const newRequest = await api.updateServiceRequest(request.id, { status, message: `Request ${status} by ${user.username}` })
+      await api.updateServiceRequest(request.id, { status, message: `Request ${status} by ${user.username}` })
+      const newRequest = await api.serviceRequest(request.id)
       setRequest(newRequest)
     }
     catch(error) {
