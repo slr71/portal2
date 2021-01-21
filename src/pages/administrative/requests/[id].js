@@ -132,7 +132,7 @@ const History = props => {
       {logs.sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).map((log, i) => (
         <Box key={i}>
           <Typography>{log.message}</Typography>
-          <Typography variant='subtitle2' color='textSecondary'>{log.created_at}</Typography>
+          <Typography variant='subtitle2' color='textSecondary'>{new Date(log.created_at).toLocaleString()}</Typography>
           {i == logs.length - 1 ? <></> : <Divider className={classes.divider} />}
         </Box>
       ))}
