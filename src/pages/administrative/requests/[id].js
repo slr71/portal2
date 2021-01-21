@@ -87,7 +87,7 @@ const Actions = (props) => {
   const denyButton = <Button color="secondary" size="medium" onClick={() => updateStatus('denied')}>DENY</Button>
 
   let buttons, text
-  switch (props.request.status) {
+  switch (request.status) {
     case "requested":
       buttons = [ denyButton, approveButton ]
       break
@@ -112,7 +112,7 @@ const Actions = (props) => {
   return (
     <Section title="Actions">
       <Typography gutterBottom>
-        User has requested access to <b>{props.request.service.name}</b> and the request is currently <b>{props.request.status}</b>.
+        User has requested access to <b>{request.service.name}</b> and the request is currently <b>{request.status}</b>.
       </Typography>
       <Typography>
         {text}
