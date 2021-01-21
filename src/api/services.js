@@ -14,7 +14,6 @@ const { approveRequest, grantRequest } = require('./approvers/service');
 const intercom = require('./lib/intercom');
 const { notifyClientOfServiceRequestStatusChange } = require('./lib/ws');
 const { getUser, requireAdmin, asyncHandler } = require('./lib/auth');
-const { emailServiceAccessGranted } = require('./lib/email');
 
 const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api_poweredservice where service_ptr_id=id))'), 'is_powered' ];
 
@@ -187,8 +186,8 @@ router.post('/requests/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (re
     const status = req.body.status;
     const message = req.body.message;
     
-    if (!status) //TODO verify valid status value
-        return res.status(400).send('Missing status');
+    if (!status || (status != 'approved' && status != 'denied'))
+        return res.status(400).send('Invalid status');
     
     if (!message)
         return res.status(400).send('Missing message');
