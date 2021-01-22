@@ -94,7 +94,7 @@ export async function getServerSideProps({ req, res }) {
 
   return { 
     props: { 
-      confirmed: resp === 'success',
+      confirmed: response === 'success',
       response
     } 
   }
