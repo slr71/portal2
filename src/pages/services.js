@@ -33,7 +33,7 @@ const Services = (props) => {
       <Box mt={3}>
         <Typography variant="h6" component="h2">Available</Typography>
         <Divider />
-        <br/>
+        <br />
         <AvailableServices services={available} />
         <br />
       </Box>

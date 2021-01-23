@@ -1,23 +1,21 @@
 import { Card, CardHeader, CardContent, CardActions, Typography, Avatar } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 
-
 const useStyles = makeStyles((theme) => ({
-
-  //DESKTOP
   content: {
     minHeight: '6em'
   },
   title: {
     lineHeight: '1.1',
     fontSize: '1.4em',
-      [theme.breakpoints.down('md')]:
-      {fontSize:'1.4em',
-       },
-      [theme.breakpoints.down('xs')]: {
-        fontSize:'1.2em',
-       fontWeight: '400' },
+    [theme.breakpoints.down('md')]: {
+      fontSize: '1.4em'
     },
+    [theme.breakpoints.down('xs')]: {
+      fontSize: '1.2em',
+      fontWeight: '400'
+    }
+  }
 }))
 
 const SummaryCard = ({ title, subtitle, description, iconUrl, icon, action, largeHeader }) => { // use icon or iconUrl but not both
