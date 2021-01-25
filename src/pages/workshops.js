@@ -67,7 +67,7 @@ const MyWorkshops = ({ workshops }) => {
     <div>
       {content}
       <br />
-      <Typography variant="body1">To host your own workshop use the <Link href='requests/8'>request form</Link>.</Typography>
+      <Typography variant="body1">Request a workshop/webinar <Link href='requests/6'>here</Link>, or request to host your own workshop <Link href='requests/8'>here</Link>.</Typography>
     </div>
   )
 }
