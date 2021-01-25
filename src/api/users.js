@@ -61,7 +61,7 @@ router.get('/mine', getUser, (req, res) => {
 
 // Get individual user (STAFF ONLY)
 router.get('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
-    const user = await User.findByPk(req.params.id);
+    const user = await User.findByPk(req.params.id, { include: [ 'services' ] });
     res.status(200).json(user);
 }));
 
@@ -89,6 +89,9 @@ router.get('/:id(\\d+)/history', requireAdmin, asyncHandler(async (req, res) => 
     });
 
     let history = [];
+
+    history.push({ date: user.date_joined, message: `Account created` })
+
     history = history.concat( 
         user.password_reset_requests.map(r => {
             return { date: r.created_at, message: `Password reset request (HMAC ${r.key})` }
