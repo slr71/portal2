@@ -121,7 +121,7 @@ function irodsChMod(permission, username, path) {
 }
 
 function irodsChangePassword(username, password) {
-    return dockerRun([ "iadmin", "moduser", username, "password", password ])
+    return dockerRun([ "iadmin", "moduser", username, "password", "--", password ]) // UP-61 added "--" argument for passwords that start with a hyphen
 }
 
 function irodsDeleteUser(username) {
