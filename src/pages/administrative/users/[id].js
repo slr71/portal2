@@ -236,8 +236,8 @@ const PasswordResetDialog = ({ open, user, hmac, handleClose }) => {
 
   const adminResetPassword = async () => {
     try {
-      const resp = await api.adminResetPassword(user.id, { hmac })
       setSent(true)
+      await api.adminResetPassword(user.id, { hmac })
     }
     catch(error) {
       console.log(error)

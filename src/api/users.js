@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { logger } = require('./lib/logging');
 const { requireAdmin, isAdmin, getUser, asyncHandler } = require('./lib/auth');
 const { generateToken } = require('./lib/hmac');
+const { emailPasswordReset } = require('./lib/email');
 const { checkPassword, encodePassword } = require('./lib/password');
 const { ldapGetUser } = require('./workflows/native/lib.js');
 const { userPasswordUpdateWorkflow, userDeletionWorkflow } = require('./workflows/native/user.js');
@@ -10,6 +11,7 @@ const models = require('./models');
 const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
 const PasswordResetRequest = models.account_passwordresetrequest;
+const EmailAddress = models.account_emailaddress;
 const config = require('../config.json');
 
 //TODO move into module
@@ -230,17 +232,24 @@ router.post('/password', getUser, asyncHandler(async (req, res) => {
 router.post('/:id(\\d+)/reset_password', requireAdmin, asyncHandler(async (req, res) => {
     let hmac = req.body.hmac; // optional
 
-    const user = await User.findByPk(req.params.id);
-    const email = user.emails.find(e => e.primary);
+    const user = await User.unscoped().findByPk(req.params.id);
+    
+    const emailAddress = await EmailAddress.findOne({
+        where: {
+            user_id: user.id,
+            primary: true
+	}
+    });
+    emailAddress.user = user; // kinda kludgey but emailPasswordReset() expects an EmailAddress object
 
     if (!hmac)
-        hmac = generateToken(email.id);
+        hmac = generateToken(emailAddress.id);
 
     const passwordResetRequest = PasswordResetRequest.create({
         user_id: user.id,
         username: user.username,
-        email_address_id: email.id,
-        email: email.email,
+        email_address_id: emailAddress.id,
+        email: emailAddress.email,
         key: hmac
     });
     if (!passwordResetRequest)
@@ -249,8 +258,8 @@ router.post('/:id(\\d+)/reset_password', requireAdmin, asyncHandler(async (req, 
     res.status(200).send(hmac);
 
     // Send email after response as to not delay it
-    if (hmac in req.body)
-        await emailPasswordReset(email.email, hmac);
+    if ('hmac' in req.body)
+        await emailPasswordReset(emailAddress, hmac);
 })); 
 
 // Delete user (SUPERUSER ONLY)
