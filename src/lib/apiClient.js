@@ -78,6 +78,8 @@ class PortalAPI {
 
   async resetPassword(params) { return await this.post(`/users/reset_password`, params) }
 
+  async adminResetPassword(id, params) { return await this.post(`/users/${id}/reset_password`, params) }
+
   async updateMailingListSubscription(id, params) { return await this.post(`/mailing_lists/${id}/subscriptions`, params) }
 
   async createEmailAddress(params) { return await this.put(`/mailing_lists/email_addresses`, params) }

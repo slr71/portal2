@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { logger } = require('./lib/logging');
 const { requireAdmin, isAdmin, getUser, asyncHandler } = require('./lib/auth');
+const { generateToken } = require('./lib/hmac');
 const { checkPassword, encodePassword } = require('./lib/password');
 const { ldapGetUser } = require('./workflows/native/lib.js');
 const { userPasswordUpdateWorkflow, userDeletionWorkflow } = require('./workflows/native/user.js');
@@ -8,6 +9,7 @@ const sequelize = require('sequelize');
 const models = require('./models');
 const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
+const PasswordResetRequest = models.account_passwordresetrequest;
 const config = require('../config.json');
 
 //TODO move into module
@@ -218,6 +220,38 @@ router.post('/password', getUser, asyncHandler(async (req, res) => {
     else
         await userPasswordUpdateWorkflow(user);
 }));
+
+/*
+ * Get reset password link for user (STAFF ONLY)
+ *
+ * Similar to POST /users/reset_password in public.js but for Admin user page.
+ * If no HMAC given then one is returned.  If HMAC given then password reset email is sent.
+ */
+router.post('/:id(\\d+)/reset_password', requireAdmin, asyncHandler(async (req, res) => {
+    let hmac = req.body.hmac; // optional
+
+    const user = await User.findByPk(req.params.id);
+    const email = user.emails.find(e => e.primary);
+
+    if (!hmac)
+        hmac = generateToken(email.id);
+
+    const passwordResetRequest = PasswordResetRequest.create({
+        user_id: user.id,
+        username: user.username,
+        email_address_id: email.id,
+        email: email.email,
+        key: hmac
+    });
+    if (!passwordResetRequest)
+        return res.status(500).send('Error creating password reset request');
+
+    res.status(200).send(hmac);
+
+    // Send email after response as to not delay it
+    if (hmac in req.body)
+        await emailPasswordReset(email.email, hmac);
+})); 
 
 // Delete user (SUPERUSER ONLY)
 router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {

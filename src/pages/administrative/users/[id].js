@@ -1,11 +1,13 @@
 import { useRouter } from 'next/router'
-import { makeStyles, Container, Box, Button, Paper, Typography, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
+import { useState } from 'react'
+import { makeStyles, Container, Box, Button, Paper, Typography, TextField, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
 import Alert from '@material-ui/lab/Alert';
 import { Layout, DateSpan, ConfirmationDialog } from '../../../components'
 import { useAPI } from '../../../contexts/api'
 import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useUser } from '../../../contexts/user'
 import { generateHMAC } from '../../../api/lib/hmac'
+import { UI_PASSWORD_URL } from '../../../constants'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -26,22 +28,24 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const User = ({ user, history, ldap, startTimeHMAC }) => {
+const User = ({ user, history, ldap }) => {
   const classes = useStyles()
   const router = useRouter()
   const [me] = useUser()
   const api = useAPI()
   const [_, setError] = useError()
+
   
-  const [openDeleteConfirmationDialog, setOpenDeleteConfirmationDialog] = React.useState(false)
-  const [openLDAPDialog, setOpenLDAPDialog] = React.useState(false)
-  const [deletingUser, setDeletingUser] = React.useState(false)
-  const [resetPassword, setResetPassword] = React.useState(false)
+  const [showDeleteConfirmationDialog, setShowDeleteConfirmationDialog] = useState(false)
+  const [showLDAPDialog, setShowLDAPDialog] = useState(false)
+  const [showPasswordResetDialog, setShowPasswordResetDialog] = useState(false)
+  const [hmac, setHMAC] = useState()
+  const [deletingUser, setDeletingUser] = useState(false)
 
   const deleteUser = async () => {
     try {
       setDeletingUser(true)
-      setOpenDeleteConfirmationDialog(false)
+      setShowDeleteConfirmationDialog(false)
       await api.deleteUser(user.id)
       router.push('/administrative/users')
     }
@@ -51,13 +55,11 @@ const User = ({ user, history, ldap, startTimeHMAC }) => {
     }
   }
 
-  const sendPasswordResetEmail = async () => {
+  const openPasswordResetDialog = async () => {
     try {
-      const resp = await api.resetPassword({ email: user.email, hmac: startTimeHMAC })
-      if (resp !== 'success') 
-        setError(resp)
-      else
-        setResetPassword(true)
+      const resp = await api.adminResetPassword(user.id)
+      setHMAC(resp)
+      setShowPasswordResetDialog(true)
     }
     catch(error) {
       console.log(error)
@@ -71,7 +73,6 @@ const User = ({ user, history, ldap, startTimeHMAC }) => {
         <br />
         <Alert severity="warning" variant="filled">This page needs improvement</Alert>
         <br />
-
         <Paper elevation={3} className={classes.paper}>
           <Typography component="div" variant="h5">{`${user.first_name} ${user.last_name} (${user.username})`}</Typography> 
           <br />
@@ -79,23 +80,23 @@ const User = ({ user, history, ldap, startTimeHMAC }) => {
           <div>ORCID: {user.orcid_id ? user.orcid_id : '<None>'}</div>
           <br />
           <div style={{display: 'flex', flexDirection: 'row'}}>
-            <Button color="primary" onClick={() => setOpenLDAPDialog(true)}>
+            <Button color="primary" onClick={() => setShowLDAPDialog(true)}>
               VIEW LDAP RECORD
             </Button>
             {' '}
-            <Button color="primary" style={{width:'17em'}} disabled={resetPassword} onClick={sendPasswordResetEmail}>
-              {resetPassword ? 'EMAIL SENT!' : 'SEND PASSWORD RESET EMAIL'}
+            <Button color="primary" onClick={openPasswordResetDialog}>
+              RESET PASSWORD
             </Button>
             {' '}
             <Button 
               style={{color:"red"}} // color="error" // not working
               disabled={!me.is_superuser} 
-              onClick={() => setOpenDeleteConfirmationDialog(true)} 
+              onClick={() => setShowDeleteConfirmationDialog(true)} 
             >
               DELETE USER
             </Button>
           </div>
-          {!me.is_superuser && <Typography>Superuser permission is required to delete a user</Typography>}
+          {!me.is_superuser && <div><Typography>Superuser permission is required to delete a user</Typography></div>}
         </Paper>
 
         <Paper elevation={3} className={classes.paper}>
@@ -186,16 +187,22 @@ const User = ({ user, history, ldap, startTimeHMAC }) => {
       <Backdrop className={classes.backdrop} open={deletingUser}>
         <CircularProgress color="inherit" />
       </Backdrop>
-      <ConfirmationDialog 
-        open={openDeleteConfirmationDialog}
-        title="Delete user"
-        handleClose={() => setOpenDeleteConfirmationDialog(false)} 
-        handleSubmit={deleteUser}
-      />
       <LDAPRecordDialog
-        open={openLDAPDialog}
+        open={showLDAPDialog}
         content={ldap}
-        handleClose={() => setOpenLDAPDialog(false)} 
+        handleClose={() => setShowLDAPDialog(false)} 
+      />
+      <PasswordResetDialog
+        open={showPasswordResetDialog}
+        user={user}
+        hmac={hmac}
+        handleClose={() => setShowPasswordResetDialog(false)} 
+      />
+      <ConfirmationDialog 
+        open={showDeleteConfirmationDialog}
+        title="Delete user"
+        handleClose={() => setShowDeleteConfirmationDialog(false)} 
+        handleSubmit={deleteUser}
       />
     </Layout>
   )
@@ -209,7 +216,7 @@ const LDAPRecordDialog = ({ open, content, handleClose }) => {
       <DialogContentText>
         {content.split('\n').map((line, index) => 
             <div key={index}>{line}</div>
-	)}
+	      )}
       </DialogContentText>
     </DialogContent>
     <DialogActions>
@@ -221,13 +228,68 @@ const LDAPRecordDialog = ({ open, content, handleClose }) => {
   )
 }
 
+const PasswordResetDialog = ({ open, user, hmac, handleClose }) => {
+  const api = useAPI()
+  const [_, setError] = useError()
+  const [sent, setSent] = useState(false)
+  const link = `${UI_PASSWORD_URL}?reset&code=${hmac}`
+
+  const adminResetPassword = async () => {
+    try {
+      const resp = await api.adminResetPassword(user.id, { hmac })
+      setSent(true)
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
+  const copyToClipboard = (e) => {
+    e.target.select()
+    document.execCommand('copy')
+  }
+
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth aria-labelledby="form-dialog-title">
+    <DialogTitle id="form-dialog-title">Reset Password</DialogTitle>
+    <DialogContent>
+      <DialogContentText>
+        Click to copy to clipboard
+        <br />
+        <TextField
+          id="standard-multiline-static"
+          fullWidth
+          multiline
+          rows={3}
+          variant="outlined"
+          style={{background: "#e0e0e0"}}
+          defaultValue={link}
+          onClick={copyToClipboard}
+        />
+        <br />
+        <br />
+        {sent && 'Password reset email sent!'}
+      </DialogContentText>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={adminResetPassword} variant="contained" color="primary" disabled={sent}>
+        Send Email
+      </Button>
+      <Button onClick={handleClose} variant="outlined">
+        Close
+      </Button>
+    </DialogActions>
+    </Dialog>
+  )
+}
+
 export async function getServerSideProps({ req, query }) {
-  const startTimeHMAC = generateHMAC(Date.now()) // for securing password reset
   const user = await req.api.user(query.id)
   const history = await req.api.userHistory(query.id)
   const ldap = await req.api.userLDAP(query.id)
 
-  return { props: { user, history, ldap, startTimeHMAC } }
+  return { props: { user, history, ldap } }
 }
 
 export default User
