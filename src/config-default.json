@@ -45,9 +45,9 @@
         "confidential-port": 0
     },
 
-    "googleAnalyticsId": "",
+    "googleAnalyticsId": null,
 
-    "sentryDSN": "",
+    "sentryDSN": null,
 
     "argo": {
         "baseUrl": "http://localhost:2746/api/v1"
