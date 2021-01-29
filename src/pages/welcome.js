@@ -102,9 +102,10 @@ return(
 const Right = (props) => {
   const classes = useStyles()
   const router = useRouter()
+  const query = router && router.query ? router.query : {}
 
-  const [signup, setSignup] = useState(!!router.query.signup)
-  const [forgotPassword, setForgotPassword] = useState(!!router.query.forgot)
+  const [signup, setSignup] = useState(!!query.signup)
+  const [forgotPassword, setForgotPassword] = useState(!!query.forgot)
 
   if (forgotPassword)
     return <ForgotPassword {...props} cancelHandler={() => setForgotPassword(false)} />
