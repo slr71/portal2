@@ -26,7 +26,7 @@ if (config.sentryDSN) {
     });
 }
 else {
-    console.log('Missing Sentry configuration')
+    console.log('Sentry is disabled')
 }
 
 // Configure the session store
@@ -80,7 +80,8 @@ app.prepare()
         server.use(requestLogger)
 
         // Setup Sentry error handling
-        server.use(Sentry.Handlers.requestHandler());
+        if (config.sentryDSN)
+            server.use(Sentry.Handlers.requestHandler());
 
         // Support CORS requests -- needed for service icon image requests
         server.use(cors())
@@ -201,7 +202,8 @@ app.prepare()
         })
 
         // Catch errors
-        server.use(Sentry.Handlers.errorHandler());
+        if (config.sentryDSN)
+            server.use(Sentry.Handlers.errorHandler());
 
         server.listen(config.port, (err) => {
             if (err) throw err
