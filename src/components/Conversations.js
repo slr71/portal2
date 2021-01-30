@@ -21,10 +21,10 @@ const Conversations = ({ conversations }) => {
   )
 }
 
-const Conversation = ({ source, parts }) => {
+const Conversation = ({ parts }) => {
   return (
     <List>
-      {parts && parts.filter(p => p.part_type != 'assignment').map((part, index) => (
+      {parts && parts.map((part, index) => (
         <ConversationPart key={index} {...part} />
       ))}
     </List>
@@ -32,11 +32,11 @@ const Conversation = ({ source, parts }) => {
 }
 
 const ConversationPart = ({ author, part_type, assigned_to, created_at, body }) => {
-  let content
-  // if (part_type && part_type == 'assignment')
-  //   content = `Assigned to ${assigned_to.id} (${assigned_to.type})`
+  let content = []
   if (body) // assume part_type is "note" or "comment"
-    content = <Markdown>{body}</Markdown>
+    content.push(<Markdown>{body}</Markdown>)
+  if (part_type && ['assignment', 'default_assignment'].includes(part_type))
+    content.push(`Assigned to ${assigned_to.name} (${assigned_to.type})`)
 
   return (
     <ListItem alignItems="flex-start">
@@ -50,7 +50,7 @@ const ConversationPart = ({ author, part_type, assigned_to, created_at, body }) 
         secondary={(<>
           <DateSpan date={created_at*1000} />
           <br />
-          {content}
+          {content.map(c => <>{c}</>)}
         </>)}
       />
     </ListItem>

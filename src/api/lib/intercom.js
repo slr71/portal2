@@ -33,6 +33,13 @@ async function createUser(user) {
     return newUser.body;
 }
 
+async function getUser(id, type) {
+    if (type == 'bot' || type == 'admin')
+        return intercom.admins.find(id)
+    
+    return intercom.users.find({ id });
+}
+
 async function getConversation(id) {
     try {
         const res = await intercom.conversations.find({ id });
@@ -146,6 +153,7 @@ async function replyToConversation(conversationId, message) {
 }
 
 module.exports = { 
+    getUser,
     getConversation,
     startConversation,
     addNoteToConversation,

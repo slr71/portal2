@@ -84,12 +84,33 @@ router.get('/requests/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) =>
     request.setDataValue('answers', answers);
 
     // Fetch conversations from Intercom
-    for (let conversation of request.conversations) {
+    const users = {}
+    for (const conversation of request.conversations) {
         const c = await intercom.getConversation(conversation.intercom_conversation_id);
         if (c) {
             conversation.setDataValue('source', c.source);
-            if (c.conversation_parts)
+            if (c.conversation_parts) { 
+                for (const part of c.conversation_parts.conversation_parts) { // is there a better way to do this?
+                    // Get author name
+                    const user = part.author.id in users 
+                        ? users[part.author.id] 
+                        : await intercom.getUser(part.author.id, part.author.type)
+                    if (user)
+                        part.author.name = user.body.name
+                    users[part.author.id] = user
+
+                    // Get assignee name
+                    if (part.assigned_to) {
+                        const user = part.assigned_to.id in users 
+                            ? users[part.assigned_to.id] 
+                            : await intercom.getUser(part.assigned_to.id, part.assigned_to.type)
+                        if (user)
+                            part.assigned_to.name = user.body.name
+                        users[part.assigned_to.id] = user
+                    }
+                }
                 conversation.setDataValue('parts', c.conversation_parts.conversation_parts);
+            }
         }
     }
 
