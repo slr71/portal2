@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
+import { Container, Paper, Grid, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination, CircularProgress } from '@material-ui/core'
 import { Layout, DateSpan } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { withGetServerSideError } from '../../contexts/error'
@@ -24,26 +24,19 @@ const AccessRequests = props => {
   const [rows, setRows] = useState(props.results)
   const [count, setCount] = useState(props.count)
   const [debounce, setDebounce] = useState(null)
+  const [searching, setSearching] = useState(false)
 
   const handleChangePage = async (event, newPage) => {
     setPage(newPage)
-    updateTable(newPage, rowsPerPage)
   }
 
   const handleChangeRowsPerPage = async (event) => {
     setRowsPerPage(parseInt(event.target.value, 10))
     setPage(0)
-    updateTable(0, event.target.value)
-  }
-
-  const updateTable = async (page, rowsPerPage) => {
-    const res = await fetchRequests(page * rowsPerPage, rowsPerPage)
-    const { count, results } = await res.json()
-    setCount(count)
-    setRows(results)
   }
 
   const handleChangeKeyword = async (event) => {
+    setSearching(true)
     setKeyword(event.target.value)
     setPage(0)
   }
@@ -60,6 +53,7 @@ const AccessRequests = props => {
           })
           setCount(count)
           setRows(results)
+          setSearching(false)
         }, 500)
     )},
     [page, rowsPerPage, keyword]
@@ -75,7 +69,18 @@ const AccessRequests = props => {
               <Typography component="h1" variant="h4">Access Requests</Typography>
             </Grid>
             <Grid item>
-              <TextField style={{width: '20em'}} placeholder="Search ..." onChange={handleChangeKeyword} />
+              <TextField 
+                style={{width: '20em'}} 
+                placeholder="Search ..." 
+                onChange={handleChangeKeyword} 
+                InputProps={{ 
+                  endAdornment: (
+                    <React.Fragment>
+                      {searching && <CircularProgress color="inherit" size={20} />}
+                    </React.Fragment>
+                  )
+                }}
+              />
             </Grid>
           </Grid>
           <Typography color="textSecondary" gutterBottom>
