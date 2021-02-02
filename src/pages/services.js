@@ -87,10 +87,21 @@ const ServiceGrid = ({ services, launch }) => (
 const Service = ({ id, name, description, icon_url, service_url, launch }) => {
   const action = 
     launch
-      ? <Button size="small" color="primary" onClick={(e) => { window.open(`${service_url}`); e.preventDefault() }}>
-          LAUNCH
-          <LaunchIcon style={{ fontSize: '1em', marginLeft: '0.5em' }} />
-        </Button>
+      ? name == 'Discovery Environment' // temporary kluge for DE 2.0
+        ? <>
+            <Button size="small" color="primary" onClick={(e) => { window.open(`${service_url}`); e.preventDefault() }}>
+              LAUNCH
+              <LaunchIcon style={{ fontSize: '1em', marginLeft: '0.5em' }} />
+            </Button>
+            <Button size="small" color="primary" onClick={(e) => { window.open('http://de2.cyverse.org'); e.preventDefault() }}>
+              LAUNCH 2.0
+              <LaunchIcon style={{ fontSize: '1em', marginLeft: '0.5em' }} />
+            </Button>
+          </>
+        : <Button size="small" color="primary" onClick={(e) => { window.open(`${service_url}`); e.preventDefault() }}>
+            LAUNCH
+            <LaunchIcon style={{ fontSize: '1em', marginLeft: '0.5em' }} />
+          </Button>
       : <Button size="small" color="primary" href={`services/${id}`}>
           REQUEST ACCESS 
         </Button>
