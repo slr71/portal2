@@ -159,11 +159,7 @@ app.prepare()
             app.render(req, res, "/welcome", { signup: 1 })
         })
 
-        server.get("/forgot", (req, res) => {  
-            app.render(req, res, "/welcome", { forgot: 1 })
-        })
-
-        server.get("/password/forgot", (req, res) => { // for old links from DE/CAS
+        server.get(["/forgot", "/password/forgot"], (req, res) => { // /password/forgot for old links from DE/CAS
             app.render(req, res, "/welcome", { forgot: 1 })
         })
 
