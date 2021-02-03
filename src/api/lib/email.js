@@ -5,6 +5,22 @@ const { logger } = require('./logging');
 const config = require('../../config.json');
 const { UI_WORKSHOPS_URL, UI_REQUESTS_URL, UI_SERVICES_URL, UI_PASSWORD_URL, UI_CONFIRM_EMAIL_URL } = require('../../constants');
 
+const TIME_BETWEEN_EMAILS = 30 * 1000 // rate limit to one email sent per 30 seconds
+let nextEmailSendTime = 0
+
+function queueEmail(cfg) {
+    const now = Date.now();
+    nextEmailSendTime = Math.max(now, nextEmailSendTime + TIME_BETWEEN_EMAILS);
+    const delay = nextEmailSendTime - now
+
+    setTimeout(
+        () => sendmail(cfg),
+        delay + 100 // add small delay so log message can appear first
+    );
+
+    logger.debug(`queueEmail: queued ${cfg.to} "${cfg.subject}" for ${delay/1000}s`);
+}
+
 function renderEmail({ to, bcc, subject, templateName, fields }) {
     let body = {};
 
@@ -43,51 +59,57 @@ function renderEmail({ to, bcc, subject, templateName, fields }) {
     else
         cfg.text = body['txt']
 
-    return sendmail(cfg);
+    return cfg;
 }
 
-async function emailNewAccountConfirmation(email, hmac) {
+function emailNewAccountConfirmation(email, hmac) {
     const confirmationUrl = `${UI_PASSWORD_URL}?code=${hmac}`;
     logger.debug('emailNewAccountConfirmation:', email, confirmationUrl);
-    await renderEmail({
-        to: email, 
-        bcc: config.email.bccNewAccountConfirmation,
-        subject: 'Please Confirm Your E-Mail Address',
-        templateName: 'email_confirmation_signup',
-        fields: {
-            "ACTIVATE_URL": confirmationUrl,
-            "FORMS_URL": UI_REQUESTS_URL
-        }
-    });
+    queueEmail(
+        renderEmail({
+            to: email, 
+            bcc: config.email.bccNewAccountConfirmation,
+            subject: 'Please Confirm Your E-Mail Address',
+            templateName: 'email_confirmation_signup',
+            fields: {
+                "ACTIVATE_URL": confirmationUrl,
+                "FORMS_URL": UI_REQUESTS_URL
+            }
+        })
+    );
 }
 
 async function emailNewEmailConfirmation(email, hmac) {
     const confirmationUrl = `${UI_CONFIRM_EMAIL_URL}?code=${hmac}`;
     logger.debug('emailNewEmailConfirmation:', email, confirmationUrl);
-    await renderEmail({
-        to: email, 
-        //bcc: null,
-        subject: 'CyVerse Email Confirmation',
-        templateName: 'add_email_confirmation',
-        fields: {
-            "ACTIVATE_URL": confirmationUrl,
-        }
-    })
+    queueEmail(
+        renderEmail({
+            to: email, 
+            //bcc: null,
+            subject: 'CyVerse Email Confirmation',
+            templateName: 'add_email_confirmation',
+            fields: {
+                "ACTIVATE_URL": confirmationUrl,
+            }
+        })
+    );
 }
 
 async function emailPasswordReset(emailAddress, hmac) {
     const resetUrl = `${UI_PASSWORD_URL}?reset&code=${hmac}`;
     logger.debug('emailPasswordReset:', emailAddress.email, resetUrl);
-    await renderEmail({
-        to: emailAddress.email, 
-        bcc: config.email.bccPasswordChangeRequest,
-        subject: 'CyVerse Password Reset',
-        templateName: 'password_reset',
-        fields: {
-            "PASSWORD_RESET_URL": resetUrl,
-            "USERNAME": emailAddress.user.username
-        }
-    });
+    queueEmail(
+        renderEmail({
+            to: emailAddress.email, 
+            bcc: config.email.bccPasswordChangeRequest,
+            subject: 'CyVerse Password Reset',
+            templateName: 'password_reset',
+            fields: {
+                "PASSWORD_RESET_URL": resetUrl,
+                "USERNAME": emailAddress.user.username
+            }
+        })
+    );
 }
 
 async function emailServiceAccessGranted(request) {
@@ -96,16 +118,18 @@ async function emailServiceAccessGranted(request) {
     const serviceUrl = `${UI_SERVICES_URL}/${service.id}`;
     logger.debug('emailServiceAccessGranted:', user.email, serviceUrl);
 
-    await renderEmail({
-        to: user.email, 
-        bcc: config.email.bccServiceAccessGranted,
-        subject: 'CyVerse Service Access Granted',
-        templateName: 'access_granted',
-        fields: {
-            "SERVICE_NAME": service.name,
-            "SERVICE_URL": serviceUrl
-        }
-    });
+    queueEmail(
+        renderEmail({
+            to: user.email, 
+            bcc: config.email.bccServiceAccessGranted,
+            subject: 'CyVerse Service Access Granted',
+            templateName: 'access_granted',
+            fields: {
+                "SERVICE_NAME": service.name,
+                "SERVICE_URL": serviceUrl
+            }
+        })
+    );
 }
 
 async function emailWorkshopEnrollmentRequest(request) {
@@ -114,39 +138,43 @@ async function emailWorkshopEnrollmentRequest(request) {
     const workshopEnrollmentRequestUrl = `${UI_WORKSHOPS_URL}/${workshop.id}?t=requests`;
     logger.debug('emailWorkshopEnrollmentRequest:', user.email, workshopEnrollmentRequestUrl);
 
-    await renderEmail({
-        to: user.email, 
-        bcc: config.email.bccWorkshopEnrollmentRequest,
-        subject: 'CyVerse Workshop Enrollment Request',
-        templateName: 'review_workshop_enrollment_request',
-        fields: {
-            "WORKSHOP_NAME": workshop.title,
-            "FULL_NAME": `${user.first_name} ${user.last_name}`,
-            "USERNAME": user.username,
-            "EMAIL": user.email,
-            "INSTITUTION": user.institution,
-            "COUNTRY": user.region.country.name,
-            "WORKSHOP_ENROLLMENT_REQUEST_URL": workshopEnrollmentRequestUrl
-        }
-    });
+    queueEmail(
+        renderEmail({
+            to: user.email, 
+            bcc: config.email.bccWorkshopEnrollmentRequest,
+            subject: 'CyVerse Workshop Enrollment Request',
+            templateName: 'review_workshop_enrollment_request',
+            fields: {
+                "WORKSHOP_NAME": workshop.title,
+                "FULL_NAME": `${user.first_name} ${user.last_name}`,
+                "USERNAME": user.username,
+                "EMAIL": user.email,
+                "INSTITUTION": user.institution,
+                "COUNTRY": user.region.country.name,
+                "WORKSHOP_ENROLLMENT_REQUEST_URL": workshopEnrollmentRequestUrl
+            }
+        })
+    );
 }
 
-async function emailWorkshopEnrollmentConfirmation(request) {
+function emailWorkshopEnrollmentConfirmation(request) {
     const workshop = request.workshop;
     const user = request.user;
     const workshopUrl = `${UI_WORKSHOPS_URL}/${workshop.id}`;
     logger.debug('emailWorkshopEnrollmentConfirmation:', user.email, workshopUrl);
 
-    await renderEmail({
-        to: user.email, 
-        bcc: config.email.bccWorkshopEnrollmentRequest,
-        subject: 'CyVerse Workshop Enrollment Approved',
-        templateName: 'workshop_enrollment',
-        fields: {
-            "WORKSHOP_NAME": workshop.title,
-            "WORKSHOP_URL": workshopUrl
-        }
-    });
+    queueEmail(
+        renderEmail({
+            to: user.email, 
+            bcc: config.email.bccWorkshopEnrollmentRequest,
+            subject: 'CyVerse Workshop Enrollment Approved',
+            templateName: 'workshop_enrollment',
+            fields: {
+                "WORKSHOP_NAME": workshop.title,
+                "WORKSHOP_URL": workshopUrl
+            }
+        })
+    );
 }
 
 module.exports = { 
