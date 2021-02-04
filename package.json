@@ -38,6 +38,7 @@
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.56",
     "@material-ui/pickers": "^3.2.10",
+    "@next/bundle-analyzer": "^10.0.6",
     "@sentry/node": "^5.29.2",
     "@sentry/react": "^5.29.2",
     "@sentry/tracing": "^5.29.2",
