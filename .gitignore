@@ -2,4 +2,3 @@ src/config.json
 .idea
 .next/
 node_modules/
-/src/config.json
