@@ -17,7 +17,7 @@ import { useError } from '../contexts/error'
 import { useCookies } from 'react-cookie'
 import { ACCOUNT_UPDATE_REMINDER_COOKIE, WELCOME_BANNER_COOKIE } from '../constants'
 
-const drawerWidth = 240
+const drawerWidth = 235
 
 const useStyles = makeStyles((theme) => ({
   root: {
