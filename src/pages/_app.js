@@ -52,17 +52,7 @@ function MyApp(props) {
     if (jssStyles) {
       jssStyles.parentElement.removeChild(jssStyles)
     }
-
-    // Setup Intercom chat
-    window.intercomSettings = {
-      app_id: config.intercom.appId,
-      alignment: "right",
-      hide_default_launcher: true,
-    }
-
-    // Load Intercom library -- copied from developer docs, modified app ID
-    var w=window;var ic=w.Intercom;if(typeof ic==="function") {ic('reattach_activator');ic('update',w.intercomSettings);}else {var d=document;var i=function(){i.c(arguments);};i.q=[];i.c=function(args){i.q.push(args);};w.Intercom=i;var l=function(){var s=d.createElement('script');s.type='text/javascript';s.async=true;s.src='https://widget.intercom.io/widget/${config.intercom.appId}';var x=d.getElementsByTagName('script')[0];x.parentNode.insertBefore(s,x);};if(w.attachEvent){w.attachEvent('onload',l);}else{w.addEventListener('load',l,false);}}
-  }, [])
+  })
 
   return (
     <Sentry.ErrorBoundary fallback={"An error has occurred"}>
