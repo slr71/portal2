@@ -1,6 +1,7 @@
-import { Grid, Link, Box } from '@material-ui/core'
-import { Layout, SummaryCard, intercomShow, getMenuItem } from '../components'
+import { Grid, Link, Box, Divider, Typography } from '@material-ui/core'
+import { Layout, intercomShow, getMenuItem } from '../components'
 import { makeStyles } from '@material-ui/core/styles'
+import HelpCard from "../components/HelpCard"
 
 const useStyles = makeStyles(theme => ({
     helpLink: {
@@ -8,8 +9,10 @@ const useStyles = makeStyles(theme => ({
     },
 }))
 
-const Support = () => {
-    const menuItem = getMenuItem('Help')
+const Help = () => {
+    const help = getMenuItem('Help')
+    const supportItems = help.items.filter(item => item.category == 'support')
+    const learnItems = help.items.filter(item => item.category == 'learn')
     const classes = useStyles()
     const chatLink = (
         <Link onClick={intercomShow} className={classes.helpLink}>
@@ -20,21 +23,54 @@ const Support = () => {
     return (
         <Layout title="Help" actions={chatLink}>
             <Box mt={4}>
+                <Typography variant="h6">Learn</Typography>
+                <Divider />
+                <br />
                 <Grid container spacing={4}>
-                    {menuItem.items.map((item, index) => (
+                    {learnItems.map(item => (
                         <Grid
                             item
-                            key={index}
-                            xs={12}
-                            sm={12}
                             md={6}
+                            s={12}
+                            xs={12}
                             lg={4}
                             xl={2}
+                            key={item.path}
                         >
                             <Link underline="none" href={item.path}>
-                                <SummaryCard
+                                <HelpCard
+                                    title={item.label}
+                                    icon={item.icon}
+                                    description={item.description}
+                                    
+                                />
+                            </Link>
+                        </Grid>
+                    ))}
+                </Grid>
+            </Box>
+            <Box mt={4}>
+                <Typography variant="h6" mt={4}>
+                    Support
+                </Typography>
+                <Divider />
+                <br />
+                <Grid container spacing={4}>
+                    {supportItems.map(item => (
+                        <Grid
+                            item
+                            md={6}
+                            s={12}
+                            xs={12}
+                            lg={4}
+                            xl={2}
+                            key={item.path}
+                        >
+                            <Link underline="none" href={item.path}>
+                                <HelpCard
                                     title={item.label}
                                     description={item.description}
+                                    icon={item.icon}
                                 />
                             </Link>
                         </Grid>
@@ -45,4 +81,8 @@ const Support = () => {
     )
 }
 
-export default Support
+export async function getServerSideProps() {
+    return { props: {} }
+}
+
+export default Help

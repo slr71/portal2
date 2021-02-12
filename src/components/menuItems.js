@@ -11,6 +11,15 @@ import {
     Inbox as InboxIcon,
 } from '@material-ui/icons'
 
+import SvgLearnIcon from './svg/learnIcon'
+import SvgCalIcon from './svg/calendarIcon'
+import SvgPoliciesIcon from './svg/policiesIcon'
+import SvgWikiIcon from './svg/wikiIcon'
+import SvgFlagIcon from './svg/flagIcon'
+import SvgVideoIcon from './svg/videoIcon'
+import SvgForumIcon from './svg/forumIcon'
+import SvgStatusIcon from './svg/statusIcon'
+
 const menuItems = [
     {
         label: 'Services',
@@ -40,43 +49,60 @@ const menuItems = [
                 path: 'https://learning.cyverse.org',
                 description:
                     'Help on creating account and learning what services are available.',
+                icon: <SvgFlagIcon />,
+                category: 'learn',
             },
             {
-                label: 'Tutorials',
+                label: 'CyVerse Learning',
                 path: 'https://learning.cyverse.org/en/latest/tutorials.html',
-                description: 'Tutorials covering CyVerse services.',
+                description:
+                    'Explore our learning materials in the popular “Read the Docs” formatting.',
+                icon: <SvgLearnIcon />,
+                category: 'learn',
             },
             {
                 label: 'Webinars',
                 path: 'https://learning.cyverse.org/en/latest/webinars.html',
                 description:
                     'Upcoming webinars on how to use CyVerse services.',
+                category: 'learn',
+                icon: <SvgVideoIcon />,
             },
             {
                 label: 'Policies',
                 path: 'https://cyverse.org/policies',
                 description: 'CyVerse policies that apply to all users.',
+                category: 'support',
+                icon: <SvgPoliciesIcon />,
             },
             {
-                label: 'Wiki',
+                label: 'CyVerse Wiki',
                 path: 'https://cyverse.atlassian.net/wiki',
                 description: 'A space for collaboration.',
+                category: 'learn',
+                icon: <SvgWikiIcon />,
             },
             {
                 label: 'FAQ',
                 path: 'https://learning.cyverse.org/projects/faq',
                 description:
                     'Answers to frequenty asked questions about CyVerse',
+                category: 'support',
+                icon: <SvgForumIcon />,
             },
             {
                 label: 'Maintenance Calendar',
                 path: 'https://cyverse.org/maintenance',
-                description: 'Schedule of future CyVerse service outages',
+                description: 'Check for scheduled downtime for maintenance.',
+                category: 'support',
+                icon: <SvgCalIcon />,
             },
             {
                 label: 'Status',
                 path: 'http://status.cyverse.org/',
                 description: 'Operational status of all CyVerse resources',
+                category: 'support',
+                icon: <SvgStatusIcon />,
             },
         ],
     },
