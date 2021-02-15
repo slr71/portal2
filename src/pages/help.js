@@ -33,8 +33,8 @@ const Help = () => {
                             md={6}
                             s={12}
                             xs={12}
-                            lg={4}
-                            xl={2}
+                            lg={3}
+                            xl={3}
                             key={item.path}
                         >
                             <Link underline="none" href={item.path}>
@@ -62,8 +62,8 @@ const Help = () => {
                             md={6}
                             s={12}
                             xs={12}
-                            lg={4}
-                            xl={2}
+                            lg={3}
+                            xl={3}
                             key={item.path}
                         >
                             <Link underline="none" href={item.path}>

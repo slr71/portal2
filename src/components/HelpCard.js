@@ -11,9 +11,9 @@ import { makeStyles } from '@material-ui/core/styles'
 const useStyles = makeStyles(theme => ({
     avatar: {
         backgroundColor: '#ffff',
-        color: '#091ab',
-        width: '40px',
-        height: '40px',
+        color: '#0971ab',
+        width: '35px',
+        height: '35px',
     },
     content: {
         minHeight: '6em',

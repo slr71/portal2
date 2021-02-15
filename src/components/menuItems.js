@@ -15,10 +15,10 @@ import SvgLearnIcon from './svg/learnIcon'
 import SvgCalIcon from './svg/calendarIcon'
 import SvgPoliciesIcon from './svg/policiesIcon'
 import SvgWikiIcon from './svg/wikiIcon'
-import SvgFlagIcon from './svg/flagIcon'
 import SvgVideoIcon from './svg/videoIcon'
 import SvgForumIcon from './svg/forumIcon'
 import SvgStatusIcon from './svg/statusIcon'
+import SvgRocketIcon from './svg/rocketIcon'
 
 const menuItems = [
     {
@@ -48,8 +48,8 @@ const menuItems = [
                 label: 'Getting Started',
                 path: 'https://learning.cyverse.org',
                 description:
-                    'Help on creating account and learning what services are available.',
-                icon: <SvgFlagIcon />,
+                    'Get help on creating an account and learn about our services.',
+                icon: <SvgRocketIcon />,
                 category: 'learn',
             },
             {
@@ -64,14 +64,14 @@ const menuItems = [
                 label: 'Webinars',
                 path: 'https://learning.cyverse.org/en/latest/webinars.html',
                 description:
-                    'Upcoming webinars on how to use CyVerse services.',
+                    'Browse webinars on how to use CyVerse services.',
                 category: 'learn',
                 icon: <SvgVideoIcon />,
             },
             {
                 label: 'Policies',
                 path: 'https://cyverse.org/policies',
-                description: 'CyVerse policies that apply to all users.',
+                description: 'View CyVerse policies that apply to all users.',
                 category: 'support',
                 icon: <SvgPoliciesIcon />,
             },
@@ -86,7 +86,7 @@ const menuItems = [
                 label: 'FAQ',
                 path: 'https://learning.cyverse.org/projects/faq',
                 description:
-                    'Answers to frequenty asked questions about CyVerse',
+                    'Answers to frequenty asked questions about CyVerse.',
                 category: 'support',
                 icon: <SvgForumIcon />,
             },
@@ -100,7 +100,7 @@ const menuItems = [
             {
                 label: 'Status',
                 path: 'http://status.cyverse.org/',
-                description: 'Operational status of all CyVerse resources',
+                description: 'View operational status of all CyVerse resources.',
                 category: 'support',
                 icon: <SvgStatusIcon />,
             },
