@@ -12,8 +12,8 @@ const useStyles = makeStyles(theme => ({
     avatar: {
         backgroundColor: '#ffff',
         color: '#0971ab',
-        width: '35px',
-        height: '35px',
+        width: '40px',
+        height: '40px',
     },
     content: {
         minHeight: '6em',
