@@ -20,13 +20,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const Account = () => {
+const Account = ({ countries, regions }) => {
   const classes = useStyles()
   const api = useAPI()
   const [_, setError] = useError()
   const [user, setUser] = useUser()
   const [sentEmails, setSentEmails] = useState([])
-  const [institutions, setInstitutions] = useState([ { id: user.grid_institution_id, name: user.institution } ])
+  const [institutions, setInstitutions] = useState()
+  const [institutionKeyword, setInstitutionKeyword] = useState(user.institution)
   const [forms, setForms] = useState()
   const [debounce, setDebounce] = useState(null)
 
@@ -59,6 +60,7 @@ const Account = () => {
 
   const inputHandler = (fieldId, value) => {
     if (fieldId == 'grid_institution_id') {
+      setInstitutionKeyword(value)
       if (debounce) clearTimeout(debounce)
       if (value.length >= 3) {
         setDebounce(
@@ -72,8 +74,8 @@ const Account = () => {
   }
 
   React.useEffect(() => {
-    setForms(getForms({ user, institutions, changeHandler, inputHandler }))
-  }, [user, institutions])
+    setForms(getForms({ user, countries, regions, institutions, institutionKeyword, changeHandler, inputHandler }))
+  }, [user, institutions, institutionKeyword])
 
   // Default submit handler for all forms
   const submitForm = async (submission) => {
@@ -121,9 +123,10 @@ const Account = () => {
                   validate={validate}
                   autosave={form.autosave}
                   onSubmit={(values, { setSubmitting }) => {
-                    // Special case: set region_id if country_id changed
-                    if (values['country_id'] != user.region.country_id) {
-                      const region = properties.regions.find(r => r.country_id == values['country_id'] && r.name == "Not Provided")
+                    // Special case: reset region_id to "not provided" if country_id changed
+                    const countryId = values['country_id']
+                    if (countryId && countryId != user.region.country_id) {
+                      const region = regions[countryId].find(r => r.name == "Not Provided")
                       if (region)
                         values['region_id'] = region.id
                     }
@@ -147,7 +150,7 @@ const Account = () => {
   )
 }
 
-const getForms = ({ user, institutions, changeHandler, inputHandler }) => {
+const getForms = ({ user, countries, regions, institutions, institutionKeyword, changeHandler, inputHandler }) => {
   return [ 
     { title: "Identification",
       autosave: true,
@@ -225,6 +228,7 @@ const getForms = ({ user, institutions, changeHandler, inputHandler }) => {
           type: "autocomplete",
           required: true,
           value: user.grid_institution_id,
+          inputValue: institutionKeyword,
           options: institutions,
           placeholder: "Search ...",
           freeSolo: true,
@@ -267,14 +271,14 @@ const getForms = ({ user, institutions, changeHandler, inputHandler }) => {
           type: "autocomplete",
           required: true,
           value: user.region.country_id,
-          options: properties.countries.sort(sortCountries),
+          options: countries,
         },
         { id: "region_id",
           name: "Region",
           type: "select",
           required: true,
           value: user.region.id,
-          options: properties.regions.filter(r => r.country_id == user.region.country_id)
+          options: regions[user.region.country_id]
         },
         { id: "gender_id",
           name: "Gender Identity",
@@ -511,6 +515,23 @@ const MailingListItem = ({ email, list }) => {
       </ListItemSecondaryAction>
     </ListItem>
   )
+}
+
+export async function getStaticProps() {
+  const countries = properties.countries.sort(sortCountries)
+  const regions = {}
+  for (const r of properties.regions) {
+    if (!(r.country_id in regions))
+      regions[r.country_id] = []
+    regions[r.country_id].push(r)
+  }
+
+  return {
+    props: {
+      countries,
+      regions
+    }
+  }
 }
 
 export default Account

@@ -122,6 +122,10 @@ router.put('/users', asyncHandler(async (req, res) => {
     fields['subscribe_to_newsletter'] = true; 
     fields['orcid_id'] = '';
 
+    // Special case: automatically set "institution" based on for backward compatibility
+    const institution = await models.account_institution_grid.findByPk(fields['grid_institution_id']);
+    fields['institution'] = institution.name;
+
     // Create user
     logger.info('Creating user', fields['username']);
     let newUser = await User.create(fields)
@@ -449,7 +453,7 @@ router.get('/users/properties/institutions', asyncHandler(async (req, res) => {
         }
         else {
             institutions = await models.account_institution_grid.findAll({ 
-                where: sequelize.or(like('name', keyword)), 
+                where: like('name', keyword), 
                 order: [[ 'name', 'ASC' ]],
                 limit: limit
             });

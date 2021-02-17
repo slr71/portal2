@@ -255,7 +255,6 @@ const FormField = (props) => {
     error: props.errorText != null,
     helperText: props.errorText || props.description,
     placeholder: props.placeholder,
-    defaultValue: props.value,
     fullWidth: true, 
     margin: "normal",
     required: props.is_required || props.required,
@@ -288,6 +287,7 @@ const FormField = (props) => {
         onChange={
           props.onChange && props.onChange(props.id.toString()) // workaround for "you didn't pass an id" error
         } 
+        defaultValue={props.value}
         {...commonProps}
         inputProps={{style: { textAlign: 'left' }}}
       >
@@ -306,7 +306,6 @@ const FormField = (props) => {
 
   if (props.type === 'autocomplete') {
     const options = props.options || []
-    delete commonProps.defaultValue // removes a warning about setting both value and defaultValue
 
     return (
       <Field
@@ -321,7 +320,7 @@ const FormField = (props) => {
           if (typeof props.onSelect === 'function')
             props.onSelect(props, option)
         }} 
-        onInputChange={(_, value) => props.onInputChange && props.onInputChange(props.id, value)}
+        onInputChange={(event, value) => event && props.onInputChange && props.onInputChange(props.id, value)}
         options={options}
         getOptionSelected={(option, value) => option && value && option.id == value.id}
         getOptionDisabled={(option) => option && option.disabled}
@@ -359,6 +358,7 @@ const FormField = (props) => {
         onChange={props.onChange}
         onBlur={props.onBlur}
         InputLabelProps={{ shrink: true }} // to prevent "mm/dd/yyyy" helper text bug
+        defaultValue={props.value}
         {...commonProps}
       />
     </>
