@@ -254,8 +254,8 @@ const FormField = (props) => {
     type: props.type,
     error: props.errorText != null,
     helperText: props.errorText || props.description,
-    //defaultValue: props.value,
     placeholder: props.placeholder,
+    defaultValue: props.value,
     fullWidth: true, 
     margin: "normal",
     required: props.is_required || props.required,
@@ -306,7 +306,7 @@ const FormField = (props) => {
 
   if (props.type === 'autocomplete') {
     const options = props.options || []
-    //delete commonProps.defaultValue // removes a warning about setting both value and defaultValue
+    delete commonProps.defaultValue // removes a warning about setting both value and defaultValue
 
     return (
       <Field

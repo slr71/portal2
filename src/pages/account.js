@@ -27,8 +27,8 @@ const Account = () => {
   const [user, setUser] = useUser()
   const [sentEmails, setSentEmails] = useState([])
   const [institutions, setInstitutions] = useState([ { id: user.grid_institution_id, name: user.institution } ])
+  const [forms, setForms] = useState()
   const [debounce, setDebounce] = useState(null)
-  const [forms, setForms] = useState() 
 
   const changeHandler = async (data) => {
     try {
@@ -65,7 +65,7 @@ const Account = () => {
           setTimeout(async () => {
             const institutions = await api.institutions({ keyword: value, limit: 100 })
             setInstitutions(institutions)
-          }, 1000)
+          }, 500)
         )
       }
     }
@@ -73,7 +73,7 @@ const Account = () => {
 
   React.useEffect(() => {
     setForms(getForms({ user, institutions, changeHandler, inputHandler }))
-  }, [institutions])
+  }, [user, institutions])
 
   // Default submit handler for all forms
   const submitForm = async (submission) => {
@@ -267,7 +267,7 @@ const getForms = ({ user, institutions, changeHandler, inputHandler }) => {
           type: "autocomplete",
           required: true,
           value: user.region.country_id,
-          options: properties.countries.sort(sortCountries)
+          options: properties.countries.sort(sortCountries),
         },
         { id: "region_id",
           name: "Region",
