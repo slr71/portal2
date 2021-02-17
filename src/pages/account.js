@@ -10,6 +10,14 @@ import { useError } from '../contexts/error'
 import { sortCountries } from '../lib/misc'
 const properties = require('../user-properties.json')
 
+const countries = properties.countries.sort(sortCountries)
+const regions = {}
+for (const r of properties.regions) {
+  if (!(r.country_id in regions))
+    regions[r.country_id] = []
+  regions[r.country_id].push(r)
+}
+
 //FIXME duplicated elsewhere
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -20,7 +28,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-const Account = ({ countries, regions }) => {
+const Account = () => {
   const classes = useStyles()
   const api = useAPI()
   const [_, setError] = useError()
@@ -515,23 +523,6 @@ const MailingListItem = ({ email, list }) => {
       </ListItemSecondaryAction>
     </ListItem>
   )
-}
-
-export async function getStaticProps() {
-  const countries = properties.countries.sort(sortCountries)
-  const regions = {}
-  for (const r of properties.regions) {
-    if (!(r.country_id in regions))
-      regions[r.country_id] = []
-    regions[r.country_id].push(r)
-  }
-
-  return {
-    props: {
-      countries,
-      regions
-    }
-  }
 }
 
 export default Account
