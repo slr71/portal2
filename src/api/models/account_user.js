@@ -139,6 +139,14 @@ module.exports = function(sequelize, DataTypes) {
         key: 'id'
       }
     },
+    grid_institution_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'account_institution_grid',
+        key: 'id'
+      }
+    },
     settings: {
       type: DataTypes.JSON,
       allowNull: true

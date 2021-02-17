@@ -263,41 +263,33 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
   const api = useAPI()
   const [error, setError] = useState()
 
-  const [form, setForm] = useState(getForm(firstNameId, lastNameId))
+  const [institutions, setInstitutions] = useState([])
+  const [insitutionId, setInstitutionId] = useState()
+  const [countryId, setCountryId] = useState()
   const [isSubmitted, setSubmitted] = useState(false)
   const [user, setUser] = useState() // newly created user
+  const [debounce, setDebounce] = useState(null)
+  const [form, setForm] = useState(getForm({ firstNameId, lastNameId, inputHandler }))
 
-  const allFields = form.sections.reduce((acc, s) => acc.concat(s.fields), [])
-  const initialValues = 
-    allFields.reduce((acc, f) => { 
-        acc[f.id.toString()] = ''; 
-        return acc 
-      }, 
-      {}
-    )
-
-  // Custom validator for username & email fields
-  const validate = async (field, value) => {
-    if (field.type == 'username') {
-      const res = await api.checkUsername(value)
-      //TODO add error checking here
-      if (res && res.username)
-        return 'Username already taken'
+  const inputHandler = (fieldId, value) => {
+    if (fieldId == 'grid_institution_id') {
+      if (debounce) clearTimeout(debounce)
+      if (value.length >= 3) {
+        setDebounce(
+          setTimeout(async () => {
+            const institutions = await api.institutions({ keyword: value, limit: 100 })
+            setInstitutions(institutions)
+          }, 500)
+        )
+      }
     }
-    else if (field.type == 'email') {
-      const res = await api.checkEmail(value)
-      //TODO add error checking here
-      if (res && res.email)
-        return 'Email already assigned to an account'
-    }
-
-    return null
   }
 
-  // Set region based on country
   const handleSelect = (field, option) => {
     if (field.id == 'country_id') 
-      setForm(getForm(firstNameId, lastNameId, option.id))
+      setCountryId(option.id) // set region based on country
+    else if (field.id == 'grid_institution_id')
+      setInstitutionId(option.id)
   }
 
   const submitCreateUser = async (submission) => {
@@ -321,6 +313,32 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
       setError(error.response ? error.response.data : error.message)
     }
   }
+  
+  React.useEffect(() => {
+    setForm(getForm({ firstNameId, lastNameId, countryId, insitutionId, institutions, inputHandler }))
+  }, [countryId, insitutionId, institutions])
+
+  // Custom validator for username & email fields
+  const validate = async (field, value) => {
+    if (field.type == 'username') {
+      const res = await api.checkUsername(value)
+      //TODO add error checking here
+      if (res && res.username)
+        return 'Username already taken'
+    }
+    else if (field.type == 'email') {
+      const res = await api.checkEmail(value)
+      //TODO add error checking here
+      if (res && res.email)
+        return 'Email already assigned to an account'
+    }
+
+    return null
+  }
+
+  const allFields = form.sections.reduce((acc, s) => acc.concat(s.fields), [])
+  const initialValues = 
+    allFields.reduce((acc, f) => { acc[f.id.toString()] = ''; return acc }, {})
 
   return (
     <Box width="60%" className={classes.boxWelcome}>
@@ -363,7 +381,7 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
   )
 }
 
-const getForm = (firstNameId, lastNameId, countryId) => {
+const getForm = ({ firstNameId, lastNameId, countryId, insitutionId, institutions, inputHandler }) => {
   return {
     sections: [
       { autosave: true,
@@ -394,10 +412,15 @@ const getForm = (firstNameId, lastNameId, countryId) => {
       },
       { autosave: true,
         fields: [
-          { id: "institution",
+          { id: "grid_institution_id",
             name: "Company/Institution",
-            type: "text",
-            required: true
+            type: "autocomplete",
+            required: true,
+            value: insitutionId,
+            options: institutions,
+            placeholder: "Search ...",
+            freeSolo: true,
+            onInputChange: inputHandler
           },
           { id: "department",
             name: "Department",
@@ -438,7 +461,7 @@ const getForm = (firstNameId, lastNameId, countryId) => {
             required: true,
             options: countryId
               ? properties.regions.filter(r => r.country_id == countryId) // populate based on selected country
-              : [ { id: 4585, name: "Please select a country first ..." } ] 
+              : [ { id: 4585, name: "Please select a country first ...", disabled: true } ] 
           },
           { id: "gender_id",
             name: "Gender Identity",

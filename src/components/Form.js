@@ -190,8 +190,8 @@ const Wizard = ({ form, initialValues, validate, onSelect, onSubmit }) => {
       <Formik
         initialValues={snapshot}
         validate={async (values) => await validateFields(form.sections[stepNumber].fields, values, validate)}
-        enableReinitialize
-        validateOnMount
+        enableReinitialize //FIXME is this necessary?
+        validateOnMount //FIXME is this necessary?
         isInitialValid={isInitialValid}
         onSubmit={onSubmit}
       >
@@ -254,7 +254,8 @@ const FormField = (props) => {
     type: props.type,
     error: props.errorText != null,
     helperText: props.errorText || props.description,
-    defaultValue: props.value,
+    //defaultValue: props.value,
+    placeholder: props.placeholder,
     fullWidth: true, 
     margin: "normal",
     required: props.is_required || props.required,
@@ -304,22 +305,44 @@ const FormField = (props) => {
   }
 
   if (props.type === 'autocomplete') {
+    const options = props.options || []
+    //delete commonProps.defaultValue // removes a warning about setting both value and defaultValue
+
     return (
       <Field
         component={Autocomplete}
-        onChange={(event, option) => {
+        onChange={(event, option) => { //FIXME this is causing the controlled vs. uncontrolled warning
+          if (!option)
+            return
           event.target.name = props.id
           event.target.value = option.id
-          props.onChange && props.onChange(event)
-          props.onSelect && props.onSelect(props, option)
+          if (typeof props.onChange === 'function')
+            props.onChange(event)
+          if (typeof props.onSelect === 'function')
+            props.onSelect(props, option)
         }} 
-        options={props.options}
-        getOptionLabel={(option) => option.name}
-        value={props.options.find(option => option.id == props.value)}
+        onInputChange={(_, value) => props.onInputChange && props.onInputChange(props.id, value)}
+        options={options}
+        getOptionSelected={(option, value) => option && value && option.id == value.id}
+        getOptionDisabled={(option) => option && option.disabled}
+        getOptionLabel={(option) => option && option.name ? option.name : ''}
+        inputValue={props.inputValue}
+        value={options.find(option => option && option.id == props.value)}
+        freeSolo={props.freeSolo} // when true prevents "no options" from showing in the dropdown while loading (for async mode)
+
         renderInput={(params) => (
           <TextField
             {...params}
             {...commonProps}
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: (
+                <React.Fragment>
+                  {props.loading ? <CircularProgress color="inherit" size={20} /> : null}
+                  {params.InputProps.endAdornment}
+                </React.Fragment>
+              ),
+            }}
           />
         )}
       />
@@ -335,7 +358,7 @@ const FormField = (props) => {
         autoFocus={props.index == 0} 
         onChange={props.onChange}
         onBlur={props.onBlur}
-        InputLabelProps={{ shrink: true }} // to prevent "mm/dd/yyyy" placeholder bug
+        InputLabelProps={{ shrink: true }} // to prevent "mm/dd/yyyy" helper text bug
         {...commonProps}
       />
     </>

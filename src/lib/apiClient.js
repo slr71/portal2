@@ -21,7 +21,7 @@ class PortalAPI {
     if (this.token)
       options.headers['Authorization'] = `Bearer ${this.token}`
     
-    options.timeout = 30*1000
+    options.timeout = 10 * 1000
 
     // Add custom parameter serializer to encode spaces with %20 instead of '+' 
     options.paramsSerializer = (params) => qs.stringify(params)
@@ -94,9 +94,15 @@ class PortalAPI {
 
   async deleteRestrictedUsername(id) { return await this.delete(`/users/restricted/${id}`) }
 
+  /*
+   * Public endpoints (authorization not required)
+   */
+
   // This endpoint is no longer called directly. Instead, use the cached copy in src/user-properties.json
   // async userProperties() { return await this.get(`/users/properties`) }
 
+  async institutions(params) { return await this.get(`/users/properties/institutions`, params) }
+ 
   /*
    * Service endpoints
    */

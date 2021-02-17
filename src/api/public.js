@@ -21,7 +21,8 @@ const PasswordResetRequest = models.account_passwordresetrequest;
 const EmailAddressToMailingList = models.api_emailaddressmailinglist;
 
 //TODO move into module
-const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase()); 
+const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase());
+const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' });
 
 // Check for existing username and/or email address
 router.post('/exists', asyncHandler(async (req, res) => {
@@ -97,7 +98,7 @@ router.put('/users', asyncHandler(async (req, res) => {
 
     // Validate fields
     const REQUIRED_FIELDS = [
-        'first_name', 'last_name', 'email', 'institution', 'department',
+        'first_name', 'last_name', 'email', 'grid_institution_id', 'department',
         'occupation_id', 'research_area_id', 'funding_agency_id',
         'country_id', 'region_id', 'gender_id', 'ethnicity_id', 'aware_channel_id'
     ];
@@ -181,6 +182,8 @@ router.put('/users/password', asyncHandler(async (req, res) => {
     });
     if (passwordReset)
         return res.status(400).send('Password already set/reset');
+
+    //TODO check that there is a password reset request for this HMAC
 
     // Confirm email address
     emailAddress.verified = true
@@ -430,6 +433,30 @@ router.get('/users/properties', asyncHandler(async (req, res) => {
     .forEach((e, i) => results[keys[i]] = e);
 
     res.status(200).json(results);
+}));
+
+router.get('/users/properties/institutions', asyncHandler(async (req, res) => {
+    const keyword = req.query.keyword; // search term
+    const limit = req.query.limit // max number of results or blank for all
+
+    let institutions = []
+    if (keyword && keyword.length >= 3) {
+        if (keyword.toLowerCase() == 'other') {
+            // If they enter exactly "other" then return only that option
+            institutions = await models.account_institution_grid.findAll({ 
+                where: lowerEqualTo('name', keyword), 
+            });
+        }
+        else {
+            institutions = await models.account_institution_grid.findAll({ 
+                where: sequelize.or(like('name', keyword)), 
+                order: [[ 'name', 'ASC' ]],
+                limit: limit
+            });
+        }
+    }
+
+    res.status(200).json(institutions);
 }));
 
 module.exports = router;
