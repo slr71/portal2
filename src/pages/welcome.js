@@ -270,7 +270,6 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
   const [isSubmitted, setSubmitted] = useState(false)
   const [user, setUser] = useState() // newly created user
   const [debounce, setDebounce] = useState(null)
-  const [form, setForm] = useState(getForm({ firstNameId, lastNameId, inputHandler }))
 
   const inputHandler = (fieldId, value) => {
     if (fieldId == 'grid_institution_id') {
@@ -290,6 +289,8 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
       }
     }
   }
+
+  const [form, setForm] = useState(getForm({ firstNameId, lastNameId, inputHandler }))
 
   const handleSelect = (field, option) => {
     if (field.id == 'country_id') 
