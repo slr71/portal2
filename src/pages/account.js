@@ -20,13 +20,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }))
 
-//FIXME the state management is a little kludgey
-const Account = () => {
+const Account = ({ countries, regions }) => {
   const classes = useStyles()
   const api = useAPI()
   const [_, setError] = useError()
   const [user, setUser] = useUser()
   const [sentEmails, setSentEmails] = useState([])
+  const [institutions, setInstitutions] = useState()
+  const [institutionKeyword, setInstitutionKeyword] = useState(user.institution)
+  const [forms, setForms] = useState()
+  const [debounce, setDebounce] = useState(null)
 
   const changeHandler = async (data) => {
     try {
@@ -49,15 +52,30 @@ const Account = () => {
           email.sent = email.email == data.email.email
       }
       setUser(newUser)
-      setForms(Forms(newUser, properties, changeHandler))
     }
     catch (error) {
       setError(error.response && error.response.data ? error.response.data : error.message)
     }
   }
 
-  const initialValues = (fields) =>
-      fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
+  const inputHandler = (fieldId, value) => {
+    if (fieldId == 'grid_institution_id') {
+      setInstitutionKeyword(value)
+      if (debounce) clearTimeout(debounce)
+      if (value.length >= 3) {
+        setDebounce(
+          setTimeout(async () => {
+            const institutions = await api.institutions({ keyword: value, limit: 100 })
+            setInstitutions(institutions)
+          }, 500)
+        )
+      }
+    }
+  }
+
+  React.useEffect(() => {
+    setForms(getForms({ user, countries, regions, institutions, institutionKeyword, changeHandler, inputHandler }))
+  }, [user, institutions, institutionKeyword])
 
   // Default submit handler for all forms
   const submitForm = async (submission) => {
@@ -66,15 +84,12 @@ const Account = () => {
       for (let email of newUser.emails) // set sent flag for "resend confirmation email" on newly added email addresses
         email.sent = !!sentEmails.find(e => e.email == email.email)
       setUser(newUser)
-      setForms(Forms(newUser, properties, changeHandler))
     }
     catch(error) {
       console.log(error)
       setError(error.message)
     }
   }
-
-  const [forms, setForms] = useState(Forms(user, properties, changeHandler))
 
   const title = 
     <div style={{display: 'flex', alignItems: 'center'}}>
@@ -83,6 +98,9 @@ const Account = () => {
 
   const logoutButton =
     <Button variant="contained" color="primary" style={{"width": "8em"}} href="/logout">Sign Out</Button>
+
+  const initialValues = (fields) =>
+    fields.reduce((acc, f) => { acc[f.id] = f.value; return acc }, {})
 
   const validate = (field, value, values) => {
     if (field.id == 'confirm_password' && value != values['new_password'])
@@ -93,7 +111,7 @@ const Account = () => {
     <Layout title={title} actions={logoutButton}>
       <Container maxWidth='md'>
         <br />
-        {forms.map((form, index) => (
+        {forms && forms.map((form, index) => (
           <Box key={index} className={classes.box}>
             <Paper elevation={3} className={classes.paper}>
               {form.render ||
@@ -105,9 +123,10 @@ const Account = () => {
                   validate={validate}
                   autosave={form.autosave}
                   onSubmit={(values, { setSubmitting }) => {
-                    // Special case: set region_id if country_id changed
-                    if (values['country_id'] != user.region.country_id) {
-                      const region = properties.regions.find(r => r.country_id == values['country_id'] && r.name == "Not Provided")
+                    // Special case: reset region_id to "not provided" if country_id changed
+                    const countryId = values['country_id']
+                    if (countryId && countryId != user.region.country_id) {
+                      const region = regions[countryId].find(r => r.name == "Not Provided")
                       if (region)
                         values['region_id'] = region.id
                     }
@@ -129,6 +148,162 @@ const Account = () => {
       </Container>
     </Layout>
   )
+}
+
+const getForms = ({ user, countries, regions, institutions, institutionKeyword, changeHandler, inputHandler }) => {
+  return [ 
+    { title: "Identification",
+      autosave: true,
+      fields: [
+        { id: "first_name",
+          name: "First Name",
+          type: "text",
+          required: true,
+          width: 6,
+          value: user.first_name
+        },
+        { id: "last_name",
+          name: "Last Name",
+          type: "text",
+          required: true,
+          width: 6,
+          value: user.last_name
+        },
+        { id: "username",
+          name: "Username",
+          description: "Your username cannot be changed",
+          type: "text",
+          value: user.username,
+          disabled: true
+        },
+        { id: "orcid_id",
+          name: "ORCID",
+          description: <span>Persistent digital identifier that distinguishes you from every other researcher (<a href="https://orcid.org" target="_blank">https://orcid.org</a>)</span>,
+          type: "text",
+          value: user.orcid_id
+        }
+      ]
+    },
+    { title: "Password",
+      autosave: false,
+      submitHandler: changeHandler,
+      fields: [
+        { id: "old_password",
+          name: "Old Password",
+          type: "password",
+          required: true
+        },
+        { id: "new_password",
+          name: "New Password",
+          type: "password",
+          required: true
+        },
+        { id: "confirm_password",
+          name: "Confirm New Password",
+          type: "password",
+          required: true
+        }
+      ]
+    },
+    { render: 
+        <EmailForm 
+          emails={user.emails} 
+          title="Email" 
+          subtitle="Email addresses associated with this account" 
+          onChange={changeHandler}
+        />
+    },
+    { render: 
+        <MailingListForm 
+          user={user} 
+          title="Mailing List Subscriptions" 
+          subtitle="Manage which services you would like to receive maintenance-related emails from" 
+        />
+    },
+    { title: "Institution / Research",
+      autosave: true,
+      fields: [
+        { id: "grid_institution_id",
+          name: "Company/Institution",
+          type: "autocomplete",
+          required: true,
+          value: user.grid_institution_id,
+          inputValue: institutionKeyword,
+          options: institutions,
+          placeholder: "Search ...",
+          freeSolo: true,
+          onInputChange: inputHandler
+        },
+        { id: "department",
+          name: "Department",
+          type: "text",
+          required: true,
+          value: user.department
+        },
+        { id: "occupation_id",
+          name: "Occupation",
+          type: "select",
+          required: true,
+          value: user.occupation.id,
+          options: properties.occupations
+        },
+        { id: "research_area_id",
+          name: "Research Area",
+          type: "select",
+          required: true,
+          value: user.research_area.id,
+          options: properties.research_areas
+        },
+        { id: "funding_agency_id",
+          name: "Funding Agency",
+          type: "select",
+          required: true,
+          value: user.funding_agency.id,
+          options: properties.funding_agencies
+        }
+      ]
+    },
+    { title: "Demographics",
+      autosave: true,
+      fields: [
+        { id: "country_id",
+          name: "Country",
+          type: "autocomplete",
+          required: true,
+          value: user.region.country_id,
+          options: countries,
+        },
+        { id: "region_id",
+          name: "Region",
+          type: "select",
+          required: true,
+          value: user.region.id,
+          options: regions[user.region.country_id]
+        },
+        { id: "gender_id",
+          name: "Gender Identity",
+          type: "select",
+          required: true,
+          value: user.gender.id,
+          options: properties.genders
+        },
+        { id: "ethnicity_id",
+          name: "Ethnicity",
+          type: "select",
+          required: true,
+          value: user.ethnicity.id,
+          options: properties.ethnicities
+        },
+        { id: "aware_channel_id",
+          name: "How did you hear about us?",
+          type: "select",
+          required: true,
+          value: user.aware_channel.id,
+          options: properties.aware_channels
+        }
+      ]
+    }
+  ]
 }
 
 const EmailForm = ({ emails, title, subtitle, onChange }) => {
@@ -342,155 +517,21 @@ const MailingListItem = ({ email, list }) => {
   )
 }
 
-const Forms = (user, properties, onChange) => {
-  return [ 
-    { title: "Identification",
-      autosave: true,
-      fields: [
-        { id: "first_name",
-          name: "First Name",
-          type: "text",
-          required: true,
-          width: 6,
-          value: user.first_name
-        },
-        { id: "last_name",
-          name: "Last Name",
-          type: "text",
-          required: true,
-          width: 6,
-          value: user.last_name
-        },
-        { id: "username",
-          name: "Username",
-          description: "Your username cannot be changed",
-          type: "text",
-          value: user.username,
-          disabled: true
-        },
-        { id: "orcid_id",
-          name: "ORCID",
-          description: <span>Persistent digital identifier that distinguishes you from every other researcher (<a href="https://orcid.org" target="_blank">https://orcid.org</a>)</span>,
-          type: "text",
-          value: user.orcid_id
-        }
-      ]
-    },
-    { title: "Password",
-      autosave: false,
-      submitHandler: onChange,
-      fields: [
-        { id: "old_password",
-          name: "Old Password",
-          type: "password",
-          required: true
-        },
-        { id: "new_password",
-          name: "New Password",
-          type: "password",
-          required: true
-        },
-        { id: "confirm_password",
-          name: "Confirm New Password",
-          type: "password",
-          required: true
-        }
-      ]
-    },
-    { render: 
-        <EmailForm 
-          emails={user.emails} 
-          title="Email" 
-          subtitle="Email addresses associated with this account" 
-          onChange={onChange}
-        />
-    },
-    { render: 
-        <MailingListForm 
-          user={user} 
-          title="Mailing List Subscriptions" 
-          subtitle="Manage which services you would like to receive maintenance-related emails from" 
-        />
-    },
-    { title: "Institution / Research",
-      autosave: true,
-      fields: [
-        { id: "institution",
-          name: "Company/Institution",
-          type: "text",
-          required: true,
-          value: user.institution,
-        },
-        { id: "department",
-          name: "Department",
-          type: "text",
-          required: true,
-          value: user.department
-        },
-        { id: "occupation_id",
-          name: "Occupation",
-          type: "select",
-          required: true,
-          value: user.occupation.id,
-          options: properties.occupations
-        },
-        { id: "research_area_id",
-          name: "Research Area",
-          type: "select",
-          required: true,
-          value: user.research_area.id,
-          options: properties.research_areas
-        },
-        { id: "funding_agency_id",
-          name: "Funding Agency",
-          type: "select",
-          required: true,
-          value: user.funding_agency.id,
-          options: properties.funding_agencies
-        }
-      ]
-    },
-    { title: "Demographics",
-      autosave: true,
-      fields: [
-        { id: "country_id",
-          name: "Country",
-          type: "autocomplete",
-          required: true,
-          value: user.region.country_id,
-          options: properties.countries.sort(sortCountries)
-        },
-        { id: "region_id",
-          name: "Region",
-          type: "select",
-          required: true,
-          value: user.region.id,
-          options: properties.regions.filter(r => r.country_id == user.region.country_id)
-        },
-        { id: "gender_id",
-          name: "Gender Identity",
-          type: "select",
-          required: true,
-          value: user.gender.id,
-          options: properties.genders
-        },
-        { id: "ethnicity_id",
-          name: "Ethnicity",
-          type: "select",
-          required: true,
-          value: user.ethnicity.id,
-          options: properties.ethnicities
-        },
-        { id: "aware_channel_id",
-          name: "How did you hear about us?",
-          type: "select",
-          required: true,
-          value: user.aware_channel.id,
-          options: properties.aware_channels
-        }
-      ]
+export async function getStaticProps() {
+  const countries = properties.countries.sort(sortCountries)
+  const regions = {}
+  for (const r of properties.regions) {
+    if (!(r.country_id in regions))
+      regions[r.country_id] = []
+    regions[r.country_id].push(r)
+  }
+
+  return {
+    props: {
+      countries,
+      regions
     }
-  ]
+  }
 }
 
 export default Account

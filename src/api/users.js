@@ -154,7 +154,7 @@ router.get('/:id(\\d+)/ldap', requireAdmin, asyncHandler(async (req, res) => {
         res.status(200).send(record);
     }
     catch(error) {
-        res.status(200).send('An error occurred');
+        res.status(500).send('An error occurred');
     }
 })); 
 
@@ -174,7 +174,7 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
 
     // Update
     const SUPPORTED_FIELDS = [
-        'first_name', 'last_name', 'orcid_id', 'institution', 'department',
+        'first_name', 'last_name', 'orcid_id', 'grid_institution_id', 'department',
         'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id',
         'occupation_id', 'research_area_id', 'region_id', 'settings'
     ]
@@ -183,8 +183,15 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
             // Ignore any non-updateable fields
             if (SUPPORTED_FIELDS.includes(key))
                 user[key] = fields[key];
+
+            // Special case: automatically set "institution" based on for backward compatibility
+            if (key == 'grid_institution_id' && fields[key]) {
+                const institution = await models.account_institution_grid.findByPk(fields[key]);
+                user['institution'] = institution.name
+            }
         }
     }
+
     await user.save();
     await user.reload();
 
