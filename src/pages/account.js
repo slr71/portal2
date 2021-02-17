@@ -36,6 +36,7 @@ const Account = () => {
   const [sentEmails, setSentEmails] = useState([])
   const [institutions, setInstitutions] = useState()
   const [institutionKeyword, setInstitutionKeyword] = useState(user.institution)
+  const [institutionError, setInstitutionError] = useState()
   const [forms, setForms] = useState()
   const [debounce, setDebounce] = useState(null)
 
@@ -74,7 +75,12 @@ const Account = () => {
         setDebounce(
           setTimeout(async () => {
             const institutions = await api.institutions({ keyword: value, limit: 100 })
-            setInstitutions(institutions)
+            if (institutions.length == 0)
+              setInstitutionError('Not found, please try a different search term')
+            else {
+              setInstitutions(institutions)
+              setInstitutionError()
+            }
           }, 500)
         )
       }
@@ -82,8 +88,8 @@ const Account = () => {
   }
 
   React.useEffect(() => {
-    setForms(getForms({ user, countries, regions, institutions, institutionKeyword, changeHandler, inputHandler }))
-  }, [user, institutions, institutionKeyword])
+    setForms(getForms({ user, countries, regions, institutions, institutionKeyword, institutionError, changeHandler, inputHandler }))
+  }, [user, institutions, institutionKeyword, institutionError])
 
   // Default submit handler for all forms
   const submitForm = async (submission) => {
@@ -158,7 +164,7 @@ const Account = () => {
   )
 }
 
-const getForms = ({ user, countries, regions, institutions, institutionKeyword, changeHandler, inputHandler }) => {
+const getForms = ({ user, countries, regions, institutions, institutionKeyword, institutionError, changeHandler, inputHandler }) => {
   return [ 
     { title: "Identification",
       autosave: true,
@@ -239,8 +245,10 @@ const getForms = ({ user, countries, regions, institutions, institutionKeyword, 
           inputValue: institutionKeyword,
           options: institutions,
           placeholder: "Search ...",
+          errorText: institutionError,
           freeSolo: true,
-          onInputChange: inputHandler
+          onInputChange: inputHandler,
+          //filterOptions: (options, _) => options // this is needed for "not found" message to be shown
         },
         { id: "department",
           name: "Department",

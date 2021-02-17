@@ -265,6 +265,7 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
 
   const [institutions, setInstitutions] = useState([])
   const [insitutionId, setInstitutionId] = useState()
+  const [institutionError, setInstitutionError] = useState()
   const [countryId, setCountryId] = useState()
   const [isSubmitted, setSubmitted] = useState(false)
   const [user, setUser] = useState() // newly created user
@@ -278,7 +279,12 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
         setDebounce(
           setTimeout(async () => {
             const institutions = await api.institutions({ keyword: value, limit: 100 })
-            setInstitutions(institutions)
+            if (institutions.length == 0)
+              setInstitutionError('Not found, please try a different search term')
+            else {
+              setInstitutions(institutions)
+              setInstitutionError()
+            }
           }, 500)
         )
       }
@@ -315,8 +321,8 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
   }
   
   React.useEffect(() => {
-    setForm(getForm({ firstNameId, lastNameId, countryId, insitutionId, institutions, inputHandler }))
-  }, [countryId, insitutionId, institutions])
+    setForm(getForm({ firstNameId, lastNameId, countryId, insitutionId, institutionError, institutions, inputHandler }))
+  }, [countryId, insitutionId, institutions, institutionError])
 
   // Custom validator for username & email fields
   const validate = async (field, value) => {
@@ -381,7 +387,7 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
   )
 }
 
-const getForm = ({ firstNameId, lastNameId, countryId, insitutionId, institutions, inputHandler }) => {
+const getForm = ({ firstNameId, lastNameId, countryId, insitutionId, institutions, institutionError, inputHandler }) => {
   return {
     sections: [
       { autosave: true,
@@ -419,6 +425,7 @@ const getForm = ({ firstNameId, lastNameId, countryId, insitutionId, institution
             value: insitutionId,
             options: institutions,
             placeholder: "Search ...",
+            errorText: institutionError,
             freeSolo: true,
             onInputChange: inputHandler
           },
