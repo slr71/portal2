@@ -150,6 +150,10 @@ module.exports = function(sequelize, DataTypes) {
     settings: {
       type: DataTypes.JSON,
       allowNull: true
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
     }
   }, {
     tableName: 'account_user'

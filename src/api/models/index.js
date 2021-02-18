@@ -135,17 +135,11 @@ models.account_user.addScope('defaultScope',
   {
     attributes: {
       exclude: [
-        'is_active',
-        'ethnicity_id',
-        'funding_agency_id', 
-        'gender_id', 
-        'has_verified_email',
-        'occupation_id', 
-        'password', // important to exclude
-        'region_id', 
-        'research_area_id', 
-        'aware_channel_id', 
-        'user_institution_id'
+        'last_login', // no longer used
+        'is_active', // no longer used
+        'has_verified_email', // no longer used
+        'password', // important to exclude for security
+        'user_institution_id' // no longer used
       ]
     },
     include: [

@@ -178,22 +178,26 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
         'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id',
         'occupation_id', 'research_area_id', 'region_id', 'settings'
     ]
-    if (fields) {
-        for (let key in fields) {
-            // Ignore any non-updateable fields
-            if (SUPPORTED_FIELDS.includes(key))
-                user[key] = fields[key];
 
-            // Special case: automatically set "institution" based on for backward compatibility
-            if (key == 'grid_institution_id' && fields[key]) {
-                const institution = await models.account_institution_grid.findByPk(fields[key]);
-                user['institution'] = institution.name
+    const timeNow = Date.now();
+    if (fields) {
+        for (const key in fields) {
+            // Ignore any non-updateable fields
+            if (SUPPORTED_FIELDS.includes(key) && user.getDataValue(key) != fields[key]) {
+                user[key] = fields[key];
+                user['updated_at'] = timeNow;
+
+                // Special case: automatically set "institution" for backward compatibility
+                if (key == 'grid_institution_id' && fields[key]) {
+                    const institution = await models.account_institution_grid.findByPk(fields[key]);
+                    user['institution'] = institution.name
+                }
             }
         }
-    }
 
-    await user.save();
-    await user.reload();
+        await user.save();
+        await user.reload();
+    }
 
     res.status(200).json(user);
 }));
