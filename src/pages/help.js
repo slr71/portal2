@@ -81,8 +81,4 @@ const Help = () => {
     )
 }
 
-export async function getServerSideProps() {
-    return { props: {} }
-}
-
 export default Help
