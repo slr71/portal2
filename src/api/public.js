@@ -30,13 +30,17 @@ const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(k
 router.post('/mailchimp/unsubscribe', asyncHandler(async (req, res) => {
     console.log(req.body);
 
-    if (!req.body || !req.body.data || !req.body.data.email || req.body.type != 'unsubscribe')
+    if (!req.body || !req.body.data || !req.body.data.email || req.body.type != 'unsubscribe') {
+        logger.error(`Mailchimp unsupported request`);
         return res.status(200).json({ status: 'Unsupported request' });
+    }
 
     const email = req.body.data.email;
     const user = await User.findOne({ where: { email } });
-    if (!user) 
+    if (!user) {
+        logger.error(`Mailchimp user not found`);
         return res.status(200).json({ status: `No user was found with email ${email}` });
+    }
 
     user.subscribe_to_newsletter = false;
     await user.save();
