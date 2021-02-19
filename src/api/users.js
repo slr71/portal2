@@ -67,7 +67,7 @@ router.get('/mine', getUser, (req, res) => {
 router.get('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     const user = await User.findByPk(req.params.id, { include: [ 'services' ] });
     if (!user)
-        return res.status(404);
+        return res.status(404).send('User not found');
     res.status(200).json(user);
 }));
 
