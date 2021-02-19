@@ -21,7 +21,7 @@ class PortalAPI {
     if (this.token)
       options.headers['Authorization'] = `Bearer ${this.token}`
     
-    options.timeout = 10 * 1000
+    options.timeout = 30 * 1000
 
     // Add custom parameter serializer to encode spaces with %20 instead of '+' 
     options.paramsSerializer = (params) => qs.stringify(params)
