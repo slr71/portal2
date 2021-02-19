@@ -24,6 +24,26 @@ const EmailAddressToMailingList = models.api_emailaddressmailinglist;
 const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase());
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' });
 
+// Mailchimp unsubscribe webhook 
+// Configured here: https://us10.admin.mailchimp.com/lists/tools/webhooks-edit?id=174785&hookId=1
+// Called when a user or admin unsubscribes from newsletter
+router.post('/mailchimp/unsubscribe', asyncHandler(async (req, res) => {
+    console.log(req.body);
+
+    if (!req.body || !req.body.data || !req.body.data.email || req.body.type != 'unsubscribe')
+        return res.status(200).json({ status: 'Unsupported request' });
+
+    const email = req.body.data.email;
+    const user = await User.findOne({ where: { email } });
+    if (!user) 
+        return res.status(200).json({ status: `No user was found with email ${email}` });
+
+    user.subscribe_to_newsletter = false;
+    await user.save();
+
+    res.status(200).json({ status: `User with email ${email} unsubscribed from newsletter` });
+}));
+
 // Check for existing username and/or email address
 router.post('/exists', asyncHandler(async (req, res) => {
     let fields = req.body;
