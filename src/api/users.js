@@ -66,6 +66,8 @@ router.get('/mine', getUser, (req, res) => {
 // Get individual user (STAFF ONLY)
 router.get('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     const user = await User.findByPk(req.params.id, { include: [ 'services' ] });
+    if (!user)
+        return res.status(404);
     res.status(200).json(user);
 }));
 
