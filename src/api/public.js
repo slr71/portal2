@@ -48,6 +48,11 @@ router.post('/mailchimp/unsubscribe', asyncHandler(async (req, res) => {
     res.status(200).json({ status: `User with email ${email} unsubscribed from newsletter` });
 }));
 
+// Used by Mailchimp to verify correct configuration
+router.get('/mailchimp/unsubscribe', asyncHandler(async (req, res) => {
+    res.status(200).json({ status: `success` });
+}));
+
 // Check for existing username and/or email address
 router.post('/exists', asyncHandler(async (req, res) => {
     let fields = req.body;
