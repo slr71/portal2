@@ -4,6 +4,7 @@ import { Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
 import { withGetServerSideError } from '../contexts/error'
 const inlineIcons = require('../inline_icons.json')
+import WelcomeBanner from '../components/welcomeBanner'
 
 const Services = (props) => {
   const [user] = useUser()
@@ -23,6 +24,9 @@ const Services = (props) => {
 
   return (
     <Layout title="Services">
+      <Box mt={3}>
+      <WelcomeBanner />
+      </Box>
       <Box mt={3}>
         <Typography variant="h6" component="h2">My Services</Typography>
         <Divider />
