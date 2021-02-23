@@ -70,7 +70,7 @@ export default function WelcomeBanner() {
                                     variant="h4"
                                     color="primary"
                                 >
-                                    Welcome to the <br/> CyVerse User Portal
+                                    Welcome to the <br /> CyVerse User Portal
                                 </Typography>
                                 <br />
                                 <Typography
@@ -78,7 +78,11 @@ export default function WelcomeBanner() {
                                     color="textPrimary"
                                     component="p"
                                 >
-                                    The User Portal is how you customize your CyVerse experience. Request access to the platforms you want to use, manage your quotas, and explore learning materials and workshops. 
+                                    The User Portal is how you customize your
+                                    CyVerse experience. Request access to the
+                                    platforms you want to use, manage your
+                                    quotas, and explore learning materials and
+                                    workshops.
                                 </Typography>
                                 <br />
                                 <Button
@@ -87,16 +91,20 @@ export default function WelcomeBanner() {
                                     color="primary"
                                     size="large"
                                     alignItems="right"
+                                    href="https://learning.cyverse.org/en/latest/#"
+                                    target="_blank"
                                 >
-                                    Getting Started
+                                    Learning Center
                                 </Button>
                                 <Button
                                     className={classes.button}
                                     size="large"
                                     variant="contained"
                                     color="primary"
+                                    href="https://www.youtube.com/watch?v=-1lQuIMLXvs&list=PL38WPXpo-ZW2Qay_04FuP8IeVbbUopoiw&index=3"
+                                    target="_blank"
                                 >
-                                    Learning Center
+                                    Getting Started Webinar
                                 </Button>
                             </div>
                         </Grid>
