@@ -80,8 +80,7 @@ export default function WelcomeBanner() {
                                 >
                                     The User Portal is how you customize your
                                     CyVerse experience. Request access to the
-                                    platforms you want to use, manage your
-                                    quotas, and explore learning materials and
+                                    platforms you want to use and explore learning materials and
                                     workshops.
                                 </Typography>
                                 <br />
