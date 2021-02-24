@@ -16,6 +16,7 @@ import { CustomIntercom, intercomShow } from './CustomIntercom'
 import MainLogo from './MainLogo'
 import { menuItems, getMenuItem } from './menuItems'
 import WelcomeAnimation from './WelcomeAnimation'
+import WelcomeBanner from './WelcomeBanner'
 import ConfirmationDialog from './ConfirmationDialog'
 
 export { 
@@ -47,5 +48,6 @@ export {
   User,
   validateField,
   WelcomeAnimation,
+  WelcomeBanner,
   Wizard,
 }

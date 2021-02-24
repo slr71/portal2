@@ -4,9 +4,8 @@ import Link from "next/link"
 import { useRouter } from 'next/router'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline, Snackbar } from '@material-ui/core'
-import { Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
 import { Alert, AlertTitle } from '@material-ui/lab'
-import { Close as CloseIcon, Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, AccountCircle as PersonIcon } from '@material-ui/icons'
+import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, AccountCircle as PersonIcon } from '@material-ui/icons'
 import SideBar from './SideBar'
 import TopBar from './TopBar'
 import MainLogo from './MainLogo'
@@ -15,7 +14,7 @@ import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
 import { useError } from '../contexts/error'
 import { useCookies } from 'react-cookie'
-import { ACCOUNT_UPDATE_REMINDER_COOKIE, WELCOME_BANNER_COOKIE } from '../constants'
+import { ACCOUNT_UPDATE_REMINDER_COOKIE } from '../constants'
 
 const drawerWidth = 235
 
@@ -137,9 +136,8 @@ export default function Dashboard(props) {
 
   const [drawerOpen, setDrawerOpen] = React.useState(!user.settings || user.settings.drawerOpen)
 
-  const [cookies, setCookie] = useCookies([ACCOUNT_UPDATE_REMINDER_COOKIE, WELCOME_BANNER_COOKIE])
+  const [cookies, setCookie] = useCookies([ACCOUNT_UPDATE_REMINDER_COOKIE])
   const [alertOpen, setAlertOpen] = React.useState(!cookies || !(ACCOUNT_UPDATE_REMINDER_COOKIE in cookies))
-  const [welcomeOpen, setWelcomeOpen] = React.useState(!cookies || !(WELCOME_BANNER_COOKIE in cookies))
 
   const oneYearFromToday = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
   const oneYearBeforeToday = new Date(new Date().setFullYear(new Date().getFullYear() - 1))
@@ -160,18 +158,6 @@ export default function Dashboard(props) {
     setAlertOpen(false)
     if (url)
       router.push(url)
-  }
-
-  const handleCloseWelcome = () => {
-    setCookie(
-      WELCOME_BANNER_COOKIE, 
-      '', // empty cookie
-      { 
-        path: '/'
-      }
-    )
-
-    setWelcomeOpen(false)
   }
 
   // Persist drawer state in user settings
@@ -269,36 +255,6 @@ export default function Dashboard(props) {
           </React.Fragment>
         }
       /> */}
-      <WelcomeDialog 
-        open={welcomeOpen}
-        handleClose={handleCloseWelcome} 
-      />
     </div>
   )
 }
-
-//TODO remove someday
-const WelcomeDialog = ({ open, handleClose }) => (
-  <Dialog open={open} onClose={handleClose} fullWidth>
-    <DialogTitle>Welcome to the new User Portal!</DialogTitle>
-    <DialogContent style={{fontSize:'1.25em'}}>
-      <p>
-        The User Portal was redesigned for improved robustness and ease of use.  Let us know how we did (see "help" button) and if you have any bug reports, questions, or suggestions.
-      </p>
-      <p>
-        If you are new here check out this resource for getting started:<br />
-        <a href="https://learning.cyverse.org" target="_blank">https://learning.cyverse.org</a>
-      </p>
-      <br />
-    </DialogContent>
-    <DialogActions>
-      <Button 
-        variant="contained" 
-        color="primary" 
-        onClick={handleClose}
-      >
-        Close
-      </Button>
-    </DialogActions>
-  </Dialog>
-)
