@@ -22,7 +22,7 @@ const Help = () => {
 
     return (
         <Layout title="Help" actions={chatLink}>
-            <Box mt={4}>
+            <Box mt={3}>
                 <Typography variant="h6">Learn</Typography>
                 <Divider />
                 <br />
