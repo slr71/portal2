@@ -1,6 +1,4 @@
-import React from 'react'
-
-function BannerImage(props) {
+export default function BannerImage() {
     return (
         <svg
             id="b54e01c8-3597-4c2f-8bb5-85a7c942b74e"
@@ -959,5 +957,3 @@ function BannerImage(props) {
         </svg>
     )
 }
-
-export default BannerImage

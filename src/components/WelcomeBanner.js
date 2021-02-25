@@ -1,44 +1,38 @@
-import React from 'react'
 import { Paper, Grid, Box, Button, Typography } from '@material-ui/core'
-import BannerImage from '../components/svg/bannerImage'
+import BannerImage from './svg/bannerImage'
 import { makeStyles } from '@material-ui/core/styles'
 
-const useStyles = makeStyles(theme => {
-    return {
-        button: {
-            margin: theme.spacing(1),
+const useStyles = makeStyles((theme) => ({
+    button: {
+        margin: theme.spacing(1),
+    },
+    bannerImage: {
+        //margin: '1px',
+        [theme.breakpoints.down('sm')]: {
+            display: 'none',
         },
-        bannerImage: {
-            //margin: '1px',
-            [theme.breakpoints.down('sm')]: {
-                display: 'none',
-            },
+    },
+    padding: {
+        padding: '4%',
+        [theme.breakpoints.down('md')]: {
+            padding: '3%',
         },
-        padding: {
-            padding: '4%',
-            [theme.breakpoints.down('md')]: {
-                padding: '3%',
-            },
-            [theme.breakpoints.down('sm')]: {
-                padding: '2%',
-            },
+        [theme.breakpoints.down('sm')]: {
+            padding: '2%',
         },
-        paper: {
-            padding: theme.spacing(3),
-            textAlign: 'center',
-            color: theme.palette.text.secondary,
-        },
-        box: {
-            flexGrow: 1,
-        },
+    },
+    paper: {
+        padding: theme.spacing(3),
+        textAlign: 'center',
+        color: theme.palette.text.secondary,
     }
-})
+}))
 
-export default function WelcomeBanner({ closeHandler }) {
+const WelcomeBanner = ({ closeHandler }) => {
     const classes = useStyles()
 
     return (
-        <Box mt={4} className={classes.box}>
+        <Box mt={3}>
             <Paper elevation={3} className={classes.paper}>
                 <Grid
                     container
@@ -47,24 +41,18 @@ export default function WelcomeBanner({ closeHandler }) {
                     alignItems="center"
                     spacing={4}
                 >
-                    <Grid
-                        item
-                        xs={0}
-                        sm={12}
-                        md={5}
-                        lg={5}
-                        className={classes.bannerImage}
-                    >
+                    <Grid item xs={0} sm={12} md={5} lg={5} className={classes.bannerImage}>
                         <BannerImage />
                     </Grid>
-                    <Grid item xs={12} sm={12} md={7} lg={6}>
-                        <div className={classes.padding}>
+                    <Grid item xs={12} sm={12} md={7} lg={6} className={classes.padding}>
                         <Typography
                             component="h1"
                             variant="h4"
                             color="primary"
                         >
-                            Welcome to the <br /> CyVerse User Portal
+                            Welcome to the
+                            <br />
+                            CyVerse User Portal
                         </Typography>
                         <br />
                         <Typography
@@ -83,7 +71,6 @@ export default function WelcomeBanner({ closeHandler }) {
                             variant="contained"
                             color="primary"
                             size="large"
-                            alignItems="right"
                             href="https://learning.cyverse.org/en/latest/#"
                             target="_blank"
                         >
@@ -99,11 +86,14 @@ export default function WelcomeBanner({ closeHandler }) {
                         >
                             Getting Started Webinar
                         </Button>
+                        <br />
+                        <br />
                         <Button size="small" onClick={closeHandler}>Close this and don't show again</Button>
-                        </div>
                     </Grid>
                 </Grid>
             </Paper>
         </Box>
     )
 }
+
+export default WelcomeBanner

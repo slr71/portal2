@@ -40,7 +40,7 @@ const Services = (props) => {
 
   return (
     <Layout title="Services">
-      {welcomeBannerOpen && <WelcomeBanner closeHandler={handleCloseWelcomeBanner} />}
+      {/* {welcomeBannerOpen && <WelcomeBanner closeHandler={handleCloseWelcomeBanner} />} */}
       <Box mt={3}>
         <Typography variant="h6" component="h2">My Services</Typography>
         <Divider />
