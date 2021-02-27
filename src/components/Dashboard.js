@@ -13,7 +13,6 @@ import { CustomIntercom } from './CustomIntercom'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
 import { useError } from '../contexts/error'
-import { useCookies } from 'react-cookie'
 import { ACCOUNT_UPDATE_REMINDER_COOKIE } from '../constants'
 
 const drawerWidth = 235
@@ -136,29 +135,29 @@ export default function Dashboard(props) {
 
   const [drawerOpen, setDrawerOpen] = React.useState(!user.settings || user.settings.drawerOpen)
 
-  const [cookies, setCookie] = useCookies([ACCOUNT_UPDATE_REMINDER_COOKIE])
-  const [alertOpen, setAlertOpen] = React.useState(!cookies || !(ACCOUNT_UPDATE_REMINDER_COOKIE in cookies))
+  // const [cookies, setCookie] = useCookies([ACCOUNT_UPDATE_REMINDER_COOKIE])
+  // const [alertOpen, setAlertOpen] = React.useState(!cookies || !(ACCOUNT_UPDATE_REMINDER_COOKIE in cookies))
 
   const oneYearFromToday = new Date(new Date().setFullYear(new Date().getFullYear() + 1))
   const oneYearBeforeToday = new Date(new Date().setFullYear(new Date().getFullYear() - 1))
 
-  const handleCloseAlert = (url) => {
-    // Show annual reminder to update account info if at least one year since user joined
-    if (new Date(user.date_joined) < oneYearBeforeToday) {
-      setCookie(
-        ACCOUNT_UPDATE_REMINDER_COOKIE, 
-        '', // empty cookie
-        { 
-          path: '/', 
-          expires: oneYearFromToday
-        }
-      )
-    }
+  // const handleCloseAlert = (url) => {
+  //   // Show annual reminder to update account info if at least one year since user joined
+  //   if (new Date(user.date_joined) < oneYearBeforeToday) {
+  //     setCookie(
+  //       ACCOUNT_UPDATE_REMINDER_COOKIE, 
+  //       '', // empty cookie
+  //       { 
+  //         path: '/', 
+  //         expires: oneYearFromToday
+  //       }
+  //     )
+  //   }
 
-    setAlertOpen(false)
-    if (url)
-      router.push(url)
-  }
+  //   setAlertOpen(false)
+  //   if (url)
+  //     router.push(url)
+  // }
 
   // Persist drawer state in user settings
   const handleDrawerEvent = async (open) => {
