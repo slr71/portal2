@@ -9,7 +9,6 @@ import theme from '../theme'
 //import { KeycloakProvider } from '../contexts/keycloak'
 import { APIProvider } from '../contexts/api'
 import { UserProvider } from '../contexts/user'
-import { CookiesProvider } from 'react-cookie'
 import { ErrorProvider } from '../contexts/error'
 import Custom404 from './404'
 import Custom500 from './500'
@@ -58,7 +57,6 @@ function MyApp(props) {
     <Sentry.ErrorBoundary fallback={"An error has occurred"}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <CookiesProvider>
           {/* <KeycloakProvider kauth={kauth}> */}
             <APIProvider baseUrl={baseUrl} token={token}>
               <UserProvider user={user}>
@@ -71,7 +69,6 @@ function MyApp(props) {
               </UserProvider>
             </APIProvider>
           {/* </KeycloakProvider> */}
-        </CookiesProvider>
       </ThemeProvider>
     </Sentry.ErrorBoundary>
   )
