@@ -1,8 +1,9 @@
+import { useState } from 'react'
+import cookie from 'cookie'
 import { Link, Grid, Button, IconButton, Divider, Box, Typography } from '@material-ui/core'
 import { Launch as LaunchIcon, HelpOutlineOutlined as HelpIcon } from '@material-ui/icons'
 import { Layout, SummaryCard, WelcomeBanner } from '../components'
 import { useUser } from '../contexts/user'
-import { useCookies } from 'react-cookie'
 import { WELCOME_BANNER_COOKIE } from '../constants'
 import { withGetServerSideError } from '../contexts/error'
 const inlineIcons = require('../inline_icons.json')
@@ -15,8 +16,7 @@ const Services = (props) => {
   const available = services.filter(s => s.approval_key != '' && !userServices.map(s => s.id).includes(s.id))
   const powered = services.filter(s => s.is_powered)
 
-  const [cookies, setCookie] = useCookies([WELCOME_BANNER_COOKIE])
-  const [welcomeBannerOpen, setWelcomeBannerOpen] = React.useState(!(cookies && WELCOME_BANNER_COOKIE in cookies))
+  const [welcomeBannerOpen, setWelcomeBannerOpen] = useState(!(WELCOME_BANNER_COOKIE in props.cookies))
 
   const poweredByButton = 
     <IconButton 
@@ -27,20 +27,13 @@ const Services = (props) => {
     </IconButton>
 
   const handleCloseWelcomeBanner = () => {
-    setCookie(
-      WELCOME_BANNER_COOKIE, 
-      '', // empty cookie
-      { 
-        path: '/'
-      }
-    )
-
+    document.cookie="welcome_banner=" // create cookie
     setWelcomeBannerOpen(false)
   }
 
   return (
     <Layout title="Services">
-      {/* {welcomeBannerOpen && <WelcomeBanner closeHandler={handleCloseWelcomeBanner} />} */}
+      {welcomeBannerOpen && <WelcomeBanner closeHandler={handleCloseWelcomeBanner} />} 
       <Box mt={3}>
         <Typography variant="h6" component="h2">My Services</Typography>
         <Divider />
@@ -142,7 +135,8 @@ const Service = ({ id, name, description, icon_url, service_url, launch }) => {
 
 export async function getServerSideProps({ req }) {
   const services = await req.api.services()
-  return { props: { services } }
+  const cookies = cookie.parse(req.headers.cookie || '');
+  return { props: { services, cookies } }
 }
 
 export default Services

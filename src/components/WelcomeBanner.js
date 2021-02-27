@@ -88,7 +88,7 @@ const WelcomeBanner = ({ closeHandler }) => {
                         </Button>
                         <br />
                         <br />
-                        <Button size="small" onClick={closeHandler}>Close this and don't show again</Button>
+                        <Button size="small" onClick={closeHandler}>Close and don't show again</Button>
                     </Grid>
                 </Grid>
             </Paper>
