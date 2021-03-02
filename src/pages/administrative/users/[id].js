@@ -291,13 +291,9 @@ const PasswordResetDialog = ({ open, user, hmac, handleClose }) => {
 }
 
 export async function getServerSideProps({ req, query }) {
-  let user = null, history = null, ldap = null
-  try {
-    user = await req.api.user(query.id)
-    history = await req.api.userHistory(query.id)
-    ldap = await req.api.userLDAP(query.id)
-  }
-  catch {}
+  const user = await req.api.user(query.id)
+  const history = await req.api.userHistory(query.id)
+  const ldap = await req.api.userLDAP(query.id)
 
   return { props: { user, history, ldap } }
 }
