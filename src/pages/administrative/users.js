@@ -122,9 +122,9 @@ const UserTable = ({ rows, rowsPerPage, count, page, handleChangePage, handleCha
           return (
             <Link key={index} href={`/administrative/users/${user.id}`}>
               <TableRow hover style={{cursor: 'pointer'}}>
-                <TableCell style={{whiteSpace:'nowrap'}}>{user.first_name} {user.last_name}</TableCell>
-                <TableCell>{user.username}<CopyToClipboardButton text={user.username} /></TableCell>
-                <TableCell>{user.email}<CopyToClipboardButton text={user.email} /></TableCell>
+                <TableCell>{user.first_name} {user.last_name}</TableCell>
+                <TableCell style={{whiteSpace:'nowrap'}}>{user.username}<CopyToClipboardButton text={user.username} /></TableCell>
+                <TableCell style={{whiteSpace:'nowrap'}}>{user.email}<CopyToClipboardButton text={user.email} /></TableCell>
                 <TableCell>{user.institution}</TableCell>
                 <TableCell>{user.occupation.name}</TableCell>
                 <TableCell>{user.region.name}</TableCell>
