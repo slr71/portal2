@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Link from "next/link"
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Grid, Paper, Typography, TextField, CircularProgress, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
-import Layout from '../../components/Layout'
+import { Layout, CopyToClipboardButton } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { withGetServerSideError } from '../../contexts/error'
 
@@ -123,8 +123,8 @@ const UserTable = ({ rows, rowsPerPage, count, page, handleChangePage, handleCha
             <Link key={index} href={`/administrative/users/${user.id}`}>
               <TableRow hover style={{cursor: 'pointer'}}>
                 <TableCell style={{whiteSpace:'nowrap'}}>{user.first_name} {user.last_name}</TableCell>
-                <TableCell>{user.username}</TableCell>
-                <TableCell>{user.email}</TableCell>
+                <TableCell>{user.username}<CopyToClipboardButton text={user.username} /></TableCell>
+                <TableCell>{user.email}<CopyToClipboardButton text={user.email} /></TableCell>
                 <TableCell>{user.institution}</TableCell>
                 <TableCell>{user.occupation.name}</TableCell>
                 <TableCell>{user.region.name}</TableCell>

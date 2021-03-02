@@ -1,8 +1,8 @@
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import { makeStyles, Container, Box, Button, Paper, Typography, TextField, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
-import Alert from '@material-ui/lab/Alert';
-import { Layout, DateSpan, ConfirmationDialog } from '../../../components'
+import Alert from '@material-ui/lab/Alert'
+import { Layout, DateSpan, ConfirmationDialog, CopyToClipboardButton } from '../../../components'
 import { useAPI } from '../../../contexts/api'
 import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useUser } from '../../../contexts/user'
@@ -34,7 +34,6 @@ const User = ({ user, history, ldap }) => {
   const [me] = useUser()
   const api = useAPI()
   const [_, setError] = useError()
-
   
   const [showDeleteConfirmationDialog, setShowDeleteConfirmationDialog] = useState(false)
   const [showLDAPDialog, setShowLDAPDialog] = useState(false)
@@ -74,7 +73,11 @@ const User = ({ user, history, ldap }) => {
         <Alert severity="warning" variant="filled">This page needs improvement</Alert>
         <br />
         <Paper elevation={3} className={classes.paper}>
-          <Typography component="div" variant="h5">{`${user.first_name} ${user.last_name} (${user.username})`}</Typography> 
+          <Typography component="div" variant="h5">
+            {`${user.first_name} ${user.last_name} (${user.username}`}
+            <CopyToClipboardButton text={user.username} />
+            {')'}
+          </Typography> 
           <br />
           <div>Joined: <DateSpan date={user.date_joined} /></div>
           <div>ORCID: {user.orcid_id ? user.orcid_id : '<None>'}</div>
@@ -103,7 +106,10 @@ const User = ({ user, history, ldap }) => {
           <Typography component="div" variant="h5">Email</Typography> 
           <br />
           {user.emails.map((email, index) => (
-            <div key={index}>{email.email} - {email.verified ? 'Verified' + (email.primary ? ', Primary' : '') : 'Unverified'}</div>
+            <div key={index}>
+              {email.email} - {email.verified ? 'Verified' + (email.primary ? ', Primary' : '') : 'Unverified'}
+              <CopyToClipboardButton text={email.email} />
+            </div>
           ))}
         </Paper>
 
@@ -214,7 +220,7 @@ const LDAPRecordDialog = ({ open, content, handleClose }) => {
     <DialogTitle id="form-dialog-title">LDAP Record</DialogTitle>
     <DialogContent>
       <DialogContentText>
-        {content.split('\n').map((line, index) => 
+        {content && content.split('\n').map((line, index) => 
             <div key={index}>{line}</div>
 	      )}
       </DialogContentText>
@@ -252,42 +258,46 @@ const PasswordResetDialog = ({ open, user, hmac, handleClose }) => {
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth aria-labelledby="form-dialog-title">
-    <DialogTitle id="form-dialog-title">Reset Password</DialogTitle>
-    <DialogContent>
-      <DialogContentText>
-        Click to copy to clipboard
-        <br />
-        <TextField
-          id="standard-multiline-static"
-          fullWidth
-          multiline
-          rows={3}
-          variant="outlined"
-          style={{background: "#e0e0e0"}}
-          defaultValue={link}
-          onClick={copyToClipboard}
-        />
-        <br />
-        <br />
-        {sent && 'Password reset email sent!'}
-      </DialogContentText>
-    </DialogContent>
-    <DialogActions>
-      <Button onClick={adminResetPassword} variant="contained" color="primary" disabled={sent}>
-        Send Email
-      </Button>
-      <Button onClick={handleClose} variant="outlined">
-        Close
-      </Button>
-    </DialogActions>
+      <DialogTitle id="form-dialog-title">Reset Password</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Click to copy to clipboard
+          <br />
+          <TextField
+            id="standard-multiline-static"
+            fullWidth
+            multiline
+            rows={3}
+            variant="outlined"
+            style={{background: "#e0e0e0"}}
+            defaultValue={link}
+            onClick={copyToClipboard}
+          />
+          <br />
+          <br />
+          {sent && 'Password reset email sent!'}
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={adminResetPassword} variant="contained" color="primary" disabled={sent}>
+          Send Email
+        </Button>
+        <Button onClick={handleClose} variant="outlined">
+          Close
+        </Button>
+      </DialogActions>
     </Dialog>
   )
 }
 
 export async function getServerSideProps({ req, query }) {
-  const user = await req.api.user(query.id)
-  const history = await req.api.userHistory(query.id)
-  const ldap = await req.api.userLDAP(query.id)
+  let user = null, history = null, ldap = null
+  try {
+    user = await req.api.user(query.id)
+    history = await req.api.userHistory(query.id)
+    ldap = await req.api.userLDAP(query.id)
+  }
+  catch {}
 
   return { props: { user, history, ldap } }
 }

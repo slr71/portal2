@@ -18,11 +18,13 @@ import { menuItems, getMenuItem } from './menuItems'
 import WelcomeAnimation from './WelcomeAnimation'
 import WelcomeBanner from './WelcomeBanner'
 import ConfirmationDialog from './ConfirmationDialog'
+import CopyToClipboardButton from './CopyToClipboardButton'
 
 export { 
   ConfirmationDialog,
   ContactsEditor,
   Conversations,
+  CopyToClipboardButton,
   CustomIntercom,
   Dashboard, 
   DateRange, 
