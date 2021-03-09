@@ -22,7 +22,7 @@ router.get('/', requireAdmin, asyncHandler(async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
     const keyword = req.query.keyword;
-    const keywords = keyword && keyword.split(' ').filter(k => k)
+    const keywords = keyword && keyword.split(' ').filter(k => k).map(k => k.toLowerCase())
 
     const { count, rows } = await User.unscoped().findAndCountAll({
         where: 
