@@ -124,7 +124,7 @@ const UserTable = ({ rows, rowsPerPage, count, page, handleChangePage, handleCha
               <TableRow hover style={{cursor: 'pointer'}}>
                 <TableCell>{user.first_name} {user.last_name}</TableCell>
                 <TableCell style={{whiteSpace:'nowrap'}}>{user.username}<CopyToClipboardButton text={user.username} /></TableCell>
-                <TableCell style={{whiteSpace:'nowrap'}}>{user.email}<CopyToClipboardButton text={user.email} /></TableCell>
+                <TableCell>{user.email}<CopyToClipboardButton text={user.email} /></TableCell>
                 <TableCell>{user.institution}</TableCell>
                 <TableCell>{user.occupation.name}</TableCell>
                 <TableCell>{user.region.name}</TableCell>
