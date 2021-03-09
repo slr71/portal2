@@ -341,8 +341,9 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     await models.warden_atmosphereinternationalrequest.destroy(opts);
     await models.warden_atmospherestudentrequest.destroy(opts);
 
-    // await models.account_passwordreset.destroy(opts);
-    // await models.account_passwordresetrequest.destroy(opts);
+    //TODO add associations in models/index.js to cascade delete these
+    await models.account_passwordreset.destroy(opts);
+    await models.account_passwordresetrequest.destroy(opts);
     await models.api_userservice.destroy(opts);
     // for (const request of await models.api_accessrequest.findAll(opts)) { // loop through logs because "onDelete: cascade" isn't working for some reason
     //     await models.api_accessrequestlog.destroy({ where: { access_request_id: request.id } });
