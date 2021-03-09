@@ -220,9 +220,12 @@ const LDAPRecordDialog = ({ open, content, handleClose }) => {
     <DialogTitle id="form-dialog-title">LDAP Record</DialogTitle>
     <DialogContent>
       <DialogContentText>
-        {content && content.split('\n').map((line, index) => 
-            <div key={index}>{line}</div>
-	      )}
+        {content
+          ? content.split('\n').map((line, index) => 
+              <div key={index}>{line}</div>
+	          )
+          : 'User not found - this usually means that the user registered but has not yet clicked the link in the confirmation email to set their password'
+        }
       </DialogContentText>
     </DialogContent>
     <DialogActions>
@@ -293,7 +296,11 @@ const PasswordResetDialog = ({ open, user, hmac, handleClose }) => {
 export async function getServerSideProps({ req, query }) {
   const user = await req.api.user(query.id)
   const history = await req.api.userHistory(query.id)
-  const ldap = await req.api.userLDAP(query.id)
+  let ldap = null
+  try {
+    ldap = await req.api.userLDAP(query.id)
+  }
+  catch(e) {}
 
   return { props: { user, history, ldap } }
 }
