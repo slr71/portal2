@@ -28,6 +28,9 @@ const servicesConfig = {
     SCI_APPS: {
         irodsPath: 'sci_data',
         irodsUser: 'maizecode'
+    },
+    VICE: {
+        customAction: setViceJobLimit
     }
 }
 
@@ -113,6 +116,16 @@ async function createBisqueUser(request) {
         },
         timeout: 30*1000
     });
+}
+
+async function setViceJobLimit(request) {
+    // Get auth token for admin account
+    const token = await terrainGetKeycloakToken()
+    console.log(token)
+
+    // Send request to Terrain API
+    const resp = await terrainSetConcurrentJobLimits(token, request.user.username, 2) //FIXME hardcoded limit of 2
+    console.log(resp)
 }
 
 module.exports = { serviceRegistrationWorkflow };

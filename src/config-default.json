@@ -84,5 +84,11 @@
         "url": "",
         "username": "",
         "password": ""
+    },
+
+    "terrain": {
+        "baseUrl": "https://de.cyverse.org/terrain",
+        "user": "",
+        "password": ""
     }
 }
