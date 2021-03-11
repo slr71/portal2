@@ -113,23 +113,24 @@ const UserTable = ({ rows, rowsPerPage, count, page, handleChangePage, handleCha
           <TableCell>Occupation</TableCell>
           <TableCell>Region</TableCell>
           <TableCell>Country</TableCell>
-          <TableCell>Joined</TableCell>
+          {/* <TableCell>Joined</TableCell> */}
         </TableRow>
       </TableHead>
       <TableBody>
         {rows.map((user, index) => {
           const d = new Date(user.date_joined)
+          const parts = user.email.split('@')
           return (
             <Link key={index} href={`/administrative/users/${user.id}`}>
               <TableRow hover style={{cursor: 'pointer'}}>
                 <TableCell>{user.first_name} {user.last_name}</TableCell>
                 <TableCell style={{whiteSpace:'nowrap'}}>{user.username}<CopyToClipboardButton text={user.username} /></TableCell>
-                <TableCell>{user.email}<CopyToClipboardButton text={user.email} /></TableCell>
+                <TableCell style={{whiteSpace:'nowrap'}}>{parts[0]}<wbr />@{parts[1]}<CopyToClipboardButton text={user.email} /></TableCell>
                 <TableCell>{user.institution}</TableCell>
                 <TableCell>{user.occupation.name}</TableCell>
                 <TableCell>{user.region.name}</TableCell>
                 <TableCell>{user.region.country.name}</TableCell>
-                <TableCell style={{whiteSpace:'nowrap'}}>{(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear()}</TableCell>
+                {/* <TableCell style={{whiteSpace:'nowrap'}}>{(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear()}</TableCell> */}
               </TableRow>
             </Link>
           )
