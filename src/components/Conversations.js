@@ -14,9 +14,12 @@ const Conversations = ({ conversations }) => {
 
   return (
     <div>
-      {conversations && conversations.map((conversation, index) => 
-        <Conversation key={index} {...conversation} />
-      )}
+      {conversations 
+        ? conversations.map((conversation, index) => 
+            <Conversation key={index} {...conversation} />
+          )
+        : 'None'
+      }
     </div>
   )
 }
