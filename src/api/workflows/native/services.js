@@ -75,12 +75,16 @@ async function serviceRegistrationWorkflow(request) {
 
 async function addEmailToMailingList(email, listName) {
     const mailingList = await MailingList.findOne({ where: { list_name: listName } });
-    if (!mailingList)
+    if (!mailingList) {
+        logger.error(`addEmailToMailingList: list not found: ${listName}`);
         return;
+    }
 
     const emailAddress = await EmailAddress.findOne({ where: { email } });
-    if (!emailAddress)
+    if (!emailAddress) {
+        logger.error(`addEmailToMailingList: email not found: ${email}`);
         return;
+    }
 
     await EmailAddressToMailingList.findOrCreate({ 
         where: {
