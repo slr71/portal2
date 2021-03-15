@@ -245,13 +245,13 @@ router.put('/:id(\\d+)/participants', getUser, asyncHandler(async (req, res) => 
     if (!userId)
         return res.status(400).send('Missing user id');
 
+    // Fetch user
+    const user = await User.findByPk(userId);
+    if (!user)
+        return res.status(404).send('User not found');
+
     // Fetch workshop
-    const workshop = await Workshop.findByPk(req.params.id, { 
-        include: [  //TODO move into scope
-            'emails',
-            'services'
-        ]
-    });
+    const workshop = await Workshop.findByPk(req.params.id, { include: [ 'services' ] });
     if (!workshop)
         return res.status(404).send('Workshop not found');
 
@@ -259,11 +259,12 @@ router.put('/:id(\\d+)/participants', getUser, asyncHandler(async (req, res) => 
     if (!hasOrganizerAccess(workshop, req.user))
         return res.status(403).send('Permission denied');
 
+    // Add to participants //FIXME also done in grantRequest() below
     const [participant] = await WorkshopParticipant.findOrCreate({ 
         where: { 
             workshop_id: workshop.id,
-            user_id: userId
-        } 
+            user_id: user.id
+        }
     });
 
     res.status(201).json(participant);
@@ -272,7 +273,7 @@ router.put('/:id(\\d+)/participants', getUser, asyncHandler(async (req, res) => 
     const [request] = await WorkshopEnrollmentRequest.findOrCreate({
         where: { 
             workshop_id: workshop.id,
-            user_id: req.user.id
+            user_id: user.id
         },
         defaults: {
             status: WorkshopEnrollmentRequest.constants.STATUS_REQUESTED,
@@ -280,7 +281,7 @@ router.put('/:id(\\d+)/participants', getUser, asyncHandler(async (req, res) => 
             auto_approve: true
         }
     });
-    request.user = req.user;
+    request.user = user;
     request.workshop = workshop;
     await grantRequest(request); 
 
