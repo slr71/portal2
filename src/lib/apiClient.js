@@ -72,6 +72,8 @@ class PortalAPI {
 
   async updateUser(id, params) { return await this.post(`/users/${id}`, params) }
 
+  async updatePermission(id, params) { return await this.post(`/users/${id}/permission`, params) }
+
   async createPassword(params) { return await this.put(`/users/password`, params) }
 
   async updatePassword(params) { return await this.post(`/users/password`, params) }

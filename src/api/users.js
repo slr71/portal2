@@ -160,6 +160,30 @@ router.get('/:id(\\d+)/ldap', requireAdmin, asyncHandler(async (req, res) => {
     }
 })); 
 
+// Update user permission (STAFF ONLY)
+router.post('/:id(\\d+)/permission', requireAdmin, asyncHandler(async (req, res) => {
+    const permission = req.body.permission;
+
+    const user = await User.findByPk(req.params.id);
+    if (!user)
+        return res.status(404).send('User not found');
+
+    if (user.is_superuser && !req.user.is_superuser)
+        return res.status(403).send('Only superuser can modify another superuser\'s permission');
+    if (permission == 'superuser' && !req.user.is_superuser)
+        return res.status(403).send('Only a superuser can grant superuser permission');
+    if (permission == 'staff' && !req.user.is_superuser && !req.user.is_staff)
+        return res.status(403).send('Only a superuser/staff can grant staff permission');
+
+    user.is_superuser = permission == 'superuser';
+    user.is_staff = permission == 'staff';
+
+    await user.save();
+    await user.reload();
+
+    res.status(200).send('success');
+})); 
+
 // Update user 
 // If body is empty then will just return the user
 router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {

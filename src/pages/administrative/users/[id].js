@@ -1,12 +1,11 @@
 import { useRouter } from 'next/router'
 import { useState } from 'react'
-import { makeStyles, Container, Box, Button, Paper, Typography, TextField, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
+import { makeStyles, Container, Box, Button, Paper, Typography, TextField, Radio, RadioGroup, FormControlLabel, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
 import Alert from '@material-ui/lab/Alert'
 import { Layout, DateSpan, ConfirmationDialog, CopyToClipboardButton } from '../../../components'
 import { useAPI } from '../../../contexts/api'
 import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useUser } from '../../../contexts/user'
-import { generateHMAC } from '../../../api/lib/hmac'
 import { UI_PASSWORD_URL } from '../../../constants'
 
 const useStyles = makeStyles((theme) => ({
@@ -40,6 +39,14 @@ const User = ({ user, history, ldap }) => {
   const [showPasswordResetDialog, setShowPasswordResetDialog] = useState(false)
   const [hmac, setHMAC] = useState()
   const [deletingUser, setDeletingUser] = useState(false)
+  const [permission] = useState(
+    user.is_superuser 
+      ? 'superuser' 
+      : user.is_staff 
+        ? 'staff'
+        : 'regular'
+  )
+  const isPermissionEditable = !user.is_superuser || me.is_superuser
 
   const deleteUser = async () => {
     try {
@@ -66,11 +73,23 @@ const User = ({ user, history, ldap }) => {
     }
   }
 
+  const handleChangePermission = async (e) => {
+    try {
+      const resp = await api.updatePermission(user.id, { permission: e.target.value })
+      if (resp != 'success')
+        setError('An error occurred')
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
   return (
     <Layout title={user.username} breadcrumbs>
       <Container maxWidth='lg'>
         <br />
-        <Alert severity="warning" variant="filled">This page needs improvement</Alert>
+        <Alert severity="warning" variant="filled">This page needs visual improvement</Alert>
         <br />
         <Paper elevation={3} className={classes.paper}>
           <Typography component="div" variant="h5">
@@ -79,8 +98,38 @@ const User = ({ user, history, ldap }) => {
             {')'}
           </Typography> 
           <br />
-          <div>Joined: <DateSpan date={user.date_joined} /></div>
-          <div>ORCID: {user.orcid_id ? user.orcid_id : '<None>'}</div>
+          <Typography>Joined: <DateSpan date={user.date_joined} /></Typography>
+          <Typography>ORCID: {user.orcid_id ? user.orcid_id : '<None>'}</Typography>
+          <Box flexDirection="row" display="flex" alignItems="center">
+            <Typography>Permission:</Typography>
+            <RadioGroup row defaultValue={permission}>
+              <FormControlLabel
+                value="regular"
+                control={<Radio color="primary" />}
+                label="Regular"
+                labelPlacement="start"
+                disabled={!isPermissionEditable}
+                onChange={handleChangePermission}
+              />
+              <FormControlLabel
+                value="staff"
+                control={<Radio color="primary" />}
+                label="Staff"
+                labelPlacement="start"
+                disabled={!isPermissionEditable}
+                onChange={handleChangePermission}
+              />
+              <FormControlLabel
+                value="superuser"
+                control={<Radio color="primary" />}
+                label="Superuser"
+                labelPlacement="start"
+                disabled={!isPermissionEditable || !me.is_superuser}
+                onChange={handleChangePermission}
+              />
+            </RadioGroup>
+          </Box>
+          {!isPermissionEditable && <Box fontStyle='italic'><Typography variant='subtitle1' color='textSecondary'>Superuser permission is required to change a superuser's permission</Typography></Box>}
           <br />
           <div style={{display: 'flex', flexDirection: 'row'}}>
             <Button color="primary" onClick={() => setShowLDAPDialog(true)}>
@@ -92,14 +141,14 @@ const User = ({ user, history, ldap }) => {
             </Button>
             {' '}
             <Button 
-              style={{color:"red"}} // color="error" // not working
+              style={{color: me.is_superuser ? "red" : ""}} // color="error" // not working
               disabled={!me.is_superuser} 
               onClick={() => setShowDeleteConfirmationDialog(true)} 
             >
               DELETE USER
             </Button>
           </div>
-          {!me.is_superuser && <div><Typography>Superuser permission is required to delete a user</Typography></div>}
+          {!me.is_superuser && <Box fontStyle='italic'><Typography variant='subtitle1' color='textSecondary'>Superuser permission is required to delete a user</Typography></Box>}
         </Paper>
 
         <Paper elevation={3} className={classes.paper}>
