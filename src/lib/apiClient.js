@@ -139,6 +139,8 @@ class PortalAPI {
 
   async deleteServiceForm(serviceId, formId) { return await this.delete(`/services/${serviceId}/forms/${formId}`) }
 
+  async createServiceUser(serviceId, userId) { return await this.put(`/services/${serviceId}/users/${userId}`) }
+
   /*
    * Workshop endpoints
    */
