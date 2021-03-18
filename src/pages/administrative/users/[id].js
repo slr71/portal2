@@ -101,8 +101,9 @@ const User = ({ user, history, ldap }) => {
 
   const addService = async (serviceId) => {
     try {
-      const resp = await api.createServiceUser(serviceId, user.id)
-      setServices(services)
+      await api.createServiceUser(serviceId, user.id)
+      const newUser = await api.user(user.id)
+      setServices(newUser.services)
     }
     catch(error) {
       console.log(error)
@@ -252,7 +253,6 @@ const User = ({ user, history, ldap }) => {
               </Button>
             </Grid>
           </Grid>
-          <br />
           <ServicesList services={user.services} />
           <AddServiceDialog 
             open={showAddServiceDialog}
