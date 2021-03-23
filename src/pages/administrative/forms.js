@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import Link from "next/link"
+import { useRouter } from 'next/router'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
-import { Layout } from '../../components'
+import { Container, Paper, Grid, Button, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
+import { Layout, FormDialog } from '../../components'
+import { useAPI } from '../../contexts/api'
 import { withGetServerSideError } from '../../contexts/error'
 
 //FIXME duplicated elsewhere
@@ -13,17 +16,58 @@ const useStyles = makeStyles((theme) => ({
 
 const Forms = props => {
   const classes = useStyles()
+  const router = useRouter()
+  const api = useAPI()
+  const [dialogOpen, setDialogOpen] = useState(false)
+
+  const submitForm = async (values) => {
+    const response = await api.createForm(values)
+    //TODO handle errors
+    if (response) {
+      router.push(`/administrative/forms/${response.id}`)
+    }
+  }
 
   return (
     <Layout breadcrumbs>
       <Container maxWidth='lg'>
         <br />
         <Paper elevation={3} className={classes.paper}>
-          <Typography component="h1" variant="h4" gutterBottom>Forms</Typography>
+          <Grid container justify="space-between">
+            <Grid item>
+              <Typography component="h1" variant="h4" gutterBottom>Forms</Typography>
+            </Grid>
+            <Grid item>
+              <Button 
+                variant="contained" 
+                color="primary"
+                onClick={() => setDialogOpen(true)}
+              >
+                Create Form
+              </Button> 
+            </Grid>
+          </Grid>
           <br />
           <FormTable {...props} />
         </Paper>
       </Container>
+      <FormDialog 
+        title="Create Form"
+        open={dialogOpen}
+        fields={[
+          {
+            id: "name",
+            label: "Title",
+            type: "text",
+            required: true
+          }
+        ]}
+        handleClose={() => setDialogOpen(false)} 
+        handleSubmit={(values) => {
+          setDialogOpen(false)
+          submitForm(values)
+        }}
+      />
     </Layout>
   )
 }

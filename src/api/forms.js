@@ -33,6 +33,27 @@ router.get('/', asyncHandler(async (req, res) => {
     return res.status(200).json(formGroups);
 }));
 
+// Create form (STAFF ONLY)
+router.put('/', getUser, requireAdmin, asyncHandler(async (req, res) => {
+    if (!req.body || !req.body.name)
+        return res.status(400).send('Missing name');
+    
+    // Set default form properties
+    const defaults = {
+        //creator_id: req.user.id, //TODO add field
+        description: '',
+        explanation: '',
+    };
+    const fields = { ...defaults, ...req.body }; // override default values with request values, if any
+
+    // Create form
+    const form = await Form.create(fields);
+    if (!form)
+        return res.status(500).send('Failed to create form');
+
+    res.status(201).json(form);
+}));
+
 router.get('/submissions', requireAdmin, asyncHandler(async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;

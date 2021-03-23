@@ -193,6 +193,8 @@ class PortalAPI {
 
   async form(id) {  return await this.get(`/forms/${id}`) } // id or name
 
+  async createForm(fields) { return await this.put(`/forms`, fields) }
+
   async updateForm(id, fields) { return await this.post(`/forms/${id}`, fields) }
 
   async submitForm(id, submission) { return await this.put(`/forms/${id}/submissions`, submission) }
