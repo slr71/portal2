@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import { makeStyles, Container, Grid, Box, Button, Paper, Typography, TextField, Radio, RadioGroup, FormControlLabel, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
-import Alert from '@material-ui/lab/Alert'
 import { Layout, DateSpan, ConfirmationDialog, CopyToClipboardButton, ServicesList, AddServiceDialog } from '../../../components'
 import { useAPI } from '../../../contexts/api'
 import { useError, withGetServerSideError } from '../../../contexts/error'
@@ -114,8 +113,6 @@ const User = ({ user, history, ldap }) => {
   return (
     <Layout title={user.username} breadcrumbs>
       <Container maxWidth='lg'>
-        <br />
-        <Alert severity="warning" variant="filled">This page needs visual improvement</Alert>
         <br />
         <Paper elevation={3} className={classes.paper}>
           <Typography component="div" variant="h5">
