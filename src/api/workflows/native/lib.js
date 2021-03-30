@@ -1,3 +1,5 @@
+// cURL is used for HTTP requests instead of native request because many of these tasks were ported from Argo workflows
+
 const { exec, execFile } = require('child_process');
 var crypto = require('crypto');
 const config = require('../../../config.json');
@@ -186,6 +188,25 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
     return runFile("curl", [ "--location", "-X", "POST", `${baseUrl}/${endpoint}?${params}`]);
 }
 
+function terrainGetKeycloakToken() {
+    return runFile("curl", [
+        "--location", 
+        "--user", `${config.terrain.username}:${config.terrain.password}`
+        `${config.terrain.baseUrl}/token/keycloak`
+    ]);
+}
+
+function terrainSetConcurrentJobLimits(token, username, limit) {
+    return runFile("curl", [
+        "--request", "PUT",
+        "--location", 
+        "--header", `Authorization: Bearer ${token}`, 
+        "--header", "Content-Type: application/json",
+        "--data", JSON.stringify({ "concurrent_jobs": limit}),
+        `${config.terrain.baseUrl}/admin/settings/concurrent-job-limits/${username}}`
+    ]);
+}
+
 function escapeShell(cmd) {
     if (typeof cmd != 'undefined' && cmd.length > 0)
         return cmd.replace(/(["'`\\])/g,'\\$1');
@@ -207,5 +228,7 @@ module.exports = {
     irodsDeleteUser,
     mailchimpSubscribe,
     mailchimpDelete,
-    mailmanUpdateSubscription
+    mailmanUpdateSubscription,
+    terrainGetKeycloakToken,
+    terrainSetConcurrentJobLimits
 };
