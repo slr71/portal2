@@ -25,7 +25,7 @@ const Workshops = (props) => {
   const timeNow = Date.now()
   const mine = userWorkshops.filter(w => new Date(w.enrollment_ends).getTime() > timeNow)
   const past = userWorkshops.filter(w => new Date(w.enrollment_ends).getTime() <= timeNow)
-  const upcoming = otherWorkshops.filter(w => new Date(w.enrollment_ends).getTime() > timeNow)
+  const upcoming = otherWorkshops.filter(w => w.is_public && new Date(w.enrollment_ends).getTime() > timeNow)
 
   return (
     <Layout title="Workshops">

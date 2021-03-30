@@ -478,6 +478,11 @@ const GeneralSettings = (props) => {
             value: props.about,
             multiline: true,
             rows: 4
+          },
+          { id: "is_public",
+            name: "Public - visbile for all users or staff only",
+            type: "toggle",
+            value: props.is_public
           }
         ]} 
         initialValues={{...props}} // unused fields will be ignored

@@ -202,7 +202,7 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
 
     // Verify and update fields
     for (let key in fields) {
-        const SUPPORTED_FIELDS = ['title', 'description', 'about', 'enrollment_begins', 'enrollment_ends', 'start_date', 'end_date', 'creator_id'];
+        const SUPPORTED_FIELDS = ['title', 'description', 'about', 'enrollment_begins', 'enrollment_ends', 'start_date', 'end_date', 'creator_id', 'is_public'];
         const RESTRICTED_FIELDS = [ 'enrollment_begins', 'enrollment_ends', 'start_date', 'end_date', 'creator_id' ]
         if (RESTRICTED_FIELDS.includes(key) && !req.user.is_staff)
             return res.status(403).send('Restricted field');

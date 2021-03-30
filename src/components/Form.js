@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { makeStyles } from '@material-ui/core/styles'
-import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Typography, CircularProgress, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
+import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Switch, FormControlLabel, Typography, CircularProgress, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
@@ -244,6 +244,24 @@ const classes = useStyles()
 
 const honeypotId = (modulus) => (honeypotDivisor * Math.floor(Math.random() * 1000) + modulus).toString()
 
+const SwitchField = (props) => (
+  <>
+    <br />
+    <FormControlLabel
+      control={
+        <Switch 
+          color="primary" 
+          id={props.id}
+          name={props.name}
+          defaultChecked={props.defaultValue} 
+          onChange={props.onChange}
+        />
+      }
+      label={props.label}
+    />
+  </>
+)
+
 const FormField = (props) => {
   const classes = useStyles()
 
@@ -274,6 +292,20 @@ const FormField = (props) => {
         defaultValue={!!props.value}
         onChange={props.onChange}
         Label={{label: props.name, className: classes.checkbox}}
+      />
+    )
+  }
+
+  if (props.type === 'toggle') {
+    return (
+      <Field
+        id={props.id.toString()}
+        name={props.id.toString()}
+        type="checkbox"
+        label={props.name}
+        component={SwitchField}
+        defaultValue={!!props.value}
+        onChange={props.onChange}
       />
     )
   }

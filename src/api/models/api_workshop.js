@@ -61,6 +61,10 @@ module.exports = function(sequelize, DataTypes) {
     start_date: {
       type: DataTypes.DATE,
       allowNull: false
+    },
+    is_public: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false
     }
   }, {
     tableName: 'api_workshop'
