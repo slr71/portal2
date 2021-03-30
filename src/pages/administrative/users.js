@@ -69,7 +69,7 @@ const Users = props => {
             </Grid>
             <Grid item>
               <TextField 
-                style={{width: '20em'}} 
+                style={{width: '30em'}} 
                 placeholder="Search ..." 
                 onChange={handleChangeKeyword} 
                 InputProps={{ 

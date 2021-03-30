@@ -234,6 +234,46 @@ router.post('/requests/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (re
     notifyClientOfServiceRequestStatusChange(req.ws, request);
 }));
 
+// Grant access to service (STAFF ONLY)
+router.put('/:serviceId(\\d+)/users/:userId(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) => {
+    const { serviceId, userId } = req.params
+
+    // Fetch user
+    const user = await User.findByPk(userId);
+    if (!user)
+        return res.status(404).send('User not found');
+
+    // Fetch workshop
+    const service = await Service.findByPk(serviceId);
+    if (!service)
+        return res.status(404).send('Service not found');
+
+    // Create access request if it doesn't already exist
+    const [request, created] = await AccessRequest.findOrCreate({
+        where: { 
+            service_id: service.id,
+            user_id: userId
+        },
+        defaults: {
+            status: AccessRequest.constants.STATUS_REQUESTED,
+            message: AccessRequest.constants.MESSAGE_REQUESTED
+        }
+    });
+    if (!request)
+        return res.status(500).send('Failed to create request');
+
+    res.status(201).json(request);
+    
+    // Call granter (do this after response as to not delay it)
+    request.user = user;
+    request.service = service;
+    await grantRequest(request);
+
+    // Update status on client
+    notifyClientOfServiceRequestStatusChange(req.ws, request);
+}));
+
+// Fetch all services
 router.get('/', asyncHandler(async (req, res) => {
     const services = await Service.findAll({
         attributes: { include: [ poweredServiceQuery] },
@@ -243,6 +283,7 @@ router.get('/', asyncHandler(async (req, res) => {
     return res.status(200).json(services);
 }));
 
+// Fetch service by name or ID
 router.get('/:nameOrId(\\w+)', asyncHandler(async (req, res) => {
     const nameOrId = req.params.nameOrId;
 

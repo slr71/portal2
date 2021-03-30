@@ -1,12 +1,10 @@
 import { useRouter } from 'next/router'
-import { useState } from 'react'
-import { makeStyles, Container, Box, Button, Paper, Typography, TextField, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
-import Alert from '@material-ui/lab/Alert'
-import { Layout, DateSpan, ConfirmationDialog, CopyToClipboardButton } from '../../../components'
+import { useState, useEffect } from 'react'
+import { makeStyles, Container, Grid, Box, Button, Paper, Typography, TextField, Radio, RadioGroup, FormControlLabel, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
+import { Layout, DateSpan, ConfirmationDialog, CopyToClipboardButton, ServicesList, AddServiceDialog } from '../../../components'
 import { useAPI } from '../../../contexts/api'
 import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useUser } from '../../../contexts/user'
-import { generateHMAC } from '../../../api/lib/hmac'
 import { UI_PASSWORD_URL } from '../../../constants'
 
 const useStyles = makeStyles((theme) => ({
@@ -38,8 +36,30 @@ const User = ({ user, history, ldap }) => {
   const [showDeleteConfirmationDialog, setShowDeleteConfirmationDialog] = useState(false)
   const [showLDAPDialog, setShowLDAPDialog] = useState(false)
   const [showPasswordResetDialog, setShowPasswordResetDialog] = useState(false)
+  const [showAddServiceDialog, setShowAddServiceDialog] = useState(false)
   const [hmac, setHMAC] = useState()
   const [deletingUser, setDeletingUser] = useState(false)
+  const [permission] = useState(
+    user.is_superuser 
+      ? 'superuser' 
+      : user.is_staff 
+        ? 'staff'
+        : 'regular'
+  )
+  const isPermissionEditable = !user.is_superuser || me.is_superuser
+  const [services, setServices] = useState([])
+
+  useEffect(() => { 
+      const fetchData = async () => {
+        const [services] = await Promise.all([ // may add more requests later
+          api.services() // for adding a service 
+        ])
+        setServices(services)
+      }
+      fetchData()
+    }, 
+    []
+  )
 
   const deleteUser = async () => {
     try {
@@ -66,11 +86,33 @@ const User = ({ user, history, ldap }) => {
     }
   }
 
+  const changePermission = async (e) => {
+    try {
+      const resp = await api.updatePermission(user.id, { permission: e.target.value })
+      if (resp != 'success')
+        setError('An error occurred')
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
+  const addService = async (serviceId) => {
+    try {
+      await api.createServiceUser(serviceId, user.id)
+      const newUser = await api.user(user.id)
+      setServices(newUser.services)
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
   return (
     <Layout title={user.username} breadcrumbs>
       <Container maxWidth='lg'>
-        <br />
-        <Alert severity="warning" variant="filled">This page needs improvement</Alert>
         <br />
         <Paper elevation={3} className={classes.paper}>
           <Typography component="div" variant="h5">
@@ -79,8 +121,38 @@ const User = ({ user, history, ldap }) => {
             {')'}
           </Typography> 
           <br />
-          <div>Joined: <DateSpan date={user.date_joined} /></div>
-          <div>ORCID: {user.orcid_id ? user.orcid_id : '<None>'}</div>
+          <Typography>Joined: <DateSpan date={user.date_joined} /></Typography>
+          <Typography>ORCID: {user.orcid_id ? user.orcid_id : '<None>'}</Typography>
+          <Box flexDirection="row" display="flex" alignItems="center">
+            <Typography>Permission:</Typography>
+            <RadioGroup row defaultValue={permission}>
+              <FormControlLabel
+                value="regular"
+                control={<Radio color="primary" />}
+                label="Regular"
+                labelPlacement="start"
+                disabled={!isPermissionEditable}
+                onChange={changePermission}
+              />
+              <FormControlLabel
+                value="staff"
+                control={<Radio color="primary" />}
+                label="Staff"
+                labelPlacement="start"
+                disabled={!isPermissionEditable}
+                onChange={changePermission}
+              />
+              <FormControlLabel
+                value="superuser"
+                control={<Radio color="primary" />}
+                label="Superuser"
+                labelPlacement="start"
+                disabled={!isPermissionEditable || !me.is_superuser}
+                onChange={changePermission}
+              />
+            </RadioGroup>
+          </Box>
+          {!isPermissionEditable && <Box fontStyle='italic'><Typography variant='subtitle1' color='textSecondary'>Superuser permission is required to change a superuser's permission</Typography></Box>}
           <br />
           <div style={{display: 'flex', flexDirection: 'row'}}>
             <Button color="primary" onClick={() => setShowLDAPDialog(true)}>
@@ -92,14 +164,14 @@ const User = ({ user, history, ldap }) => {
             </Button>
             {' '}
             <Button 
-              style={{color:"red"}} // color="error" // not working
+              style={{color: me.is_superuser ? "red" : ""}} // color="error" // not working
               disabled={!me.is_superuser} 
               onClick={() => setShowDeleteConfirmationDialog(true)} 
             >
               DELETE USER
             </Button>
           </div>
-          {!me.is_superuser && <div><Typography>Superuser permission is required to delete a user</Typography></div>}
+          {!me.is_superuser && <Box fontStyle='italic'><Typography variant='subtitle1' color='textSecondary'>Superuser permission is required to delete a user</Typography></Box>}
         </Paper>
 
         <Paper elevation={3} className={classes.paper}>
@@ -164,15 +236,33 @@ const User = ({ user, history, ldap }) => {
         </Paper>
 
         <Paper elevation={3} className={classes.paper}>
-          <Typography component="div" variant="h5">Services</Typography> 
-          <br />
-          {user.services && user.services.length > 0
-            ? user.services.map((service, index) => (
-                <div key={index}>{service.name} - {service.request ? service.request.message : '<unknown>'}</div>
-              ))
-            : 'None'
-          }      
+          <Grid container justify="space-between">
+            <Grid item>
+              <Typography component="div" variant="h5">Services</Typography> 
+            </Grid>
+            <Grid item>
+              <Button 
+                variant="contained" 
+                color="primary"
+                onClick={() => setShowAddServiceDialog(true)}
+              >
+                Add Service
+              </Button>
+            </Grid>
+          </Grid>
+          <ServicesList services={user.services} />
+          <AddServiceDialog 
+            open={showAddServiceDialog}
+            services={user.services}
+            allServices={services}
+            handleClose={() => setShowAddServiceDialog(false)} 
+            handleSubmit={(serviceId) => {
+              setShowAddServiceDialog(false)
+              addService(serviceId)
+            }}
+          />
         </Paper>
+
         <Paper elevation={3} className={classes.paper}>
           <Typography component="div" variant="h5">History</Typography> 
           <br />

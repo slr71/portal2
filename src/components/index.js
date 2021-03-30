@@ -9,6 +9,7 @@ import SummaryCard from './SummaryCard'
 import { UpdateForm, Wizard, FormStepper, FormField, FormControls, FormDialog, validateField, honeypotId } from './Form'
 import Section from './Section'
 import ServiceActionButton from './ServiceActionButton'
+import ServicesList from './ServicesList'
 import TabPanel from './TabPanel'
 import User from './User'
 import Conversations from './Conversations'
@@ -19,8 +20,10 @@ import WelcomeAnimation from './WelcomeAnimation'
 import WelcomeBanner from './WelcomeBanner'
 import ConfirmationDialog from './ConfirmationDialog'
 import CopyToClipboardButton from './CopyToClipboardButton'
+import { AddServiceDialog } from './Dialogs'
 
 export { 
+  AddServiceDialog,
   ConfirmationDialog,
   ContactsEditor,
   Conversations,
@@ -43,6 +46,7 @@ export {
   ResourcesEditor,
   Section,
   ServiceActionButton,
+  ServicesList,
   SideBar, 
   SummaryCard, 
   TabPanel,

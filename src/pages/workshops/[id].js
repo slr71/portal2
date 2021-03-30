@@ -6,13 +6,12 @@ import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as Keyboard
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import DateFnsUtils from '@date-io/date-fns'
 import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
-import { Layout, DateRange, DateSpan, TabPanel, UpdateForm, FormDialog, ContactsEditor } from '../../components'
+import { Layout, DateRange, DateSpan, TabPanel, UpdateForm, FormDialog, ContactsEditor, ServicesList, AddServiceDialog } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { useError, withGetServerSideError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
 const { WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE } = require('../../constants')
-const inlineIcons = require('../../inline_icons.json')
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -134,23 +133,7 @@ const WorkshopViewer = (props) => {
             <Grid item xs={12}>
               <Typography component="div" variant="h5">Services</Typography>
               <Typography color="textSecondary">Services used in the workshop.</Typography>
-              <List>
-                {workshop.services.map((service, index) => {
-                  // Icons were moved inline for performance //TODO move into component
-                  const icon_url = service.icon_url in inlineIcons ? inlineIcons[service.icon_url] : service.icon_url
-
-                  return (
-                    <Link key={index} underline='none' href={`/services/${service.id}`}>
-                      <ListItem>
-                        <ListItemAvatar>
-                          <Avatar alt={service.name} src={icon_url} />
-                        </ListItemAvatar>
-                        <ListItemText primary={service.name} secondary={service.description}/>
-                      </ListItem>
-                    </Link>
-                  )
-                })}
-              </List>
+              <ServicesList services={workshop.services} />
             </Grid>
           }
         </Grid>
@@ -801,32 +784,7 @@ const Services = ({ workshop, services, submitHandler, deleteHandler }) => {
         <Typography component="div" variant="h5">Services</Typography> 
         <Typography color="textSecondary">Services users need access to for this workshop.</Typography>
         <br />
-        <List>
-          {workshop.services.map((service, index) => {
-            // Icons were moved inline for performance //TODO move into component
-            const icon_url = service.icon_url in inlineIcons ? inlineIcons[service.icon_url] : service.icon_url
-
-            return (
-              <Grid container key={index} justify="space-between" alignItems="center">
-                <Grid item>
-                  <Link href={service.service_url}>
-                    <ListItem>
-                      <ListItemAvatar>
-                        <Avatar src={icon_url} />
-                      </ListItemAvatar>
-                      <ListItemText primary={service.name} />
-                    </ListItem>
-                  </Link>
-                </Grid>
-                <Grid item>
-                  <IconButton onClick={() => deleteHandler(service.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </Grid>
-              </Grid>
-            )
-          })}
-        </List>
+        <ServicesList services={workshop.services} onDelete={deleteHandler} />
         <Box display="flex" justifyContent="flex-end">
           <Button 
             variant="contained" 
@@ -909,7 +867,6 @@ const Participants = ({ participants, submitHandler, deleteHandler }) => {
       </Paper>
       <SearchUsersDialog 
         title='Enroll User'
-        description='Enter the user to enroll in the workshop.'
         open={dialogOpen}
         handleClose={() => setDialogOpen(false)}
         handleSubmit={(user) => {
@@ -1181,20 +1138,22 @@ const SearchUsersDialog = ({ open, title, description, handleClose, handleSubmit
     <Dialog open={open} onClose={handleClose} fullWidth aria-labelledby="form-dialog-title">
       <DialogTitle id="form-dialog-title">{title}</DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          {description}
-        </DialogContentText>
+        {description &&
+          <DialogContentText>
+            {description}
+          </DialogContentText>
+        }
         <Autocomplete
           freeSolo
           id="user"
           disableClearable
           options={users || []}
-          getOptionLabel={(u) => `${u.first_name} ${u.last_name} (${u.username})`}
+          getOptionLabel={(u) => `${u.first_name} ${u.last_name} (${u.username}, ${u.email})`}
           onChange={handleSelect}
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Search users"
+              label="Search users by first/last name, username, and email"
               margin="normal"
               InputProps={{ 
                 ...params.InputProps, 
@@ -1227,47 +1186,6 @@ const SearchUsersDialog = ({ open, title, description, handleClose, handleSubmit
           onClick={() => handleSubmit(selectedUser)}  
         >
           Submit
-        </Button>
-      </DialogActions>
-    </Dialog>
-  )
-}
-
-const AddServiceDialog = ({ open, services, allServices, handleClose, handleSubmit }) => {
-  const availableServices = allServices && allServices.filter(s => s.approval_key != '' && !services.some(s2 => s2.id == s.id))
-  const [selected, setSelected] = useState()
-
-  return (
-    <Dialog open={open} onClose={handleClose} fullWidth>
-      <DialogTitle>Add Service</DialogTitle>
-      <DialogContent>
-        <TextField
-          select
-          margin="normal"
-          fullWidth
-          label="Select a service"
-          value={selected || ''}
-        >
-          {availableServices && availableServices.map((service, index) => (
-            <MenuItem key={index} value={service.id} onClick={(e) => setSelected(service.id)}>
-              {service.name}
-            </MenuItem>
-          ))}
-        </TextField>
-        <br />
-        <br />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => setSelected(null) || handleClose()}>
-          Cancel
-        </Button>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          disabled={!selected || !handleSubmit}
-          onClick={() => setSelected(null) || handleSubmit(selected)}
-        >
-          Add
         </Button>
       </DialogActions>
     </Dialog>

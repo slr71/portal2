@@ -72,6 +72,8 @@ class PortalAPI {
 
   async updateUser(id, params) { return await this.post(`/users/${id}`, params) }
 
+  async updatePermission(id, params) { return await this.post(`/users/${id}/permission`, params) }
+
   async createPassword(params) { return await this.put(`/users/password`, params) }
 
   async updatePassword(params) { return await this.post(`/users/password`, params) }
@@ -137,6 +139,8 @@ class PortalAPI {
 
   async deleteServiceForm(serviceId, formId) { return await this.delete(`/services/${serviceId}/forms/${formId}`) }
 
+  async createServiceUser(serviceId, userId) { return await this.put(`/services/${serviceId}/users/${userId}`) }
+
   /*
    * Workshop endpoints
    */
@@ -188,6 +192,8 @@ class PortalAPI {
   async forms() { return await this.get (`/forms`) }
 
   async form(id) {  return await this.get(`/forms/${id}`) } // id or name
+
+  async createForm(fields) { return await this.put(`/forms`, fields) }
 
   async updateForm(id, fields) { return await this.post(`/forms/${id}`, fields) }
 

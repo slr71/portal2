@@ -13,7 +13,7 @@ const Services = (props) => {
   const userServices = user.services.filter(s => s.api_accessrequest.status != 'denied')
   const services = props.services
 
-  const available = services.filter(s => s.approval_key != '' && !userServices.map(s => s.id).includes(s.id))
+  const available = services.filter(s => s.is_public && s.approval_key != '' && !userServices.map(s => s.id).includes(s.id))
   const powered = services.filter(s => s.is_powered)
 
   const [welcomeBannerOpen, setWelcomeBannerOpen] = useState(!(WELCOME_BANNER_COOKIE in props.cookies))

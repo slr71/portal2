@@ -8,9 +8,10 @@ const { serviceRegistrationWorkflow } = require('../workflows/native/services.js
 const { UI_ADMIN_SERVICE_ACCESS_REQUEST_URL } = require('../../constants');
 const config = require('../../config.json');
 
-// Only the Atmosphere service has a special approval requirements, all other services are auto-approved.
+// Services with special approval requirements, all other services are auto-approved.
 const APPROVERS = {
-    ATMOSPHERE: approveAtmosphere
+    ATMOSPHERE: approveAtmosphere,
+    VICE: approveVICE
 };
 
 async function approveRequest(request) {
@@ -158,6 +159,68 @@ async function sendAtmosphereSignupMessage(request, responseMessage) {
         throw('service:sendAtmosphereSignupMessage: Missing required property')
 
     const body = getAtmosphereConversationBody(service.questions, request.answers);
+    const [conversation, message] = await intercom.startConversation(user, body);
+
+    await AccessRequestConversation.create({
+        access_request_id: request.id,
+        intercom_message_id: message.id,
+        intercom_conversation_id: conversation.id
+    });
+
+    await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${UI_ADMIN_SERVICE_ACCESS_REQUEST_URL}/${request.id}`);
+    await intercom.replyToConversation(conversation.id, responseMessage);
+    await intercom.assignConversationToAtmosphereTeam(conversation.id);
+}
+
+async function approveVICE(request) {
+    const user = request.user;
+    if (!user)
+        throw('service:approveVICE: Missing required property');
+
+    const intro = `Hi ${user.first_name}! Thanks for requesting access to VICE.`;
+
+    logger.info(`approveVICE: Pend user "${user.username}" for request ${request.id}`);
+    await request.pend();
+    await sendVICESignupMessage(request,
+`${intro}
+
+VICE access must be approved unless you are part of a workshop. Please ask your instructor for details on enrolling into the workshop.`
+        );
+}
+
+function getVICEConversationBody(questions, answers) {
+    let body = "VICE access requested.";
+
+    if (questions && questions.length > 0) {
+        body += " Here are the details:";
+
+        for (question of questions) {
+            body += "\n\n" + question.question;
+            const answer = answers.find(a => a.access_request_question_id == question.id);
+            if (!answer) {
+                body = body + "\n\n[blank]"
+                continue;
+            }
+
+            if (question.type == 'char')
+                body += "\n\n" + answer.value_char;
+            else if (question.type == 'text')
+                body += "\n\n" + answer.value_text;
+            else if (question.type == 'bool')
+                body += "\n\n" + answer.value_bool;
+        }
+    }
+
+    return body;
+}
+
+async function sendVICESignupMessage(request, responseMessage) {
+    const service = request.service;
+    const user = request.user;
+    if (!service || !user)
+        throw('service:sendVICESignupMessage: Missing required property')
+
+    const body = getVICEConversationBody(service.questions, request.answers);
     const [conversation, message] = await intercom.startConversation(user, body);
 
     await AccessRequestConversation.create({
