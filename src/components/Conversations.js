@@ -14,7 +14,7 @@ const Conversations = ({ conversations }) => {
 
   return (
     <div>
-      {conversations 
+      {conversations && conversations.length > 0
         ? conversations.map((conversation, index) => 
             <Conversation key={index} {...conversation} />
           )
