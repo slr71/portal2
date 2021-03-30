@@ -64,7 +64,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     is_public: {
       type: DataTypes.BOOLEAN,
-      allowNull: false
+      allowNull: true,
+      defaultValue: false
     }
   }, {
     tableName: 'api_workshop'
