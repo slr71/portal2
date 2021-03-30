@@ -145,17 +145,22 @@ router.put('/', getUser, requireAdmin, asyncHandler(async (req, res) => {
         return res.status(400).send('Missing title');
     
     // Set default workshop properties
-    const timeNow = Date.now()
+    const tomorrowMorning = new Date();
+    tomorrowMorning.setDate(tomorrowMorning.getDate() + 1)
+    tomorrowMorning.setHours(9);
+    tomorrowMorning.setMinutes(0);
+    tomorrowMorning.setMilliseconds(0);
+
     const defaults = {
         creator_id: req.user.id,
         about: '',
         description: '',
-        enrollment_begins: timeNow,
-        enrollment_ends: timeNow,
+        enrollment_begins: tomorrowMorning,
+        enrollment_ends: tomorrowMorning,
         contact_email: '',
         contact_name: '',
-        end_date: timeNow,
-        start_date: timeNow
+        end_date: tomorrowMorning,
+        start_date: tomorrowMorning
     };
     const fields = { ...defaults, ...req.body }; // override default values with request values, if any
 
