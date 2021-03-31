@@ -127,7 +127,7 @@ const Workshop = ({ workshop }) => {
               }
             </span>
             {!workshop.is_public &&
-              <Button disabled startIcon={<VisibilityOffIcon />} style={{width: '100%', justifyContent: 'flex-end'}}>hidden</Button>
+              <Button disabled startIcon={<VisibilityOffIcon />} style={{width: '100%', justifyContent: 'flex-end'}}>private</Button>
             }
           </>
         }
