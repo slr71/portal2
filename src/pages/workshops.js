@@ -1,5 +1,5 @@
-import { Grid, Link, Box, Divider, Typography, makeStyles } from '@material-ui/core'
-import { Event as EventIcon } from '@material-ui/icons'
+import { Grid, Link, Box, Divider, Typography, Button, makeStyles } from '@material-ui/core'
+import { Event as EventIcon, VisibilityOff as VisibilityOffIcon } from '@material-ui/icons'
 import { DateRange, Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
 import { withGetServerSideError } from '../contexts/error'
@@ -119,9 +119,17 @@ const Workshop = ({ workshop }) => {
         description={workshop.description}
         icon={<EventIcon />}
         action={
-          isHost 
-            ? <b>You are the workshop host</b>
-            : (isOrganizer ? <b>You are a workshop organizer</b> : null)
+          <>
+            <span style={{whiteSpace: 'nowrap', paddingLeft: '0.5em', minHeight: '2em'}}>
+              {isHost 
+                ? <b>You are the workshop host</b>
+                : (isOrganizer ? <b>You are a workshop organizer</b> : null)
+              }
+            </span>
+            {!workshop.is_public &&
+              <Button disabled startIcon={<VisibilityOffIcon />} style={{width: '100%', justifyContent: 'flex-end'}}>hidden</Button>
+            }
+          </>
         }
         largeHeader
       />
