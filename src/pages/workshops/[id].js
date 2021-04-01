@@ -480,7 +480,7 @@ const GeneralSettings = (props) => {
             rows: 4
           },
           { id: "is_public",
-            name: "Public - visbile for all users or staff only",
+            name: "Public - visible for all users or staff only",
             type: "toggle",
             value: props.is_public
           }
@@ -520,7 +520,7 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
     <Paper elevation={3} className={classes.paper}>
       <Typography component="div" variant="h5">Enrollment Period</Typography> 
       <Typography color="textSecondary">
-        Set the date range for when users can enroll in the workshop and gain access to the relevant services.
+        Date range for when users can enroll in the workshop.
         NOTE: these fields can only be changed by CyVerse staff.
       </Typography>
       <br />
@@ -611,7 +611,7 @@ const WorkshopPeriod = ({ start_date, end_date, enrollment_begins, submitHandler
     <Paper elevation={3} className={classes.paper}>
       <Typography component="div" variant="h5">Attendance Period</Typography> 
       <Typography color="textSecondary">
-        Set the date range for when users will attend the workshop.
+        Date range for when users will attend the workshop.
         NOTE: these fields can only be changed by CyVerse staff.
       </Typography>
       <br />
@@ -667,8 +667,7 @@ const Host = ({ owner, submitHandler }) => {
       <Paper elevation={3} className={classes.paper}>
         <Typography component="div" variant="h5">Host</Typography> 
         <Typography color="textSecondary">
-          The primary point of contact for this workshop. 
-          This person will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
+          Primary point of contact who is authorized to enroll users, approve enrollment requests, and edit workshop details.
           NOTE: this field can only be changed by CyVerse staff.
         </Typography>
         <br />
@@ -723,9 +722,8 @@ const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
       <Paper elevation={3} className={classes.paper}>
         <Typography component="div" variant="h5">Instructors/Organizers</Typography> 
         <Typography color="textSecondary">
-          Add additional instructors/organizers for the workshop. 
-          These people will be allowed to authorize users for the workshop, approve enrollment requests, and edit workshop details.
-          NOTE: only the workshop host can add or remove additional instructors/organizers.
+          Users authorized to approve enrollment requests, enroll other users directly, and edit workshop details.
+          NOTE: only the workshop host can add/remove instructors/organizers.
         </Typography>
         <br />
         <List>
@@ -787,7 +785,7 @@ const Services = ({ workshop, services, submitHandler, deleteHandler }) => {
     <div>
       <Paper elevation={3} className={classes.paper}>
         <Typography component="div" variant="h5">Services</Typography> 
-        <Typography color="textSecondary">Services users need access to for this workshop.</Typography>
+        <Typography color="textSecondary">Services used in this workshop (access granted automatically upon enrollment).</Typography>
         <br />
         <ServicesList services={workshop.services} onDelete={deleteHandler} />
         <Box display="flex" justifyContent="flex-end">

@@ -17,7 +17,7 @@ const ContactsEditor = ({ contacts, submitHandler, deleteHandler }) => {
     <div>
     <Paper elevation={3} className={classes.paper}>
       <Typography component="div" variant="h5">Support Contacts</Typography> 
-      <Typography color="textSecondary">Who participants should reach out to if they have questions.</Typography>
+      <Typography color="textSecondary">Who participants should contact if they have questions.</Typography>
       <br />
       <List>
         {contacts.map((contact, index) => (
