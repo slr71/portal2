@@ -4,7 +4,6 @@ const bodyParser = require('body-parser')
 const session = require('express-session')
 const pgsimple = require('connect-pg-simple')
 const Sentry = require("@sentry/node");
-const Tracing = require("@sentry/tracing");
 const Keycloak = require('keycloak-connect')
 const next = require('next')
 const { logger, requestLogger, errorLogger } = require('./api/lib/logging')
