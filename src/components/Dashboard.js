@@ -48,6 +48,9 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
+    [theme.breakpoints.down('sm')]: {
+      width: '100%'
+    }
   },
   menuButton: {
     marginRight: 36,
@@ -65,7 +68,7 @@ const useStyles = makeStyles((theme) => ({
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
-    }),
+    })
   },
   drawerPaperClose: {
     overflowX: 'hidden',
@@ -73,15 +76,9 @@ const useStyles = makeStyles((theme) => ({
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-    width: theme.spacing(7),
-    [theme.breakpoints.up('sm')]: {
-      width: theme.spacing(9),
-    },
+    width: theme.spacing(9)
   },
   appBarSpacer: {
-      [theme.breakpoints.down('xs')]: {
-        display:'none',
-      },
       ...theme.mixins.toolbar,
   },
   content: {
@@ -99,11 +96,7 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.down('md')]: {
       paddingLeft: theme.spacing(4),
       paddingRight: theme.spacing(4),
-    },
-    [theme.breakpoints.down('xs')]: {
-      paddingLeft: theme.spacing(1),
-      paddingRight: theme.spacing(1), 
-    },
+    }
   },
   paper: {
     padding: theme.spacing(2),
@@ -204,21 +197,40 @@ export default function Dashboard(props) {
           </Hidden>
         </Toolbar>
       </AppBar>
-      <Drawer
-        variant="permanent"
-        classes={{
-          paper: clsx(classes.drawerPaper, !drawerOpen && classes.drawerPaperClose),
-        }}
-        open={drawerOpen}
-      >
-        <div className={classes.toolbarIcon}>
-          <IconButton onClick={() => handleDrawerEvent(false)}>
-            <ChevronLeftIcon className={classes.appBarIcon} />
-          </IconButton>
-        </div>
-        <Divider />
-        <SideBar open={drawerOpen} showStaff={user && user.is_staff}/>
-      </Drawer>
+      <Hidden xsDown>
+        <Drawer
+          variant="permanent"
+          classes={{
+            paper: clsx(classes.drawerPaper, !drawerOpen && classes.drawerPaperClose),
+          }}
+          open={drawerOpen}
+        >
+          <div className={classes.toolbarIcon}>
+            <IconButton onClick={() => handleDrawerEvent(false)}>
+              <ChevronLeftIcon className={classes.appBarIcon} />
+            </IconButton>
+          </div>
+          <Divider />
+          <SideBar open={drawerOpen} showStaff={user && user.is_staff}/>
+        </Drawer>
+      </Hidden>
+      <Hidden smUp>
+        <Drawer
+          variant="permanent"
+          classes={{
+            paper: clsx(classes.drawerPaper, classes.drawerPaperClose),
+          }}
+          open={false}
+        >
+          {/* <div className={classes.toolbarIcon}>
+            <IconButton onClick={() => handleDrawerEvent(false)}>
+              <ChevronLeftIcon className={classes.appBarIcon} />
+            </IconButton>
+          </div>  */}
+          <Divider />
+          <SideBar open={false} showStaff={user && user.is_staff}/>
+        </Drawer>
+      </Hidden>
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <TopBar title={props.title} breadcrumbs={props.breadcrumbs} back={props.back} actions={props.actions} />
