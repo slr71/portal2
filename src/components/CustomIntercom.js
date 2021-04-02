@@ -3,12 +3,19 @@
  *  Based on Sonora module of same name
  */
 
-import { Badge, Button, Tooltip, } from "@material-ui/core"
-import LiveHelpIcon from "@material-ui/icons/LiveHelp"
+import { makeStyles, Badge, Button, IconButton, Tooltip, Hidden } from "@material-ui/core"
+import { Person as PersonIcon, LiveHelp as LiveHelpIcon } from "@material-ui/icons"
 import { useUser } from '../contexts/user'
 import config from '../config.json'
 
+const useStyles = makeStyles((theme) => ({
+  icon: {
+    color: "white",
+  }
+}))
+
 function CustomIntercom() {
+  const classes = useStyles()
   const [user] = useUser()
   const [unreadCount, setUnreadCount] = React.useState(0)
 
@@ -55,17 +62,26 @@ function CustomIntercom() {
   })
 
   return (
-    <Tooltip title="Chat with CyVerse Support">
-      <Button
-        variant="text"
-        color="inherit"
-        size="large"
-        startIcon={<Badge badgeContent={unreadCount} color="error"><LiveHelpIcon /></Badge>}
-        onClick={intercomShow}
-      >
-        Help
-      </Button>
-    </Tooltip>
+    <>
+      <Hidden xsDown>
+        <Tooltip title="Chat with CyVerse Support">
+          <Button
+            variant="text"
+            color="inherit"
+            size="large"
+            startIcon={<Badge badgeContent={unreadCount} color="error"><LiveHelpIcon /></Badge>}
+            onClick={intercomShow}
+          >
+            <Hidden xsDown>Help</Hidden>
+          </Button>
+        </Tooltip>
+      </Hidden>
+      <Hidden smUp>
+        <IconButton onClick={intercomShow}>
+          <PersonIcon className={classes.icon} />
+        </IconButton>
+      </Hidden>
+    </>
   )
 }
 

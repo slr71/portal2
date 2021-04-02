@@ -1,9 +1,8 @@
 import React from 'react'
 import clsx from 'clsx'
-import Link from "next/link"
 import { useRouter } from 'next/router'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline, Snackbar } from '@material-ui/core'
+import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline, Snackbar, Hidden } from '@material-ui/core'
 import { Alert, AlertTitle } from '@material-ui/lab'
 import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, AccountCircle as PersonIcon } from '@material-ui/icons'
 import SideBar from './SideBar'
@@ -31,8 +30,8 @@ const useStyles = makeStyles((theme) => ({
     padding: '0 8px',
     ...theme.mixins.toolbar,
   },
-  ChevronLeftIcon: {
-    color:"white",
+  appBarIcon: {
+    color: "white",
   },
   appBar: {
     backgroundColor:'#084060',
@@ -81,7 +80,8 @@ const useStyles = makeStyles((theme) => ({
   },
   appBarSpacer: {
       [theme.breakpoints.down('xs')]: {
-        display:'none',},
+        display:'none',
+      },
       ...theme.mixins.toolbar,
   },
   content: {
@@ -96,13 +96,14 @@ const useStyles = makeStyles((theme) => ({
     paddingRight: theme.spacing(5),
     backgroundColor: '#EEEEEE',
     maxWidth: '100%',
-    [theme.breakpoints.down('md')]:
-      {paddingLeft: theme.spacing(4),
-        paddingRight: theme.spacing(4),
-       },
-      [theme.breakpoints.down('xs')]: {
-        paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1), },
+    [theme.breakpoints.down('md')]: {
+      paddingLeft: theme.spacing(4),
+      paddingRight: theme.spacing(4),
+    },
+    [theme.breakpoints.down('xs')]: {
+      paddingLeft: theme.spacing(1),
+      paddingRight: theme.spacing(1), 
+    },
   },
   paper: {
     padding: theme.spacing(2),
@@ -183,18 +184,24 @@ export default function Dashboard(props) {
           <MainLogo size="medium" />
           <div style={{flexGrow: 1}} />
           <CustomIntercom />
-          <Link href="/account">
+          <Hidden xsDown>
             <Tooltip title="Manage your account">
               <Button
                 variant="text"
                 color="inherit"
                 size="large"
                 startIcon={<PersonIcon />}
+                href="/account"
               >
                 Account
               </Button>
             </Tooltip>
-          </Link>
+          </Hidden>
+          <Hidden smUp>
+            <IconButton className={classes.appBarIcon} href="/account">
+              <PersonIcon />
+            </IconButton>
+          </Hidden>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -206,7 +213,7 @@ export default function Dashboard(props) {
       >
         <div className={classes.toolbarIcon}>
           <IconButton onClick={() => handleDrawerEvent(false)}>
-            <ChevronLeftIcon className={classes.ChevronLeftIcon}/>
+            <ChevronLeftIcon className={classes.appBarIcon} />
           </IconButton>
         </div>
         <Divider />
