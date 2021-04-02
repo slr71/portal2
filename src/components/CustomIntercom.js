@@ -63,7 +63,7 @@ function CustomIntercom() {
 
   return (
     <>
-      <Hidden xsDown>
+      <Hidden xsDown implementation="css">
         <Tooltip title="Chat with CyVerse Support">
           <Button
             variant="text"
@@ -72,11 +72,11 @@ function CustomIntercom() {
             startIcon={<Badge badgeContent={unreadCount} color="error"><LiveHelpIcon /></Badge>}
             onClick={intercomShow}
           >
-            <Hidden xsDown>Help</Hidden>
+            Help
           </Button>
         </Tooltip>
       </Hidden>
-      <Hidden smUp>
+      <Hidden smUp implementation="css">
         <IconButton onClick={intercomShow}>
           <PersonIcon className={classes.icon} />
         </IconButton>

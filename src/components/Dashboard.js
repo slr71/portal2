@@ -60,6 +60,7 @@ const useStyles = makeStyles((theme) => ({
   },
   drawerPaper: {
     position: 'relative',
+    height: '100vh',
     whiteSpace: 'nowrap',
     width: drawerWidth,
     color:'#ffffff',
@@ -177,7 +178,7 @@ export default function Dashboard(props) {
           <MainLogo size="medium" />
           <div style={{flexGrow: 1}} />
           <CustomIntercom />
-          <Hidden xsDown>
+          <Hidden xsDown implementation="css">
             <Tooltip title="Manage your account">
               <Button
                 variant="text"
@@ -190,14 +191,14 @@ export default function Dashboard(props) {
               </Button>
             </Tooltip>
           </Hidden>
-          <Hidden smUp>
+          <Hidden smUp implementation="css">
             <IconButton className={classes.appBarIcon} href="/account">
               <PersonIcon />
             </IconButton>
           </Hidden>
         </Toolbar>
       </AppBar>
-      <Hidden xsDown>
+      <Hidden xsDown implementation="css">
         <Drawer
           variant="permanent"
           classes={{
@@ -214,7 +215,7 @@ export default function Dashboard(props) {
           <SideBar open={drawerOpen} showStaff={user && user.is_staff}/>
         </Drawer>
       </Hidden>
-      <Hidden smUp>
+      <Hidden smUp implementation="css">
         <Drawer
           variant="permanent"
           classes={{
@@ -222,11 +223,6 @@ export default function Dashboard(props) {
           }}
           open={false}
         >
-          {/* <div className={classes.toolbarIcon}>
-            <IconButton onClick={() => handleDrawerEvent(false)}>
-              <ChevronLeftIcon className={classes.appBarIcon} />
-            </IconButton>
-          </div>  */}
           <Divider />
           <SideBar open={false} showStaff={user && user.is_staff}/>
         </Drawer>
