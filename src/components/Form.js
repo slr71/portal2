@@ -8,6 +8,7 @@ import { isEmail, isNumeric, isAlphanumeric, isLowercase, isDate, isEmpty } from
 import { validatePassword } from '../lib/misc'
 import { CheckboxWithLabel } from "formik-material-ui"
 import { honeypotDivisor } from '../config.json'
+import { DomainPropTypes } from '@material-ui/pickers/constants/prop-types'
 
 const useStyles = makeStyles((theme) => ({
   formStepper: {
@@ -333,6 +334,21 @@ const FormField = (props) => {
           </MenuItem>
         ))}
       </Field>
+    )
+  }
+
+  if (props.type === 'number') {
+    return (
+      <Field
+        id={props.id.toString()}
+        name={props.id.toString()}
+        type="number"
+        component={TextField}
+        defaultValue={props.value}
+        onChange={props.onChange}
+        InputLabelProps={{ shrink: true }} 
+        {...commonProps}
+      />
     )
   }
 

@@ -4,8 +4,9 @@ const Argo = require('../lib/argo');
 const { emailServiceAccessGranted } = require('../lib/email')
 const { logger } = require('../lib/logging');
 const intercom = require('../lib/intercom');
-const { serviceRegistrationWorkflow } = require('../workflows/native/services.js');
-const { UI_ADMIN_SERVICE_ACCESS_REQUEST_URL } = require('../../constants');
+const { serviceRegistrationWorkflow } = require('../workflows/native/services');
+const { terrainSubmitViceAccessRequest } = require('../workflows/native/lib');
+const { UI_ADMIN_SERVICE_ACCESS_REQUEST_URL, EXT_ADMIN_VICE_ACCESS_REQUEST_URL } = require('../../constants');
 const config = require('../../config.json');
 
 // Services with special approval requirements, all other services are auto-approved.
@@ -106,7 +107,7 @@ async function approveAtmosphere(request) {
         await sendAtmosphereSignupMessage(request,
 `${intro}
 
-We are no longer approving student access for Atmosphere unless you are part of a workshop. Please ask your instructor for details on enrolling into the workshop.
+We are no longer approving student access for Atmosphere unless you are part of a workshop. Please ask your instructor for details on enrolling in the workshop.
 
 For more information please see the FAQ: ${faqUrl}`
         );
@@ -133,19 +134,16 @@ function getAtmosphereConversationBody(questions, answers) {
         body += " Here are the details:";
 
         for (question of questions) {
-            body += "\n\n" + question.question;
+            body += "\n\n" + question.question + "\n\n";
             const answer = answers.find(a => a.access_request_question_id == question.id);
-            if (!answer) {
-                body = body + "\n\n[blank]"
-                continue;
-            }
-
-            if (question.type == 'char')
-                body += "\n\n" + answer.value_char;
+            if (!answer) 
+                body += "[blank]"
+            else if (question.type == 'char')
+                body += answer.value_char;
             else if (question.type == 'text')
-                body += "\n\n" + answer.value_text;
+                body += answer.value_text;
             else if (question.type == 'bool')
-                body += "\n\n" + answer.value_bool;
+                body += answer.value_bool;
         }
     }
 
@@ -181,37 +179,22 @@ async function approveVICE(request) {
 
     logger.info(`approveVICE: Pend user "${user.username}" for request ${request.id}`);
     await request.pend();
+
+    await createViceAccessRequest(request)
+    
     await sendVICESignupMessage(request,
 `${intro}
 
-VICE access must be approved unless you are part of a workshop. Please ask your instructor for details on enrolling into the workshop.`
+VICE access must be approved unless you are part of a workshop. Please ask your instructor for details on enrolling in the workshop.`
         );
 }
 
-function getVICEConversationBody(questions, answers) {
-    let body = "VICE access requested.";
+async function createViceAccessRequest(request) {
+    const answer = request.answers[0]; // only one question
 
-    if (questions && questions.length > 0) {
-        body += " Here are the details:";
-
-        for (question of questions) {
-            body += "\n\n" + question.question;
-            const answer = answers.find(a => a.access_request_question_id == question.id);
-            if (!answer) {
-                body = body + "\n\n[blank]"
-                continue;
-            }
-
-            if (question.type == 'char')
-                body += "\n\n" + answer.value_char;
-            else if (question.type == 'text')
-                body += "\n\n" + answer.value_text;
-            else if (question.type == 'bool')
-                body += "\n\n" + answer.value_bool;
-        }
-    }
-
-    return body;
+    // Send request to Terrain API
+    const resp = await terrainSubmitViceAccessRequest(request.user.token, request.user.username, answer) 
+    console.log(resp)
 }
 
 async function sendVICESignupMessage(request, responseMessage) {
@@ -229,9 +212,32 @@ async function sendVICESignupMessage(request, responseMessage) {
         intercom_conversation_id: conversation.id
     });
 
-    await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${UI_ADMIN_SERVICE_ACCESS_REQUEST_URL}/${request.id}`);
+    await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${EXT_ADMIN_VICE_ACCESS_REQUEST_URL}`);
     await intercom.replyToConversation(conversation.id, responseMessage);
     await intercom.assignConversationToAtmosphereTeam(conversation.id);
+}
+
+function getVICEConversationBody(questions, answers) { // TODO can be merged with getAtmosphereConverstationBody
+    let body = "VICE access requested.";
+
+    if (questions && questions.length > 0) {
+        body += " Here are the details:";
+
+        for (question of questions) {
+            body += "\n\n" + question.question + "\n\n";
+            const answer = answers.find(a => a.access_request_question_id == question.id);
+            if (!answer) 
+                body += "[blank]"
+            else if (question.type == 'char')
+                body += answer.value_char;
+            else if (question.type == 'text' || question.type == 'number')
+                body += answer.value_text;
+            else if (question.type == 'bool')
+                body += answer.value_bool;
+        }
+    }
+
+    return body;
 }
 
 module.exports = { approveRequest, grantRequest };

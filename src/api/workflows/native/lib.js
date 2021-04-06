@@ -203,7 +203,39 @@ function terrainSetConcurrentJobLimits(token, username, limit) {
         "--header", `Authorization: Bearer ${token}`, 
         "--header", "Content-Type: application/json",
         "--data", JSON.stringify({ "concurrent_jobs": limit}),
-        `${config.terrain.baseUrl}/admin/settings/concurrent-job-limits/${username}}`
+        `${config.terrain.baseUrl}/admin/settings/concurrent-job-limits/${username}}` //FIXME define URL in constants.js
+    ]);
+}
+
+function terrainSubmitViceAccessRequest(token, user, usage) {
+    // prod
+    const data = {
+        "name": user.first_name + ' ' + user.last_name,
+        "institution": user.institution,
+        "email": user.email,
+        "intended_use": usage,
+        "funding_award_number": "string",
+        // "references": [
+        //   "string"
+        // ],
+        "orcid": user.orcid_id,
+        "concurrent_jobs": 2 //FIXME hardcoded
+    }
+
+    // QA
+    // const data = {
+    //     "name": user.first_name + ' ' + user.last_name,
+    //     "email": user.email,
+    //     "intended_use": usage,
+    //     "concurrent_jobs": 2 //FIXME hardcoded
+    // }
+    return runFile("curl", [
+        "--request", "POST",
+        "--location", 
+        "--header", `Authorization: Bearer ${token}`, 
+        "--header", "Content-Type: application/json",
+        "--data", JSON.stringify(data),
+        `${config.terrain.baseUrl}/requests/vice` //FIXME define URL in constants.js
     ]);
 }
 
@@ -230,5 +262,6 @@ module.exports = {
     mailchimpDelete,
     mailmanUpdateSubscription,
     terrainGetKeycloakToken,
-    terrainSetConcurrentJobLimits
+    terrainSetConcurrentJobLimits,
+    terrainSubmitViceAccessRequest
 };

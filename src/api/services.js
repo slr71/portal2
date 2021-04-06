@@ -150,6 +150,7 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
 
     request.service = service;
     request.user = req.user;
+    request.user.token = req.api.token;
 
     // Create answers
     request.answers = [];
@@ -304,7 +305,8 @@ router.get('/:nameOrId(\\w+)', asyncHandler(async (req, res) => {
             sequelize.or(
                 { id: isNaN(nameOrId) ? 0 : nameOrId },
                 sequelize.where(sequelize.fn('lower', sequelize.col('name')), nameOrId.toLowerCase())
-            )
+            ),
+        order: [ [ 'questions', 'id', 'ASC' ] ]
     });
 
     if (!service)

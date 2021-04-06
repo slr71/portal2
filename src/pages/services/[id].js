@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react'
 import Markdown from 'markdown-to-jsx'
 import { makeStyles, Container, Grid, Link, Box, Button, IconButton, Paper, Tabs, Tab, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, MenuItem } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon, Delete as DeleteIcon } from '@material-ui/icons'
-import { Layout, ServiceActionButton, TabPanel, UpdateForm, QuestionsEditor, ContactsEditor, ResourcesEditor } from '../../components'
+import { Formik, Form } from 'formik'
+import { Layout, ServiceActionButton, TabPanel, UpdateForm, QuestionsEditor, ContactsEditor, ResourcesEditor, FormField } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { useError, withGetServerSideError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
-const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } = require('../../constants')
+const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE, EXT_USER_VICE_ACCESS_REQUEST_API_URL } = require('../../constants')
 const inlineIcons = require('../../inline_icons.json')
 
 const useStyles = makeStyles((theme) => ({
@@ -41,20 +42,15 @@ const ServiceViewer = (props) => {
   const [_, setError] = useError()
   const userService = user.services.find(s => s.id == service.id)
   const request = userService && userService.api_accessrequest
-
-  // only Atmosphere has a question, and it has only one
-  const question = service.questions && service.questions.length > 0 ? service.questions[0] : null 
+  const questions = service.questions && service.questions.length > 0 ? service.questions : null 
 
   const [requestStatus, setRequestStatus] = useState(request && request.status)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [answer, setAnswer] = useState()
 
-  const submitAccessRequest = async () => {
+  const submitAccessRequest = async (values) => {
     try {
-      const questions = question && question.id
-        ? [{ questionId: question && question.id, value: answer }]
-        : null
-      const newRequest = await api.createServiceRequest(service.id, questions)
+      const answers = Object.keys(values).map(questionId => { return { questionId, value: values[questionId] } }) 
+      const newRequest = await api.createServiceRequest(service.id, answers)
       setRequestStatus(newRequest.status)
       setDialogOpen(false)
     }
@@ -64,22 +60,40 @@ const ServiceViewer = (props) => {
     }
   }
 
-  // Configure web socket connection
+  
   useEffect(() => {
-    const socket = new WebSocket(`${wsBaseUrl}/${user.username}`)
-
-    // Listen for messages // TODO move into library
-    socket.addEventListener('message', function (event) {
-      console.log('Socket received:', event.data)
-      if (!event || !event.data)
-        return
-
-      event = JSON.parse(event.data)
-      if (event.type == WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE && event.data.serviceId == service.id) {
-        setRequestStatus(event.data.status)
+    // Special case: fetch VICE access request status
+    if (service.name == 'DE - VICE') { // kludge
+      const fetchViceRequests = async () => {
+        const resp = await fetch(EXT_USER_VICE_ACCESS_REQUEST_API_URL, { 
+          headers: { 'Authorization': `Bearer ${api.token}` }
+        })
+        const data = await resp.json()
+        console.log('vice requests:', data)
+        const request = data && data.requests && data.requests[0]
+        if (request && request.status.toLowerCase() === 'granted')
+          setRequestStatus('granted')
       }
-    });
-  }, [])
+
+      fetchViceRequests()
+    }
+    else {
+      // Configure web socket connection
+      const socket = new WebSocket(`${wsBaseUrl}/${user.username}`)
+
+      // Listen for messages // TODO move into library
+      socket.addEventListener('message', function (event) {
+        console.log('Socket received:', event.data)
+        if (!event || !event.data)
+          return
+
+        event = JSON.parse(event.data)
+        if (event.type == WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE && event.data.serviceId == service.id) {
+          setRequestStatus(event.data.status)
+        }
+      })
+    }
+  })
 
   // Icons were moved inline for performance //TODO move into component
   const icon_url = service.icon_url in inlineIcons ? inlineIcons[service.icon_url] : service.icon_url
@@ -193,50 +207,80 @@ const ServiceViewer = (props) => {
         </Grid>
       </Paper>
       <RequestAccessDialog 
-        question={question ? question.question : `Would you like to request access to ${service.name}?`}
-        requiresAnswer={!!question}
         open={dialogOpen}
-        handleChange={(e) => setAnswer(e.target.value)}
+        questions={questions}
+        serviceName={service.name}
         handleClose={() => setDialogOpen(false)} 
-        handleSubmit={
-          (!question || answer) && // disable submit button if input is blank and answer is required
-            (() => {
-              setRequestStatus('requested')
-              setDialogOpen(false)
-              submitAccessRequest()
-            })
-        }
+        handleSubmit={async (values) => {
+          console.log('submit:', values)
+          setRequestStatus('requested')
+          setDialogOpen(false)
+          await submitAccessRequest(values)
+        }}
       />
     </div>
   )
 }
 
-const RequestAccessDialog = ({ question, requiresAnswer, open, handleChange, handleClose, handleSubmit }) => (
-  <Dialog open={open} onClose={handleClose} fullWidth={true} aria-labelledby="form-dialog-title">
-    <DialogContent>
-      <DialogContentText>
-        <p>{question}</p>
-      </DialogContentText>
-      {requiresAnswer &&
-        <TextField
-          autoFocus
-          margin="dense"
-          id="name"
-          fullWidth
-          onChange={handleChange}
-        />
-      }
-    </DialogContent>
-    <DialogActions>
-      <Button color="primary" onClick={handleClose}>
-        Cancel
-      </Button>
-      <Button color="primary" variant="contained" disabled={!handleSubmit} onClick={handleSubmit}>
-        Request Access
-      </Button>
-    </DialogActions>
-  </Dialog>
-)
+const RequestAccessDialog = ({ open, questions, serviceName, handleChange, handleClose, handleSubmit }) => {
+  const hasQuestions = questions && questions.length > 0
+
+  const initialValues = {}
+  for (const q of questions)
+    initialValues[q.id] = ''
+
+  const validate = (values) => {
+    if (!hasQuestions)
+      return true
+    return questions.every(q => values[q.id]) // check if all fields populated
+  }
+
+  return (
+    <Dialog open={open} onClose={handleClose} fullWidth={true}>
+      <DialogTitle>Request Access</DialogTitle>
+      <Formik
+        initialValues={initialValues}
+        validate={validate}
+        validateOnMount
+        onSubmit={handleSubmit}
+      >
+        {({ handleChange, handleBlur, handleSubmit, values }) => (
+          <>
+            <DialogContent>
+              {!hasQuestions 
+                ? <DialogContentText>
+                    <p>Would you like to request access to {serviceName}?</p>
+                  </DialogContentText>
+                : <Form>
+                    {questions.map((q, index) => (
+                      <div key={index}>
+                        <FormField
+                          id={q.id}
+                          description={q.question}
+                          type={q.type}
+                          required={q.is_required}
+                          onChange={handleChange}
+                          onBlur={handleBlur}
+                        />
+                      </div>
+                    ))}
+                  </Form>
+              }
+            </DialogContent>
+            <DialogActions>
+              <Button color="primary" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button color="primary" variant="contained" disabled={!validate(values)} onClick={handleSubmit}>
+                Request Access
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Formik>
+    </Dialog>
+  )
+}
 
 const ServiceEditor = (props) => {
   const api = useAPI()

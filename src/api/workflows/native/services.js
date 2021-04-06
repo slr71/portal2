@@ -122,6 +122,7 @@ async function createBisqueUser(request) {
     });
 }
 
+// Called for workshop registration
 async function setViceJobLimit(request) {
     // Get auth token for admin account
     const token = await terrainGetKeycloakToken()
