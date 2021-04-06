@@ -214,7 +214,7 @@ async function sendVICESignupMessage(request, responseMessage) {
 
     await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${EXT_ADMIN_VICE_ACCESS_REQUEST_URL}`);
     await intercom.replyToConversation(conversation.id, responseMessage);
-    await intercom.assignConversationToAtmosphereTeam(conversation.id);
+    await intercom.assignConversationToScienceTeam(conversation.id);
 }
 
 function getVICEConversationBody(questions, answers) { // TODO can be merged with getAtmosphereConverstationBody
