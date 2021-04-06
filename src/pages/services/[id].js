@@ -483,10 +483,15 @@ const GeneralSettings = (props) => {
             value: props.service_url,
           },
           { id: "icon_url",
-            name: "Icon URL",
+            name: "Icon URL (or name for inline icons)",
             type: "text",
             required: true,
             value: props.icon_url,
+          },
+          { id: "is_public",
+            name: "Public - visible for all users or staff only",
+            type: "toggle",
+            value: props.is_public
           }
         ]} 
         initialValues={{...props}} // unused fields will be ignored

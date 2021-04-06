@@ -20,6 +20,7 @@ const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api
 //TODO move into module
 const like = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: '%' + val.toLowerCase() + '%' }) 
 
+// Get all service access requests (STAFF ONLY)
 router.get('/requests', requireAdmin, asyncHandler(async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
@@ -55,6 +56,7 @@ router.get('/requests', requireAdmin, asyncHandler(async (req, res) => {
     return res.status(200).json({ count, results: rows });
 }));
 
+// Get individual service access request (STAFF ONLY)
 router.get('/requests/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     const request = await AccessRequest.findByPk(req.params.id, {
         include: [ 
@@ -337,7 +339,7 @@ router.post('/:id(\\d+)', getUser, requireAdmin, asyncHandler(async (req, res) =
 
     // Verify and update fields
     for (let key in fields) {
-        const SUPPORTED_FIELDS = ['name', 'description', 'about', 'service_url', 'icon_url'];
+        const SUPPORTED_FIELDS = ['name', 'description', 'about', 'service_url', 'icon_url', 'is_public'];
         if (!SUPPORTED_FIELDS.includes(key))
             return res.status(400).send('Unsupported field');
         service[key] = fields[key];
