@@ -190,10 +190,18 @@ VICE access must be approved unless you are part of a workshop. Please ask your 
 }
 
 async function createViceAccessRequest(request) {
+    // Get response to usage question
     const answer = request.answers[0]; // only one question
+    let usage = ''
+    if (answer.value_text)
+        usage = answer.value_text
+    else if (answer.value_char)
+        usage = answer.value_char
+    else if (answer.value_bool)
+        usage = answer.value_bool
 
     // Send request to Terrain API
-    const resp = await terrainSubmitViceAccessRequest(request.user.token, request.user.username, answer) 
+    const resp = await terrainSubmitViceAccessRequest(request.user.token, request.user, usage) 
     console.log(resp)
 }
 

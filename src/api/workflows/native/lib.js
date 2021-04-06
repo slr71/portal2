@@ -214,10 +214,8 @@ function terrainSubmitViceAccessRequest(token, user, usage) {
         "institution": user.institution,
         "email": user.email,
         "intended_use": usage,
-        "funding_award_number": "string",
-        // "references": [
-        //   "string"
-        // ],
+        "funding_award_number": "n/a",
+        "references": [],
         "orcid": user.orcid_id,
         "concurrent_jobs": 2 //FIXME hardcoded
     }
