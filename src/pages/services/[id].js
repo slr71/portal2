@@ -71,7 +71,7 @@ const ServiceViewer = (props) => {
         const data = await resp.json()
         console.log('vice requests:', data)
         const request = data && data.requests && data.requests[0]
-        if (request && request.status.toLowerCase() === 'granted')
+        if (request && request.status && request.status.toLowerCase() === 'granted')
           setRequestStatus('granted')
       }
 
