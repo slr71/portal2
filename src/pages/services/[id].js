@@ -226,8 +226,9 @@ const RequestAccessDialog = ({ open, questions, serviceName, handleChange, handl
   const hasQuestions = questions && questions.length > 0
 
   const initialValues = {}
-  for (const q of questions)
-    initialValues[q.id] = ''
+  if (hasQuestions)
+    for (const q of questions)
+      initialValues[q.id] = ''
 
   const validate = (values) => {
     if (!hasQuestions)
