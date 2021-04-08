@@ -12,8 +12,8 @@ module.exports = {
   UI_ADMIN_FORM_SUBMISSION_URL: `${config.uiBaseUrl}/administrative/submissions`,
 
   // External URLS
-  EXT_USER_VICE_ACCESS_REQUEST_API_URL: `${config.terrain.baseUrl}/requests/vice`,
-  EXT_ADMIN_VICE_ACCESS_REQUEST_URL: 'https://sonora.cyverse.org/admin/vice',
+  //EXT_USER_VICE_ACCESS_REQUEST_API_URL: `${config.terrain.baseUrl}/requests/vice`,
+  //EXT_ADMIN_VICE_ACCESS_REQUEST_URL: 'https://sonora.cyverse.org/admin/vice',
 
   // Cookie Names
   ACCOUNT_UPDATE_REMINDER_COOKIE: 'account_update_reminder',

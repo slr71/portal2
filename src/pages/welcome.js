@@ -18,6 +18,13 @@ const useStyles = makeStyles((theme) => ({
       paddingTop:'5%',
     },
   },
+  logo: {
+    paddingTop: "10%",
+    marginTop:'0',
+    [theme.breakpoints.down('md')]:
+    {paddingTop: "10%",
+    marginTop:'0',},
+  },
   tagline: {
     [theme.breakpoints.down('md')]:
     {fontSize:"1.5rem",
@@ -80,22 +87,26 @@ const Welcome = (props) => {
 
 const Left = () => {
   const classes = useStyles()
-return(
-  <div>
-    <Box pt={"15%"}>
-      <MainLogo size="large" />
-    </Box>
-    <Box>
-      <WelcomeAnimation />
-    </Box>
-      <Box>
-        <Typography className={classes.tagline} variant="h5" style={{color: "white"}}>
-          The Open Science Workspace for
-          <br />
-          Collaborative Data-driven Discovery
-        </Typography>
-      </Box>
-  </div>
+return (
+    <div>
+        <Box className={classes.logo}>
+            <MainLogo size="large" />
+        </Box>
+        <Box>
+            <WelcomeAnimation />
+        </Box>
+        <Box>
+            <Typography
+                className={classes.tagline}
+                variant="h5"
+                style={{ color: 'white' }}
+            >
+                The Open Science Workspace for
+                <br />
+                Collaborative Data-driven Discovery
+            </Typography>
+        </Box>
+    </div>
 )
 }
 
