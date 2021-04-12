@@ -11,7 +11,13 @@ const Intercom = require('intercom-client');
 const { logger } = require('./logging');
 const config = require('../../config.json');
 
-const intercom = new Intercom.Client({ token: config.intercom.token });
+const intercom = config.intercom && config.intercom.token
+    ? new Intercom.Client({ token: config.intercom.token })
+    : null; // Intercom disabled
+
+if (!intercom) {
+    console.log('Intercom is disabled');
+}
 
 async function createUser(user) {
     // Get user if already exists

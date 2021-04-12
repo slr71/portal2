@@ -15,6 +15,11 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 function CustomIntercom() {
+  if (!config.intercom) {
+    console.warn('Intercom is disabled')
+    return <></>
+  }
+  
   const classes = useStyles()
   const [user] = useUser()
   const [unreadCount, setUnreadCount] = React.useState(0)
