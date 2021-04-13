@@ -44,7 +44,7 @@ router.get('/requests', requireAdmin, asyncHandler(async (req, res) => {
     const { count, rows } = await AccessRequest.findAndCountAll({
         ...where,
         include: [ 
-            { model: User.scope('lite'), as: 'user' },
+            { model: User.scope('profile'), as: 'user' },
             'service' 
         ],
         order: [ ['updated_at', 'DESC'] ],

@@ -55,6 +55,7 @@ router.get('/', getUser, asyncHandler(async (req, res) => {
             { 
                 model: models.account_region, 
                 as: 'region',
+            
                 include: [ 'country' ]
             }
         ],
@@ -75,8 +76,17 @@ router.get('/mine', getUser, (req, res) => {
 });
 
 // Get individual user (STAFF ONLY)
-router.get('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
-    const user = await User.findByPk(req.params.id, { include: [ 'services' ] });
+router.get('/:usernameOrId(\\w+)', requireAdmin, asyncHandler(async (req, res) => {
+    const usernameOrId = req.params.usernameOrId;
+    const scope = req.query.scope || 'defaultScope';
+
+    const user = await User.scope(scope).findOne({ 
+        where:
+            sequelize.or(
+                { id: isNaN(usernameOrId) ? 0 : usernameOrId },
+                sequelize.where(sequelize.fn('lower', sequelize.col('username')), usernameOrId.toLowerCase())
+            )
+    });
     if (!user)
         return res.status(404).send('User not found');
     res.status(200).json(user);

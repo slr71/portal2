@@ -131,6 +131,74 @@ models.api_formsubmission.hasMany(models.api_formsubmissionconversation, { as: '
  * Define scopes
  */
 
+models.account_occupation.addScope('defaultScope',
+  {
+    attributes: [ 'id', 'name' ]
+  }
+);
+
+models.account_researcharea.addScope('defaultScope',
+  {
+    attributes: [ 'id', 'name' ]
+  }
+);
+
+models.account_fundingagency.addScope('defaultScope',
+  {
+    attributes: [ 'id', 'name' ]
+  }
+);
+
+models.account_ethnicity.addScope('defaultScope',
+  {
+    attributes: [ 'id', 'name' ]
+  }
+);
+
+models.account_gender.addScope('defaultScope',
+  {
+    attributes: [ 'id', 'name' ]
+  }
+);
+
+models.account_awarechannel.addScope('defaultScope',
+  {
+    attributes: [ 'id', 'name' ]
+  }
+);
+
+models.api_mailinglist.addScope('defaultScope',
+  {
+    attributes: [ 'id', 'name', 'list_name', 'service_id' ]
+  }
+);
+
+models.account_region.addScope('defaultScope',
+  {
+    attributes: [ 'id', 'code', 'name', 'country_id' ],
+    include: [
+      { 
+        model: models.account_country,
+        as: 'country',
+        attributes: [ 'code', 'name' ]
+      }
+    ]
+  }
+);
+
+models.account_emailaddress.addScope('defaultScope', 
+  {
+    attributes: [ 'id', 'email', 'verified', 'primary' ],
+    include: [ 
+      { 
+        model: models.api_mailinglist, 
+        as: 'mailing_lists', 
+        through: { attributes: [ 'is_subscribed' ] }
+      } 
+    ]
+  }
+);
+
 models.account_user.addScope('defaultScope',
   {
     attributes: {
@@ -143,71 +211,54 @@ models.account_user.addScope('defaultScope',
       ]
     },
     include: [
-      'emails',
-      'ethnicity',
-      'funding_agency',
-      'gender',
+      'region',
       'occupation',
-      { model: models.account_region, 
-        as: 'region',
-        include: [
-          'country'
-        ]
-      },
       'research_area',
+      'funding_agency',
+      'ethnicity',
+      'gender',
       'aware_channel',
+      'emails',
       'services',
       'workshops'
     ]
   }
 );
 
-models.account_user.addScope('lite',
+models.account_user.addScope('profile',
   {
-    // attributes: {
-    //   exclude: [
-    //     'is_active',
-    //     'ethnicity_id',
-    //     'funding_agency_id', 
-    //     'gender_id', 
-    //     'has_verified_email',
-    //     'occupation_id', 
-    //     'password',
-    //     'region_id', 
-    //     'research_area_id', 
-    //     'aware_channel_id', 
-    //     'user_institution_id'
-    //   ]
-    // },
+    attributes: {
+      exclude: [
+        'settings',
+        'last_login',
+        'is_active',
+        'ethnicity_id',
+        'ethnicityId',
+        'funding_agency_id', 
+        'fundingAgencyId',
+        'gender_id', 
+        'genderId', 
+        'has_verified_email',
+        'occupation_id', 
+        'occupationId',
+        'password',
+        'region_id', 
+        'regionId',
+        'research_area_id', 
+        'researchAreaId',
+        'aware_channel_id', 
+        'awareChannelId',
+        'user_institution_id',
+      ]
+    },
     include: [
+      'region',
       'occupation',
-      { model: models.account_region, 
-        as: 'region',
-        include: [
-          'country'
-        ]
-      },
       'research_area',
-    ]
-  }
-);
-
-// models.account_region.addScope('defaultScope',
-//   {
-//     attributes: {
-//       exclude: ['country_id', 'countryId']
-//     },
-//     include: ['country']
-//   }
-// );
-
-models.account_emailaddress.addScope('defaultScope', 
-  {
-    include: [ 
-      { model: models.api_mailinglist, 
-        as: 'mailing_lists', 
-        through: { attributes: [ 'is_subscribed' ] }
-      } 
+      'funding_agency',
+      'ethnicity',
+      'gender',
+      'aware_channel',
     ]
   }
 );
