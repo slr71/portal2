@@ -1,4 +1,4 @@
-const { ldapCreateUser, ldapModify, ldapChangePassword, ldapAddUserToGroup, ldapDeleteUser, irodsCreateUser, irodsChMod, irodsChangePassword, irodsDeleteUser, mailchimpSubscribe, mailchimpDelete, mailmanUpdateSubscription } = require('./lib');
+const { ldapCreateUser, ldapModify, ldapChangePassword, ldapAddUserToGroup, ldapDeleteUser, irodsCreateUser, irodsChMod, irodsChangePassword, irodsSafeDeleteHome, irodsDeleteUser, mailchimpSubscribe, mailchimpDelete, mailmanUpdateSubscription } = require('./lib');
 const { logger } = require('../../lib/logging');
 const config = require('../../../config.json');
 
@@ -60,19 +60,26 @@ async function userDeletionWorkflow(user) {
     try {
         await ldapDeleteUser(user.username);
     }
-    catch(e) {}
+    catch(e) {
+        console.error(e)
+    }
 
     // IRODS: delete user
     try {
+        await irodsSafeDeleteHome(user.username)
         await irodsDeleteUser(user.username);
     }
-    catch(e) {}
+    catch(e) {
+        console.error(e)
+    }
 
     // Mailchimp: unsubscribe user from newsletter 
     try {
         await mailchimpDelete(user.email);
     }
-    catch(e) {}
+    catch(e) {
+        console.error(e)
+    }
 
     // Mailman: unsubscribe from mailing lists
     for (const email of user.emails) {
@@ -80,7 +87,9 @@ async function userDeletionWorkflow(user) {
             try {
                 await mailmanUpdateSubscription(mailingList.list_name, user.email, false);
             }
-            catch(e) {}
+            catch(e) {
+                console.error(e)
+            }
         }
     }
 }

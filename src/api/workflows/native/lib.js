@@ -126,6 +126,12 @@ function irodsChangePassword(username, password) {
     return dockerRun([ "iadmin", "moduser", username, "password", "--", password ]) // UP-61 added "--" argument for passwords that start with a hyphen
 }
 
+// See https://cyverse.atlassian.net/browse/UP-82
+async function irodsSafeDeleteHome(username) {
+    await dockerRun([ 'irm', '-rf', '/iplant/trash/home/' + username ]);
+    await dockerRun([ 'imv', '/iplant/home/' + username, '/iplant/trash/home/uportal_admin2/' ]);
+}
+
 function irodsDeleteUser(username) {
     return dockerRun([ "iadmin", "rmuser", username ]);
 }
@@ -255,6 +261,7 @@ module.exports = {
     irodsMkDir,
     irodsChMod,
     irodsChangePassword,
+    irodsSafeDeleteHome,
     irodsDeleteUser,
     mailchimpSubscribe,
     mailchimpDelete,
