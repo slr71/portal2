@@ -1,8 +1,9 @@
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Paper, Switch, Typography, Link, Button, IconButton, TextField, Avatar, List, ListItem, ListItemText, ListItemAvatar, ListItemSecondaryAction, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
+import { Container, AppBar, Toolbar, Box, Paper, Switch, Typography, Link, Button, IconButton, TextField, Avatar, List, ListItem, ListItemText, ListItemAvatar, ListItemSecondaryAction, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
 import { Person as PersonIcon, Mail as MailIcon, Delete as DeleteIcon } from '@material-ui/icons'
-import { Layout, UpdateForm } from '../components'
+import { Layout, UpdateForm, MainLogo } from '../components'
 import { isEmail, isEmpty } from 'validator'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
@@ -23,13 +24,18 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     padding: '3em'
   },
-  box: {
-    marginBottom: '4em'
+  appBarIcon: {
+    color: "white",
+  },
+  appBar: {
+    backgroundColor:'#084060', //FIXME use theme
+    display: 'flex'
   },
 }))
 
 const Account = () => {
   const classes = useStyles()
+  const router = useRouter()
   const api = useAPI()
   const [_, setError] = useError()
   const [user, setUser] = useUser()
@@ -39,6 +45,8 @@ const Account = () => {
   const [institutionError, setInstitutionError] = useState()
   const [forms, setForms] = useState()
   const [debounce, setDebounce] = useState(null)
+
+  const reviewMode = router && router.query && router.query.reviewMode
 
   const changeHandler = async (data) => {
     try {
@@ -122,11 +130,10 @@ const Account = () => {
   }
 
   return (
-    <Layout title={title} actions={logoutButton}>
+    <ReviewWrapper reviewMode={reviewMode} title={title} actions={logoutButton}>
       <Container maxWidth='md'>
-        <br />
-        {forms && forms.map((form, index) => (
-          <Box key={index} className={classes.box}>
+        {forms && forms.filter(f => !reviewMode || !f.hideReviewMode).map((form, index) => (
+          <Box key={index} className={classes.box} mt={3} mb={5}>
             <Paper elevation={3} className={classes.paper}>
               {form.render ||
                 <UpdateForm 
@@ -160,6 +167,38 @@ const Account = () => {
           </Box>
         ))}
       </Container>
+    </ReviewWrapper>
+  )
+}
+
+const ReviewWrapper = (props) => {
+  if (props.reviewMode) {
+    const classes = useStyles()
+    return (
+      <>
+        <AppBar position="absolute" className={classes.appBar}>
+          <Toolbar>
+            <MainLogo size="medium" />
+            <div style={{flexGrow: 1}}></div>
+            <Typography>
+              Please update your profile information
+            </Typography>
+            <div style={{flexGrow: 1}}></div>
+            <Button variant="contained">
+              Proceed to Sign-in
+            </Button>
+          </Toolbar>
+        </AppBar>
+        <Box mt={15}>
+          {props.children}
+        </Box>
+      </>
+    )
+  }
+  
+  return (
+    <Layout title={props.title} actions={props.logoutButton}>
+      {props.children}
     </Layout>
   )
 }
@@ -201,6 +240,7 @@ const getForms = ({ user, countries, regions, institutions, institutionKeyword, 
     { title: "Password",
       subtitle: <>Reset your password <a href="https://user.cyverse.org/forgot">here</a> if you have forgotten it</>,
       autosave: false,
+      hideReviewMode: true,
       submitHandler: changeHandler,
       fields: [
         { id: "old_password",
@@ -218,9 +258,10 @@ const getForms = ({ user, countries, regions, institutions, institutionKeyword, 
           type: "password",
           required: true
         }
-      ]
+      ],
     },
-    { render: 
+    { hideReviewMode: true,
+      render: 
         <EmailForm 
           emails={user.emails} 
           title="Email" 
@@ -228,7 +269,8 @@ const getForms = ({ user, countries, regions, institutions, institutionKeyword, 
           onChange={changeHandler}
         />
     },
-    { render: 
+    { hideReviewMode: true,
+      render: 
         <MailingListForm 
           user={user} 
           title="Mailing List Subscriptions" 
@@ -311,13 +353,13 @@ const getForms = ({ user, countries, regions, institutions, institutionKeyword, 
           value: user.ethnicity.id,
           options: properties.ethnicities
         },
-        { id: "aware_channel_id",
-          name: "How did you hear about us?",
-          type: "select",
-          required: true,
-          value: user.aware_channel.id,
-          options: properties.aware_channels
-        }
+        // { id: "aware_channel_id",
+        //   name: "How did you hear about us?",
+        //   type: "select",
+        //   required: true,
+        //   value: user.aware_channel.id,
+        //   options: properties.aware_channels
+        // }
       ]
     }
   ]
