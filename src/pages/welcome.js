@@ -290,13 +290,16 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
           setTimeout(async () => {
             const institutions = await api.institutions({ keyword: value, limit: 100 })
             if (institutions.length == 0)
-              setInstitutionError('Not found, please try a different search term')
+              setInstitutionError('Not found, please try a different search term or enter "other"')
             else {
               setInstitutions(institutions)
               setInstitutionError()
             }
-          }, 500)
+          }, 300)
         )
+      }
+      else {
+        setInstitutions([])
       }
     }
   }
