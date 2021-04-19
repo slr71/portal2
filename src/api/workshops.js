@@ -20,7 +20,7 @@ function hasHostAccess(workshop, user) {
 }
 
 function hasOrganizerAccess(workshop, user) {
-    return hasHostAccess(workshop, user) || workshop.organizers.some(o => o.id == user.id)
+    return hasHostAccess(workshop, user) || (workshop.organizers && workshop.organizers.some(o => o.id == user.id))
 }
 
 // Get all workshops

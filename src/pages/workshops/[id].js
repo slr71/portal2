@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme) => ({
 const Workshop = (props) => {
   const workshop = props.workshop
   const [user] = useUser()
-  const isEditor = user.is_staff || user.id == workshop.creator_id || workshop.organizers.some(o => o.id == user.id)
+  const isEditor = user.is_staff || user.id == workshop.creator_id || (workshop.organizers && workshop.organizers.some(o => o.id == user.id))
 
   return (
     <Layout title={workshop.title} breadcrumbs>
