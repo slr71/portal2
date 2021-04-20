@@ -7,7 +7,7 @@ import csv
 def insert_institutions(db, fields):
     cursor = db.cursor()
     cursor.execute(
-        "INSERT INTO account_institution_grid (grid_id,name,city,state,country) VALUES (%s,%s,%s,%s,%s)", 
+        "INSERT INTO account_institution_grid (grid_id,name,city,state,country) VALUES (%s,%s,%s,%s,%s) ON CONFLICT(grid_id) DO NOTHING", 
         fields
     )
 
