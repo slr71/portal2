@@ -1,7 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import sys
 import psycopg2
 import csv
+import argparse
 
 
 def insert_institutions(db, fields):
@@ -13,15 +14,15 @@ def insert_institutions(db, fields):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print('GRID .csv file path required')
-        exit(-1)
-    GRID_FILE_PATH = sys.argv[1]
+    parser = argparse.ArgumentParser(description='Import GRID CSV file into database')
+    parser.add_argument('-v', '--verbose', action="store_true", help='print debug info')
+    parser.add_argument('path', nargs=1, help='path of token data')
+    args = parser.parse_args()
 
     conn = psycopg2.connect(host='', dbname='portal')
 
     # Load GRID CSV file
-    with open(GRID_FILE_PATH) as csvfile:
+    with open(args.path[0]) as csvfile:
         gridInsitutions = list(csv.reader(csvfile))
     gridInsitutions.pop(0) # remove header
 
@@ -29,6 +30,7 @@ if __name__ == "__main__":
     insert_institutions(conn, ['', 'Other', '', '', ''])
 
     for i in gridInsitutions:
-        print(i)
+        if args.verbose:
+            print(i)
         insert_institutions(conn, i)
     conn.commit()
