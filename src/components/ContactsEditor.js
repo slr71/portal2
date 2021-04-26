@@ -33,7 +33,7 @@ const ContactsEditor = ({ contacts, submitHandler, deleteHandler }) => {
               </ListItem>
             </Grid>
             <Grid item>
-              <IconButton onClick={() => deleteHandler(contact.email)}>
+              <IconButton onClick={() => deleteHandler(contact.id)}>
                 <DeleteIcon />
               </IconButton>
             </Grid>
