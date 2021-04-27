@@ -255,7 +255,7 @@ async function sendFormSubmissionConfirmationMessage(submission) {
     );
 
     if (form.intercom_team_id)
-        intercom.assignConversation(conversation.id, form.intercom_team_id);
+        await intercom.assignConversation(conversation.id, form.intercom_team_id);
 }
 
 // Fetch form by ID or name
