@@ -54,6 +54,7 @@ router.put('/', getUser, requireAdmin, asyncHandler(async (req, res) => {
     res.status(201).json(form);
 }));
 
+// Search form submissions (STAFF ONLY)
 router.get('/submissions', requireAdmin, asyncHandler(async (req, res) => {
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
@@ -88,6 +89,7 @@ router.get('/submissions', requireAdmin, asyncHandler(async (req, res) => {
     return res.status(200).json({ count, results: rows });
 }));
 
+// Get single form submission (STAFF ONLY)
 router.get('/submissions/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
     const submission = await models.api_formsubmission.findByPk(req.params.id, {
         include: [ 
@@ -256,7 +258,7 @@ async function sendFormSubmissionConfirmationMessage(submission) {
     if (form.intercomTeams && form.intercomTeams.length > 0) {
         const intercomTeam = await IntercomTeam.findByPk(intercomTeams[0].id);
         if (intercomTeam)
-            assignConversationToIntercomTeam(conversation.id, intercomTeam.team_id);
+            intercom.assignConversation(conversation.id, intercomTeam.team_id);
         else
             logger.error(`Couldn't find intercom team ${intercomTeams[0]}`);
     }
