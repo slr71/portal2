@@ -285,6 +285,7 @@ const RequestAccessDialog = ({ open, questions, serviceName, handleChange, handl
 
 const ServiceEditor = (props) => {
   const api = useAPI()
+  const [_, setError] = useError()
   const [service, setService] = useState(props.service)
   const [forms, setForms] = useState()
   const [tab, setTab] = useState(0)
