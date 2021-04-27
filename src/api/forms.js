@@ -10,7 +10,6 @@ const FormField = models.api_formfield;
 const FormSubmission = models.api_formsubmission;
 const FormFieldSubmission = models.api_formfieldsubmission;
 const FormSubmissionConversation = models.api_formsubmissionconversation;
-const IntercomTeam = models.api_intercomteam;
 const { UI_ADMIN_FORM_SUBMISSION_URL } = require('../constants');
 const intercom = require('./lib/intercom');
 
@@ -196,11 +195,11 @@ router.put('/:id(\\d+)/submissions', getUser, asyncHandler(async (req, res) => {
             { 
                 model: Form,
                 as: 'form',
-                include: [ 'intercom_teams', 'sections' ]
+                include: [ 'sections' ]
             }
         ]
     });
-    
+
     // Send response to client
     res.status(201).json(submission);
 
@@ -255,13 +254,8 @@ async function sendFormSubmissionConfirmationMessage(submission) {
         `Hi ${user.first_name}! Thanks for submitting the request. One of the staff will review it and get back to you. In the meantime, feel free to respond to this message if you'd like to chat more about your request.`
     );
 
-    if (form.intercomTeams && form.intercomTeams.length > 0) {
-        const intercomTeam = await IntercomTeam.findByPk(intercomTeams[0].id);
-        if (intercomTeam)
-            intercom.assignConversation(conversation.id, intercomTeam.team_id);
-        else
-            logger.error(`Couldn't find intercom team ${intercomTeams[0]}`);
-    }
+    if (form.intercom_team_id)
+        intercom.assignConversation(conversation.id, form.intercom_team_id);
 }
 
 // Fetch form by ID or name

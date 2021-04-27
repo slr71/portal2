@@ -29,6 +29,10 @@ module.exports = function(sequelize, DataTypes) {
     explanation: {
       type: DataTypes.TEXT,
       allowNull: false
+    },
+    intercom_team_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true
     }
   }, {
     tableName: 'api_form'
