@@ -120,18 +120,6 @@ async function addNoteToConversation(conversationId, message) {
     }
 }
 
-async function assignConversationToAtmosphereTeam(conversationId) {
-    await assignConversation(conversationId, config.intercom.adminTier1AtmosphereId)
-}
-
-async function assignConversationToScienceTeam(conversationId) {
-    await assignConversation(conversationId, config.intercom.adminTier1ScienceTeamId)
-}
-
-async function assignConversationToIntercomTeam(conversationId, intercomTeamId) {
-    await assignConversation(conversationId, intercomTeamId)
-}
-
 async function assignConversation(conversationId, assigneeId) {
     await intercom.conversations.reply({
         id: conversationId,
@@ -158,7 +146,5 @@ module.exports = {
     startConversation,
     addNoteToConversation,
     replyToConversation,
-    assignConversationToAtmosphereTeam,
-    assignConversationToScienceTeam,
-    assignConversationToIntercomTeam
+    assignConversation
 };

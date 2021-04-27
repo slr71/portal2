@@ -168,7 +168,7 @@ async function sendAtmosphereSignupMessage(request, responseMessage) {
 
     await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${UI_ADMIN_SERVICE_ACCESS_REQUEST_URL}/${request.id}`);
     await intercom.replyToConversation(conversation.id, responseMessage);
-    await intercom.assignConversationToAtmosphereTeam(conversation.id);
+    await intercom.assignConversation(conversation.id, config.intercom.adminTier1AtmosphereId);
 }
 
 async function approveVICE(request) {
@@ -223,7 +223,7 @@ async function sendVICESignupMessage(request, responseMessage) {
 
     await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${EXT_ADMIN_VICE_ACCESS_REQUEST_URL}`);
     await intercom.replyToConversation(conversation.id, responseMessage);
-    await intercom.assignConversationToScienceTeam(conversation.id);
+    await intercom.assignConversation(conversation.id, config.intercom.adminTier1ScienceTeamId);
 }
 
 function getVICEConversationBody(questions, answers) { // TODO can be merged with getAtmosphereConverstationBody
