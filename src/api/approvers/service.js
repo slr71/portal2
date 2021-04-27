@@ -12,7 +12,8 @@ const config = require('../../config.json');
 // Services with special approval requirements, all other services are auto-approved.
 const APPROVERS = {
     ATMOSPHERE: approveAtmosphere,
-    VICE: approveVICE
+    VICE: approveVICE,
+    DATAWATCH: approveDataWatch
 };
 
 async function approveRequest(request) {
@@ -246,6 +247,42 @@ function getVICEConversationBody(questions, answers) { // TODO can be merged wit
     }
 
     return body;
+}
+
+async function approveDataWatch(request) {
+  const user = request.user;
+  if (!user)
+      throw('service:approveDataWatch: Missing required property');
+
+  const intro = `Hi ${user.first_name}! Thanks for requesting access to Data Watch.`;
+
+  logger.info(`approveDataWatch: Pend user "${user.username}" for request ${request.id}`);
+  await request.pend();
+
+  await sendDataWatchSignupMessage(request,
+`${intro}
+
+Your request has been sent to CyVerse staff and will be review soon.`
+  );
+}
+
+async function sendDataWatchSignupMessage(request, responseMessage) {
+  const service = request.service;
+  const user = request.user;
+  if (!service || !user)
+      throw('service:sendDataWatchSignupMessage: Missing required property')
+
+  const [conversation, message] = await intercom.startConversation(user, 'Data Watch access requested');
+
+  await AccessRequestConversation.create({
+      access_request_id: request.id,
+      intercom_message_id: message.id,
+      intercom_conversation_id: conversation.id
+  });
+
+  await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${UI_ADMIN_SERVICE_ACCESS_REQUEST_URL}/${request.id}`);
+  await intercom.replyToConversation(conversation.id, responseMessage);
+  await intercom.assignConversationToScienceTeam(conversation.id);
 }
 
 module.exports = { approveRequest, grantRequest };
