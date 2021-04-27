@@ -121,6 +121,7 @@ async function addNoteToConversation(conversationId, message) {
 }
 
 async function assignConversation(conversationId, assigneeId) {
+    console.log(`Assign Intercom conversation ${conversation.id} to team ${assigneeId}`)
     await intercom.conversations.reply({
         id: conversationId,
         type: 'admin',
