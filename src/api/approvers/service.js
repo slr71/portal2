@@ -282,7 +282,7 @@ async function sendDataWatchSignupMessage(request, responseMessage) {
 
   await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${UI_ADMIN_SERVICE_ACCESS_REQUEST_URL}/${request.id}`);
   await intercom.replyToConversation(conversation.id, responseMessage);
-  await intercom.assignConversationToScienceTeam(conversation.id);
+  await intercom.assignConversation(conversation.id, config.intercom.adminTier1DataWatchId);
 }
 
 module.exports = { approveRequest, grantRequest };

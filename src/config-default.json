@@ -65,7 +65,8 @@
         "companyId": "",
         "adminUserPortalBotId": "",
         "adminTier1AtmosphereId": "", 
-        "adminTier1ScienceTeamId": ""
+        "adminTier1ScienceTeamId": "",
+        "adminTier1DataWatchId": ""
     },
 
     "mailchimp": {
