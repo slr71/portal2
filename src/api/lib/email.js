@@ -138,9 +138,13 @@ async function emailWorkshopEnrollmentRequest(request) {
     const workshopEnrollmentRequestUrl = `${UI_WORKSHOPS_URL}/${workshop.id}?t=requests`;
     logger.debug('emailWorkshopEnrollmentRequest:', user.email, workshopEnrollmentRequestUrl);
 
+    if (!workshop.contact_email) {
+      logger.error('No contact email for workshop', request.workshop.id)
+    }
+
     queueEmail(
         renderEmail({
-            to: user.email, 
+            to: workshop.contact_email, 
             bcc: config.email.bccWorkshopEnrollmentRequest,
             subject: 'CyVerse Workshop Enrollment Request',
             templateName: 'review_workshop_enrollment_request',
