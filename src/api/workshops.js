@@ -605,7 +605,8 @@ router.put('/:id(\\d+)/requests', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(workshopId, { 
         include: [  //TODO move into scope
             'emails',
-            'services'
+            'services',
+            'owner'
         ]
     });
     if (!workshop)
