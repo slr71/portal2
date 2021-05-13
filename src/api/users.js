@@ -12,13 +12,24 @@ const User = models.account_user;
 const RestrictedUsername = models.account_restrictedusername;
 const PasswordResetRequest = models.account_passwordresetrequest;
 const EmailAddress = models.account_emailaddress;
+const Workshop = models.api_workshop;
+const WorkshopOrganizer = models.api_workshoporganizer;
 const config = require('../config.json');
 
 //TODO move into module
 const likeAny = (key, vals) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: { [sequelize.Op.any]: vals.map(k => `%${k}%`) } }) 
 
-// Get all users (STAFF ONLY)
-router.get('/', requireAdmin, asyncHandler(async (req, res) => {
+// Get/search all users (STAFF AND WORKSHOP ORGANIZER ONLY)
+router.get('/', getUser, asyncHandler(async (req, res) => {
+    // Check permission
+    if (!req.user || !req.user.is_staff) { // staff
+      if (!Workshop.findOne({ where: { creator_id: req.user.id } })) { // workshop host
+        if (!WorkshopOrganizer.findOne({ where: { organizer_id: req.user.id } })) { // workshop organizer
+          return res.status(403).send('Permission denied');
+        }
+      }
+    }
+
     const offset = req.query.offset;
     const limit = req.query.limit || 10;
     const keyword = req.query.keyword;
