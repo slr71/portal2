@@ -214,25 +214,13 @@ function terrainSetConcurrentJobLimits(token, username, limit) {
 }
 
 function terrainSubmitViceAccessRequest(token, user, usage) {
-    // prod
     const data = {
         "name": user.first_name + ' ' + user.last_name,
-        "institution": user.institution,
         "email": user.email,
         "intended_use": usage,
-        "funding_award_number": "n/a",
-        "references": [],
-        "orcid": user.orcid_id || "n/a",
         "concurrent_jobs": 2 //FIXME hardcoded
     }
 
-    // QA
-    // const data = {
-    //     "name": user.first_name + ' ' + user.last_name,
-    //     "email": user.email,
-    //     "intended_use": usage,
-    //     "concurrent_jobs": 2 //FIXME hardcoded
-    // }
     return runFile("curl", [
         "--request", "POST",
         "--location", 
