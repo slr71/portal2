@@ -202,7 +202,8 @@ async function createViceAccessRequest(request) {
         usage = answer.value_bool
 
     // Send request to Terrain API
-    const resp = await terrainSubmitViceAccessRequest(request.user.token, request.user, usage) 
+    let resp = await terrainBootstrapRequest(request.user.token) // added 5/19/21 -- workaround for user not yet present in DE database
+    resp = await terrainSubmitViceAccessRequest(request.user.token, request.user, usage) 
     console.log(resp)
 }
 

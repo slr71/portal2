@@ -231,6 +231,14 @@ function terrainSubmitViceAccessRequest(token, user, usage) {
     ]);
 }
 
+function terrainBootstrapRequest(token) {
+  return runFile("curl", [
+    "--location", 
+    "--header", `Authorization: Bearer ${token}`, 
+    `${config.terrain.baseUrl}/secured/bootstrap` //FIXME define URL in constants.js
+]);
+}
+
 function escapeShell(cmd) {
     if (typeof cmd != 'undefined' && cmd.length > 0)
         return cmd.replace(/(["'`\\])/g,'\\$1');
