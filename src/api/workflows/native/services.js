@@ -66,7 +66,7 @@ async function serviceRegistrationWorkflow(request) {
             await addEmailToMailingList(user.email, list);
     }
 
-    // Execute custom steps (BisQue only)
+    // Execute custom steps
     if (cfg.customAction) {
         const actions = Array.isArray(cfg.customAction) ? cfg.customAction : [ cfg.customAction ];
         for (let fn of actions) {

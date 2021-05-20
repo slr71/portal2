@@ -5,7 +5,7 @@ const { emailServiceAccessGranted } = require('../lib/email')
 const { logger } = require('../lib/logging');
 const intercom = require('../lib/intercom');
 const { serviceRegistrationWorkflow } = require('../workflows/native/services');
-const { terrainSubmitViceAccessRequest } = require('../workflows/native/lib');
+const { terrainBootstrapRequest, terrainSubmitViceAccessRequest } = require('../workflows/native/lib');
 const { UI_ADMIN_SERVICE_ACCESS_REQUEST_URL, EXT_ADMIN_VICE_ACCESS_REQUEST_URL } = require('../../constants');
 const config = require('../../config.json');
 

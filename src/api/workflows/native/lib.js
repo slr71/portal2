@@ -264,5 +264,6 @@ module.exports = {
     mailmanUpdateSubscription,
     // terrainGetKeycloakToken,
     terrainSetConcurrentJobLimits,
-    terrainSubmitViceAccessRequest
+    terrainSubmitViceAccessRequest,
+    terrainBootstrapRequest
 };
