@@ -254,7 +254,7 @@ router.post('/password', getUser, asyncHandler(async (req, res) => {
 
     // Check the password
     if (!checkPassword(user.password, fields.oldPassword))
-        return res.status(400).send('Invalid password');
+        return res.status(400).send('Incorrect password');
 
     // Update password in DB
     user.password = encodePassword(fields.password);
