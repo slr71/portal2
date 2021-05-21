@@ -8,7 +8,7 @@ import { useAPI } from '../../contexts/api'
 import { useError, withGetServerSideError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl, terrain } from '../../config'
-import { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE, EXT_USER_VICE_ACCESS_REQUEST_API_URL } from '../../constants'
+import { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE, EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL } from '../../constants'
 import inlineIcons from '../../inline_icons.json'
 
 const useStyles = makeStyles((theme) => ({
@@ -61,18 +61,9 @@ const ServiceViewer = (props) => {
   }
   
   useEffect(() => {
-    // Special case: fetch VICE access request status
-    if (service.name == 'DE - VICE') {
-      async function fetchRequest() {
-        const resp = await fetch(`${EXT_USER_VICE_ACCESS_REQUEST_API_URL}&requesting-user=${user.username}`, { 
-          headers: { 'Authorization': `Bearer ${api.token}` }
-        })
-        const data = await resp.json()
-        console.log('vice requests:', data)
-        if (data && data.requests && data.requests.some(r => r.status.toLowerCase() == 'approved'))
-          setRequestStatus('granted')
-      }
-      fetchRequest()
+    if (typeof props.viceStatus !== 'undefined') {
+      if (props.viceStatus)
+        setRequestStatus('granted')
     }
     else {
       // Configure web socket connection
@@ -604,7 +595,28 @@ const AddRequestDialog = ({ open, forms, allForms, handleClose, handleSubmit }) 
 
 export async function getServerSideProps({ req, query }) {
   const service = await req.api.service(query.id)
-  return { props: { service } }
+  let viceStatus
+
+  // Special case: fetch VICE access request status
+  if (service.name == 'DE - VICE') {
+    const user = await req.api.user()
+
+    // Get Terrain token
+    let resp = await fetch(`${terrain.baseUrl}/token/keycloak`, { 
+      headers: { 'Authorization': 'Basic ' + Buffer.from(terrain.user + ':' + terrain.password).toString('base64') }
+    })
+    let data = await resp.json()
+
+    // Get concurrent jobs setting
+    resp = await fetch(`${EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL}/${user.username}`, { 
+      headers: { 'Authorization': `Bearer ${data.access_token}` }
+    })
+    data = await resp.json()
+    console.log('vice concurrent jobs:', data)
+    viceStatus = (data && data.concurrent_jobs && data.concurrent_jobs > 0)
+  }
+
+  return { props: { service, viceStatus } }
 }
 
 export default Service
