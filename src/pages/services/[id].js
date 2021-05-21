@@ -7,9 +7,9 @@ import { Layout, ServiceActionButton, TabPanel, UpdateForm, QuestionsEditor, Con
 import { useAPI } from '../../contexts/api'
 import { useError, withGetServerSideError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
-import { wsBaseUrl } from '../../config'
-const { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE, EXT_USER_VICE_ACCESS_REQUEST_API_URL } = require('../../constants')
-const inlineIcons = require('../../inline_icons.json')
+import { wsBaseUrl, terrain } from '../../config'
+import { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE, EXT_USER_VICE_ACCESS_REQUEST_API_URL } from '../../constants'
+import inlineIcons from '../../inline_icons.json'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -59,23 +59,20 @@ const ServiceViewer = (props) => {
       setError(error.message)
     }
   }
-
   
   useEffect(() => {
     // Special case: fetch VICE access request status
-    if (service.name == 'DE - VICE') { // kludge
-      const fetchViceRequests = async () => {
-        const resp = await fetch(EXT_USER_VICE_ACCESS_REQUEST_API_URL, { 
+    if (service.name == 'DE - VICE') {
+      async function fetchRequest() {
+        const resp = await fetch(`${EXT_USER_VICE_ACCESS_REQUEST_API_URL}&requesting-user=${user.username}`, { 
           headers: { 'Authorization': `Bearer ${api.token}` }
         })
         const data = await resp.json()
         console.log('vice requests:', data)
-        const request = data && data.requests && data.requests[0]
-        if (request && request.status && request.status.toLowerCase() === 'granted')
+        if (data && data.requests && data.requests.some(r => r.status.toLowerCase() == 'approved'))
           setRequestStatus('granted')
       }
-
-      fetchViceRequests()
+      fetchRequest()
     }
     else {
       // Configure web socket connection
@@ -93,7 +90,7 @@ const ServiceViewer = (props) => {
         }
       })
     }
-  })
+  }, [])
 
   // Icons were moved inline for performance //TODO move into component
   const icon_url = service.icon_url in inlineIcons ? inlineIcons[service.icon_url] : service.icon_url
