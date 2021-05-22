@@ -88,7 +88,7 @@ const PoweredServices = ({services}) => {
 const ServiceGrid = ({ services, launch }) => (
   <Grid container spacing={4}>
     {services.map((service, index) =>
-      <Grid item key={index} xs={12} sm={12} md={6} lg={4} xl={2}>
+      <Grid item key={index} xs={12} sm={12} md={6} lg={4} xl={3}>
         <Service {...service} launch={launch} />
       </Grid>
     )}

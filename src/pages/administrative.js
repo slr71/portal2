@@ -9,7 +9,7 @@ const Administrative = () => {
       <Box mt={4}>
         <Grid container spacing={4}>
           {menuItem.items.map((item, index) =>
-            <Grid item key={index} xs={12} sm={12} md={6} lg={4} xl={2}>
+            <Grid item key={index} xs={12} sm={12} md={6} lg={4} xl={3}>
               <Link underline='none' href={item.path}>
                 <SummaryCard
                   icon={item.icon}
