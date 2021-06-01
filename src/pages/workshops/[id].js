@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import Markdown from 'markdown-to-jsx'
-import { makeStyles, Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, MenuItem, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse } from '@material-ui/core'
+import { makeStyles, Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, MenuItem, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse, Chip } from '@material-ui/core'
 import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@material-ui/icons'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import DateFnsUtils from '@date-io/date-fns'
@@ -821,7 +821,7 @@ const Participants = ({ participants, submitHandler, deleteHandler }) => {
       <Paper elevation={3} className={classes.paper}>
         <Grid container justify="space-between">
           <Grid item>
-            <Typography component="h1" variant="h4">Participants</Typography>
+            <Typography component="h1" variant="h4">Participants {participants.length > 0 && <Chip label={participants.length} />}</Typography>
             <Typography variant="subtitle1" color="textSecondary">
               The users below are enrolled in this workshop.
             </Typography>
@@ -890,7 +890,7 @@ const Emails = ({ emails, submitHandler, deleteHandler }) => {
       <Paper elevation={3} className={classes.paper}>
         <Grid container justify="space-between">
           <Grid item style={{width:'70%'}}>
-            <Typography component="h1" variant="h4">Pre-approvals</Typography>
+            <Typography component="h1" variant="h4">Pre-approvals {emails.length > 0 && <Chip label={emails.length} />}</Typography>
             <Typography variant="subtitle1" color="textSecondary">
               The users below (shown by CyVerse email address) are pre-approved to enroll in this workshop.
             </Typography>
@@ -1076,7 +1076,7 @@ const Requests = ({ requests, submitHandler }) => {
 
   return (        
     <Paper elevation={3} className={classes.paper}>
-      <Typography component="h1" variant="h4">Requests</Typography>
+      <Typography component="h1" variant="h4">Requests {requests.length > 0 && <Chip label={requests.length} />}</Typography>
       <br />
       {!requests || requests.length == 0 
         ? <Typography>None</Typography>
