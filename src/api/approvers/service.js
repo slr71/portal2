@@ -34,7 +34,8 @@ const GRANTERS = {
     DISCOVERY_ENVIRONMENT: 'discovery-environment-grant-access',
     COGE: 'coge-grant-access',
     BISQUE: 'bisque-grant-access',
-    SCI_APPS: 'sciapps-grant-access'
+    SCI_APPS: 'sciapps-grant-access',
+    VICE: 'vice-grant-access'
 };
 
 async function grantRequest(request) {
