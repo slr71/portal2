@@ -516,7 +516,7 @@ router.put('/:id(\\d+)/services', getUser, asyncHandler(async (req, res) => {
     if (!workshop)
         return res.status(404).send('Workshop not found');
 
-    const service = await Service.findByPk(req.params.serviceId);
+    const service = await Service.findByPk(serviceId);
     if (!service)
         return res.status(404).send('Service not found');
 
@@ -533,7 +533,7 @@ router.put('/:id(\\d+)/services', getUser, asyncHandler(async (req, res) => {
 
     res.status(201).json(workshopService);
 
-    // Call granter for each participant (do this after response as to not delay it)
+    // Call service granter for each participant (do this after response as to not delay it)
     logger.info(`Granting new service access for ${workshop.users.length} participants for workshop ${workshop.id}`);
     for (const user of workshop.users) {
         logger.info(`grant: Grant access to service ${service.name} for user ${user.id}`);

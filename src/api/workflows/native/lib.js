@@ -194,13 +194,13 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
     return runFile("curl", [ "--location", "-X", "POST", `${baseUrl}/${endpoint}?${params}`]);
 }
 
-// function terrainGetKeycloakToken() {
-//     return runFile("curl", [
-//         "--location", 
-//         "--user", `${config.terrain.username}:${config.terrain.password}`
-//         `${config.terrain.baseUrl}/token/keycloak`
-//     ]);
-// }
+function terrainGetKeycloakToken() {
+    return runFile("curl", [
+        "--location", 
+        "--user", `${config.terrain.username}:${config.terrain.password}`
+        `${config.terrain.baseUrl}/token/keycloak`
+    ]);
+}
 
 function terrainSetConcurrentJobLimits(token, username, limit) {
     return runFile("curl", [
@@ -262,7 +262,7 @@ module.exports = {
     mailchimpSubscribe,
     mailchimpDelete,
     mailmanUpdateSubscription,
-    // terrainGetKeycloakToken,
+    terrainGetKeycloakToken,
     terrainSetConcurrentJobLimits,
     terrainSubmitViceAccessRequest,
     terrainBootstrapRequest

@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const axios = require('axios');
-const { ldapAddUserToGroup, irodsMkDir, irodsChMod, mailmanUpdateSubscription } = require('./lib');
+const { ldapAddUserToGroup, irodsMkDir, irodsChMod, mailmanUpdateSubscription, terrainGetKeycloakToken, terrainSetConcurrentJobLimits } = require('./lib');
 const { logger } = require('../../lib/logging');
 const models = require('../../models');
 const MailingList = models.api_mailinglist;
@@ -126,7 +126,7 @@ async function createBisqueUser(request) {
 async function setViceJobLimit(request) {
     // Get auth token for admin account
     const token = await terrainGetKeycloakToken()
-    console.log(token)
+    console.log('Terrain token:', token)
 
     // Send request to Terrain API
     const resp = await terrainSetConcurrentJobLimits(token, request.user.username, 2) //FIXME hardcoded limit of 2
