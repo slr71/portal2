@@ -12,7 +12,10 @@ const WorkshopContact = models.api_workshopcontact;
 const WorkshopService = models.api_workshopservice;
 const WorkshopParticipant = models.api_userworkshop;
 const WorkshopEmail= models.api_workshopuseremail;
+const Service = models.api_service;
+const AccessRequest = models.api_accessrequest;
 const { approveRequest, grantRequest } = require('./approvers/workshop');
+const serviceApprovers = require('./approvers/service');
 const { notifyClientOfWorkshopRequestStatusChange } = require('./lib/ws');
 const config = require('../config');
 
@@ -502,7 +505,6 @@ router.put('/:id(\\d+)/services', getUser, asyncHandler(async (req, res) => {
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ //TODO create scope for this
             'users',
-            'services',
             {
                 model: User.unscoped(), 
                 as: 'organizers', 
@@ -514,36 +516,48 @@ router.put('/:id(\\d+)/services', getUser, asyncHandler(async (req, res) => {
     if (!workshop)
         return res.status(404).send('Workshop not found');
 
+    const service = await Service.findByPk(req.params.serviceId);
+    if (!service)
+        return res.status(404).send('Service not found');
+
     // Check permission -- only workshop host/organizer or staff
     if (!hasOrganizerAccess(workshop, req.user))
         return res.status(403).send('Permission denied');
 
-    const [service, created] = await WorkshopService.findOrCreate({ 
+    const [workshopService, created] = await WorkshopService.findOrCreate({ 
         where: { 
             workshop_id: workshop.id,
             service_id: serviceId
         } 
     });
 
-    res.status(201).json(service);
+    res.status(201).json(workshopService);
 
     // Call granter for each participant (do this after response as to not delay it)
     logger.info(`Granting new service access for ${workshop.users.length} participants for workshop ${workshop.id}`);
     for (const user of workshop.users) {
-        const [request] = await WorkshopEnrollmentRequest.findOrCreate({
+        logger.info(`grant: Grant access to service ${service.name} for user ${user.id}`);
+        let serviceRequest = await AccessRequest.findOne({
             where: { 
-                workshop_id: workshop.id,
+                service_id: service.id,
                 user_id: user.id
-            },
-            defaults: {
-                status: WorkshopEnrollmentRequest.constants.STATUS_REQUESTED,
-                message: WorkshopEnrollmentRequest.constants.MESSAGE_REQUESTED,
-                auto_approve: true
             }
         });
-        request.user = user;
-        request.workshop = workshop;
-        await grantRequest(request);
+        if (!serviceRequest) {
+            serviceRequest = await AccessRequest.create({
+                service_id: service.id,
+                user_id: user.id,
+                auto_approve: true,
+                status: AccessRequest.constants.STATUS_REQUESTED,
+                message: AccessRequest.constants.MESSAGE_REQUESTED
+            });
+        }
+
+        if (!serviceRequest.isGranted()) { 
+            serviceRequest.service = service;
+            serviceRequest.user = user;
+            serviceApprovers.grantRequest(serviceRequest)
+        }
     }
 }));
 
