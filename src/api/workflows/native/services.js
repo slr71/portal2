@@ -125,12 +125,13 @@ async function createBisqueUser(request) {
 // Called for workshop registration
 async function setViceJobLimit(request) {
     // Get auth token for admin account
-    const token = await terrainGetKeycloakToken()
-    console.log('Terrain token:', token)
+    const token = await terrainGetKeycloakToken();
+    console.log('Terrain token:', token);
+    const obj = JSON.parse(token);
 
     // Send request to Terrain API
-    const resp = await terrainSetConcurrentJobLimits(token, request.user.username, 2) //FIXME hardcoded limit of 2
-    console.log(resp)
+    const resp = await terrainSetConcurrentJobLimits(obj.access_token, request.user.username, 2); //FIXME hardcoded limit of 2
+    console.log(resp);
 }
 
 module.exports = { serviceRegistrationWorkflow };

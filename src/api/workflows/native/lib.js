@@ -197,7 +197,7 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
 function terrainGetKeycloakToken() {
     return runFile("curl", [
         "--location", 
-        "--user", `${config.terrain.username}:${config.terrain.password}`
+        "--user", config.terrain.user + ':' + config.terrain.password,
         `${config.terrain.baseUrl}/token/keycloak`
     ]);
 }
@@ -209,7 +209,7 @@ function terrainSetConcurrentJobLimits(token, username, limit) {
         "--header", `Authorization: Bearer ${token}`, 
         "--header", "Content-Type: application/json",
         "--data", JSON.stringify({ "concurrent_jobs": limit}),
-        `${config.terrain.baseUrl}/admin/settings/concurrent-job-limits/${username}}` //FIXME define URL in constants.js
+        `${config.terrain.baseUrl}/admin/settings/concurrent-job-limits/${username}` //FIXME define URL in constants.js
     ]);
 }
 
