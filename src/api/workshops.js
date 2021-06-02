@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { getUser, requireAdmin, asyncHandler } = require('./lib/auth');
+const { logger } = require('./lib/logging');
 const sequelize = require('sequelize');
 const models = require('./models');
 const User = models.account_user;
@@ -500,6 +501,8 @@ router.put('/:id(\\d+)/services', getUser, asyncHandler(async (req, res) => {
 
     const workshop = await Workshop.findByPk(req.params.id, {
         include: [ //TODO create scope for this
+            'users',
+            'services',
             {
                 model: User.unscoped(), 
                 as: 'organizers', 
@@ -521,7 +524,27 @@ router.put('/:id(\\d+)/services', getUser, asyncHandler(async (req, res) => {
             service_id: serviceId
         } 
     });
+
     res.status(201).json(service);
+
+    // Call granter for each participant (do this after response as to not delay it)
+    logger.info(`Granting new service access for ${workshop.users.length} participants for workshop ${workshop.id}`);
+    for (const user of workshop.users) {
+        const [request] = await WorkshopEnrollmentRequest.findOrCreate({
+            where: { 
+                workshop_id: workshop.id,
+                user_id: user.id
+            },
+            defaults: {
+                status: WorkshopEnrollmentRequest.constants.STATUS_REQUESTED,
+                message: WorkshopEnrollmentRequest.constants.MESSAGE_REQUESTED,
+                auto_approve: true
+            }
+        });
+        request.user = user;
+        request.workshop = workshop;
+        await grantRequest(request);
+    }
 }));
 
 // Remove service from workshop
