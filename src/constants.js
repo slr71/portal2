@@ -10,6 +10,7 @@ module.exports = {
   UI_SERVICES_URL: `${config.uiBaseUrl}/services`,
   UI_ADMIN_SERVICE_ACCESS_REQUEST_URL: `${config.uiBaseUrl}/administrative/requests`,
   UI_ADMIN_FORM_SUBMISSION_URL: `${config.uiBaseUrl}/administrative/submissions`,
+  UI_ACCOUNT_REVIEW_URL: `${config.uiBaseUrl}/account?reviewMode=1`,
 
   // External URLS
   // EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL: `${config.terrain.baseUrl}/admin/requests?include-completed=true&request-type=vice`,
@@ -25,4 +26,3 @@ module.exports = {
   WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE: 'WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE',
   WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE: 'WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE'
 }
-
