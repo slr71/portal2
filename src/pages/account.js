@@ -47,6 +47,7 @@ const Account = () => {
   const [debounce, setDebounce] = useState(null)
 
   const reviewMode = router && router.query && router.query.reviewMode
+  const redirectUrl = router && router.query && router.query.redirectUrl
 
   const changeHandler = async (data) => {
     try {
@@ -130,7 +131,7 @@ const Account = () => {
   }
 
   return (
-    <ReviewWrapper reviewMode={reviewMode} title={title} actions={logoutButton}>
+    <ReviewWrapper reviewMode={reviewMode} redirectUrl={redirectUrl} title={title} actions={logoutButton}>
       <Container maxWidth='md'>
         {forms && forms.filter(f => !reviewMode || !f.hideReviewMode).map((form, index) => (
           <Box key={index} className={classes.box} mt={3} mb={5}>
@@ -184,7 +185,7 @@ const ReviewWrapper = (props) => {
               Please update your profile information
             </Typography>
             <div style={{flexGrow: 1}}></div>
-            <Button variant="contained">
+            <Button variant="contained" href={props.redirectUrl}>
               Proceed to Sign-in
             </Button>
           </Toolbar>
