@@ -202,7 +202,7 @@ router.put('/users/password', asyncHandler(async (req, res) => {
     }
 
     // Fetch email address
-    const emailAddress = await EmailAddress.findByPk(emailId);
+    const emailAddress = await EmailAddress.unscoped().findByPk(emailId);
     if (!emailAddress)
         return res.status(404).send('Email address not found');
 
