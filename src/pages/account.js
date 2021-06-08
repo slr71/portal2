@@ -175,6 +175,14 @@ const Account = () => {
 const ReviewWrapper = (props) => {
   if (props.reviewMode) {
     const classes = useStyles()
+    const api = useAPI()
+    const [user] = useUser()
+
+    const redirect = async () => {
+      await api.updateUser(user.id, { updated_at: Date.now() })
+      window.open(props.redirectUrl, "_self")
+    }
+
     return (
       <>
         <AppBar position="absolute" className={classes.appBar}>
@@ -185,8 +193,8 @@ const ReviewWrapper = (props) => {
               Please update your profile information
             </Typography>
             <div style={{flexGrow: 1}}></div>
-            <Button variant="contained" href={props.redirectUrl}>
-              Proceed to Sign-in
+            <Button variant="contained" onClick={redirect}>
+              Proceed to Application
             </Button>
           </Toolbar>
         </AppBar>

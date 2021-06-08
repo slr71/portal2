@@ -96,32 +96,32 @@ router.get('/:usernameOrId(\\w+)', requireAdmin, asyncHandler(async (req, res) =
 
 // For Profile Update Reminder: https://cyverse.atlassian.net/wiki/spaces/CNS/pages/1166475265/Profile+Update+Reminder
 router.get('/:usernameOrId(\\w+)/status', getUser, asyncHandler(async (req, res) => {
-  const usernameOrId = req.params.usernameOrId;
+    const usernameOrId = req.params.usernameOrId;
 
-  if (!req.user.is_staff && req.user.username != usernameOrId && req.user.id != usernameOrId)
-      return res.status(403).send('Permission denied');
+    if (!req.user.is_staff && req.user.username != usernameOrId && req.user.id != usernameOrId)
+        return res.status(403).send('Permission denied');
 
-  const user = await User.findOne({ 
-      where:
-          sequelize.or(
-              { id: isNaN(usernameOrId) ? 0 : usernameOrId },
-              sequelize.where(sequelize.fn('lower', sequelize.col('username')), usernameOrId.toLowerCase())
-          )
-  });
-  if (!user)
-      return res.status(404).send('User not found');
+    const user = await User.findOne({ 
+        where:
+            sequelize.or(
+                { id: isNaN(usernameOrId) ? 0 : usernameOrId },
+                sequelize.where(sequelize.fn('lower', sequelize.col('username')), usernameOrId.toLowerCase())
+            )
+    });
+    if (!user)
+        return res.status(404).send('User not found');
 
-  const daysSinceUpdate = (Date.now() - new Date(user.updated_at)) / (24*60*60*1000)
-  res.status(200).json({
-    updated_at: user.updated_at,
-    update_required: daysSinceUpdate > config.profile.updatePeriod,
-    warning_required: daysSinceUpdate <= config.profile.updatePeriod && daysSinceUpdate > (config.profile.updatePeriod - config.profile.warningPeriod),
-    update_period: config.profile.updatePeriod,
-    warning_period: config.profile.warningPeriod,
-    update_text: config.profile.updateText,
-    warning_text: config.profile.warningText,
-    update_url: UI_ACCOUNT_REVIEW_URL
-  });
+    const daysSinceUpdate = (Date.now() - new Date(user.updated_at)) / (24*60*60*1000)
+    res.status(200).json({
+      updated_at: user.updated_at,
+      update_required: daysSinceUpdate > config.profile.updatePeriod,
+      warning_required: daysSinceUpdate <= config.profile.updatePeriod && daysSinceUpdate > (config.profile.updatePeriod - config.profile.warningPeriod),
+      update_period: config.profile.updatePeriod,
+      warning_period: config.profile.warningPeriod,
+      update_text: config.profile.updateText,
+      warning_text: config.profile.warningText,
+      update_url: UI_ACCOUNT_REVIEW_URL
+    });
 }));
 
 // Get individual user's history (STAFF ONLY)
@@ -255,7 +255,8 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const SUPPORTED_FIELDS = [
         'first_name', 'last_name', 'orcid_id', 'grid_institution_id', 'department',
         'aware_channel_id', 'ethnicity_id', 'funding_agency_id', 'gender_id',
-        'occupation_id', 'research_area_id', 'region_id', 'settings'
+        'occupation_id', 'research_area_id', 'region_id', 'settings',
+        'updated_at' // for profile review page
     ]
 
     const timeNow = Date.now();
