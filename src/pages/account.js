@@ -206,7 +206,7 @@ const ReviewWrapper = (props) => {
   }
   
   return (
-    <Layout title={props.title} actions={props.logoutButton}>
+    <Layout title={props.title} actions={props.actions}>
       {props.children}
     </Layout>
   )
