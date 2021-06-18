@@ -49,7 +49,7 @@ psql -d portal -f portal_dump.sql
 
 ## Install code and dependencies
 ```
-sudo mkdir /opt/dev
+mkdir /opt/dev
 cd /opt/dev
 git clone git@gitlab.com:cyverse/portal2.git
 
