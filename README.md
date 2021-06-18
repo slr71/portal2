@@ -116,8 +116,13 @@ sudo ufw allow 443
 
 Configure NGINX
 
-Edit /etc/nginx/sites-available/hostname
-Then ln -s /etc/nginx/sites-available/portal /etc/nginx/sites-enabled/hostname
+Edit `/etc/nginx/sites-available/hostname` config file with content below,
+
+Then enable
+```
+ln -s /etc/nginx/sites-available/portal /etc/nginx/sites-enabled/hostname
+```
+
 ```
 server {
     listen 80;
@@ -152,7 +157,7 @@ server {
     }
 }
 ```
-Then run 
+Restart NGINX
 ```
 sudo service nginx restart
 ```
