@@ -1,25 +1,10 @@
-const models = require('../models');
-const User = models.account_user;
+const models = require('../models')
+const User = models.account_user
 const config = require('../../config.json')
 
-const getUserToken = (req) => {
-  const keycloakToken = (req && req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token : null) //req?.kauth?.grant?.access_token;
-  // const sessionToken = (req && req.session && req.session['keycloak-token'] ? req.session['keycloak-token'] : null)
+const getUserToken = (req) => req?.kauth?.grant?.access_token
 
-  // console.log('keycloak token:', keycloakToken != null)
-  // console.log('session token:', sessionToken != null)
-
-  if (keycloakToken) 
-    return keycloakToken
-  // if (sessionToken) // not necessary, keycloak middleware fetches session token automatically
-  //   return sessionToken
-}
-
-const getUserID = (req) => {
-  const accessToken = getUserToken(req)
-  //console.log('accessToken:', accessToken)
-  return (accessToken && accessToken.content ? accessToken.content.preferred_username : null) //req?.kauth?.grant?.access_token?.content?.preferred_username
-}
+const getUserID = (req) => req?.kauth?.grant?.access_token?.content?.preferred_username
 
 const getUser = async (req, _, next) => {
   const userId = config.debugUser || getUserID(req)
@@ -38,7 +23,14 @@ const requireAdmin = async (req, res, next) => {
   if (!req.user)
     await getUser(req)
   if (!req.user || !req.user.is_staff)
-    res.status(403).send('User not authorized');
+    res.status(403).send('User not authorized')
+  else if (next)
+    next()
+}
+
+const requireAuth = async (req, res, next) => {
+  if (!getUserID(req))
+    res.status(401).send('Unauthorized')
   else if (next)
     next()
 }
@@ -57,5 +49,6 @@ module.exports= {
   getUser,
   isAdmin,
   requireAdmin,
+  requireAuth,
   asyncHandler
 }

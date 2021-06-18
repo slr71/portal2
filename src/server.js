@@ -9,7 +9,7 @@ const next = require('next')
 const { logger, requestLogger, errorLogger } = require('./api/lib/logging')
 const config = require('./config.json')
 const { WS_CONNECTED } = require('./constants')
-const { getUserID, getUserToken } = require('./api/lib/auth')
+const { getUserID, getUserToken, requireAuth } = require('./api/lib/auth')
 const PortalAPI = require('./lib/apiClient')
 const ws = require('ws')
 
@@ -175,11 +175,11 @@ app.prepare()
         if (isDevelopment) server.use('/api/tests', require('./api/tests'))
 
         // Restricted API routes 
-        server.use('/api/users', keycloakClient.checkSso(), require('./api/users'))
-        server.use('/api/services', keycloakClient.checkSso(), require('./api/services'))
-        server.use('/api/workshops', keycloakClient.checkSso(), require('./api/workshops'))
-        server.use('/api/forms', keycloakClient.checkSso(), require('./api/forms'))
-        server.use('/api/mailing_lists', keycloakClient.checkSso(), require('./api/mailing_lists'))
+        server.use('/api/users', requireAuth, require('./api/users'))
+        server.use('/api/services', requireAuth, require('./api/services'))
+        server.use('/api/workshops', requireAuth, require('./api/workshops'))
+        server.use('/api/forms', requireAuth, require('./api/forms'))
+        server.use('/api/mailing_lists', requireAuth, require('./api/mailing_lists'))
         server.use('/api/*', (_, res) => res.status(404).send('Resource not found'))
 
         // Require auth on all routes/page after this
