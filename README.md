@@ -1,6 +1,6 @@
 # CyVerse User Portal
 
-The CyVerse User Portal is a place for user account and resource management.
+The CyVerse User Portal is the place for user account and resource management.
 
 # Requirements
 
@@ -8,7 +8,7 @@ The CyVerse User Portal is a place for user account and resource management.
 * PostgreSQL
 * Node.js / NPM
 
-# Local development installation
+# Local Development Installation
 
 ## Install code and dependencies
 ```
@@ -25,7 +25,7 @@ Copy `src/config-default.json` to `src/config.json` and edit accordingly.
 npm run dev
 ```
 
-# Ubuntu 20.04 installation
+# Ubuntu 20.04 Installation
 
 ## Install packages
 ```
@@ -35,14 +35,14 @@ sudo apt install nodejs npm postgresql postgresql-contrib nginx
 
 ## Setup database
 
-Create user and database
+### Create user and database
 ```
 sudo su postgres
 createuser portal_db_reader
 createdb portal
 ```
 
-Restore from dump (optional)
+### Restore from dump (optional)
 ```
 psql -d portal -f portal_dump.sql
 ```
@@ -58,12 +58,12 @@ npm install
 ```
 
 ## Edit configuration
-
+### Copy from template
 ```
 cp src/config-default.json src/config.json
 ```
 
-Update the following fields in config.json
+### Update the following fields in config.json
 ```
 uiBaseUrl
 apiBaseUrl
@@ -110,13 +110,13 @@ pm2 startup   # manually run the commands that this outputs
 
 ## Setup webserver
 
-Open ports
+### Open ports
 ```
 sudo ufw allow 80
 sudo ufw allow 443
 ```
 
-Configure NGINX
+### Configure NGINX
 
 Edit `/etc/nginx/sites-available/hostname` config file with content below,
 
@@ -159,7 +159,8 @@ server {
     }
 }
 ```
-Restart NGINX
+
+### Restart NGINX
 ```
 sudo service nginx restart
 ```
