@@ -2,9 +2,17 @@ const models = require('../models')
 const User = models.account_user
 const config = require('../../config.json')
 
-const getUserToken = (req) => req?.kauth?.grant?.access_token
+const getUserToken = (req) => {
+  const keycloakToken = (req && req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token : null) //req?.kauth?.grant?.access_token
+  // console.log('keycloak token:', keycloakToken != null)
+  return keycloakToken
+}
 
-const getUserID = (req) => req?.kauth?.grant?.access_token?.content?.preferred_username
+const getUserID = (req) => {
+  const accessToken = getUserToken(req)
+  return (accessToken && accessToken.content ? accessToken.content.preferred_username : null) //req?.kauth?.grant?.access_token?.content?.preferred_username
+}
+
 
 const getUser = async (req, _, next) => {
   const userId = config.debugUser || getUserID(req)
