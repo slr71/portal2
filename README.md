@@ -1,37 +1,39 @@
 # CyVerse User Portal
 
-## Requirements
+The CyVerse User Portal is a place for user account and resource management.
 
-* NGINX
+# Requirements
+
+* NGINX (not required for local development)
 * PostgreSQL
 * Node.js / NPM
 
-## Local development installation
+# Local development installation
 
-### Install code and dependencies
+## Install code and dependencies
 ```
 git clone git@gitlab.com:cyverse/portal2.git
 cd portal2
 npm install
 ```
 
-### Edit configuration
+## Edit configuration
 Copy `src/config-default.json` to `src/config.json` and edit accordingly.
 
-### Run server
+## Run server
 ```
 npm run dev
 ```
 
-## Ubuntu 20.04 installation
+# Ubuntu 20.04 installation
 
-### Install packages
+## Install packages
 ```
 sudo apt update
 sudo apt install nodejs npm postgresql postgresql-contrib nginx
 ```
 
-### Setup database
+## Setup database
 
 Create user and database
 ```
@@ -45,7 +47,7 @@ Restore from dump (optional)
 psql -d portal -f portal_dump.sql
 ```
 
-### Install code and dependencies
+## Install code and dependencies
 ```
 sudo mkdir /opt/dev
 cd /opt/dev
@@ -55,7 +57,7 @@ cd portal2
 npm install
 ```
 
-### Edit configuration
+## Edit configuration
 
 ```
 cp src/config-default.json src/config.json
@@ -96,7 +98,7 @@ mailchimp.*
 mailman.*
 ```
 
-### Setup PM2
+## Setup PM2
 
 ```
 npm run build
@@ -106,7 +108,7 @@ pm2 save
 pm2 startup   # manually run the commands that this outputs
 ```
 
-### Setup webserver
+## Setup webserver
 
 Open ports
 ```
