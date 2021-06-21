@@ -13,7 +13,7 @@ const Requests = ({ forms }) => (
           {/* <Typography variant="subtitle1">{formGroup.description}</Typography> */}
           <Divider />
           <br />
-          <RequestGrid forms={formGroup.forms} />
+          <RequestGrid forms={formGroup.forms.filter(f => f.is_public)} />
           <br />
         </Box>
     ))}

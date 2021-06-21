@@ -33,6 +33,11 @@ module.exports = function(sequelize, DataTypes) {
     intercom_team_id: {
       type: DataTypes.INTEGER,
       allowNull: true
+    },
+    is_public: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false
     }
   }, {
     tableName: 'api_form'
