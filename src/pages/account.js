@@ -530,16 +530,16 @@ const MailingListForm = ({ user, title, subtitle }) => {
     <div>
       <Typography component="div" variant="h5">{title}</Typography>
       <Typography color="textSecondary" gutterBottom>{subtitle}</Typography>
-      {user.emails.map(email => (
-        <Box key={email.id}>
+      {user.emails.map((email, index) => (
+        <Box key={index}>
           <List>
             {user.emails.length > 1 &&
             <ListItem>
               <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
             </ListItem>
             }
-            {email.mailing_lists.map(list => (
-              <MailingListItem key={list.id} email={email} list={list} />
+            {email.mailing_lists.sort((a,b) => a.name.localeCompare(b.name)).map((list, index2) => (
+              <MailingListItem key={index2} email={email} list={list} />
             ))}
           </List>
         </Box>
