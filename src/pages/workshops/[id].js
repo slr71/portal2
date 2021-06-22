@@ -23,10 +23,18 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
+const isHost = (user, workshop) => {
+  return user.id == workshop.creator_id
+}
+
+const isOrganizer = (user, workshop) => {
+  return workshop.organizers && workshop.organizers.some(o => o.id == user.id)
+}
+
 const Workshop = (props) => {
   const workshop = props.workshop
   const [user] = useUser()
-  const isEditor = user.is_staff || user.id == workshop.creator_id || (workshop.organizers && workshop.organizers.some(o => o.id == user.id))
+  const isEditor = user.is_staff || isHost(user, workshop) || isOrganizer(user, workshop)
 
   return (
     <Layout title={workshop.title} breadcrumbs>
@@ -49,7 +57,6 @@ const WorkshopViewer = (props) => {
 
   const userWorkshop = user.workshops.find(w => w.id == workshop.id)
   const request = userWorkshop && userWorkshop.api_workshopenrollmentrequest
-  const isHost = user.id == workshop.creator_id
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [requestStatus, setRequestStatus] = useState(request && request.status)
@@ -107,7 +114,7 @@ const WorkshopViewer = (props) => {
             <Grid item xs={12}>
               <Typography color="textSecondary">{workshop.description}</Typography>
               <br />
-              {isHost &&
+              {isHost(user, workshop) &&
                 <Typography>
                   <b>Your are the workshop host</b>
                 </Typography>
@@ -231,6 +238,7 @@ const WorkshopEditor = (props) => {
   const router = useRouter()
   const api = useAPI()
   const [_, setError] = useError()
+  const [user] = useUser()
   const [workshop, setWorkshop] = useState(props.workshop)
   const [participants, setParticipants] = useState()
   const [emails, setEmails] = useState()
@@ -425,9 +433,9 @@ const WorkshopEditor = (props) => {
       <TabPanel value={tab} index="modify">
         <GeneralSettings {...workshop} submitHandler={submitWorkshop} />
         <br /><br />
-        <EnrollmentPeriod {...workshop} submitHandler={submitWorkshop} />
+        <EnrollmentPeriod {...workshop} editable={isHost(user, workshop) || user.is_staff} submitHandler={submitWorkshop} />
         <br /><br />
-        <WorkshopPeriod {...workshop} submitHandler={submitWorkshop} />
+        <WorkshopPeriod {...workshop} editable={isHost(user, workshop) || user.is_staff} submitHandler={submitWorkshop} />
         <br /><br />
         <Host {...workshop} submitHandler={submitWorkshop} />
         <br /><br />
@@ -503,7 +511,7 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
   const classes = useStyles()
   const [user] = useUser()
   const [errors, setErrors] = useState({})
-  const isEditor = user.is_staff
+  const isEditor = user.is_staff || isHost(user, workshop)
 
   //TODO
   // const validate = (values) => {
@@ -567,7 +575,7 @@ const WorkshopPeriod = ({ start_date, end_date, enrollment_begins, submitHandler
   const classes = useStyles()
   const [user] = useUser()
   const [errors, setErrors] = useState({})
-  const isEditor = user.is_staff
+  const isEditor = user.is_staff || isHost(user, workshop)
 
   const validate = (values) => {
     const errors = {}
@@ -715,7 +723,7 @@ const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
   const classes = useStyles()
   const [user] = useUser()
   const [dialogOpen, setDialogOpen] = useState(false)
-  const isEditable = owner.id == user.id || user.is_staff
+  const isEditable = user.is_staff || isHost(user, workshop)
 
   return (
     <div>
