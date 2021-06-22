@@ -14,6 +14,7 @@ import TabPanel from './TabPanel'
 import User from './User'
 import Conversations from './Conversations'
 import { CustomIntercom, intercomShow } from './CustomIntercom'
+import MailingListForm from './MailingListForm'
 import MainLogo from './MainLogo'
 import { menuItems, getMenuItem } from './menuItems'
 import WelcomeAnimation from './WelcomeAnimation'
@@ -40,6 +41,7 @@ export {
   honeypotId,
   intercomShow,
   Layout, 
+  MailingListForm,
   MainLogo,
   menuItems,
   QuestionsEditor,
