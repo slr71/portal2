@@ -290,7 +290,7 @@ const getForms = ({ user, countries, regions, institutions, institutionKeyword, 
       autosave: true,
       fields: [
         { id: "grid_institution_id",
-          name: "Company/Institution",
+          name: 'Company/Institution (enter "other" if not found)',
           type: "autocomplete",
           required: true,
           value: user.grid_institution_id,
