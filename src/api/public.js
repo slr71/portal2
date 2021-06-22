@@ -171,6 +171,19 @@ router.put('/users', asyncHandler(async (req, res) => {
     if (!emailAddress)
         return res.status(500).send('Error creating email address');
 
+    // Add "announce" mailing list to email address, default unsubscribed
+    const mailingList = MailingList.findOne({ where: { list_name: 'announce' } });
+    if (mailingList) {
+      const e2m = await EmailAddressToMailingList.create({
+        mailing_list_id: mailingList.id,
+        email_address_id: emailAddress.id
+      });
+      if (!e2m) 
+        logger.error('Error assigning email address to mailing list')
+    }
+    else
+      logger.error('Mailing list not found: "announce"')
+
     res.status(200).json(newUser);
 
     // Send confirmation email (after the response as to not delay it)

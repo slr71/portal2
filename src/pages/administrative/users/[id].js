@@ -1,7 +1,8 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
-import { makeStyles, Container, Grid, Box, Button, Paper, Typography, TextField, Radio, RadioGroup, FormControlLabel, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
-import { Layout, DateSpan, ConfirmationDialog, CopyToClipboardButton, ServicesList, AddServiceDialog } from '../../../components'
+import { makeStyles, Container, Grid, Box, Button, Paper, Typography, TextField, List, ListItem, ListItemAvatar, Avatar, ListItemText, ListItemSecondaryAction, Radio, RadioGroup, FormControlLabel, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
+import { Layout, DateSpan, ConfirmationDialog, CopyToClipboardButton, ServicesList, AddServiceDialog, MailingListForm } from '../../../components'
+import { Mail as MailIcon } from '@material-ui/icons'
 import { useAPI } from '../../../contexts/api'
 import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useUser } from '../../../contexts/user'
@@ -112,7 +113,7 @@ const User = ({ user, history, ldap }) => {
 
   return (
     <Layout title={user.username} breadcrumbs>
-      <Container maxWidth='lg'>
+      <Container maxWidth='md'>
         <br />
         <Paper elevation={3} className={classes.paper}>
           <Typography component="div" variant="h5">
@@ -176,63 +177,31 @@ const User = ({ user, history, ldap }) => {
 
         <Paper elevation={3} className={classes.paper}>
           <Typography component="div" variant="h5">Email</Typography> 
-          <br />
-          {user.emails.map((email, index) => (
-            <div key={index}>
-              {email.email} - {email.verified ? 'Verified' + (email.primary ? ', Primary' : '') : 'Unverified'}
-              <CopyToClipboardButton text={email.email} />
-            </div>
-          ))}
+          <List style={{maxWidth: '30em'}}>
+            {user.emails.map(email => (
+              <ListItem key={email.id}>
+                <ListItemAvatar>
+                  <Avatar>
+                    <MailIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText 
+                  primary={email.email} 
+                  secondary={email.verified ? 'Verified' + (email.primary ? ', Primary' : '') : 'Unverified'}
+                />
+                <ListItemSecondaryAction>
+                  <CopyToClipboardButton text={email.email} />
+                </ListItemSecondaryAction>
+              </ListItem>
+            ))}
+          </List>
         </Paper>
 
         <Paper elevation={3} className={classes.paper}>
-          <Typography component="div" variant="h5">Mailing List Subscriptions</Typography> 
-          <br />
-          {user.emails.map((email, index) => (
-            <div key={index}>
-              <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
-              <Box ml={2}>
-                {email.mailing_lists && email.mailing_lists.length > 0 
-                  ? email.mailing_lists.map((mailingList, index) => (
-                      <div key={index}>{mailingList.name}</div>
-                    ))
-                  : '<None>'
-                }
-              </Box>
-            </div>
-          ))}
-        </Paper>
-
-        <Paper elevation={3} className={classes.paper}>
-          <Typography component="div" variant="h5">Institution</Typography> 
-          <br />
-          <div>Company/Institution: {user.institution}</div>
-          <div>Department: {user.department}</div>
-          <div>Occupation: {user.occupation.name}</div>
-          <div>Country: {user.region.country.name}</div>
-          <div>Region: {user.region.name}</div>
-        </Paper>
-
-        <Paper elevation={3} className={classes.paper}>
-          <Typography component="div" variant="h5">Research</Typography> 
-          <br />
-          <div>Research Area: {user.research_area.name}</div>
-          <div>Funding Agency: {user.funding_agency.name}</div>
-        </Paper>
-
-        <Paper elevation={3} className={classes.paper}>
-          <Typography component="div" variant="h5">Demographics</Typography> 
-          <br />
-          <div>Gender Identity: {user.gender.name}</div>
-          <div>Ethnicity: {user.ethnicity.name}</div>
-        </Paper>
-
-        <Paper elevation={3} className={classes.paper}>
-          <Typography component="div" variant="h5">Preferences</Typography> 
-          <br />
-          <div>How did you hear about us? {user.aware_channel.name}</div>
-          <div>Receive the CyVerse Newsletter? {user.subscribe_to_newsletter ? 'Yes' : 'No'}</div>
-          <div>Participate in a research study about your use of CyVerse applications and services? {user.participate_in_study ? 'Yes' : 'No'}</div>
+          <MailingListForm 
+            user={user} 
+            title="Mailing List Subscriptions" 
+          />
         </Paper>
 
         <Paper elevation={3} className={classes.paper}>
@@ -261,6 +230,28 @@ const User = ({ user, history, ldap }) => {
               addService(serviceId)
             }}
           />
+        </Paper>
+
+        <Paper elevation={3} className={classes.paper}>
+          <Typography component="div" variant="h5">Institution / Research / Demographics</Typography> 
+          <br />
+          <div>Company/Institution: {user.institution}</div>
+          <div>Department: {user.department}</div>
+          <div>Occupation: {user.occupation.name}</div>
+          <div>Country: {user.region.country.name}</div>
+          <div>Region: {user.region.name}</div>
+          <div>Research Area: {user.research_area.name}</div>
+          <div>Funding Agency: {user.funding_agency.name}</div>
+          <div>Gender Identity: {user.gender.name}</div>
+          <div>Ethnicity: {user.ethnicity.name}</div>
+        </Paper>
+
+        <Paper elevation={3} className={classes.paper}>
+          <Typography component="div" variant="h5">Preferences</Typography> 
+          <br />
+          <div>How did you hear about us? {user.aware_channel.name}</div>
+          <div>Receive the CyVerse Newsletter? {user.subscribe_to_newsletter ? 'Yes' : 'No'}</div>
+          <div>Participate in a research study about your use of CyVerse applications and services? {user.participate_in_study ? 'Yes' : 'No'}</div>
         </Paper>
 
         <Paper elevation={3} className={classes.paper}>
