@@ -77,6 +77,8 @@ models.account_emailaddress.belongsToMany(models.api_mailinglist,
 models.account_emailaddress.hasMany(models.api_emailaddressmailinglist, { foreignKey: 'email_address_id', onDelete: 'cascade', hooks: true });
 models.account_emailaddress.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id' });
 
+models.api_mailinglist.belongsTo(models.api_service, { as: 'service', foreignKey: 'service_id' });
+
 models.account_region.belongsTo(models.account_country, {as: 'country' });
 
 models.api_service.hasMany(models.api_poweredservice, { as: 'powered_services', foreignKey: 'service_ptr_id' });

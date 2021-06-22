@@ -1,7 +1,5 @@
-//TODO consider merging this module into users.js
-
 const router = require('express').Router();
-const { getUser, asyncHandler } = require('./lib/auth');
+const { getUser, requireAdmin, asyncHandler } = require('./lib/auth');
 const { emailNewEmailConfirmation } = require('./lib/email');
 const { generateHMAC } = require('./lib/hmac');
 const { mailmanUpdateSubscription } = require('./workflows/native/lib');
@@ -97,6 +95,40 @@ router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, re
         if (subscriptions.find(s => s.mailing_list_id == list.id && s.is_subscribed))
             await mailmanUpdateSubscription(list.list_name, emailAddress.email, false);
     }
+}));
+
+/*
+ * List mailing lists (STAFF ONLY)
+ *
+ */
+router.get('/', requireAdmin, asyncHandler(async (req, res) => {
+  const lists = await MailingList.findAll({ include: 'service' });
+  return res.status(200).json(lists);
+}));
+
+/*
+ * Create mailing list (STAFF ONLY)
+ *
+ */
+router.put('/', requireAdmin, asyncHandler(async (req, res) => {
+  const fields = req.body;
+  const newList = await MailingList.create(fields);
+  if (!newList)
+    return res.status(500).send('error');
+  res.status(200).send('success');
+}));
+
+/*
+ * Delete mailing list (STAFF ONLY)
+ *
+ */
+router.delete('/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) => {
+  const list = await MailingList.findByPk(req.params.id)
+  if (!list)
+      return res.status(404).send('Mailing list not found');
+
+  await list.destroy();
+  res.status(200).send('success');
 }));
 
 /*

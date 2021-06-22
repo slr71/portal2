@@ -82,14 +82,6 @@ class PortalAPI {
 
   async adminResetPassword(id, params) { return await this.post(`/users/${id}/reset_password`, params) }
 
-  async updateMailingListSubscription(id, params) { return await this.post(`/mailing_lists/${id}/subscriptions`, params) }
-
-  async createEmailAddress(params) { return await this.put(`/mailing_lists/email_addresses`, params) }
-
-  async deleteEmailAddress(id) { return await this.delete(`/mailing_lists/email_addresses/${id}`) }
-
-  async confirmEmailAddress(hmac) { return await this.post(`/confirm_email`, { hmac }) }
-
   async restrictedUsernames() { return await this.get(`/users/restricted`) }
 
   async createRestrictedUsername(username) { return await this.put(`/users/restricted/${username}`) }
@@ -97,14 +89,21 @@ class PortalAPI {
   async deleteRestrictedUsername(id) { return await this.delete(`/users/restricted/${id}`) }
 
   /*
-   * Public endpoints (authorization not required)
+   * Mailing list endpoints
    */
 
-  // This endpoint is no longer called directly. Instead, use the cached copy in src/user-properties.json
-  // async userProperties() { return await this.get(`/users/properties`) }
+  async mailingLists(params) { return await this.get(`/mailing_lists`, params) }
 
-  async institutions(params) { return await this.get(`/users/properties/institutions`, params) }
- 
+  async createMailingList(params) { return await this.put(`/mailing_lists`, params) }
+
+  async deleteMailingList(id) { return await this.delete(`/mailing_lists/${id}`) }
+
+  async updateMailingListSubscription(id, params) { return await this.post(`/mailing_lists/${id}/subscriptions`, params) }
+
+  async createEmailAddress(params) { return await this.put(`/mailing_lists/email_addresses`, params) }
+
+  async deleteEmailAddress(id) { return await this.delete(`/mailing_lists/email_addresses/${id}`) }
+
   /*
    * Service endpoints
    */
@@ -214,6 +213,17 @@ class PortalAPI {
   async updateFormField(id, field) { return await this.post(`/forms/fields/${id}`, field) }
 
   async deleteFormField(id) { return await this.delete(`/forms/fields/${id}`) }
+
+  /*
+   * Public endpoints (authorization not required)
+   */
+
+  async confirmEmailAddress(hmac) { return await this.post(`/confirm_email`, { hmac }) }
+
+  // This endpoint is no longer called directly. Instead, use the cached copy in src/user-properties.json
+  // async userProperties() { return await this.get(`/users/properties`) }
+
+  async institutions(params) { return await this.get(`/users/properties/institutions`, params) }
 }
 
 module.exports = PortalAPI
