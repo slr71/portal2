@@ -148,8 +148,9 @@ router.put('/users', asyncHandler(async (req, res) => {
     fields['is_active'] = true;
     fields['has_verified_email'] = false;
     fields['participate_in_study'] = true;
-    fields['subscribe_to_newsletter'] = true; 
+    fields['subscribe_to_newsletter'] = true;
     fields['orcid_id'] = '';
+    fields['updated_at'] = Date.now();
 
     // Special case: automatically set "institution" based on for backward compatibility
     const institution = await models.account_institution_grid.findByPk(fields['grid_institution_id']);
