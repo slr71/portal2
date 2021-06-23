@@ -199,7 +199,8 @@ const User = ({ user, history, ldap }) => {
 
         <Paper elevation={3} className={classes.paper}>
           <MailingListForm 
-            user={user} 
+            userId={user.id}
+            emails={user.emails}
             title="Mailing List Subscriptions" 
           />
         </Paper>
