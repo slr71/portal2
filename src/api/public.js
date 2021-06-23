@@ -19,6 +19,7 @@ const EmailAddress = models.account_emailaddress;
 const PasswordReset = models.account_passwordreset;
 const PasswordResetRequest = models.account_passwordresetrequest;
 const EmailAddressToMailingList = models.api_emailaddressmailinglist;
+const MailingList = models.api_mailinglist;
 
 //TODO move into module
 const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase());
@@ -173,11 +174,12 @@ router.put('/users', asyncHandler(async (req, res) => {
         return res.status(500).send('Error creating email address');
 
     // Add "announce" mailing list to email address, default unsubscribed
-    const mailingList = MailingList.findOne({ where: { list_name: 'announce' } });
+    const mailingList = await MailingList.findOne({ where: { list_name: 'announce' } });
     if (mailingList) {
       const e2m = await EmailAddressToMailingList.create({
         mailing_list_id: mailingList.id,
-        email_address_id: emailAddress.id
+        email_address_id: emailAddress.id,
+	is_subscribed: false
       });
       if (!e2m) 
         logger.error('Error assigning email address to mailing list')
