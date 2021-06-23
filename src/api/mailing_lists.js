@@ -140,6 +140,7 @@ router.post('/:id(\\d+)/subscriptions', getUser, asyncHandler(async (req, res) =
     const id = req.params.id // mailing list id
     const email = req.body.email; // email address
     const subscribe = !!req.body.subscribe;
+    const targetUserId = req.body.user_id; // Allow admins to update other user's subscription, exclude if updating own record
 
     if (!email)
         return res.status(400).send('Missing required field');
@@ -148,10 +149,14 @@ router.post('/:id(\\d+)/subscriptions', getUser, asyncHandler(async (req, res) =
     if (!mailingList)
         return res.status(404).send('Mailing list not found');
 
+    if (targetUserId && targetUserId != req.user.id && !req.user.is_staff)
+      return res.status(403).send('Permission denied');
+
+    const userId = targetUserId || req.user.id;
     const emailAddress = await EmailAddress.findOne({ 
         where: { 
             email: email,
-            user_id: req.user.id
+            user_id: userId
         }
     });
     if (!emailAddress)

@@ -3,21 +3,21 @@ import { useAPI } from '../contexts/api'
 import { useError } from '../contexts/error'
 import { Typography, Box, List, ListItem, ListItemText, ListItemSecondaryAction, Switch } from '@material-ui/core'
 
-const MailingListForm = ({ user, title, subtitle }) => {
+const MailingListForm = ({ emails, title, subtitle, userId }) => {
   return (
     <div>
       <Typography component="div" variant="h5">{title}</Typography>
       <Typography color="textSecondary" gutterBottom>{subtitle}</Typography>
-      {user.emails.map((email, index) => (
+      {emails.map((email, index) => (
         <Box key={index}>
           <List>
-            {user.emails.length > 1 &&
+            {emails.length > 1 &&
             <ListItem>
               <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
             </ListItem>
             }
             {email.mailing_lists.sort((a,b) => a.name.localeCompare(b.name)).map((list, index2) => (
-              <MailingListItem key={index2} email={email} list={list} />
+              <MailingListItem key={index2} email={email} list={list} userId={userId} />
             ))}
           </List>
         </Box>
@@ -26,7 +26,7 @@ const MailingListForm = ({ user, title, subtitle }) => {
   )
 }
 
-const MailingListItem = ({ email, list }) => {
+const MailingListItem = ({ userId, email, list }) => {
   const api = useAPI()
   const [_, setError] = useError()
 
@@ -36,7 +36,8 @@ const MailingListItem = ({ email, list }) => {
     try {
       await api.updateMailingListSubscription(list.id, { 
         email: email.email,
-        subscribe: state
+        subscribe: state,
+        user_id: userId
       })
       setState(state)
     }

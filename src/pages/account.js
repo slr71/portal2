@@ -281,7 +281,7 @@ const getForms = ({ user, countries, regions, institutions, institutionKeyword, 
     { hideReviewMode: true,
       render: 
         <MailingListForm 
-          user={user} 
+          emails={user.emails} 
           title="Mailing List Subscriptions" 
           subtitle="Manage which services you would like to receive maintenance-related emails from" 
         />
