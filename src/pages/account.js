@@ -437,8 +437,25 @@ const EmailForm = ({ emails, title, subtitle, onChange }) => {
     }
   }
 
+  const setPrimaryEmail = async (id) => {
+    try {
+      await api.updateEmailAddress(id, { setPrimary: true })
+      if (onChange) await onChange()
+    }
+    catch(error) {
+      console.log(error)
+      setError(error.message)
+    }
+  }
+
   const statusMsg = (email) => email.verified 
-    ? 'Confirmed' + (email.primary ? ', Primary' : '')
+    ? <>
+        Confirmed 
+        {email.primary 
+          ? ', Primary' 
+          : <Link onClick={() => setPrimaryEmail(email.id)} style={{marginLeft: '1em'}}>[ Make primary ]</Link>
+        }
+      </>
     : <>
         A confirmation email has been sent. 
         Click on the link in the email to verify that this is your address.<br />
@@ -454,7 +471,7 @@ const EmailForm = ({ emails, title, subtitle, onChange }) => {
         <Typography component="div" variant="h5">{title}</Typography>
         <Typography color="textSecondary" gutterBottom>{subtitle}</Typography>
         <List>
-          {emails.map(email => (
+          {emails.sort(sortPrimaryFirst).map(email => (
             <ListItem key={email.id}>
               <ListItemAvatar>
                 <Avatar>
@@ -494,6 +511,14 @@ const EmailForm = ({ emails, title, subtitle, onChange }) => {
       />
     </div>
   )
+}
+
+function sortPrimaryFirst(a, b) {
+  if (a.primary)
+    return -1
+  if (b.primary)
+    return 1
+  return a.email.localeCompare(b.email)
 }
 
 const AddEmailAddressDialog = ({ open, error, handleChange, handleClose, handleSubmit }) => (

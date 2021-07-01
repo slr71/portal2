@@ -102,6 +102,8 @@ class PortalAPI {
 
   async createEmailAddress(params) { return await this.put(`/mailing_lists/email_addresses`, params) }
 
+  async updateEmailAddress(id, params) { return await this.post(`/mailing_lists/email_addresses/${id}`, params) }
+
   async deleteEmailAddress(id) { return await this.delete(`/mailing_lists/email_addresses/${id}`) }
 
   /*

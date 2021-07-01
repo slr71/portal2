@@ -64,6 +64,30 @@ router.put('/email_addresses', getUser, asyncHandler(async (req, res) => {
     await emailNewEmailConfirmation(email, hmac)
 }));
 
+// Update email address
+// Only used to change "primary" setting currently
+router.post('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
+  const id = req.params.id
+  const setPrimary = req.body.setPrimary
+
+  let emailAddress = await EmailAddress.unscoped().findByPk(id);
+  if (!emailAddress)
+    return res.status(404).send('Email address not found');
+  if (emailAddress.user_id != req.user.id && !req.user.is_staff)
+    return res.status(403).send('Permission denied')
+
+  if (setPrimary) {
+    const emailAddresses = await EmailAddress.findAll({ where: { user_id: req.user.id } })
+    for (const e of emailAddresses) {
+      e.primary = (e.id == id)
+      await e.save()
+    }
+  }
+
+  emailAddress.reload();
+  res.status(200).send(emailAddress);
+}));
+
 router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const id = req.params.id
 
