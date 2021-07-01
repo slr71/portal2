@@ -376,6 +376,7 @@ const FormField = (props) => {
         inputValue={props.inputValue}
         value={options.find(option => option && option.id == props.value)}
         freeSolo={props.freeSolo} // when true prevents "no options" from showing in the dropdown while loading (for async mode)
+        autocomplete="off" // prevents browser auto-fill
 
         renderInput={(params) => (
           <TextField
