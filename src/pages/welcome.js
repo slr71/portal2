@@ -290,13 +290,13 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
   const [countryId, setCountryId] = useState()
   const [isSubmitted, setSubmitted] = useState(false)
   const [user, setUser] = useState() // newly created user
-  const [debounce, setDebounce] = useState(null)
+  const debounce = React.useRef()
 
   const inputHandler = (fieldId, value) => {
     if (fieldId == 'grid_institution_id') {
-      if (debounce) clearTimeout(debounce)
+      if (debounce.current) clearTimeout(debounce.current)
       if (value.length >= 3) {
-        setDebounce(
+        debounce.current =
           setTimeout(async () => {
             const institutions = await api.institutions({ keyword: value, limit: 100 })
             if (institutions.length == 0)
@@ -305,8 +305,7 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
               setInstitutions(institutions)
               setInstitutionError()
             }
-          }, 300)
-        )
+          }, 500)
       }
       else {
         setInstitutions([])
