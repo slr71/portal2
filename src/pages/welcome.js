@@ -158,14 +158,24 @@ const ForgotPassword = ({ startTimeHMAC, cancelHandler }) => {
   const api = useAPI()
 
   const [email, setEmail] = useState()
+  const [debounce, setDebounce] = useState(null)
   const [validationError, setValidationError] = useState()
   const [isSubmitting, setSubmitting] = useState(false)
   const [isSubmitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState()
 
   const handleChangeEmail = async (e) => {
-    setEmail(e.target.value)
-    setValidationError(await validateEmail(e.target.value))
+    const value = e.target.value
+    setEmail(value)
+
+    if (debounce) clearTimeout(debounce)
+    if (value && value.length >= 3) {
+      setDebounce(
+        setTimeout(async () => {
+          setValidationError(await validateEmail(value))
+        }, 500)
+      )
+    }
   }
 
   const validateEmail = async (value) => {
