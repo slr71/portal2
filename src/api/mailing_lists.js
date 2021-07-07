@@ -5,6 +5,7 @@ const { generateHMAC } = require('./lib/hmac');
 const { mailmanUpdateSubscription } = require('./workflows/native/lib');
 const sequelize = require('sequelize');
 const models = require('./models');
+const User = models.account_user;
 const MailingList = models.api_mailinglist;
 const EmailAddress = models.account_emailaddress;
 const EmailAddressToMailingList = models.api_emailaddressmailinglist;
@@ -77,8 +78,10 @@ router.post('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, res)
     return res.status(403).send('Permission denied')
 
   if (setPrimary) {
-    const emailAddresses = await EmailAddress.findAll({ where: { user_id: req.user.id } })
-    for (const e of emailAddresses) {
+    const user = await User.findByPk(req.user.id, { include: [ 'emails' ] })
+    user.email = emailAddress.email
+    user.save()
+    for (const e of user.emails) {
       e.primary = (e.id == id)
       await e.save()
     }

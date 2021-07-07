@@ -75,6 +75,7 @@ models.account_user.hasMany(models.account_passwordreset, { as: 'password_resets
 models.account_emailaddress.belongsToMany(models.api_mailinglist, 
   { as: 'mailing_lists', through: models.api_emailaddressmailinglist, foreignKey: 'email_address_id', otherKey: 'mailing_list_id' });
 models.account_emailaddress.hasMany(models.api_emailaddressmailinglist, { foreignKey: 'email_address_id', onDelete: 'cascade', hooks: true });
+models.account_emailaddress.hasMany(models.account_passwordresetrequest, { foreignKey: 'email_address_id', onDelete: 'cascade', hooks: true });
 models.account_emailaddress.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id' });
 
 models.api_mailinglist.belongsTo(models.api_service, { as: 'service', foreignKey: 'service_id' });
