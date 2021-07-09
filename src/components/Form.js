@@ -56,7 +56,7 @@ const validateField = (field, value) => {
 }
 
 const validateFields = async (fields, values, customValidator) => {
-  console.log('validate:', values)
+  //if (values && Object.keys(values).length > 0) console.log('validate:', values)
   let errors = {}
   for (let field of fields) {
     const id = field.id
@@ -68,7 +68,7 @@ const validateFields = async (fields, values, customValidator) => {
     if (error)
       errors[id] = error
   }
-  console.log('errors:', errors)
+  //if (Object.keys(errors).length > 0) console.log('errors:', errors)
   return errors;
 }
 
@@ -376,7 +376,7 @@ const FormField = (props) => {
         inputValue={props.inputValue}
         value={options.find(option => option && option.id == props.value)}
         freeSolo={props.freeSolo} // when true prevents "no options" from showing in the dropdown while loading (for async mode)
-        autocomplete="off" // prevents browser auto-fill
+        autoComplete={false} // attempt to prevent browser auto-fill
 
         renderInput={(params) => (
           <TextField
