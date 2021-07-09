@@ -44,7 +44,8 @@ const Account = () => {
   const [institutionKeyword, setInstitutionKeyword] = useState(user.institution)
   const [institutionError, setInstitutionError] = useState()
   const [forms, setForms] = useState()
-  const [debounce, setDebounce] = useState(null)
+  const [inputDebounce, setInputDebounce] = useState(null)
+  const [updateDebounce, setUpdateDebounce] = useState(null)
 
   const reviewMode = router && router.query && router.query.reviewMode
   const redirectUrl = router && router.query && router.query.redirectUrl
@@ -79,9 +80,9 @@ const Account = () => {
   const inputHandler = (fieldId, value) => {
     if (fieldId == 'grid_institution_id') {
       setInstitutionKeyword(value)
-      if (debounce) clearTimeout(debounce)
+      if (inputDebounce) clearTimeout(inputDebounce)
       if (value.length >= 3) {
-        setDebounce(
+        setInputDebounce(
           setTimeout(async () => {
             const institutions = await api.institutions({ keyword: value, limit: 100 })
             if (institutions.length == 0)
@@ -153,14 +154,17 @@ const Account = () => {
                         values['region_id'] = region.id
                     }
 
-                    setTimeout(() => {
-                      console.log('Submit:', values)
-                      if (form.submitHandler)
-                        form.submitHandler(values)
-                      else
-                        submitForm(values)
-                      setSubmitting(false)
-                    }, 1000)
+                    if (updateDebounce) clearTimeout(updateDebounce)
+                    setUpdateDebounce(
+                      setTimeout(() => {
+                        console.log('Submit:', values)
+                        if (form.submitHandler)
+                          form.submitHandler(values)
+                        else
+                          submitForm(values)
+                        setSubmitting(false)
+                      }, 1000)
+                    )
                   }}
                 />
               }
