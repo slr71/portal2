@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { getUser, requireAdmin, asyncHandler } = require('./lib/auth');
 const { emailNewEmailConfirmation } = require('./lib/email');
 const { generateHMAC } = require('./lib/hmac');
+const { ldapModify } = require('./workflows/native/lib.js');
 const { mailmanUpdateSubscription } = require('./workflows/native/lib');
 const sequelize = require('sequelize');
 const models = require('./models');
@@ -89,6 +90,10 @@ router.post('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, res)
 
   emailAddress.reload();
   res.status(200).send(emailAddress);
+
+  // Update LDAP (do this after response as to not delay it)
+  if (setPrimary)
+    await ldapModify(req.user.username, 'email', emailAddress.email);
 }));
 
 router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, res) => {

@@ -4,7 +4,7 @@ const { requireAdmin, isAdmin, getUser, asyncHandler } = require('./lib/auth');
 const { generateToken } = require('./lib/hmac');
 const { emailPasswordReset } = require('./lib/email');
 const { checkPassword, encodePassword } = require('./lib/password');
-const { ldapGetUser } = require('./workflows/native/lib.js');
+const { ldapGetUser, ldapModify } = require('./workflows/native/lib.js');
 const { userPasswordUpdateWorkflow, userDeletionWorkflow } = require('./workflows/native/user.js');
 const sequelize = require('sequelize');
 const models = require('./models');
@@ -237,8 +237,11 @@ router.post('/:id(\\d+)/permission', requireAdmin, asyncHandler(async (req, res)
     res.status(200).send('success');
 })); 
 
-// Update user 
-// If body is empty then will just return the user
+/*
+ * Update user
+ *
+ * If body is empty then will just return the user
+ */
 router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     const id = req.params.id;
     const fields = req.body;
@@ -258,7 +261,7 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
         'occupation_id', 'research_area_id', 'region_id', 'settings',
         'updated_at' // for profile review page
     ]
-
+    const updated = {};
     const timeNow = Date.now();
     if (fields) {
         for (const key in fields) {
@@ -266,6 +269,7 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
             if (SUPPORTED_FIELDS.includes(key) && user.getDataValue(key) != fields[key]) {
                 user[key] = fields[key];
                 user['updated_at'] = timeNow;
+                updated[key] = true;
 
                 // Special case: automatically set "institution" for backward compatibility
                 if (key == 'grid_institution_id' && fields[key]) {
@@ -280,6 +284,12 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     }
 
     res.status(200).json(user);
+
+    // Update LDAP (do this after response as to not delay it)
+    if (updated['first_name'])
+        await ldapModify(user.username, 'givenName', user.first_name);
+    if (updated['last_name'])
+        await ldapModify(user.username, 'sn', user.last_name);
 }));
 
 /*
