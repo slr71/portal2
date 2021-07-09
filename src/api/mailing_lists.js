@@ -93,7 +93,7 @@ router.post('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, res)
 
   // Update LDAP (do this after response as to not delay it)
   if (setPrimary)
-    await ldapModify(req.user.username, 'email', emailAddress.email);
+    await ldapModify(req.user.username, 'mail', emailAddress.email);
 }));
 
 router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
