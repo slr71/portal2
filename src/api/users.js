@@ -286,10 +286,13 @@ router.post('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
     res.status(200).json(user);
 
     // Update LDAP (do this after response as to not delay it)
-    if (updated['first_name'])
-        await ldapModify(user.username, 'givenName', user.first_name);
-    if (updated['last_name'])
-        await ldapModify(user.username, 'sn', user.last_name);
+    if (updated['first_name'] || updated['last_name']) {
+        if (updated['first_name'])
+            await ldapModify(user.username, 'givenName', user.first_name);
+        if (updated['last_name'])
+            await ldapModify(user.username, 'sn', user.last_name);
+        await ldapModify(user.username, 'cn', user.first_name + ' ' + user.last_name);
+    }
 }));
 
 /*
