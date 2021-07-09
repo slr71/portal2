@@ -1,11 +1,8 @@
 import React from "react";
 
 const ConfigContext = React.createContext();
+ConfigContext.displayName = 'Config'
 
-/**
- * A custom hook to get client side configs from nextjs config
- *
- */
 function useConfig() {
     const context = React.useContext(ConfigContext);
     if (!context) {
