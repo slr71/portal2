@@ -4,7 +4,6 @@ const { emailNewAccountConfirmation, emailPasswordReset } = require('./lib/email
 const { decodeHMAC, generateToken, decodeToken } = require('./lib/hmac');
 const { asyncHandler } = require('./lib/auth');
 const { encodePassword } = require('./lib/password');
-const { emailServiceAccessGranted } = require('./lib/email');
 const config = require('../config');
 const Argo = require('./lib/argo');
 const serviceApprovers = require('./approvers/service');
@@ -70,9 +69,9 @@ router.post('/exists', asyncHandler(async (req, res) => {
     // Check for existing email
     const email = fields.email;
     if (email) {
-        const user = await User.unscoped().findOne({ where: lowerEqualTo('email', email) });
+        //const user = await User.unscoped().findOne({ where: lowerEqualTo('email', email) }); // Not needed, account_user.email is always set to primary email address
         const emailAddress = await EmailAddress.findOne({ where: lowerEqualTo('email', email) });
-        result.email = !!(user || emailAddress);
+        result.email = !!emailAddress;
     }
 
     console.log(result);
