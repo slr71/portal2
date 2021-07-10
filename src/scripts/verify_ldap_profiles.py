@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from ldap3 import Server, Connection, ALL, SAFE_SYNC
+from ldap3 import Server, Connection, MODIFY_REPLACE
 import argparse
 import psycopg2
 import psycopg2.extras
@@ -13,7 +13,7 @@ def fetch_users(conn):
 
 
 def escape(s):
-  s.replace("'", r"\'")
+  return s.replace("'", r"\'")
 
 
 if __name__ == "__main__":
@@ -21,6 +21,7 @@ if __name__ == "__main__":
   parser.add_argument('-lh', '--ldaphost', help='LDAP hostname')
   parser.add_argument('-lu', '--ldapuser', help='LDAP username')
   parser.add_argument('-lp', '--ldappass', help='LDAP password')
+  parser.add_argument('-u', '--update', action='store_true', help="Update mismatched attributes in LDAP")
   args = parser.parse_args()
 
   conn = psycopg2.connect(host='', dbname='portal')
@@ -38,9 +39,12 @@ if __name__ == "__main__":
         continue
 
     user = userIndex[str(entry.uid)]
-    #if user.first_name != escape(str(entry.givenName)):
-    #    print(user.username, 'first_name/givenName', user.first_name, entry.givenName)
-    #if user.last_name != escape(str(entry.sn)):
-    #    print(user.username, 'last_name/sn', user.last_name, entry.sn)
+    #if escape(user.first_name) != str(entry.givenName):
+    #  print(user.username, 'first_name/givenName', user.first_name, entry.givenName)
+    #if escape(user.last_name) != str(entry.sn):
+    #  print(user.username, 'last_name/sn', user.last_name, entry.sn)
     if user.email.lower() != str(entry.mail).lower():
-        print(user.username, 'email/mail', user.email, entry.mail)
+      print(user.username, 'email/mail', user.email, entry.mail)
+      if args.update:
+        result = conn.modify('uid='+user.username+',ou=People,dc=iplantcollaborative,dc=org',
+                            {'mail': [(MODIFY_REPLACE, [user.email])]})
