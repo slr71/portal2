@@ -829,7 +829,7 @@ const Participants = ({ participants, submitHandler, deleteHandler }) => {
       <Paper elevation={3} className={classes.paper}>
         <Grid container justify="space-between">
           <Grid item>
-            <Typography component="h1" variant="h4">Participants {participants.length > 0 && <Chip label={participants.length} />}</Typography>
+            <Typography component="h1" variant="h4">Participants {participants && participants.length > 0 && <Chip label={participants.length} />}</Typography>
             <Typography variant="subtitle1" color="textSecondary">
               The users below are enrolled in this workshop.
             </Typography>
@@ -898,7 +898,7 @@ const Emails = ({ emails, submitHandler, deleteHandler }) => {
       <Paper elevation={3} className={classes.paper}>
         <Grid container justify="space-between">
           <Grid item style={{width:'70%'}}>
-            <Typography component="h1" variant="h4">Pre-approvals {emails.length > 0 && <Chip label={emails.length} />}</Typography>
+            <Typography component="h1" variant="h4">Pre-approvals {emails && emails.length > 0 && <Chip label={emails.length} />}</Typography>
             <Typography variant="subtitle1" color="textSecondary">
               The users below (shown by CyVerse email address) are pre-approved to enroll in this workshop.
             </Typography>
@@ -1084,7 +1084,7 @@ const Requests = ({ requests, submitHandler }) => {
 
   return (        
     <Paper elevation={3} className={classes.paper}>
-      <Typography component="h1" variant="h4">Requests {requests.length > 0 && <Chip label={requests.length} />}</Typography>
+      <Typography component="h1" variant="h4">Requests {requests && requests.length > 0 && <Chip label={requests.length} />}</Typography>
       <br />
       {!requests || requests.length == 0 
         ? <Typography>None</Typography>
