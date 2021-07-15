@@ -1,14 +1,14 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import Markdown from 'markdown-to-jsx'
-import { makeStyles, Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, MenuItem, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse, Chip } from '@material-ui/core'
+import { makeStyles, Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse, Chip } from '@material-ui/core'
 import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@material-ui/icons'
 import Autocomplete from '@material-ui/lab/Autocomplete'
 import DateFnsUtils from '@date-io/date-fns'
 import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
 import { Layout, DateRange, DateSpan, TabPanel, UpdateForm, FormDialog, ContactsEditor, ServicesList, AddServiceDialog } from '../../components'
 import { useAPI } from '../../contexts/api'
-import { useError, withGetServerSideError } from '../../contexts/error'
+import { useError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 import { wsBaseUrl } from '../../config'
 const { WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE } = require('../../constants')
@@ -433,9 +433,9 @@ const WorkshopEditor = (props) => {
       <TabPanel value={tab} index="modify">
         <GeneralSettings {...workshop} submitHandler={submitWorkshop} />
         <br /><br />
-        <EnrollmentPeriod {...workshop} editable={isHost(user, workshop) || user.is_staff} submitHandler={submitWorkshop} />
+        <EnrollmentPeriod {...workshop} submitHandler={submitWorkshop} />
         <br /><br />
-        <WorkshopPeriod {...workshop} editable={isHost(user, workshop) || user.is_staff} submitHandler={submitWorkshop} />
+        <WorkshopPeriod {...workshop} submitHandler={submitWorkshop} />
         <br /><br />
         <Host {...workshop} submitHandler={submitWorkshop} />
         <br /><br />
@@ -510,7 +510,7 @@ const GeneralSettings = (props) => {
 const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler }) => {
   const classes = useStyles()
   const [user] = useUser()
-  const [errors, setErrors] = useState({})
+  //const [errors, setErrors] = useState({})
   const isEditor = user.is_staff || isHost(user, workshop)
 
   //TODO
@@ -529,7 +529,6 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
       <Typography component="div" variant="h5">Enrollment Period</Typography> 
       <Typography color="textSecondary">
         Date range for when users can enroll in the workshop.
-        NOTE: these fields can only be changed by CyVerse staff.
       </Typography>
       <br />
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
@@ -541,7 +540,7 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
             margin="normal"
             style={{width: '45%'}}
             id="enrollment_begins"
-            label="Enrollment Begins"
+            label="Enrollment Begins (MST)"
             helperText="This is the earliest that users with an authorized email will be able to enroll and get access to the workshop services."
             value={enrollment_begins}
             onChange={(value) => handleChange({'enrollment_begins': value})}
@@ -556,7 +555,7 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
             margin="normal"
             style={{width: '45%'}}
             id="enrollment_ends"
-            label="Enrollment Ends"
+            label="Enrollment Ends (MST)"
             helperText="After this date users will not be able to enroll in the workshop, even if their email is authorized."
             value={enrollment_ends}
             onChange={(value) => handleChange({'enrollment_ends': value})}
@@ -620,7 +619,6 @@ const WorkshopPeriod = ({ start_date, end_date, enrollment_begins, submitHandler
       <Typography component="div" variant="h5">Attendance Period</Typography> 
       <Typography color="textSecondary">
         Date range for when users will attend the workshop.
-        NOTE: these fields can only be changed by CyVerse staff.
       </Typography>
       <br />
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
@@ -632,7 +630,7 @@ const WorkshopPeriod = ({ start_date, end_date, enrollment_begins, submitHandler
             margin="normal"
             style={{width: '45%'}}
             id="start_date"
-            label="Workshop Begins"
+            label="Workshop Begins (MST)"
             error={!!errors["start_date"]}
             helperText={errors["start_date"]}
             value={start_date}
@@ -649,7 +647,7 @@ const WorkshopPeriod = ({ start_date, end_date, enrollment_begins, submitHandler
             margin="normal"
             style={{width: '45%'}}
             id="end_date"
-            label="Workshop Ends"
+            label="Workshop Ends (MST)"
             error={!!errors["end_date"]}
             helperText={errors["end_date"]}
             value={end_date}
