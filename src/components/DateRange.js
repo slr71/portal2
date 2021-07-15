@@ -21,7 +21,7 @@ const DateSpan = ({ date, hideTime }) => {
   if (hideTime)
     return <>{format(d, 'MMM d, yyyy')}</>
   
-  return <>{format(d, 'MMM d, yyyy hh:mm a')}</>
+  return <>{format(d, 'MMM d, yyyy hh:mm a')} MST</>
 }
 
 export { DateSpan, DateRange }
