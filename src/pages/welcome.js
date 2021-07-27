@@ -448,7 +448,7 @@ const getForm = ({ firstNameId, lastNameId, countryId, insitutionId, institution
             required: true,
             value: insitutionId,
             options: institutions,
-            placeholder: "Search ...",
+            placeholder: "Enter a search term and select a result ...",
             errorText: institutionError,
             freeSolo: true,
             onInputChange: inputHandler
