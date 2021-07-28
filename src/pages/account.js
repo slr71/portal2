@@ -287,7 +287,7 @@ const getForms = ({ user, countries, regions, institutions, institutionKeyword, 
         <MailingListForm 
           emails={user.emails} 
           title="Mailing List Subscriptions" 
-          subtitle="Manage which services you would like to receive maintenance-related emails from" 
+          subtitle="Select which service-related email notifications you’d like to receive" 
         />
     },
     { title: "Institution / Research",
