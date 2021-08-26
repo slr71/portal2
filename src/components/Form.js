@@ -8,7 +8,6 @@ import { isEmail, isNumeric, isAlphanumeric, isLowercase, isDate, isEmpty } from
 import { validatePassword } from '../lib/misc'
 import { CheckboxWithLabel } from "formik-material-ui"
 import { honeypotDivisor } from '../config.json'
-import { DomainPropTypes } from '@material-ui/pickers/constants/prop-types'
 
 const useStyles = makeStyles((theme) => ({
   formStepper: {
@@ -279,7 +278,9 @@ const FormField = (props) => {
     required: props.is_required || props.required,
     disabled: props.disabled,
     multiline: props.multiline,
-    rows: props.rows
+    rows: props.rows,
+    autoFocus: props.autoFocus,
+    onFocus: props.onFocus,
   }
 
   if (props.type === 'boolean') {
@@ -370,6 +371,7 @@ const FormField = (props) => {
         }} 
         onInputChange={(event, value) => event && props.onInputChange && props.onInputChange(props.id, value)}
         options={options}
+        filterOptions={option => option} // disable built-in filter (needed for "only first 100 results shown" option in institutions dropdown)
         getOptionSelected={(option, value) => option && value && option.id == value.id}
         getOptionDisabled={(option) => option && option.disabled}
         getOptionLabel={(option) => option && option.name ? option.name : ''}

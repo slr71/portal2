@@ -285,7 +285,7 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
   const [error, setError] = useState()
 
   const [institutions, setInstitutions] = useState([])
-  const [insitutionId, setInstitutionId] = useState()
+  const [institutionId, setInstitutionId] = useState()
   const [institutionError, setInstitutionError] = useState()
   const [countryId, setCountryId] = useState()
   const [isSubmitted, setSubmitted] = useState(false)
@@ -294,26 +294,38 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
 
   const inputHandler = (fieldId, value) => {
     if (fieldId == 'grid_institution_id') {
+      const MAX_RESULTS = 100
       if (debounce.current) clearTimeout(debounce.current)
       if (value.length >= 3) {
         debounce.current =
           setTimeout(async () => {
-            const institutions = await api.institutions({ keyword: value, limit: 100 })
+            const institutions = await api.institutions({ keyword: value, limit: MAX_RESULTS })
             if (institutions.length == 0)
               setInstitutionError('Not found, please try a different search term or enter "other"')
             else {
+              if (institutions.length == MAX_RESULTS)
+                institutions.unshift({ disabled: true, id: 0, name: `Only first ${MAX_RESULTS} matching results shown, please narrow your search` })
               setInstitutions(institutions)
               setInstitutionError()
             }
-          }, 500)
+          }, 300)
       }
       else {
+        setInstitutionId()
         setInstitutions([])
       }
     }
   }
 
-  const [form, setForm] = useState(getForm({ firstNameId, lastNameId, inputHandler }))
+  // Show error when user clicks away from institution input with no result selected
+  // UP-87: https://cyverse.atlassian.net/browse/UP-87?atlOrigin=eyJpIjoiNDU3YmYzNmM4MmQwNDQ5MTgwMzUwZGIxZDVlOTVmODAiLCJwIjoiaiJ9
+  const focusHandler = (e) => {
+    console.log(institutionId)
+    if (e.target.id != 'grid_institution_id' && typeof institutionId === 'undefined')
+      setInstitutionError('This field is required, please select a result from the dropdown list')
+  }
+
+  const [form, setForm] = useState(getForm({ firstNameId, lastNameId, inputHandler, focusHandler }))
 
   const handleSelect = (field, option) => {
     if (field.id == 'country_id') 
@@ -345,8 +357,8 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
   }
   
   React.useEffect(() => {
-    setForm(getForm({ firstNameId, lastNameId, countryId, insitutionId, institutionError, institutions, inputHandler }))
-  }, [countryId, insitutionId, institutions, institutionError])
+    setForm(getForm({ firstNameId, lastNameId, countryId, institutionId, institutionError, institutions, inputHandler, focusHandler }))
+  }, [countryId, institutionId, institutions, institutionError])
 
   // Custom validator for username & email fields
   const validate = async (field, value) => {
@@ -411,7 +423,7 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
   )
 }
 
-const getForm = ({ firstNameId, lastNameId, countryId, insitutionId, institutions, institutionError, inputHandler }) => {
+const getForm = ({ firstNameId, lastNameId, countryId, institutionId, institutions, institutionError, inputHandler, focusHandler }) => {
   return {
     sections: [
       { autosave: true,
@@ -420,7 +432,8 @@ const getForm = ({ firstNameId, lastNameId, countryId, insitutionId, institution
             honeypot: true, // tells Wizard to generate a duplicate honey pot field
             name: "First Name",
             type: "text",
-            required: true
+            required: true,
+            autoFocus: true
           },
           { id: lastNameId,
             honeypot: true, // tells Wizard to generate a duplicate honey pot field
@@ -446,35 +459,40 @@ const getForm = ({ firstNameId, lastNameId, countryId, insitutionId, institution
             name: "Company/Institution",
             type: "autocomplete",
             required: true,
-            value: insitutionId,
+            value: institutionId,
             options: institutions,
-            placeholder: "Enter a search term and select a result ...",
+            placeholder: "Enter a search term and select from results ...",
             errorText: institutionError,
             freeSolo: true,
-            onInputChange: inputHandler
+            onInputChange: inputHandler,
+            autoFocus: true
           },
           { id: "department",
             name: "Department",
             type: "text",
-            required: true
+            required: true,
+            onFocus: focusHandler
           },
           { id: "occupation_id",
             name: "Occupation",
             type: "select",
             required: true,
-            options: properties.occupations
+            options: properties.occupations,
+            onFocus: focusHandler
           },
           { id: "research_area_id",
             name: "Research Area",
             type: "select",
             required: true,
-            options: properties.research_areas
+            options: properties.research_areas,
+            onFocus: focusHandler
           },
           { id: "funding_agency_id",
             name: "Funding Agency",
             type: "select",
             required: true,
-            options: properties.funding_agencies
+            options: properties.funding_agencies,
+            onFocus: focusHandler
           }
         ]
       },
@@ -484,7 +502,8 @@ const getForm = ({ firstNameId, lastNameId, countryId, insitutionId, institution
             name: "Country",
             type: "autocomplete",
             required: true,
-            options: properties.countries.sort(sortCountries)
+            autoFocus: true,
+            options: properties.countries.sort(sortCountries),
           },
           { id: "region_id",
             name: "Region",
