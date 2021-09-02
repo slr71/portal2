@@ -83,15 +83,17 @@ async function userDeletionWorkflow(user) {
             console.error(e)
         }
     }
-            
+
     // Mailman: unsubscribe from mailing lists
-    for (const email of user.emails) {
-        for (const mailingList of email.mailing_lists) {
-            try {
-                await mailmanUpdateSubscription(mailingList.list_name, user.email, false);
-            }
-            catch(e) {
-                console.error(e)
+    if (config.mailman) {
+        for (const email of user.emails) {
+            for (const mailingList of email.mailing_lists) {
+                try {
+                    await mailmanUpdateSubscription(mailingList.list_name, user.email, false);
+                }
+                catch(e) {
+                    console.error(e)
+                }
             }
         }
     }

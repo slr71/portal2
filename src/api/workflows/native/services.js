@@ -99,7 +99,8 @@ async function addEmailToMailingList(email, listName) {
         }
     });
 
-    await mailmanUpdateSubscription(listName, email, true);
+    if (config.mailman)
+        await mailmanUpdateSubscription(listName, email, true);
 }
 
 async function createBisqueUser(request) {
