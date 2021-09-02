@@ -29,7 +29,8 @@ async function userCreationWorkflow(user) {
     await irodsChMod("own", "rodsadmin", `/iplant/home/${user.username}`);
 
     // Mailchimp: subscribe user to newsletter 
-    await mailchimpSubscribe(user.email, user.first_name, user.last_name);
+    if (config.mailchimp)
+        await mailchimpSubscribe(user.email, user.first_name, user.last_name);
 }
 
 async function userPasswordUpdateWorkflow(user) {
@@ -74,13 +75,15 @@ async function userDeletionWorkflow(user) {
     }
 
     // Mailchimp: unsubscribe user from newsletter 
-    try {
-        await mailchimpDelete(user.email);
+    if (config.mailchimp) {
+        try {
+            await mailchimpDelete(user.email);
+        }
+        catch(e) {
+            console.error(e)
+        }
     }
-    catch(e) {
-        console.error(e)
-    }
-
+            
     // Mailman: unsubscribe from mailing lists
     for (const email of user.emails) {
         for (const mailingList of email.mailing_lists) {
