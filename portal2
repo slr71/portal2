@@ -7,6 +7,11 @@ if [[ -n "$PORTAL2_DIR" ]]; then
     cd "$PORTAL2_DIR"
 fi
 
+# Copy the configuration file to the app working directory if necessary.
+if [[ -n "$PORTAL2_CONFIG" && -f "$PORTAL2_CONFIG" ]]; then
+    cp "$PORTAL2_CONFIG" .
+fi
+
 # Verify that the configuration file is present.
 if [[ ! -e "config.json" ]]; then
     echo "Missing configuration file: $PORTAL2_DIR/config.json" >&2
