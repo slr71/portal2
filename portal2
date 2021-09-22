@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Switch to the portal directory.
+if [[ -n "$PORTAL2_DIR" ]]; then
+    cd "$PORTAL2_DIR"
+fi
+
+# Verify that the configuration file is present.
+if [[ ! -e "config.json" ]]; then
+    echo "Missing configuration file: $PORTAL2_DIR/config.json" >&2
+    exit 1
+fi
+
+# Build the app.
+npm run build
+
+# Run the app.
+npm start
