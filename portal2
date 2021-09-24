@@ -9,12 +9,12 @@ fi
 
 # Copy the configuration file to the app working directory if necessary.
 if [[ -n "$PORTAL2_CONFIG" && -f "$PORTAL2_CONFIG" ]]; then
-    cp "$PORTAL2_CONFIG" .
+    cp "$PORTAL2_CONFIG" src/
 fi
 
 # Verify that the configuration file is present.
-if [[ ! -e "config.json" ]]; then
-    echo "Missing configuration file: $PORTAL2_DIR/config.json" >&2
+if [[ ! -e "src/config.json" ]]; then
+    echo "Missing configuration file: $PORTAL2_DIR/src/config.json" >&2
     exit 1
 fi
 
