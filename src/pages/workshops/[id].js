@@ -403,6 +403,8 @@ const WorkshopEditor = (props) => {
     try {
       await api.updateWorkshopRequest(requestId, { status, message })
       const newRequests = await api.workshopRequests(workshop.id)
+      const newParticipants = await api.workshopParticipants(workshop.id)
+      setParticipants(newParticipants)
       setRequests(newRequests)
     }
     catch(error) {
