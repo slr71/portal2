@@ -426,8 +426,8 @@ export default function BannerImage() {
                 y2="307.69"
                 fill="none"
                 stroke="#aa2173"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="453.99"
@@ -436,8 +436,8 @@ export default function BannerImage() {
                 y2="205.96"
                 fill="none"
                 stroke="#aa2173"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="402.06"
@@ -446,8 +446,8 @@ export default function BannerImage() {
                 y2="205.96"
                 fill="none"
                 stroke="#aa2173"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="464.78"
@@ -456,8 +456,8 @@ export default function BannerImage() {
                 y2="205.96"
                 fill="none"
                 stroke="#aa2173"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="472.92"
@@ -466,8 +466,8 @@ export default function BannerImage() {
                 y2="205.96"
                 fill="none"
                 stroke="#aa2173"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="480.3"
@@ -476,8 +476,8 @@ export default function BannerImage() {
                 y2="205.96"
                 fill="none"
                 stroke="#aa2173"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="414.79"
@@ -486,8 +486,8 @@ export default function BannerImage() {
                 y2="256.96"
                 fill="none"
                 stroke="#aa2173"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="442.99"
@@ -496,8 +496,8 @@ export default function BannerImage() {
                 y2="272.54"
                 fill="none"
                 stroke="#aa2173"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <path
                 d="M359.23,302.57l4.29-9.57,10.31-23,12.42-27.68,10.78-24c1.74-3.87,3.64-7.72,5.23-11.66,0,0,.05-.11.08-.16.53-1.18-1.23-2.22-1.76-1l-4.3,9.58L386,238l-12.42,27.68-10.78,24c-1.74,3.88-3.63,7.73-5.23,11.67,0,.05-.05.1-.07.16-.53,1.18,1.22,2.22,1.76,1Z"
@@ -531,15 +531,15 @@ export default function BannerImage() {
                 points="318.87 272.42 351.36 246.27 349.7 243.11"
                 fill="none"
                 stroke="#378f43"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <polyline
                 points="313.1 266.82 354.61 238.82 352.02 233.82"
                 fill="none"
                 stroke="#378f43"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="308.71"
@@ -548,8 +548,8 @@ export default function BannerImage() {
                 y2="205.96"
                 fill="none"
                 stroke="#378f43"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="304.83"
@@ -558,15 +558,15 @@ export default function BannerImage() {
                 y2="205.96"
                 fill="none"
                 stroke="#0971ab"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <polyline
                 points="324.55 278.68 365.02 240.41 361.45 229"
                 fill="none"
                 stroke="#0971ab"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="332.3"
@@ -575,8 +575,8 @@ export default function BannerImage() {
                 y2="205.96"
                 fill="none"
                 stroke="#0971ab"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="301.27"
@@ -585,8 +585,8 @@ export default function BannerImage() {
                 y2="205.96"
                 fill="none"
                 stroke="#0971ab"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="297.94"
@@ -595,8 +595,8 @@ export default function BannerImage() {
                 y2="205.96"
                 fill="none"
                 stroke="#0971ab"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="295.14"
@@ -605,8 +605,8 @@ export default function BannerImage() {
                 y2="205.96"
                 fill="none"
                 stroke="#0971ab"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <path
                 d="M506.83,218.1a105.88,105.88,0,0,1-210.61-18.31c0-1.39.06-2.79.2-4.17,0-.38.22-1.1,0-.25.07-.29.09-.6.14-.89a19.69,19.69,0,0,1,.88-3.11l.15-.37c.14-.39-.3.61-.1.24s.23-.51.35-.76c.24-.46.49-.91.76-1.35s.64-.86.91-1.32c-.38.65-.17.22.1-.1s.36-.42.55-.63a25.15,25.15,0,0,1,2.34-2.16c.32-.28-.56.4-.13.1l.33-.25.68-.47c.47-.32,1-.62,1.45-.9,1-.61,2.16-1.08,3.25-1.63.09,0-.64.26-.1,0l.37-.16.95-.36c.61-.22,1.23-.43,1.84-.63a58,58,0,0,1,8.32-1.91l1-.16.56-.08c-.59.09-.24,0,.1,0,.78-.1,1.57-.19,2.35-.27,1.66-.16,3.33-.28,5-.37,3.53-.18,7.07-.2,10.61-.11a233.88,233.88,0,0,1,23.93,2l1.45.19.3,0,.9.13,3.17.46c2.19.32,4.37.67,6.55,1,4.39.73,8.75,1.54,13.11,2.4,9,1.77,17.89,3.79,26.77,6q13,3.23,25.85,6.92,11.86,3.4,23.61,7.18,10.05,3.24,20,6.79c4.94,1.78,9.87,3.63,14.72,5.66l.36.15c.39.16-.67-.29-.2-.09l.74.32,1.28.56c.75.33,1.49.67,2.23,1a27.22,27.22,0,0,1,3.11,1.66c.15.09.29.22.44.3-.24-.13-.54-.57-.2-.13s-.36-.55-.22-.31a3.35,3.35,0,0,1-.31-1.15,2.73,2.73,0,0,0,2.72,2.71,2.77,2.77,0,0,0,2.71-2.71c.3-2.53-3.44-4.06-5.22-4.92-3.95-1.91-8-3.53-12.13-5.11-5.87-2.26-11.8-4.37-17.76-6.4q-11.13-3.79-22.4-7.22-12.69-3.85-25.51-7.28-13.45-3.6-27.05-6.63c-9-2-18-3.77-27-5.24-8.62-1.39-17.29-2.53-26-3.19a156.51,156.51,0,0,0-22.4-.29,69.27,69.27,0,0,0-18.27,3.33c-4.72,1.67-9.43,4.15-12.68,8.08a20.92,20.92,0,0,0-3.7,6.55c-1.24,3.64-1.23,7.62-1.26,11.41a111.12,111.12,0,0,0,6.82,39.13,111.75,111.75,0,0,0,48.36,57.72,110.34,110.34,0,0,0,36.24,13.38A113.25,113.25,0,0,0,423,312a110,110,0,0,0,36.67-14.06,111.91,111.91,0,0,0,47.94-59.77,109.85,109.85,0,0,0,4.49-18.58,2.81,2.81,0,0,0-1.9-3.34C508.89,215.86,507.05,216.65,506.83,218.1Z"
@@ -691,8 +691,8 @@ export default function BannerImage() {
                 y2="264.52"
                 fill="none"
                 stroke="#aa2173"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="420.49"
@@ -701,8 +701,8 @@ export default function BannerImage() {
                 y2="273.02"
                 fill="none"
                 stroke="#aa2173"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <line
                 x1="408.21"
@@ -711,8 +711,8 @@ export default function BannerImage() {
                 y2="256.02"
                 fill="none"
                 stroke="#aa2173"
-                stroke-miterlimit="10"
-                stroke-width="1.81"
+                strokeMiterlimit="10"
+                strokeWidth="1.81"
             />
             <path
                 d="M348.24,75.15c16.53-12.28,25.5-26.92,21.25-60C370,37.84,364,58.19,348.24,75.15Z"

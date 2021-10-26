@@ -41,7 +41,7 @@ const WelcomeBanner = ({ closeHandler }) => {
                     alignItems="center"
                     spacing={4}
                 >
-                    <Grid item xs={0} sm={12} md={5} lg={5} className={classes.bannerImage}>
+                    <Grid item sm={12} md={5} lg={5} className={classes.bannerImage}>
                         <BannerImage />
                     </Grid>
                     <Grid item xs={12} sm={12} md={7} lg={6} className={classes.padding}>

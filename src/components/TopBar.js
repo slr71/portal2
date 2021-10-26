@@ -1,4 +1,4 @@
-import { Grid, Box, Tabs, Tab, Breadcrumbs, Link, Typography } from '@material-ui/core'
+import { Grid, Box, Breadcrumbs, Link, Typography } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles'
 import { useRouter } from 'next/router'
 import { menuItems } from './menuItems.js'
@@ -20,30 +20,11 @@ const useStyles = makeStyles((theme) => ({
   }
 }))
 
-const TabMenu = props => {
-  return (
-    <Tabs
-      value={props.value}
-      indicatorColor="primary"
-      textColor="primary"
-      aria-label="disabled tabs example"
-      centered
-    >
-      {props.items.map((item, index) => (
-        <Link key={index} href={item.path}>
-          <Tab label={item.label} value={item.path} />
-        </Link>
-      ))}
-    </Tabs>
-  )
-}
-
 const BreadcrumbsMenu = ({ parts, title }) => {
   const classes = useStyles()
 
-  if (parts.length <= 1) {
+  if (parts.length <= 1)
     return <></>
-  }
 
   return (
     <Breadcrumbs className={classes.breadcrumbs}>
