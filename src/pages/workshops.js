@@ -2,7 +2,6 @@ import { Grid, Link, Box, Divider, Typography, Button, makeStyles } from '@mater
 import { Event as EventIcon, VisibilityOff as VisibilityOffIcon } from '@material-ui/icons'
 import { DateRange, Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
-import { withGetServerSideError } from '../contexts/error'
 
 const useStyles = makeStyles((theme) => ({
   nowrap: {

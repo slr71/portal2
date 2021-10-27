@@ -17,7 +17,6 @@ const AccessRequest = models.api_accessrequest;
 const { approveRequest, grantRequest } = require('./approvers/workshop');
 const serviceApprovers = require('./approvers/service');
 const { notifyClientOfWorkshopRequestStatusChange } = require('./lib/ws');
-const config = require('../config');
 
 function hasHostAccess(workshop, user) {
     return workshop.creator_id == user.id || user.is_staff
@@ -120,7 +119,7 @@ DTSTART:${convertToICSDate(dates[i].start)}
 DTEND:${convertToICSDate(dates[i].end)}
 SUMMARY:${workshop.title}
 UID:${'workshop' + workshop.id + '-' + i + '@user.cyverse.org'}
-URL:${config.uiBaseUrl}/workshops/${workshop.id}
+URL:${process.env.UI_BASE_URL}/workshops/${workshop.id}
 END:VEVENT
 `);
         }

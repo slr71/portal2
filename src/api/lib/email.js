@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const sendmail = require('sendmail')({ silent: false });
 const { logger } = require('./logging');
-const config = require('../../config.json');
 const { UI_WORKSHOPS_URL, UI_REQUESTS_URL, UI_SERVICES_URL, UI_PASSWORD_URL, UI_CONFIRM_EMAIL_URL } = require('../../constants');
 
 const TIME_BETWEEN_EMAILS = 30 * 1000 // rate limit to one email sent per 30 seconds
@@ -76,7 +75,7 @@ function emailNewAccountConfirmation(email, hmac) {
     queueEmail(
         renderEmail({
             to: email, 
-            bcc: config.email.bccNewAccountConfirmation,
+            bcc: process.env.BCC_NEW_ACCOUNT_CONFIRMATION,
             subject: 'Please Confirm Your E-Mail Address',
             templateName: 'email_confirmation_signup',
             fields: {
@@ -109,7 +108,7 @@ async function emailPasswordReset(emailAddress, hmac) {
     queueEmail(
         renderEmail({
             to: emailAddress.email, 
-            bcc: config.email.bccPasswordChangeRequest,
+            bcc: process.env.BCC_PASSWORD_CHANGE_REQUEST,
             subject: 'CyVerse Password Reset',
             templateName: 'password_reset',
             fields: {
@@ -129,7 +128,7 @@ async function emailServiceAccessGranted(request) {
     queueEmail(
         renderEmail({
             to: user.email, 
-            bcc: config.email.bccServiceAccessGranted,
+            bcc: process.env.BCC_SERVICE_ACCESS_GRANTED,
             subject: 'CyVerse Service Access Granted',
             templateName: 'access_granted',
             fields: {
@@ -154,7 +153,7 @@ async function emailWorkshopEnrollmentRequest(request) {
     queueEmail(
         renderEmail({
             to: workshop.owner.email, 
-            bcc: config.email.bccWorkshopEnrollmentRequest,
+            bcc: process.env.BCC_WORKSHOP_ENROLLMENT_REQUEST,
             subject: 'CyVerse Workshop Enrollment Request',
             templateName: 'review_workshop_enrollment_request',
             fields: {
@@ -179,7 +178,7 @@ function emailWorkshopEnrollmentConfirmation(request) {
     queueEmail(
         renderEmail({
             to: user.email, 
-            bcc: config.email.bccWorkshopEnrollmentRequest,
+            bcc: process.env.BCC_WORKSHOP_ENROLLMENT_REQUEST,
             subject: 'CyVerse Workshop Enrollment Approved',
             templateName: 'workshop_enrollment',
             fields: {

@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
+import getConfig from "next/config"
 import Markdown from 'markdown-to-jsx'
 import { makeStyles, Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse, Chip } from '@material-ui/core'
 import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@material-ui/icons'
@@ -10,7 +11,6 @@ import { Layout, DateRange, DateSpan, TabPanel, UpdateForm, FormDialog, Contacts
 import { useAPI } from '../../contexts/api'
 import { useError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
-import { wsBaseUrl } from '../../config'
 const { WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE } = require('../../constants')
 
 const useStyles = makeStyles((theme) => ({
@@ -49,6 +49,7 @@ const Workshop = (props) => {
 }
 
 const WorkshopViewer = (props) => {
+  const config = getConfig().publicRuntimeConfig
   const workshop = props.workshop
   const classes = useStyles()
   const api = useAPI()
@@ -78,7 +79,7 @@ const WorkshopViewer = (props) => {
   // The enrollment status will live udpate in cases where an instructor manually approves a request
   // while the user is viewing this page.
   useEffect(() => {
-    const socket = new WebSocket(`${wsBaseUrl}/${user.username}`)
+    const socket = new WebSocket(`${config.WS_BASE_URL}/${user.username}`)
 
     // Listen for messages // TODO move into library
     socket.addEventListener('message', function (event) {

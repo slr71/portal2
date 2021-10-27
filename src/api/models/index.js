@@ -9,18 +9,16 @@
 const fs = require('fs');
 const path = require('path');
 const { Sequelize } = require('sequelize');
-const config = require('../../config.json');
-
 
 /**
  * Connect to database
  */
 
 const sequelize = new Sequelize(
-  config.db.database, config.db.user, config.db.password,
-  { host: config.db.host,
+  process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD,
+  { host: process.env.DB_HOST,
     dialect: 'postgres',
-    logging: config.db.logging,
+    logging: process.env.DB_LOGGING,
     define: {
       timestamps: false,
       freezeTableName: true,

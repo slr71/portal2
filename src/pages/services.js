@@ -5,7 +5,6 @@ import { Launch as LaunchIcon, HelpOutlineOutlined as HelpIcon } from '@material
 import { Layout, SummaryCard, WelcomeBanner } from '../components'
 import { useUser } from '../contexts/user'
 import { WELCOME_BANNER_COOKIE } from '../constants'
-import { withGetServerSideError } from '../contexts/error'
 const inlineIcons = require('../inline_icons.json')
 
 const Services = (props) => {

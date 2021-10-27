@@ -14,7 +14,6 @@ const { approveRequest, grantRequest } = require('./approvers/service');
 const intercom = require('./lib/intercom');
 const { notifyClientOfServiceRequestStatusChange } = require('./lib/ws');
 const { getUser, requireAdmin, asyncHandler } = require('./lib/auth');
-const config = require('../config.json')
 
 const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api_poweredservice where service_ptr_id=id))'), 'is_powered' ];
 

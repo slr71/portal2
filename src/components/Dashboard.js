@@ -1,5 +1,6 @@
 import React from 'react'
 import clsx from 'clsx'
+import getConfig from "next/config"
 import { useRouter } from 'next/router'
 import { makeStyles } from '@material-ui/core/styles'
 import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline, Snackbar, Hidden } from '@material-ui/core'
@@ -12,7 +13,7 @@ import { CustomIntercom } from './CustomIntercom'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
 import { useError } from '../contexts/error'
-import { ACCOUNT_UPDATE_REMINDER_COOKIE } from '../constants'
+// import { ACCOUNT_UPDATE_REMINDER_COOKIE } from '../constants'
 
 const drawerWidth = 235
 
@@ -122,6 +123,7 @@ function Copyright() {
 }
 
 export default function Dashboard(props) {
+  const config = getConfig().publicRuntimeConfig
   const classes = useStyles()
   const [user, setUser] = useUser()
   const api = useAPI()
@@ -177,7 +179,7 @@ export default function Dashboard(props) {
           </IconButton>
           <MainLogo size="medium" />
           <div style={{flexGrow: 1}} />
-          <CustomIntercom />
+          {config.INTERCOM_ENABLED && <CustomIntercom />}
           <Hidden xsDown implementation="css">
             <Tooltip title="Manage your account">
               <Button

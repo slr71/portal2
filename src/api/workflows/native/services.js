@@ -6,7 +6,6 @@ const models = require('../../models');
 const MailingList = models.api_mailinglist;
 const EmailAddress = models.account_emailaddress;
 const EmailAddressToMailingList = models.api_emailaddressmailinglist;
-const config = require('../../../config.json');
 
 const servicesConfig = {
     ATMOSPHERE: {
@@ -99,7 +98,7 @@ async function addEmailToMailingList(email, listName) {
         }
     });
 
-    if (config.mailman)
+    if (process.env.MAILMAN_ENABLED)
         await mailmanUpdateSubscription(listName, email, true);
 }
 
@@ -111,10 +110,10 @@ async function createBisqueUser(request) {
         <tag name="display_name" value="${request.user.username}"/>
     </user>`;
 
-    const token = Buffer.from(`${config.bisque.username}:${config.bisque.password}`).toString('base64');
+    const token = Buffer.from(`${process.env.BISQUE_USER}:${process.env.BISQUE_PASSWORD}`).toString('base64');
 
-    logger.info(`POST request to ${config.bisque.url}`);
-    return await axios.post(config.bisque.url, xml, {
+    logger.info(`POST request to ${process.env.BISQUE_URL}`);
+    return await axios.post(process.env.BISQUE_URL, xml, {
         headers: {
             'Content-Type': 'application/xml',
             'Authorization': `Basic ${token}`

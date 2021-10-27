@@ -7,7 +7,6 @@ import debounce from 'just-debounce-it'
 import { isEmail, isNumeric, isAlphanumeric, isLowercase, isDate, isEmpty } from 'validator'
 import { validatePassword } from '../lib/misc'
 import { CheckboxWithLabel } from "formik-material-ui"
-import { honeypotDivisor } from '../config.json'
 
 const useStyles = makeStyles((theme) => ({
   formStepper: {
@@ -242,7 +241,7 @@ const classes = useStyles()
   )
 }
 
-const honeypotId = (modulus) => (honeypotDivisor * Math.floor(Math.random() * 1000) + modulus).toString()
+const honeypotId = (modulus) => (process.env.HONEYPOT_DIVISOR * Math.floor(Math.random() * 1000) + modulus).toString()
 
 const SwitchField = (props) => (
   <>

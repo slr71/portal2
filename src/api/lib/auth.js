@@ -1,6 +1,5 @@
 const models = require('../models')
 const User = models.account_user
-const config = require('../../config.json')
 
 const getUserToken = (req) => {
   const keycloakToken = (req && req.kauth && req.kauth.grant && req.kauth.grant.access_token ? req.kauth.grant.access_token : null) //req?.kauth?.grant?.access_token
@@ -13,9 +12,8 @@ const getUserID = (req) => {
   return (accessToken && accessToken.content ? accessToken.content.preferred_username : null) //req?.kauth?.grant?.access_token?.content?.preferred_username
 }
 
-
 const getUser = async (req, _, next) => {
-  const userId = config.debugUser || getUserID(req)
+  const userId = process.env.DEBUG_USER || getUserID(req)
   if (userId) {
       const user = await User.findOne({ where: { username: userId } })
       if (!user) // should never happen

@@ -15,7 +15,6 @@ const EmailAddress = models.account_emailaddress;
 const Workshop = models.api_workshop;
 const WorkshopOrganizer = models.api_workshoporganizer;
 const { UI_ACCOUNT_REVIEW_URL } = require('../constants')
-const config = require('../config.json');
 
 //TODO move into module
 const likeAny = (key, vals) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), { [sequelize.Op.like]: { [sequelize.Op.any]: vals.map(k => `%${k}%`) } }) 
@@ -114,12 +113,12 @@ router.get('/:usernameOrId(\\w+)/status', getUser, asyncHandler(async (req, res)
     const daysSinceUpdate = (Date.now() - new Date(user.updated_at)) / (24*60*60*1000)
     res.status(200).json({
       updated_at: user.updated_at,
-      update_required: daysSinceUpdate > config.profile.updatePeriod,
-      warning_required: daysSinceUpdate <= config.profile.updatePeriod && daysSinceUpdate > (config.profile.updatePeriod - config.profile.warningPeriod),
-      update_period: config.profile.updatePeriod,
-      warning_period: config.profile.warningPeriod,
-      update_text: config.profile.updateText,
-      warning_text: config.profile.warningText,
+      update_required: daysSinceUpdate > process.env.PROFILE_UPDATE_PERIOD,
+      warning_required: daysSinceUpdate <= process.env.PROFILE_UPDATE_PERIOD && daysSinceUpdate > (process.env.PROFILE_UPDATE_PERIOD - process.env.PROFILE_WARNING_PERIOD),
+      update_period: process.env.PROFILE_UPDATE_PERIOD,
+      warning_period: process.env.PROFILE_WARNING_PERIOD,
+      update_text: process.env.PROFILE_UPDATE_TEXT,
+      warning_text: process.env.PROFILE_WARNING_TEXT,
       update_url: UI_ACCOUNT_REVIEW_URL
     });
 }));
@@ -321,7 +320,7 @@ router.post('/password', getUser, asyncHandler(async (req, res) => {
     // Update password in LDAP (do after response as to not delay it)
     logger.info(`Updating password for user ${user.username}`);
     user.password = fields.password; // kludgey, but use raw password
-    if (config.argo)
+    if (process.env.ARGO_ENABLED)
         await submitUserWorkflow('update-password', user);
     else
         await userPasswordUpdateWorkflow(user);
@@ -397,7 +396,7 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
         return res.status(403).send('Cannot delete privileged user');
 
     // Submit user deletion workflow to remove user from subsystems (LDAP, IRODS, etc)
-    if (config.argo) {
+    if (process.env.ARGO_ENABLED) {
         await Argo.submit(
             'user.yaml',
             'delete-user',
@@ -407,13 +406,13 @@ router.delete('/:id(\\d+)', getUser, asyncHandler(async (req, res) => {
                 email: user.email,
 
                 // Other params
-                portal_api_base_url: config.apiBaseUrl,
-                ldap_host: config.ldap.host,
-                ldap_admin: config.ldap.admin,
-                ldap_password: config.ldap.password,
-                mailchimp_api_url: config.mailchimp.baseUrl,
-                mailchimp_api_key: config.mailchimp.apiKey,
-                mailchimp_list_id: config.mailchimp.listId,
+                portal_api_base_url: process.env.API_BASE_URL,
+                ldap_host: process.env.LDAP_HOST,
+                ldap_admin: process.env.LDAP_ADMIN,
+                ldap_password: process.env.LDAP_PASSWORD,
+                mailchimp_api_url: process.env.MAILCHIMP_URL,
+                mailchimp_api_key: process.env.MAILCHIMP_API_KEY,
+                mailchimp_list_id: process.env.MAILCHIMP_LIST_ID,
             }
         );
     }

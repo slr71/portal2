@@ -1,6 +1,5 @@
 const { ldapCreateUser, ldapModify, ldapChangePassword, ldapAddUserToGroup, ldapDeleteUser, irodsCreateUser, irodsChMod, irodsChangePassword, irodsSafeDeleteHome, irodsDeleteUser, mailchimpSubscribe, mailchimpDelete, mailmanUpdateSubscription } = require('./lib');
 const { logger } = require('../../lib/logging');
-const config = require('../../../config.json');
 
 async function userCreationWorkflow(user) {
     if (!user)
@@ -29,7 +28,7 @@ async function userCreationWorkflow(user) {
     await irodsChMod("own", "rodsadmin", `/iplant/home/${user.username}`);
 
     // Mailchimp: subscribe user to newsletter 
-    if (config.mailchimp)
+    if (process.env.MAILCHIMP_ENABLED)
         await mailchimpSubscribe(user.email, user.first_name, user.last_name);
 }
 
@@ -75,7 +74,7 @@ async function userDeletionWorkflow(user) {
     }
 
     // Mailchimp: unsubscribe user from newsletter 
-    if (config.mailchimp) {
+    if (process.env.MAILCHIMP_ENABLED) {
         try {
             await mailchimpDelete(user.email);
         }
@@ -85,7 +84,7 @@ async function userDeletionWorkflow(user) {
     }
 
     // Mailman: unsubscribe from mailing lists
-    if (config.mailman) {
+    if (process.env.MAILMAN_ENABLED) {
         for (const email of user.emails) {
             for (const mailingList of email.mailing_lists) {
                 try {

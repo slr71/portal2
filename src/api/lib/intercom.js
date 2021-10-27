@@ -9,10 +9,9 @@
 
 const Intercom = require('intercom-client');
 const { logger } = require('./logging');
-const config = require('../../config.json');
 
-const intercom = config.intercom && config.intercom.token
-    ? new Intercom.Client({ token: config.intercom.token })
+const intercom = process.env.INTERCOM_ENABLED && process.env.INTERCOM_TOKEN
+    ? new Intercom.Client({ token: process.env.INTERCOM_TOKEN })
     : null; // Intercom disabled
 
 if (!intercom) {
@@ -115,7 +114,7 @@ async function addNoteToConversation(conversationId, message) {
         await intercom.conversations.reply({
             id: conversationId,
             type: 'admin',
-            admin_id: config.intercom.adminUserPortalBotId,
+            admin_id: process.env.INTERCOM_ADMIN_USER_PORTAL_BOT_ID,
             message_type: 'note',
             body: message
         })
@@ -131,7 +130,7 @@ async function assignConversation(conversationId, assigneeId) {
     await intercom.conversations.reply({
         id: conversationId,
         type: 'admin',
-        admin_id: config.intercom.adminUserPortalBotId,
+        admin_id: process.env.INTERCOM_ADMIN_USER_PORTAL_BOT_ID,
         assignee_id: assigneeId,
         message_type: 'assignment'
     })
@@ -141,7 +140,7 @@ async function replyToConversation(conversationId, message) {
     await intercom.conversations.reply({
         id: conversationId,
         type: 'admin',
-        admin_id: config.intercom.adminUserPortalBotId,
+        admin_id: process.env.INTERCOM_ADMIN_USER_PORTAL_BOT_ID,
         message_type: 'comment',
         body: message
     });

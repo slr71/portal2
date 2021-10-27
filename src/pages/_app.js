@@ -12,11 +12,10 @@ import { UserProvider } from '../contexts/user'
 import { ErrorProvider } from '../contexts/error'
 import Custom404 from './404'
 import Custom500 from './500'
-import config from '../config.json'
 
-if (config.sentryDSN) {
+if (process.env.SENTRY_DSN) {
   Sentry.init({ 
-    dsn: config.sentryDSN,
+    dsn: process.env.SENTRY_DSN,
     environment: process.env.NODE_ENV
   });
 }

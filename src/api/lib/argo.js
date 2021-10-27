@@ -2,18 +2,15 @@ const axios = require('axios');
 const yaml = require('js-yaml');
 const fs = require('fs');
 const path = require('path');
-const config = require('../../config.json');
-
 class ArgoApi {
     constructor(params) {
     if (!params)
-        if (!('argo' in config)) {
+        if (!process.env.ARGO_ENABLED) {
             console.warn('Missing Argo configuration');
             return;
         }
-	    params = config.argo;
-        this.disabled = params && 'disabled' in params && params.disabled;
-        this.namespace = params.namespace || 'default';
+        this.disabled = !process.env.ARGO_ENABLED;
+        this.namespace = 'default';
 
         this.axios = axios.create({
 	    baseURL: params.baseUrl || 'http://localhost:2746/api/v1',

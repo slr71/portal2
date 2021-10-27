@@ -4,7 +4,6 @@ import { isEmpty, isEmail } from 'validator'
 import { Link, Box, Grid, Typography, TextField, Button, LinearProgress, makeStyles} from '@material-ui/core'
 import { MainLogo, Wizard, WelcomeAnimation, honeypotId } from '../components'
 import { useAPI } from '../contexts/api'
-import { generateHMAC } from '../api/lib/hmac'
 import { sortCountries } from '../lib/misc'
 const properties = require('../user-properties.json')
 
@@ -538,6 +537,8 @@ const getForm = ({ firstNameId, lastNameId, countryId, institutionId, institutio
 }
 
 export async function getServerSideProps() {
+  const { generateHMAC } = require('../api/lib/hmac')
+  
   const startTimeHMAC = generateHMAC(Date.now()) // for securing create user and password reset
   const firstNameId = honeypotId(1)
   const lastNameId = honeypotId(2)

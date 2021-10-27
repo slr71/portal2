@@ -10,7 +10,6 @@ const User = models.account_user;
 const MailingList = models.api_mailinglist;
 const EmailAddress = models.account_emailaddress;
 const EmailAddressToMailingList = models.api_emailaddressmailinglist;
-const config = require('../config.json')
 
 //TODO move into module
 const lowerEqualTo = (key, val) => sequelize.where(sequelize.fn('lower', sequelize.col(key)), val.toLowerCase()); 
@@ -124,7 +123,7 @@ router.delete('/email_addresses/:id(\\d+)', getUser, asyncHandler(async (req, re
     res.status(200).send('success');
 
     // Unsubscribe from all subscribed mailing lists in Mailman (do after response as to not delay it)
-    if (config.mailman) {
+    if (process.env.MAILMAN_ENABLED) {
         for (const list of emailAddress.mailing_lists) {
             if (subscriptions.find(s => s.mailing_list_id == list.id && s.is_subscribed))
                 await mailmanUpdateSubscription(list.list_name, emailAddress.email, false);
@@ -215,7 +214,7 @@ router.post('/:id(\\d+)/subscriptions', getUser, asyncHandler(async (req, res) =
     res.status(200).send('success');
 
     // Update subscription status in Mailman (do after response as to not delay it)
-    if (config.mailman)
+    if (process.env.MAILMAN_ENABLED)
         await mailmanUpdateSubscription(mailingList.list_name, email, subscribe);
 }));
 

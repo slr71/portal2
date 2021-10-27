@@ -2,7 +2,6 @@
 
 const { exec, execFile } = require('child_process');
 var crypto = require('crypto');
-const config = require('../../../config.json');
 
 // Escape args with escapeShell() or use runFile() instead
 function run(strOrArray) {
@@ -55,12 +54,12 @@ function runFile(cmd, args) {
 }
 
 function dockerRun(args) {
-    return runFile("docker", [ "run", config.nativeWorkflow.image, ...args ])
+    return runFile("docker", [ "run", process.env.NATIVE_WORKFLOW_IMAGE_ID, ...args ])
 }
 
 function ldapGetUser(username) {
     return runFile("ldapsearch", [
-        "-H", config.ldap.host, 
+        "-H", process.env.LDAP_HOST, 
         "-x",
         "-LLL",
         "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
@@ -74,22 +73,22 @@ function ldapCreateUser(user) {
 
     // Calculate uidNumber
     // Old method: /repos/portal/cyverse_ldap/utils/get_uid_number.py
-    const uidNumber = user.id + config.uidNumberOffset;
+    const uidNumber = user.id + process.env.UID_NUMBER_OFFSET;
 
     // username and occupation name will be shell safe values but others should be escaped
-    return run(`echo "dn: uid=${user.username},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: ${escapeShell(user.first_name)}\nsn: ${escapeShell(user.last_name)}\ncn: ${escapeShell(user.first_name + ' ' + user.last_name)}\nuid: ${user.username}\nmail: ${escapeShell(user.email)}\ndepartmentNumber: ${escapeShell(user.department)}\no: ${escapeShell(user.institution)}\ntitle: ${user.occupation.name}\nhomeDirectory: /home/${user.username}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: ${uidNumber}\nshadowLastChange:${daysSinceEpoch}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password} -o nettimeout=5`);
+    return run(`echo "dn: uid=${user.username},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: ${escapeShell(user.first_name)}\nsn: ${escapeShell(user.last_name)}\ncn: ${escapeShell(user.first_name + ' ' + user.last_name)}\nuid: ${user.username}\nmail: ${escapeShell(user.email)}\ndepartmentNumber: ${escapeShell(user.department)}\no: ${escapeShell(user.institution)}\ntitle: ${user.occupation.name}\nhomeDirectory: /home/${user.username}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: ${uidNumber}\nshadowLastChange:${daysSinceEpoch}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H ${process.env.LDAP_HOST} -D ${process.env.LDAP_ADMIN} -w ${process.env.LDAP_PASSWORD} -o nettimeout=5`);
 }
 
 function ldapModify(username, attribute, value) {
     // username and attribute will be shell safe values but value should be escaped
-    return run(`echo "dn: uid=${username},ou=People,dc=iplantcollaborative,dc=org\nreplace: ${attribute}\n${attribute}: ${escapeShell(value)}" | ldapmodify -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password} -o nettimeout=5`);
+    return run(`echo "dn: uid=${username},ou=People,dc=iplantcollaborative,dc=org\nreplace: ${attribute}\n${attribute}: ${escapeShell(value)}" | ldapmodify -H ${process.env.LDAP_HOST} -D ${process.env.LDAP_ADMIN} -w ${process.env.LDAP_PASSWORD} -o nettimeout=5`);
 }
 
 function ldapChangePassword(username, password) {
     return runFile("ldappasswd", [
-        "-H", config.ldap.host, 
-        "-D", config.ldap.admin,
-        "-w", config.ldap.password, 
+        "-H", process.env.LDAP_HOST, 
+        "-D", process.env.LDAP_ADMIN,
+        "-w", process.env.LDAP_PASSWORD, 
         "-s", password,
         "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
         `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
@@ -97,14 +96,14 @@ function ldapChangePassword(username, password) {
 }
 
 function ldapAddUserToGroup(username, group) {
-    return run(`echo "dn: cn=${group},ou=Groups,dc=iplantcollaborative,dc=org\nchangetype: modify\nadd: memberUid\nmemberUid: ${username}" | ldapmodify -H ${config.ldap.host} -D ${config.ldap.admin} -w ${config.ldap.password} -o nettimeout=5`);
+    return run(`echo "dn: cn=${group},ou=Groups,dc=iplantcollaborative,dc=org\nchangetype: modify\nadd: memberUid\nmemberUid: ${username}" | ldapmodify -H ${process.env.LDAP_HOST} -D ${process.env.LDAP_ADMIN} -w ${process.env.LDAP_PASSWORD} -o nettimeout=5`);
 }
 
 function ldapDeleteUser(username) {
     return runFile("ldapdelete", [
-        "-H", config.ldap.host, 
-        "-D", config.ldap.admin, 
-        "-w", config.ldap.password,
+        "-H", process.env.LDAP_HOST, 
+        "-D", process.env.LDAP_ADMIN, 
+        "-w", process.env.LDAP_PASSWORD,
         "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
         `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
     ]);
@@ -144,15 +143,15 @@ function mailchimpSubscribe(email, firstName, lastName) {
             FNAME: firstName,
             LNAME: lastName
         },
-        tags: config.mailchimp.tags || []
+        tags: process.env.MAILCHIMP_TAGS || []
     }
     return runFile("curl", [
         "--request", "POST",
         "--location", 
-        "--header", `Authorization: Basic ${config.mailchimp.apiKey}`, 
+        "--header", `Authorization: Basic ${process.env.MAILCHIMP_API_KEY}`, 
         "--header", "Content-Type: application/json",
         "--data", JSON.stringify(data),
-        `${config.mailchimp.baseUrl}/lists/${config.mailchimp.listId}/members`
+        `${process.env.MAILCHIMP_URL}/lists/${process.env.MAILCHIMP_LIST_ID}/members`
     ]);
 }
 
@@ -161,13 +160,13 @@ function mailchimpDelete(email) {
     return runFile("curl", [
         "--request", "POST",
         "--location", 
-        "--header", `Authorization: Basic ${config.mailchimp.apiKey}`, 
-        `${config.mailchimp.baseUrl}/lists/${config.mailchimp.listId}/members/${hash}/actions/delete-permanent`
+        "--header", `Authorization: Basic ${process.env.MAILCHIMP_API_KEY}`, 
+        `${process.env.MAILCHIMP_URL}/lists/${process.env.MAILCHIMP_LIST_ID}/members/${hash}/actions/delete-permanent`
     ]);
 }
 
 function mailmanUpdateSubscription(listName, email, subscribe) {
-    const baseUrl = `${config.mailman.serverUrl}/mailman/admin/${listName}/members`;
+    const baseUrl = `${process.env.MAILMAN_URL}/mailman/admin/${listName}/members`;
 
     let params, endpoint;
     if (subscribe) {
@@ -175,7 +174,7 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
             subscribe_or_invite: 0,
             send_welcome_msg_to_this_batch: 0,
             subscribees_upload: email,
-            adminpw: config.mailman.adminPassword
+            adminpw: process.env.MAILMAN_PASSWORD
         }).toString();
 
         endpoint = 'add';
@@ -185,7 +184,7 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
             send_unsub_ack_to_this_batch: 0,
             send_unsub_notifications_to_list_owner: 0,
             unsubscribees_upload: email,
-            adminpw: config.mailman.adminPassword
+            adminpw: process.env.MAILMAN_PASSWORD
         }).toString();
 
         endpoint = 'remove';
@@ -197,8 +196,8 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
 function terrainGetKeycloakToken() {
     return runFile("curl", [
         "--location", 
-        "--user", config.terrain.user + ':' + config.terrain.password,
-        `${config.terrain.baseUrl}/token/keycloak`
+        "--user", process.env.TERRAIN_USER + ':' + process.env.TERRAIN_PASSWORD,
+        `${process.env.TERRAIN_URL}/token/keycloak`
     ]);
 }
 
@@ -209,7 +208,7 @@ function terrainSetConcurrentJobLimits(token, username, limit) {
         "--header", `Authorization: Bearer ${token}`, 
         "--header", "Content-Type: application/json",
         "--data", JSON.stringify({ "concurrent_jobs": limit}),
-        `${config.terrain.baseUrl}/admin/settings/concurrent-job-limits/${username}` //FIXME define URL in constants.js
+        `${process.env.TERRAIN_URL}/admin/settings/concurrent-job-limits/${username}` //FIXME define URL in constants.js
     ]);
 }
 
@@ -227,7 +226,7 @@ function terrainSubmitViceAccessRequest(token, user, usage) {
         "--header", `Authorization: Bearer ${token}`, 
         "--header", "Content-Type: application/json",
         "--data", JSON.stringify(data),
-        `${config.terrain.baseUrl}/requests/vice` //FIXME define URL in constants.js
+        `${process.env.TERRAIN_URL}/requests/vice` //FIXME define URL in constants.js
     ]);
 }
 
@@ -235,7 +234,7 @@ function terrainBootstrapRequest(token) {
   return runFile("curl", [
     "--location", 
     "--header", `Authorization: Bearer ${token}`, 
-    `${config.terrain.baseUrl}/secured/bootstrap` //FIXME define URL in constants.js
+    `${process.env.TERRAIN_URL}/secured/bootstrap` //FIXME define URL in constants.js
 ]);
 }
 

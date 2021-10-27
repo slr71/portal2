@@ -4,7 +4,6 @@ const { emailNewAccountConfirmation, emailPasswordReset } = require('./lib/email
 const { decodeHMAC, generateToken, decodeToken } = require('./lib/hmac');
 const { asyncHandler } = require('./lib/auth');
 const { encodePassword } = require('./lib/password');
-const config = require('../config');
 const Argo = require('./lib/argo');
 const serviceApprovers = require('./approvers/service');
 const { userCreationWorkflow, userPasswordUpdateWorkflow } = require('./workflows/native/user.js');
@@ -102,7 +101,7 @@ router.put('/users', asyncHandler(async (req, res) => {
                 return res.status(400).send('Validity test failed (1)');
         }
         else {
-            const index = (key % config.honeypotDivisor) - 1;
+            const index = (key % process.env.HONEYPOT_DIVISOR) - 1;
             if (index >= 0 && index < HONEYPOT_FIELDS.length) {
                 const realKey = HONEYPOT_FIELDS[index];
                 fields[realKey] = fields[key]; // replace encoded key with actual field name
@@ -260,7 +259,7 @@ router.put('/users/password', asyncHandler(async (req, res) => {
     user.password = fields.password; // kludgey, but use raw password in workflows below
 
     if (oldPassword != '') { // existing user password reset
-        if (config.argo)
+        if (process.env.ARGO_ENABLED)
             await submitUserWorkflow('update-password', user);
         else
             await userPasswordUpdateWorkflow(user);
@@ -268,7 +267,7 @@ router.put('/users/password', asyncHandler(async (req, res) => {
     else { // new user
         // Run user creation workflow
         logger.info(`Running user creation workflow for user ${user.username}`)
-        if (config.argo)
+        if (process.env.ARGO_ENABLED)
             await submitUserWorkflow('create-user', user);
         else
             await userCreationWorkflow(user);
@@ -301,7 +300,7 @@ async function submitUserWorkflow(templateName, user) {
 
     // Calculate uidNumber
     // Old method: /repos/portal/cyverse_ldap/utils/get_uid_number.py
-    const uidNumber = user.id + config.uidNumberOffset;
+    const uidNumber = user.id + process.env.UID_NUMBER_OFFSET;
 
     // Submit Argo workflow
     return await Argo.submit(
@@ -321,13 +320,13 @@ async function submitUserWorkflow(templateName, user) {
             daysSinceEpoch: daysSinceEpoch,
 
             // Other params
-            portal_api_base_url: config.apiBaseUrl,
-            ldap_host: config.ldap.host,
-            ldap_admin: config.ldap.admin,
-            ldap_password: config.ldap.password,
-            mailchimp_api_url: config.mailchimp.baseUrl,
-            mailchimp_api_key: config.mailchimp.apiKey,
-            mailchimp_list_id: config.mailchimp.listId,
+            portal_api_base_url: process.env.API_BASE_URL,
+            ldap_host: process.env.LDAP_HOST,
+            ldap_admin: process.env.LDAP_ADMIN,
+            ldap_password: process.env.LDAP_PASSWORD,
+            mailchimp_api_url: process.env.MAILCHIMP_URL,
+            mailchimp_api_key: process.env.MAILCHIMP_API_KEY,
+            mailchimp_list_id: process.env.MAILCHIMP_LIST_ID,
         }
     );
 }

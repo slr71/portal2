@@ -7,7 +7,6 @@ const intercom = require('../lib/intercom');
 const { serviceRegistrationWorkflow } = require('../workflows/native/services');
 const { terrainBootstrapRequest, terrainSubmitViceAccessRequest } = require('../workflows/native/lib');
 const { UI_ADMIN_SERVICE_ACCESS_REQUEST_URL, EXT_ADMIN_VICE_ACCESS_REQUEST_URL } = require('../../constants');
-const config = require('../../config.json');
 
 // Services with special approval requirements, all other services are auto-approved.
 const APPROVERS = {
@@ -45,7 +44,7 @@ async function grantRequest(request) {
 
     const key = request.service.approval_key;
     if (key in GRANTERS) {
-        if (config.argo) {
+        if (process.env.ARGO_ENABLED) {
             const workflow = GRANTERS[key];
             logger.info('grantRequest:', key, workflow);
 
@@ -60,13 +59,13 @@ async function grantRequest(request) {
                     email: request.user.email,
 
                     // Other params
-                    portal_api_base_url: config.apiBaseUrl,
-                    ldap_host: config.ldap.host,
-                    ldap_admin: config.ldap.admin,
-                    ldap_password: config.ldap.password,
-                    bisque_url: config.bisque.url,
-                    bisque_username: config.bisque.username,
-                    bisque_password: config.bisque.password
+                    portal_api_base_url: process.env.API_BASE_URL,
+                    ldap_host: process.env.LDAP_HOST,
+                    ldap_admin: process.env.LDAP_ADMIN,
+                    ldap_password: process.env.LDAP_PASSWORD,
+                    bisque_url: process.env.BISQUE_URL,
+                    bisque_username: process.env.BISQUE_USER,
+                    bisque_password: process.env.BISQUE_PASSWORD
                 }
             );
 
@@ -172,13 +171,13 @@ async function sendAtmosphereSignupMessage(request, responseMessage) {
 
         await intercom.addNoteToConversation(conversation.id, linkText);
         await intercom.replyToConversation(conversation.id, responseMessage);
-        await intercom.assignConversation(conversation.id, config.intercom.adminTier1AtmosphereId);
+        await intercom.assignConversation(conversation.id, process.env.INTERCOM_ADMIN_TIER1_ATMOSPHERE_ID);
     }
 
-    if (config.email?.bccIntercom) {
+    if (process.env.BCC_INTERCOM) {
         const message = body + "\n\n" + linkText
         emailGenericMessage({ 
-            to: config.email.bccIntercom,
+            to: process.env.BCC_INTERCOM,
             subject: 'User Portal Atmopshere Request',
             message
         })
@@ -241,13 +240,13 @@ async function sendVICESignupMessage(request, responseMessage) {
 
         await intercom.addNoteToConversation(conversation.id, linkText);
         await intercom.replyToConversation(conversation.id, responseMessage);
-        await intercom.assignConversation(conversation.id, config.intercom.adminTier1ScienceTeamId);
+        await intercom.assignConversation(conversation.id, process.env.INTERCOM_ADMIN_TIER1_SCIENCE_TEAM_ID);
     }
 
-    if (config.email?.bccIntercom) {
+    if (process.env.BCC_INTERCOM) {
         const message = body + "\n\n" + linkText
         emailGenericMessage({ 
-            to: config.email.bccIntercom,
+            to: process.env.BCC_INTERCOM,
             subject: 'User Portal VICE Request',
             message
         })
@@ -314,13 +313,13 @@ async function sendDataWatchSignupMessage(request, responseMessage) {
 
         await intercom.addNoteToConversation(conversation.id, linkText);
         await intercom.replyToConversation(conversation.id, responseMessage);
-        await intercom.assignConversation(conversation.id, config.intercom.adminTier1DataWatchId);
+        await intercom.assignConversation(conversation.id, process.env.INTERCOM_ADMIN_TIER1_DATA_WATCH_ID);
     }
 
-    if (config.email?.bccIntercom) {
+    if (process.env.BCC_INTERCOM) {
         const message = body + "\n\n" + linkText
         emailGenericMessage({ 
-            to: config.email.bccIntercom,
+            to: process.env.BCC_INTERCOM,
             subject: 'User Portal Data Watch Request',
             message
         })

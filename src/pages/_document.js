@@ -1,11 +1,11 @@
 // From https://github.com/mui-org/material-ui/tree/master/examples/nextjs
 
-import React from 'react';
-import Document, { Html, Head, Main, NextScript } from 'next/document';
-import { ServerStyleSheets } from '@material-ui/core/styles';
-import theme from '../theme';
-import { googleAnalyticsId } from '../config';
-
+import React from 'react'
+import getConfig from "next/config"
+import Document, { Html, Head, Main, NextScript } from 'next/document'
+import { ServerStyleSheets } from '@material-ui/core/styles'
+import theme from '../theme'
+const config = getConfig().publicRuntimeConfig
 export default class MyDocument extends Document {
   render() {
     return (
@@ -27,11 +27,11 @@ export default class MyDocument extends Document {
           {/* Google Analytics 
             * From https://github.com/vercel/next.js/blob/canary/examples/with-google-analytics/pages/_document.js 
             */}
-          {googleAnalyticsId && (
+          {config.GOOGLE_ANALYTICS_ID && (
             <>
               <script
                 async
-                src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
+                src={`https://www.googletagmanager.com/gtag/js?id=${config.GOOGLE_ANALYTICS_ID}`}
               />
               <script
                 dangerouslySetInnerHTML={{
@@ -39,7 +39,7 @@ export default class MyDocument extends Document {
                   window.dataLayer = window.dataLayer || [];
                   function gtag(){dataLayer.push(arguments);}
                   gtag('js', new Date());
-                  gtag('config', '${googleAnalyticsId}', {
+                  gtag('config', '${config.GOOGLE_ANALYTICS_ID}', {
                     page_path: window.location.pathname,
                   });
                   `,
@@ -53,7 +53,7 @@ export default class MyDocument extends Document {
           <NextScript />
         </body>
       </Html>
-    );
+    )
   }
 }
 
@@ -81,19 +81,19 @@ MyDocument.getInitialProps = async (ctx) => {
   // 4. page.render
 
   // Render app and page and get the context of the page with collected side effects.
-  const sheets = new ServerStyleSheets();
-  const originalRenderPage = ctx.renderPage;
+  const sheets = new ServerStyleSheets()
+  const originalRenderPage = ctx.renderPage
 
   ctx.renderPage = () =>
     originalRenderPage({
       enhanceApp: (App) => (props) => sheets.collect(<App {...props} />),
-    });
+    })
 
-  const initialProps = await Document.getInitialProps(ctx);
+  const initialProps = await Document.getInitialProps(ctx)
 
   return {
     ...initialProps,
     // Styles fragment is rendered after the app and page rendering finish.
     styles: [...React.Children.toArray(initialProps.styles), sheets.getStyleElement()],
-  };
-};
+  }
+}

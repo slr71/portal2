@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import getConfig from "next/config"
 import Markdown from 'markdown-to-jsx'
 import { makeStyles, Container, Grid, Link, Box, Button, IconButton, Paper, Tabs, Tab, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, MenuItem } from '@material-ui/core'
 import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon, Delete as DeleteIcon } from '@material-ui/icons'
@@ -7,7 +8,6 @@ import { Layout, ServiceActionButton, TabPanel, UpdateForm, QuestionsEditor, Con
 import { useAPI } from '../../contexts/api'
 import { useError, withGetServerSideError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
-import { wsBaseUrl, terrain } from '../../config'
 import { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE, EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL } from '../../constants'
 import inlineIcons from '../../inline_icons.json'
 
@@ -35,6 +35,7 @@ const Service = (props) => {
 }
 
 const ServiceViewer = (props) => {
+  const config = getConfig().publicRuntimeConfig
   const service = props.service
   const classes = useStyles()
   const api = useAPI()
@@ -67,7 +68,7 @@ const ServiceViewer = (props) => {
     }
     else {
       // Configure web socket connection
-      const socket = new WebSocket(`${wsBaseUrl}/${user.username}`)
+      const socket = new WebSocket(`${config.WS_BASE_URL}/${user.username}`)
 
       // Listen for messages // TODO move into library
       socket.addEventListener('message', function (event) {
@@ -602,8 +603,8 @@ export async function getServerSideProps({ req, query }) {
     const user = await req.api.user()
 
     // Get Terrain token
-    let resp = await fetch(`${terrain.baseUrl}/token/keycloak`, { 
-      headers: { 'Authorization': 'Basic ' + Buffer.from(terrain.user + ':' + terrain.password).toString('base64') }
+    let resp = await fetch(`${process.env.TERRAIN_URL}/token/keycloak`, { 
+      headers: { 'Authorization': 'Basic ' + Buffer.from(process.env.TERRAIN_USER + ':' + process.env.TERRAIN_PASSWORD).toString('base64') }
     })
     let data = await resp.json()
 

@@ -7,7 +7,6 @@ const Sentry = require("@sentry/node");
 const Keycloak = require('keycloak-connect')
 const next = require('next')
 const { logger, requestLogger, errorLogger } = require('./api/lib/logging')
-const config = require('./config.json')
 const { WS_CONNECTED } = require('./constants')
 const { getUserID, getUserToken, requireAuth } = require('./api/lib/auth')
 const PortalAPI = require('./lib/apiClient')
@@ -18,9 +17,9 @@ const app = next({ dev: isDevelopment })
 const nextHandler = app.getRequestHandler()
 
 // Configure Sentry error tracking -- should be done as early as possible
-if (config.sentryDSN) {
+if (process.env.SENTRY_DSN) {
     Sentry.init({
-        dsn: config.sentryDSN,
+        dsn: process.env.SENTRY_DSN,
         environment: process.env.NODE_ENV
     });
 }
@@ -31,26 +30,36 @@ else {
 // Configure the session store
 const pgSession = pgsimple(session)
 const sessionStore = new pgSession({
-    conString: `postgresql://${config.db.user ? config.db.user + '@' : ''}${config.db.host}:5432/${config.db.database}`, 
-    tableName: config.db.sessionTable,
-    ttl: config.session.ttl,
+    conString: `postgresql://${process.env.DB_USER ? process.env.DB_USER + '@' : ''}${process.env.DB_HOST}:5432/${process.env.DB_NAME}`, 
+    tableName: process.env.DB_SESSION_TABLE,
+    ttl: process.env.SESSION_TTL,
     cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
 })
 
 // Configure the Keycloak client
 Keycloak.prototype.accessDenied = function (request, response) {
     console.log('Access denied, redirecting !!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-    response.redirect(config.uiBaseUrl);
+    response.redirect(process.env.UI_BASE_URL);
     //response.status(403);
     //response.end('Access denied');
 };
 const keycloakClient = new Keycloak(
     { store: sessionStore },
-    config.keycloak
+    {
+        "realm": process.env.KEYCLOAK_REALM,
+        "auth-server-url": process.env.KEYCLOAK_AUTH_URL,
+        "ssl-required": "all",
+        "resource": process.env.KEYCLOAK_CLIENT,
+        "credentials": {
+            "secret": process.env.KEYCLOAK_SECRET
+        },
+        "confidential-port": 0
+    }
+
 )
 
 // Configure web socket server
-const wsServer = new ws.Server({ port: config.wsPort })
+const wsServer = new ws.Server({ port: process.env.WS_PORT })
 const sockets = {}
 wsServer.on('connection', (ws, req) => {
     const username = req.url.substr(1) //TODO consider using express-ws package for routing
@@ -79,7 +88,7 @@ app.prepare()
         server.use(requestLogger)
 
         // Setup Sentry error handling
-        if (config.sentryDSN)
+        if (process.env.SENTRY_DSN)
             server.use(Sentry.Handlers.requestHandler());
 
         // Support CORS requests -- needed for service icon image requests
@@ -92,11 +101,11 @@ app.prepare()
         server.use(
             session({
                 store: sessionStore,
-                secret: config.session.secret,
+                secret: process.env.SESSION_SECRET,
                 resave: false,
                 saveUninitialized: true,
                 cookie: {
-                    secure: config.session.secureCookie,
+                    secure: process.env.SESSION_SECURE_COOKIE,
                 }
             })
         )
@@ -131,7 +140,7 @@ app.prepare()
         server.use(async (req, _, next) => {
             const token = getUserToken(req)
             req.api = new PortalAPI({ 
-                baseUrl: config.apiBaseUrl, 
+                baseUrl: process.env.API_BASE_URL, 
                 token: token ? token.token : null 
             })
             next()
@@ -183,7 +192,7 @@ app.prepare()
         server.use('/api/*', (_, res) => res.status(404).send('Resource not found'))
 
         // Require auth on all routes/page after this
-        if (!config.debugUser) server.use(keycloakClient.protect())
+        if (process.env.DEBUG_USER) server.use(keycloakClient.protect())
 
         // Restricted UI pages
         server.get("/forms*", (req, res) => { // alias "/requests" as "/forms" for old links on cyverse.org
@@ -201,16 +210,16 @@ app.prepare()
         })
 
         // Catch errors
-        if (config.sentryDSN)
+        if (process.env.SENTRY_DSN)
             server.use(Sentry.Handlers.errorHandler());
 
-        server.listen(config.port, (err) => {
+        server.listen(process.env.SERVER_PORT, (err) => {
             if (err) throw err
             if (isDevelopment)
                 console.log('!!!!!!!!! RUNNING IN DEV MODE !!!!!!!!!!')
-            if (config.debugUser)
-                console.log('!!!!!!!!! EMULATING USER', config.debugUser, '!!!!!!!!!!')
-            console.log(`Ready on port ${config.port}`)
+            if (process.env.DEBUG_USER)
+                console.log('!!!!!!!!! EMULATING USER', process.env.DEBUG_USER, '!!!!!!!!!!')
+            console.log(`Ready on port ${process.env.SERVER_PORT}`)
         })
     })
     .catch(exception => {

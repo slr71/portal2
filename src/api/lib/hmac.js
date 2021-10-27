@@ -1,14 +1,13 @@
 const crypto = require('crypto');
-const { hmacKey } = require('../../config');
 
 const ALGO = 'aes-256-cbc';
 
 function key() {
-    if (!hmacKey)
-        throw('Missing "hmacKey" in config');
+    if (!process.env.HMAC_KEY)
+        throw('Missing HMAC_KEY in config');
 
     const hash = crypto.createHash("sha256");
-    hash.update(hmacKey);
+    hash.update(process.env.HMAC_KEY);
     return hash.digest().slice(0, 32);
 }
 

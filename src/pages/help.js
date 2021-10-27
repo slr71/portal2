@@ -1,3 +1,4 @@
+import getConfig from "next/config"
 import { Grid, Link, Box, Divider, Typography } from '@material-ui/core'
 import { Layout, intercomShow, getMenuItem } from '../components'
 import { makeStyles } from '@material-ui/core/styles'
@@ -10,6 +11,7 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const Help = () => {
+    const config = getConfig().publicRuntimeConfig
     const help = getMenuItem('Help')
     const supportItems = help.items.filter(item => item.category == 'support')
     const learnItems = help.items.filter(item => item.category == 'learn')
@@ -21,7 +23,7 @@ const Help = () => {
     )
 
     return (
-        <Layout title="Help" actions={chatLink}>
+        <Layout title="Help" actions={config.INTERCOM_ENABLED ? chatLink : null}>
             <Box mt={3}>
                 <Typography variant="h6">Learn</Typography>
                 <Divider />

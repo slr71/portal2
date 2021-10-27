@@ -264,10 +264,10 @@ async function sendFormSubmissionConfirmationMessage(submission) {
             await intercom.assignConversation(conversation.id, form.intercom_team_id);
     }
 
-    if (config.email?.bccIntercom) {
+    if (process.env.BCC_INTERCOM) {
         const message = body + "\n\n" + linkText;
         emailGenericMessage({ 
-            to: config.email.bccIntercom,
+            to: process.env.BSC_INTERCOM,
             subject: 'User Portal Form Submission',
             message
         })
