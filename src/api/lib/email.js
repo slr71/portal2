@@ -21,22 +21,30 @@ function queueEmail(cfg) {
     logger.debug(`queueEmail: queued ${cfg.to} "${cfg.subject}" for ${delay/1000}s`);
 }
 
-function renderEmail({ to, bcc, subject, templateName, fields }) {
-    let body = {};
+function renderEmail({ to, bcc, subject, templateName, fields, message }) {
+    if (!to || !subject || (!templateName && !message))
+        throw('Missing required field')
+        
+    const body = {};
 
     // Load and populate email template
-    for (let ext of ['html', 'txt']) {
-        const templatePath = path.join(__dirname, '..', 'templates', `${templateName}.${ext}`);
-        if (fs.existsSync(templatePath)) {
-            body[ext] = fs.readFileSync(templatePath, 'utf8').toString(); 
-            for (f in fields) {
-                const regex = new RegExp('\\$\\{' + f + '\\}', 'gi');
-                body[ext] = body[ext] .replace(regex, fields[f]);
+    if (templateName) {
+        for (let ext of ['html', 'txt']) {
+            const templatePath = path.join(__dirname, '..', 'templates', `${templateName}.${ext}`);
+            if (fs.existsSync(templatePath)) {
+                body[ext] = fs.readFileSync(templatePath, 'utf8').toString(); 
+                for (f in fields) {
+                    const regex = new RegExp('\\$\\{' + f + '\\}', 'gi');
+                    body[ext] = body[ext].replace(regex, fields[f]);
+                }
+                if (!body[ext])
+                    throw('Empty email template');
+                break; // only load txt template if html template doesn't exist
             }
-            if (!body[ext])
-                throw('Empty email template');
-            break; // only load txt template if html template doesn't exist
         }
+    }
+    else {
+        body['txt'] = message
     }
 
     if (Array.isArray(to))
@@ -182,11 +190,25 @@ function emailWorkshopEnrollmentConfirmation(request) {
     );
 }
 
+async function emailGenericMessage(to, bcc, subject, message) {
+    logger.debug('emailGenericMessage:', to, subject);
+
+    queueEmail(
+        renderEmail({
+            to, 
+            bcc,
+            subject,
+            message
+        })
+    );
+}
+
 module.exports = { 
     emailNewAccountConfirmation, 
     emailNewEmailConfirmation,
     emailPasswordReset,
     emailServiceAccessGranted, 
     emailWorkshopEnrollmentRequest, 
-    emailWorkshopEnrollmentConfirmation 
+    emailWorkshopEnrollmentConfirmation,
+    emailGenericMessage
 };

@@ -159,17 +159,30 @@ async function sendAtmosphereSignupMessage(request, responseMessage) {
         throw('service:sendAtmosphereSignupMessage: Missing required property')
 
     const body = getAtmosphereConversationBody(service.questions, request.answers);
-    const [conversation, message] = await intercom.startConversation(user, body);
+    const linkText = `This request can be viewed at ${UI_ADMIN_SERVICE_ACCESS_REQUEST_URL}/${request.id}`;
 
-    await AccessRequestConversation.create({
-        access_request_id: request.id,
-        intercom_message_id: message.id,
-        intercom_conversation_id: conversation.id
-    });
+    if (intercom) {
+        const [conversation, message] = await intercom.startConversation(user, body);
 
-    await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${UI_ADMIN_SERVICE_ACCESS_REQUEST_URL}/${request.id}`);
-    await intercom.replyToConversation(conversation.id, responseMessage);
-    await intercom.assignConversation(conversation.id, config.intercom.adminTier1AtmosphereId);
+        await AccessRequestConversation.create({
+            access_request_id: request.id,
+            intercom_message_id: message.id,
+            intercom_conversation_id: conversation.id
+        });
+
+        await intercom.addNoteToConversation(conversation.id, linkText);
+        await intercom.replyToConversation(conversation.id, responseMessage);
+        await intercom.assignConversation(conversation.id, config.intercom.adminTier1AtmosphereId);
+    }
+
+    if (config.email?.bccIntercom) {
+        const message = body + "\n\n" + linkText
+        emailGenericMessage({ 
+            to: config.email.bccIntercom,
+            subject: 'User Portal Atmopshere Request',
+            message
+        })
+    }
 }
 
 async function approveVICE(request) {
@@ -215,17 +228,30 @@ async function sendVICESignupMessage(request, responseMessage) {
         throw('service:sendVICESignupMessage: Missing required property')
 
     const body = getVICEConversationBody(service.questions, request.answers);
-    const [conversation, message] = await intercom.startConversation(user, body);
+    const linkText = `This request can be viewed at ${EXT_ADMIN_VICE_ACCESS_REQUEST_URL}`;
 
-    await AccessRequestConversation.create({
-        access_request_id: request.id,
-        intercom_message_id: message.id,
-        intercom_conversation_id: conversation.id
-    });
+    if (intercom) {
+        const [conversation, message] = await intercom.startConversation(user, body);
 
-    await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${EXT_ADMIN_VICE_ACCESS_REQUEST_URL}`);
-    await intercom.replyToConversation(conversation.id, responseMessage);
-    await intercom.assignConversation(conversation.id, config.intercom.adminTier1ScienceTeamId);
+        await AccessRequestConversation.create({
+            access_request_id: request.id,
+            intercom_message_id: message.id,
+            intercom_conversation_id: conversation.id
+        });
+
+        await intercom.addNoteToConversation(conversation.id, linkText);
+        await intercom.replyToConversation(conversation.id, responseMessage);
+        await intercom.assignConversation(conversation.id, config.intercom.adminTier1ScienceTeamId);
+    }
+
+    if (config.email?.bccIntercom) {
+        const message = body + "\n\n" + linkText
+        emailGenericMessage({ 
+            to: config.email.bccIntercom,
+            subject: 'User Portal VICE Request',
+            message
+        })
+    }
 }
 
 function getVICEConversationBody(questions, answers) { // TODO can be merged with getAtmosphereConverstationBody
@@ -252,39 +278,53 @@ function getVICEConversationBody(questions, answers) { // TODO can be merged wit
 }
 
 async function approveDataWatch(request) {
-  const user = request.user;
-  if (!user)
-      throw('service:approveDataWatch: Missing required property');
+    const user = request.user;
+    if (!user)
+        throw('service:approveDataWatch: Missing required property');
 
-  const intro = `Hi ${user.first_name}! Thanks for requesting access to Data Watch.`;
+    const intro = `Hi ${user.first_name}! Thanks for requesting access to Data Watch.`;
 
-  logger.info(`approveDataWatch: Pend user "${user.username}" for request ${request.id}`);
-  await request.pend();
+    logger.info(`approveDataWatch: Pend user "${user.username}" for request ${request.id}`);
+    await request.pend();
 
-  await sendDataWatchSignupMessage(request,
-`${intro}
+    await sendDataWatchSignupMessage(request,
+    `${intro}
 
-Your request has been sent to CyVerse staff and will be review soon.`
-  );
+    Your request has been sent to CyVerse staff and will be review soon.`
+    );
 }
 
 async function sendDataWatchSignupMessage(request, responseMessage) {
-  const service = request.service;
-  const user = request.user;
-  if (!service || !user)
-      throw('service:sendDataWatchSignupMessage: Missing required property')
+    const service = request.service;
+    const user = request.user;
+    if (!service || !user)
+        throw('service:sendDataWatchSignupMessage: Missing required property')
 
-  const [conversation, message] = await intercom.startConversation(user, 'Data Watch access requested');
+    const body = 'Data Watch access requested';
+    const linkText = `This request can be viewed at ${UI_ADMIN_SERVICE_ACCESS_REQUEST_URL}/${request.id}`;
 
-  await AccessRequestConversation.create({
-      access_request_id: request.id,
-      intercom_message_id: message.id,
-      intercom_conversation_id: conversation.id
-  });
+    if (intercom) {
+        const [conversation, message] = await intercom.startConversation(user, body);
 
-  await intercom.addNoteToConversation(conversation.id, `This request can be viewed at ${UI_ADMIN_SERVICE_ACCESS_REQUEST_URL}/${request.id}`);
-  await intercom.replyToConversation(conversation.id, responseMessage);
-  await intercom.assignConversation(conversation.id, config.intercom.adminTier1DataWatchId);
+        await AccessRequestConversation.create({
+            access_request_id: request.id,
+            intercom_message_id: message.id,
+            intercom_conversation_id: conversation.id
+        });
+
+        await intercom.addNoteToConversation(conversation.id, linkText);
+        await intercom.replyToConversation(conversation.id, responseMessage);
+        await intercom.assignConversation(conversation.id, config.intercom.adminTier1DataWatchId);
+    }
+
+    if (config.email?.bccIntercom) {
+        const message = body + "\n\n" + linkText
+        emailGenericMessage({ 
+            to: config.email.bccIntercom,
+            subject: 'User Portal Data Watch Request',
+            message
+        })
+    }
 }
 
 module.exports = { approveRequest, grantRequest };

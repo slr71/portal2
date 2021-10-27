@@ -14,6 +14,7 @@ const { approveRequest, grantRequest } = require('./approvers/service');
 const intercom = require('./lib/intercom');
 const { notifyClientOfServiceRequestStatusChange } = require('./lib/ws');
 const { getUser, requireAdmin, asyncHandler } = require('./lib/auth');
+const config = require('../config.json')
 
 const poweredServiceQuery = [sequelize.literal('(select exists(select 1 from api_poweredservice where service_ptr_id=id))'), 'is_powered' ];
 
@@ -86,32 +87,34 @@ router.get('/requests/:id(\\d+)', requireAdmin, asyncHandler(async (req, res) =>
     request.setDataValue('answers', answers);
 
     // Fetch conversations from Intercom
-    const users = {}
-    for (const conversation of request.conversations) {
-        const c = await intercom.getConversation(conversation.intercom_conversation_id);
-        if (c) {
-            conversation.setDataValue('source', c.source);
-            if (c.conversation_parts) { 
-                for (const part of c.conversation_parts.conversation_parts) { // is there a better way to do this?
-                    // Get author name
-                    const user = part.author.id in users 
-                        ? users[part.author.id] 
-                        : await intercom.getUser(part.author.id, part.author.type)
-                    if (user)
-                        part.author.name = user.body.name
-                    users[part.author.id] = user
-
-                    // Get assignee name
-                    if (part.assigned_to) {
-                        const user = part.assigned_to.id in users 
-                            ? users[part.assigned_to.id] 
-                            : await intercom.getUser(part.assigned_to.id, part.assigned_to.type)
+    if (intercom) {
+        const users = {}
+        for (const conversation of request.conversations) {
+            const c = await intercom.getConversation(conversation.intercom_conversation_id);
+            if (c) {
+                conversation.setDataValue('source', c.source);
+                if (c.conversation_parts) { 
+                    for (const part of c.conversation_parts.conversation_parts) { // is there a better way to do this?
+                        // Get author name
+                        const user = part.author.id in users 
+                            ? users[part.author.id] 
+                            : await intercom.getUser(part.author.id, part.author.type)
                         if (user)
-                            part.assigned_to.name = user.body.name
-                        users[part.assigned_to.id] = user
+                            part.author.name = user.body.name
+                        users[part.author.id] = user
+
+                        // Get assignee name
+                        if (part.assigned_to) {
+                            const user = part.assigned_to.id in users 
+                                ? users[part.assigned_to.id] 
+                                : await intercom.getUser(part.assigned_to.id, part.assigned_to.type)
+                            if (user)
+                                part.assigned_to.name = user.body.name
+                            users[part.assigned_to.id] = user
+                        }
                     }
+                    conversation.setDataValue('parts', c.conversation_parts.conversation_parts);
                 }
-                conversation.setDataValue('parts', c.conversation_parts.conversation_parts);
             }
         }
     }

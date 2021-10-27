@@ -11,6 +11,7 @@ const FormSubmission = models.api_formsubmission;
 const FormFieldSubmission = models.api_formfieldsubmission;
 const FormSubmissionConversation = models.api_formsubmissionconversation;
 const { UI_ADMIN_FORM_SUBMISSION_URL } = require('../constants');
+const { emailGenericMessage } = require('./lib/email')
 const intercom = require('./lib/intercom');
 
 //TODO move into module
@@ -115,12 +116,14 @@ router.get('/submissions/:id(\\d+)', requireAdmin, asyncHandler(async (req, res)
     }
 
     // Fetch conversations from Intercom
-    for (let conversation of submission.conversations) {
-        const c = await intercom.getConversation(conversation.intercom_conversation_id);
-        if (c) {
-            conversation.setDataValue('source', c.source);
-            if (c.conversation_parts)
-                conversation.setDataValue('parts', c.conversation_parts.conversation_parts);
+    if (intercom) {
+        for (let conversation of submission.conversations) {
+            const c = await intercom.getConversation(conversation.intercom_conversation_id);
+            if (c) {
+                conversation.setDataValue('source', c.source);
+                if (c.conversation_parts)
+                    conversation.setDataValue('parts', c.conversation_parts.conversation_parts);
+            }
         }
     }
 
@@ -234,28 +237,41 @@ async function sendFormSubmissionConfirmationMessage(submission) {
     const form = submission.form;
     if (!user || !form)
         throw('Missing required property');
-    
+
     const body = getFormSubmissionConversationBody(submission);
-    const [conversation, message] = await intercom.startConversation(user, body);
+    const linkText = `This form submission can be viewed at ${UI_ADMIN_FORM_SUBMISSION_URL}/${submission.id}`;
 
-    await FormSubmissionConversation.create({
-        form_submission_id: submission.id,
-        intercom_message_id: message.id,
-        intercom_conversation_id: conversation.id
-    });
+    if (intercom) {
+        const [conversation, message] = await intercom.startConversation(user, body);
 
-    await intercom.addNoteToConversation(
-        conversation.id, 
-        `This form submission can be viewed at ${UI_ADMIN_FORM_SUBMISSION_URL}/${submission.id}`
-    );
-   
-    await intercom.replyToConversation(
-        conversation.id,
-        `Hi ${user.first_name}! Thanks for submitting the request. One of the staff will review it and get back to you. In the meantime, feel free to respond to this message if you'd like to chat more about your request.`
-    );
+        await FormSubmissionConversation.create({
+            form_submission_id: submission.id,
+            intercom_message_id: message.id,
+            intercom_conversation_id: conversation.id
+        });
 
-    if (form.intercom_team_id)
-        await intercom.assignConversation(conversation.id, form.intercom_team_id);
+        await intercom.addNoteToConversation(
+            conversation.id, 
+            linkText
+        );
+    
+        await intercom.replyToConversation(
+            conversation.id,
+            `Hi ${user.first_name}! Thanks for submitting the request. One of the staff will review it and get back to you. In the meantime, feel free to respond to this message if you'd like to chat more about your request.`
+        );
+
+        if (form.intercom_team_id)
+            await intercom.assignConversation(conversation.id, form.intercom_team_id);
+    }
+
+    if (config.email?.bccIntercom) {
+        const message = body + "\n\n" + linkText;
+        emailGenericMessage({ 
+            to: config.email.bccIntercom,
+            subject: 'User Portal Form Submission',
+            message
+        })
+    }
 }
 
 // Fetch form by ID or name
