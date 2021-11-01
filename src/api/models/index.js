@@ -10,6 +10,11 @@ const fs = require('fs');
 const path = require('path');
 const { Sequelize } = require('sequelize');
 
+// Load config into process.env #FIXME in all other files this is handled by Next.js 
+const env = require('node-env-file');
+env(__dirname + '../../../../.env');
+env(__dirname + '../../../../.env.local');
+
 /**
  * Connect to database
  */
