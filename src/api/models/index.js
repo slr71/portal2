@@ -19,11 +19,12 @@ env(__dirname + '../../../../.env');
  * Connect to database
  */
 
+console.log('Connecting to db:', process.env.DB_HOST, process.env.DB_NAME, process.env.DB_USER);
 const sequelize = new Sequelize(
   process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD,
   { host: process.env.DB_HOST,
     dialect: 'postgres',
-    logging: process.env.DB_LOGGING,
+    logging: false,//process.env.DB_LOGGING,
     define: {
       timestamps: false,
       freezeTableName: true,
