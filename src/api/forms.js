@@ -267,7 +267,7 @@ async function sendFormSubmissionConfirmationMessage(submission) {
     if (process.env.BCC_INTERCOM) {
         const message = body + "\n\n" + linkText;
         emailGenericMessage({ 
-            to: process.env.BSC_INTERCOM,
+            to: process.env.BCC_INTERCOM,
             subject: 'User Portal Form Submission',
             message
         })

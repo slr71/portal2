@@ -189,16 +189,11 @@ function emailWorkshopEnrollmentConfirmation(request) {
     );
 }
 
-async function emailGenericMessage(to, bcc, subject, message) {
-    logger.debug('emailGenericMessage:', to, subject);
+async function emailGenericMessage(opts) {
+    logger.debug('emailGenericMessage:', opts.to, opts.subject);
 
     queueEmail(
-        renderEmail({
-            to, 
-            bcc,
-            subject,
-            message
-        })
+        renderEmail(opts)
     );
 }
 

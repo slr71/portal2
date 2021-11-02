@@ -4,6 +4,7 @@ const Argo = require('../lib/argo');
 const { emailServiceAccessGranted } = require('../lib/email')
 const { logger } = require('../lib/logging');
 const intercom = require('../lib/intercom');
+const { emailGenericMessage } = require('../lib/email')
 const { serviceRegistrationWorkflow } = require('../workflows/native/services');
 const { terrainBootstrapRequest, terrainSubmitViceAccessRequest } = require('../workflows/native/lib');
 const { UI_ADMIN_SERVICE_ACCESS_REQUEST_URL, EXT_ADMIN_VICE_ACCESS_REQUEST_URL } = require('../../constants');
@@ -178,7 +179,7 @@ async function sendAtmosphereSignupMessage(request, responseMessage) {
         const message = body + "\n\n" + linkText
         emailGenericMessage({ 
             to: process.env.BCC_INTERCOM,
-            subject: 'User Portal Atmopshere Request',
+            subject: 'User Portal Atmosphere Request',
             message
         })
     }
