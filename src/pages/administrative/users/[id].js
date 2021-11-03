@@ -1,4 +1,5 @@
 import { useRouter } from 'next/router'
+import getConfig from "next/config"
 import { useState, useEffect } from 'react'
 import { makeStyles, Container, Grid, Box, Button, Paper, Typography, TextField, List, ListItem, ListItemAvatar, Avatar, ListItemText, ListItemSecondaryAction, Radio, RadioGroup, FormControlLabel, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
 import { Layout, DateSpan, ConfirmationDialog, CopyToClipboardButton, ServicesList, AddServiceDialog, MailingListForm } from '../../../components'
@@ -6,7 +7,6 @@ import { Mail as MailIcon } from '@material-ui/icons'
 import { useAPI } from '../../../contexts/api'
 import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useUser } from '../../../contexts/user'
-import { UI_PASSWORD_URL } from '../../../constants'
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -320,10 +320,12 @@ const LDAPRecordDialog = ({ open, content, handleClose }) => {
 }
 
 const PasswordResetDialog = ({ open, user, hmac, handleClose }) => {
+  
   const api = useAPI()
   const [_, setError] = useError()
   const [sent, setSent] = useState(false)
-  const link = `${UI_PASSWORD_URL}?reset&code=${hmac}`
+  const config = getConfig().publicRuntimeConfig
+  const link = `${config.UI_BASE_URL}/password?reset&code=${hmac}`
 
   const adminResetPassword = async () => {
     try {

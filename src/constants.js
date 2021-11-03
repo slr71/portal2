@@ -1,4 +1,5 @@
 // Add global constants here
+// NOTE: this module can only be used server-side due to use of process.env
 module.exports = {
   // Front-end URLs
   UI_REQUESTS_URL: `${process.env.UI_BASE_URL}/requests`,
