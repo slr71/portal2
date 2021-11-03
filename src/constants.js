@@ -1,8 +1,3 @@
-// Load config into process.env #FIXME in all other files this is handled by Next.js 
-const env = require('node-env-file');
-env(__dirname + './.env.local');
-env(__dirname + './.env');
-
 // Add global constants here
 module.exports = {
   // Front-end URLs
@@ -15,9 +10,7 @@ module.exports = {
   UI_ADMIN_FORM_SUBMISSION_URL: `${process.env.UI_BASE_URL}/administrative/submissions`,
   UI_ACCOUNT_REVIEW_URL: `${process.env.UI_BASE_URL}/account?reviewMode=1`,
 
-  // External URLS
-  // EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL: `${process.env.TERRAIN_BASE_URL}/admin/requests?include-completed=true&request-type=vice`,
-  EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL: `${process.env.TERRAIN_BASE_URL}/admin/settings/concurrent-job-limits`,
+  // External URLs
   EXT_ADMIN_VICE_ACCESS_REQUEST_URL: 'https://de.cyverse.org/admin/vice',
 
   // Cookie Names
