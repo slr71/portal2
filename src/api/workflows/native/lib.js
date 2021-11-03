@@ -143,7 +143,7 @@ function mailchimpSubscribe(email, firstName, lastName) {
             FNAME: firstName,
             LNAME: lastName
         },
-        tags: process.env.MAILCHIMP_TAGS?.split(',') || []
+        tags: process.env.MAILCHIMP_TAGS ? process.env.MAILCHIMP_TAGS.split(',') : []
     }
     return runFile("curl", [
         "--request", "POST",
