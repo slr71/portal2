@@ -1,3 +1,8 @@
+// Load config into process.env #FIXME in all other files this is handled by Next.js 
+const env = require('node-env-file');
+env(__dirname + './.env.local');
+env(__dirname + './.env');
+
 // Add global constants here
 module.exports = {
   // Front-end URLs
