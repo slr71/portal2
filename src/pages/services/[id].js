@@ -8,7 +8,7 @@ import { Layout, ServiceActionButton, TabPanel, UpdateForm, QuestionsEditor, Con
 import { useAPI } from '../../contexts/api'
 import { useError, withGetServerSideError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
-import { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE } from '../../constants'
+import { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE, EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL } from '../../constants'
 import inlineIcons from '../../inline_icons.json'
 
 const useStyles = makeStyles((theme) => ({
@@ -600,7 +600,6 @@ export async function getServerSideProps({ req, query }) {
 
   // Special case: fetch VICE access request status
   if (service.name == 'DE - VICE') {
-    const EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL = `${process.env.TERRAIN_BASE_URL}/admin/settings/concurrent-job-limits`
     const user = await req.api.user()
 
     // Get Terrain token

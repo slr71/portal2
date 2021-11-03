@@ -11,6 +11,7 @@ module.exports = {
   UI_ACCOUNT_REVIEW_URL: `${process.env.UI_BASE_URL}/account?reviewMode=1`,
 
   // External URLs
+  EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL: `${process.env.TERRAIN_URL}/admin/settings/concurrent-job-limits`,
   EXT_ADMIN_VICE_ACCESS_REQUEST_URL: 'https://de.cyverse.org/admin/vice',
 
   // Cookie Names
