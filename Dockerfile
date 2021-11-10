@@ -7,7 +7,8 @@ ENV PORTAL2_DIR=/opt/dev/portal2
 COPY portal2 /usr/bin
 
 # Install the app.
-RUN npm install
+RUN npm install && \
+    npm run build
 
 # Expose the HTTP and WS listen ports.
 EXPOSE 3000
