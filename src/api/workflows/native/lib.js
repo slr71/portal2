@@ -53,13 +53,60 @@ function runFile(cmd, args) {
     });
 }
 
+// Determine whether or not we should use locally installed iCommands. This function assumes that locally installed
+// iCommands are supposed to be used if and only if every iRODS connection setting environment variable contains a
+// truthy value. This function is memoized to reduce repetitive (albeit not very expensive) computation.
+const useLocalICommands = function() {
+    let cache = {};
+    return function() {
+        if (!('result' in cache)) {
+            cache['result'] = [
+                process.env.IRODS_HOST,
+                process.env.IRODS_PORT,
+                process.env.IRODS_ZONE_NAME,
+                process.env.IRODS_USER_NAME,
+                process.env.IRODS_PASSWORD,
+            ].every((v) => v);
+        }
+        return cache['result'];
+    };
+}();
+
+// Initializes the iRODS connection. Note: we use the same environment variables that iinit uses, so there's no need to
+// pass the settings on the command line or respond to prompts. The only exception is the password, which doesn't have
+// an official environment variable, but can be passed on the command line. This function is memoized so that the
+// connection is only initialized once.
+const initializeICommands = function() {
+    let cache = {initialized: false};
+    return function() {
+        if (!cache['initialized']) {
+            await runFile("iinit", [process.env.IRODS_PASSWORD]);
+            cache['initialized'] = true;
+        }
+    };
+}();
+
+// Runs one of the iCommands in a Docker container for environments where the iCommands can't be installed locally.
+// For this to work, the Docker image must have the iCommands initialized already.
 function dockerRun(args) {
-    return runFile("docker", [ "run", process.env.NATIVE_WORKFLOW_IMAGE_ID, ...args ])
+    return runFile("docker", [ "run", "--rm", process.env.NATIVE_WORKFLOW_IMAGE_ID, ...args ]);
+}
+
+// Runs one of the icommands commands. If all if the IRODS connection settings environment variables contain truthy
+// values then locally installed iCommands will be used. Otherwise, the NATIVE_WORKFLOW_IMAGE_ID environment variable
+// must be defined and the command will be run in a Docker container created from that image.
+function runICommands(args) {
+    if (useLocalICommands()) {
+        initializeICommands();
+        return runFile(args[0], args.slice(1));
+    } else {
+        return dockerRun(args);
+    }
 }
 
 function ldapGetUser(username) {
     return runFile("ldapsearch", [
-        "-H", process.env.LDAP_HOST, 
+        "-H", process.env.LDAP_HOST,
         "-x",
         "-LLL",
         "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
@@ -86,9 +133,9 @@ function ldapModify(username, attribute, value) {
 
 function ldapChangePassword(username, password) {
     return runFile("ldappasswd", [
-        "-H", process.env.LDAP_HOST, 
+        "-H", process.env.LDAP_HOST,
         "-D", process.env.LDAP_ADMIN,
-        "-w", process.env.LDAP_PASSWORD, 
+        "-w", process.env.LDAP_PASSWORD,
         "-s", password,
         "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
         `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
@@ -101,8 +148,8 @@ function ldapAddUserToGroup(username, group) {
 
 function ldapDeleteUser(username) {
     return runFile("ldapdelete", [
-        "-H", process.env.LDAP_HOST, 
-        "-D", process.env.LDAP_ADMIN, 
+        "-H", process.env.LDAP_HOST,
+        "-D", process.env.LDAP_ADMIN,
         "-w", process.env.LDAP_PASSWORD,
         "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
         `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
@@ -110,29 +157,29 @@ function ldapDeleteUser(username) {
 }
 
 function irodsCreateUser(username) {
-    return dockerRun([ "iadmin", "mkuser", username, "rodsuser" ]);
+    return runICommands([ "iadmin", "mkuser", username, "rodsuser" ]);
 }
 
 function irodsMkDir(path) {
-    return dockerRun([ 'imkdir', '-p', path ])
+    return runICommands([ 'imkdir', '-p', path ])
 }
 
 function irodsChMod(permission, username, path) {
-    return dockerRun([ "ichmod", permission, username, path]);
+    return runICommands([ "ichmod", permission, username, path]);
 }
 
 function irodsChangePassword(username, password) {
-    return dockerRun([ "iadmin", "moduser", username, "password", "--", password ]) // UP-61 added "--" argument for passwords that start with a hyphen
+    return runICommands([ "iadmin", "moduser", username, "password", "--", password ]) // UP-61 added "--" argument for passwords that start with a hyphen
 }
 
 // See https://cyverse.atlassian.net/browse/UP-82
 async function irodsSafeDeleteHome(username) {
-    await dockerRun([ 'irm', '-rf', '/iplant/trash/home/' + username ]);
-    await dockerRun([ 'imv', '/iplant/home/' + username, '/iplant/trash/home/uportal_admin2/' ]);
+    await runICommands([ 'irm', '-rf', '/iplant/trash/home/' + username ]);
+    await runICommands([ 'imv', '/iplant/home/' + username, '/iplant/trash/home/uportal_admin2/' ]);
 }
 
 function irodsDeleteUser(username) {
-    return dockerRun([ "iadmin", "rmuser", username ]);
+    return runICommands([ "iadmin", "rmuser", username ]);
 }
 
 function mailchimpSubscribe(email, firstName, lastName) {
@@ -147,8 +194,8 @@ function mailchimpSubscribe(email, firstName, lastName) {
     }
     return runFile("curl", [
         "--request", "POST",
-        "--location", 
-        "--header", `Authorization: Basic ${process.env.MAILCHIMP_API_KEY}`, 
+        "--location",
+        "--header", `Authorization: Basic ${process.env.MAILCHIMP_API_KEY}`,
         "--header", "Content-Type: application/json",
         "--data", JSON.stringify(data),
         `${process.env.MAILCHIMP_URL}/lists/${process.env.MAILCHIMP_LIST_ID}/members`
@@ -159,8 +206,8 @@ function mailchimpDelete(email) {
     const hash = crypto.createHash('md5').update(email).digest('hex');
     return runFile("curl", [
         "--request", "POST",
-        "--location", 
-        "--header", `Authorization: Basic ${process.env.MAILCHIMP_API_KEY}`, 
+        "--location",
+        "--header", `Authorization: Basic ${process.env.MAILCHIMP_API_KEY}`,
         `${process.env.MAILCHIMP_URL}/lists/${process.env.MAILCHIMP_LIST_ID}/members/${hash}/actions/delete-permanent`
     ]);
 }
@@ -195,7 +242,7 @@ function mailmanUpdateSubscription(listName, email, subscribe) {
 
 function terrainGetKeycloakToken() {
     return runFile("curl", [
-        "--location", 
+        "--location",
         "--user", process.env.TERRAIN_USER + ':' + process.env.TERRAIN_PASSWORD,
         `${process.env.TERRAIN_URL}/token/keycloak`
     ]);
@@ -204,8 +251,8 @@ function terrainGetKeycloakToken() {
 function terrainSetConcurrentJobLimits(token, username, limit) {
     return runFile("curl", [
         "--request", "PUT",
-        "--location", 
-        "--header", `Authorization: Bearer ${token}`, 
+        "--location",
+        "--header", `Authorization: Bearer ${token}`,
         "--header", "Content-Type: application/json",
         "--data", JSON.stringify({ "concurrent_jobs": limit}),
         `${process.env.TERRAIN_URL}/admin/settings/concurrent-job-limits/${username}` //FIXME define URL in constants.js
@@ -222,8 +269,8 @@ function terrainSubmitViceAccessRequest(token, user, usage) {
 
     return runFile("curl", [
         "--request", "POST",
-        "--location", 
-        "--header", `Authorization: Bearer ${token}`, 
+        "--location",
+        "--header", `Authorization: Bearer ${token}`,
         "--header", "Content-Type: application/json",
         "--data", JSON.stringify(data),
         `${process.env.TERRAIN_URL}/requests/vice` //FIXME define URL in constants.js
@@ -232,8 +279,8 @@ function terrainSubmitViceAccessRequest(token, user, usage) {
 
 function terrainBootstrapRequest(token) {
   return runFile("curl", [
-    "--location", 
-    "--header", `Authorization: Bearer ${token}`, 
+    "--location",
+    "--header", `Authorization: Bearer ${token}`,
     `${process.env.TERRAIN_URL}/secured/bootstrap` //FIXME define URL in constants.js
 ]);
 }
@@ -244,13 +291,13 @@ function escapeShell(cmd) {
     return '';
 }
 
-module.exports = { 
-    run, 
+module.exports = {
+    run,
     ldapGetUser,
     ldapCreateUser,
     ldapModify,
     ldapChangePassword,
-    ldapAddUserToGroup, 
+    ldapAddUserToGroup,
     ldapDeleteUser,
     irodsCreateUser,
     irodsMkDir,
