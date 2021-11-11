@@ -1,19 +1,19 @@
 /**
  * Sequelize Models and Assocations
- * 
- * Model files were automaticallly generated using sequelize-auto.  
+ *
+ * Model files were automaticallly generated using sequelize-auto.
  * Customizations are made here.
- * 
+ *
  */
 
 const fs = require('fs');
 const path = require('path');
 const { Sequelize } = require('sequelize');
 
-// Load config into process.env #FIXME in all other files this is handled by Next.js 
+// Load config into process.env #FIXME in all other files this is handled by Next.js
 const env = require('node-env-file');
-env(__dirname + '../../../../.env.local');
-env(__dirname + '../../../../.env');
+env(__dirname + '../../../../.env.local', {raise: false});
+env(__dirname + '../../../../.env', {raise: false});
 
 /**
  * Connect to database
@@ -45,10 +45,10 @@ const sequelize = new Sequelize(
 
 let modelPath = path.resolve(process.cwd(), 'src/api/models'); // __dirname not working in Next.js
 let models = {};
-fs.readdirSync(modelPath) 
+fs.readdirSync(modelPath)
   .filter(file => file.split(".").pop() === 'js' && file !== "index.js")
   .forEach(file => {
-    const model = require(path.join(modelPath, file))(sequelize, Sequelize.DataTypes); 
+    const model = require(path.join(modelPath, file))(sequelize, Sequelize.DataTypes);
     models[model.name] = model;
   });
 
@@ -66,9 +66,9 @@ models.account_user.belongsTo(models.account_researcharea, { as: 'research_area'
 models.account_user.belongsTo(models.account_awarechannel, { as: 'aware_channel' });
 models.account_user.hasMany(models.account_emailaddress, { as: 'emails', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
 models.account_user.hasMany(models.api_accessrequestanswer, { foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
-models.account_user.belongsToMany(models.api_service, 
+models.account_user.belongsToMany(models.api_service,
   { as: 'services', through: models.api_accessrequest, foreignKey: 'user_id', otherKey: 'service_id' });
-models.account_user.belongsToMany(models.api_workshop, 
+models.account_user.belongsToMany(models.api_workshop,
   { as: 'workshops', through: models.api_workshopenrollmentrequest, foreignKey: 'user_id', otherKey: 'workshop_id' });
 models.account_user.hasMany(models.api_accessrequest, { as: 'access_requests', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
 models.account_user.hasMany(models.api_workshopenrollmentrequest, { as: 'enrollment_requests', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
@@ -76,7 +76,7 @@ models.account_user.hasMany(models.api_formsubmission, { as: 'form_submissions',
 models.account_user.hasMany(models.account_passwordresetrequest, { as: 'password_reset_requests', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
 models.account_user.hasMany(models.account_passwordreset, { as: 'password_resets', foreignKey: 'user_id', onDelete: 'cascade', hooks: true });
 
-models.account_emailaddress.belongsToMany(models.api_mailinglist, 
+models.account_emailaddress.belongsToMany(models.api_mailinglist,
   { as: 'mailing_lists', through: models.api_emailaddressmailinglist, foreignKey: 'email_address_id', otherKey: 'mailing_list_id' });
 models.account_emailaddress.hasMany(models.api_emailaddressmailinglist, { foreignKey: 'email_address_id', onDelete: 'cascade', hooks: true });
 models.account_emailaddress.hasMany(models.account_passwordresetrequest, { foreignKey: 'email_address_id', onDelete: 'cascade', hooks: true });
@@ -89,7 +89,7 @@ models.account_region.belongsTo(models.account_country, {as: 'country' });
 models.api_service.hasMany(models.api_poweredservice, { as: 'powered_services', foreignKey: 'service_ptr_id' });
 models.api_service.hasMany(models.api_contact, { as: 'contacts', foreignKey: 'service_id' });
 models.api_service.hasMany(models.api_serviceresource, { as: 'resources', foreignKey: 'service_id' });
-models.api_service.belongsToMany(models.api_form, 
+models.api_service.belongsToMany(models.api_form,
   { as: 'forms', through: models.api_serviceform, foreignKey: 'service_id', otherKey: 'form_id' });
 models.api_service.belongsTo(models.api_servicemaintainer, { as: 'service_maintainer' });
 // models.api_service.hasMany(models.api_accessrequest, { as: 'requests', foreignKey: 'service_id' });
@@ -105,11 +105,11 @@ models.api_accessrequest.hasMany(models.api_accessrequestconversation, { as: 'co
 
 models.api_workshop.belongsTo(models.account_user, { as: 'owner', foreignKey: 'creator_id' });
 models.api_workshop.hasMany(models.api_workshopuseremail, { as: 'emails', foreignKey: 'workshop_id' });
-models.api_workshop.belongsToMany(models.api_service, 
+models.api_workshop.belongsToMany(models.api_service,
   { as: 'services', through: models.api_workshopservice, foreignKey: 'workshop_id', otherKey: 'service_id' });
-models.api_workshop.belongsToMany(models.account_user, 
+models.api_workshop.belongsToMany(models.account_user,
   { as: 'users', through: models.api_userworkshop, foreignKey: 'workshop_id', otherKey: 'user_id' });
-models.api_workshop.belongsToMany(models.account_user, 
+models.api_workshop.belongsToMany(models.account_user,
   { as: 'organizers', through: models.api_workshoporganizer, foreignKey: 'workshop_id', otherKey: 'organizer_id' });
 models.api_workshop.hasMany(models.api_workshopcontact, { as: 'contacts', foreignKey: 'workshop_id' });
 models.api_workshop.hasMany(models.api_workshopenrollmentrequest, { as: 'requests', foreignKey: 'workshop_id' });
@@ -118,17 +118,17 @@ models.api_workshopenrollmentrequest.belongsTo(models.account_user, { as: 'user'
 models.api_workshopenrollmentrequest.belongsTo(models.api_workshop, { as: 'workshop', foreignKey: 'workshop_id' });
 models.api_workshopenrollmentrequest.hasMany(models.api_workshopenrollmentrequestlog, { as: 'logs', foreignKey: 'workshop_enrollment_request_id', onDelete: 'cascade', hooks: true });
 
-models.api_formgroup.belongsToMany(models.api_form, 
+models.api_formgroup.belongsToMany(models.api_form,
   { as: 'forms', through: models.api_formgroupform, foreignKey: 'form_group_id', otherKey: 'form_id' });
 models.api_form.hasMany(models.api_formsection, { as: 'sections', foreignKey: 'form_id' });
 models.api_formsection.hasMany(models.api_formfield, { as: 'fields', foreignKey: 'form_section_id' });
 models.api_formfield.hasMany(models.api_formfieldoption, { as: 'options', foreignKey: 'form_field_id' });
-// models.api_form.belongsToMany(models.api_intercomteam, 
+// models.api_form.belongsToMany(models.api_intercomteam,
 //   { as: 'intercom_teams', through: models.api_formintercomteam, foreignKey: 'form_id', otherKey: 'intercom_team_id' });
 
 models.api_formsubmission.belongsTo(models.api_form, { as: 'form', foreignKey: 'form_id' } );
 models.api_formsubmission.belongsTo(models.account_user, { as: 'user', foreignKey: 'user_id' } );
-models.api_formsubmission.belongsToMany(models.api_formfield, 
+models.api_formsubmission.belongsToMany(models.api_formfield,
   { as: 'fields', through: models.api_formfieldsubmission, foreignKey: 'form_submission_id', otherKey: 'form_field_id' });
 models.api_formsubmission.hasMany(models.api_formfieldsubmission, { as: 'field_submissions', foreignKey: 'form_submission_id', onDelete: 'cascade', hooks: true });
 models.api_formsubmission.hasMany(models.api_formsubmissionconversation, { as: 'conversations', foreignKey: 'form_submission_id', onDelete: 'cascade', hooks: true });
@@ -184,7 +184,7 @@ models.account_region.addScope('defaultScope',
   {
     attributes: [ 'id', 'code', 'name', 'country_id' ],
     include: [
-      { 
+      {
         model: models.account_country,
         as: 'country',
         attributes: [ 'code', 'name' ]
@@ -193,15 +193,15 @@ models.account_region.addScope('defaultScope',
   }
 );
 
-models.account_emailaddress.addScope('defaultScope', 
+models.account_emailaddress.addScope('defaultScope',
   {
     attributes: [ 'id', 'email', 'verified', 'primary' ],
-    include: [ 
-      { 
-        model: models.api_mailinglist, 
-        as: 'mailing_lists', 
+    include: [
+      {
+        model: models.api_mailinglist,
+        as: 'mailing_lists',
         through: { attributes: [ 'is_subscribed' ] }
-      } 
+      }
     ]
   }
 );
@@ -241,19 +241,19 @@ models.account_user.addScope('profile',
         'is_active',
         'ethnicity_id',
         'ethnicityId',
-        'funding_agency_id', 
+        'funding_agency_id',
         'fundingAgencyId',
-        'gender_id', 
-        'genderId', 
+        'gender_id',
+        'genderId',
         'has_verified_email',
-        'occupation_id', 
+        'occupation_id',
         'occupationId',
         'password',
-        'region_id', 
+        'region_id',
         'regionId',
-        'research_area_id', 
+        'research_area_id',
         'researchAreaId',
-        'aware_channel_id', 
+        'aware_channel_id',
         'awareChannelId',
         'user_institution_id',
       ]
@@ -270,20 +270,20 @@ models.account_user.addScope('profile',
   }
 );
 
-// models.api_formgroup.addScope('defaultScope', 
+// models.api_formgroup.addScope('defaultScope',
 //   { order: [ ['index', 'ASC'] ],
-//     include: [ 
-//       { model: models.api_form, 
-//         as: 'forms', 
+//     include: [
+//       { model: models.api_form,
+//         as: 'forms',
 //         through: { attributes: [] } // remove connector table
 //       }
 //     ]
 //   }
 // );
 
-// models.api_form.addScope('defaultScope', 
+// models.api_form.addScope('defaultScope',
 //   { order: [ ['sections', 'index', 'ASC'] ],
-//     include: [ 
+//     include: [
 //       { model: models.api_formsection,
 //         as: 'sections',
 //         include: [ 'fields' ],
@@ -292,25 +292,25 @@ models.account_user.addScope('profile',
 //     ]
 //   }
 // );
-// 
-// models.api_service.addScope('defaultScope', 
+//
+// models.api_service.addScope('defaultScope',
 //   { include: [
 //       'powered_services',
 //       'contacts',
 //       'resources',
-//       { model: models.api_form, 
-//         as: 'forms', 
+//       { model: models.api_form,
+//         as: 'forms',
 //         through: { attributes: [] } // remove connector table
 //       },
 //       'service_maintainer'
 //     ]
 //   }
 // );
-// 
-// models.api_workshop.addScope('defaultScope', 
+//
+// models.api_workshop.addScope('defaultScope',
 //   { include: [
-//       { model: models.api_service, 
-//         as: 'services', 
+//       { model: models.api_service,
+//         as: 'services',
 //         through: { attributes: [] } // remove connector table
 //       }
 //     ]
@@ -323,7 +323,7 @@ models.account_user.addScope('profile',
  */
 
 // Automatically log changes to service access request status
-models.api_accessrequest.afterUpdate('afterUpdateRequest', 
+models.api_accessrequest.afterUpdate('afterUpdateRequest',
   async (request) => {
     await models.api_accessrequestlog.create({
       access_request_id: request.id,
@@ -334,7 +334,7 @@ models.api_accessrequest.afterUpdate('afterUpdateRequest',
 );
 
 // Automatically log changes to workshop enrollment request status
-models.api_workshopenrollmentrequest.afterUpdate('afterUpdateRequest', 
+models.api_workshopenrollmentrequest.afterUpdate('afterUpdateRequest',
   async (request) => {
     await models.api_workshopenrollmentrequestlog.create({
       workshop_enrollment_request_id: request.id,
@@ -351,10 +351,10 @@ models.api_workshopenrollmentrequest.afterUpdate('afterUpdateRequest',
 
 // Service access request
 models.api_accessrequest.constants = {
-    STATUS_REQUESTED:  'requested', 
-    STATUS_PENDING:    'pending',  
-    STATUS_APPROVED:   'approved', 
-    STATUS_GRANTED:    'granted',  
+    STATUS_REQUESTED:  'requested',
+    STATUS_PENDING:    'pending',
+    STATUS_APPROVED:   'approved',
+    STATUS_GRANTED:    'granted',
     STATUS_DENIED:     'denied',
     MESSAGE_REQUESTED: 'Access requested',
     MESSAGE_GRANTED:   'Access granted',
@@ -398,7 +398,7 @@ models.api_accessrequest.prototype.isGranted = function() {
 // Workshop enrollment request
 models.api_workshopenrollmentrequest.constants = {
     STATUS_REQUESTED:  'requested',
-    STATUS_PENDING:    'pending',  
+    STATUS_PENDING:    'pending',
     STATUS_APPROVED:   'approved',
     STATUS_GRANTED:    'granted',
     STATUS_DENIED:     'denied',
