@@ -78,7 +78,7 @@ const useLocalICommands = function() {
 // connection is only initialized once.
 const initializeICommands = function() {
     let cache = {initialized: false};
-    return function() {
+    return async function() {
         if (!cache['initialized']) {
             await runFile("iinit", [process.env.IRODS_PASSWORD]);
             cache['initialized'] = true;
