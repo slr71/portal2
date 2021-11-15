@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Switch to the portal directory.
+if [[ -n "$PORTAL2_DIR" ]]; then
+    cd "$PORTAL2_DIR"
+fi
+
+# Run the app.
+npm start

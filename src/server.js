@@ -27,10 +27,27 @@ else {
     console.log('Sentry is disabled')
 }
 
+// Build a Postgres database URL.
+function buildPostgresUrl(settings) {
+    const { host, port, database, user, password} = settings;
+    const encodedPassword = password ? encodeURIComponent(password) : '';
+    const auth = !user ? '' : !encodedPassword ? user : `${user}:${encodedPassword}`;
+    return auth
+        ? `postgresql://${auth}@${host}:${port}/${database}`
+        : `postgresql://${host}:${port}/${database}`;
+}
+
 // Configure the session store
 const pgSession = pgsimple(session)
+const pgUrl = buildPostgresUrl({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+})
 const sessionStore = new pgSession({
-    conString: `postgresql://${process.env.DB_USER ? process.env.DB_USER + '@' : ''}${process.env.DB_HOST}:5432/${process.env.DB_NAME}`, 
+    conString: pgUrl,
     tableName: process.env.DB_SESSION_TABLE,
     ttl: process.env.SESSION_TTL,
     cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
@@ -71,7 +88,7 @@ wsServer.on('connection', (ws, req) => {
     //     console.log('Socket received:', message)
     // })
 
-    ws.send(JSON.stringify({ 
+    ws.send(JSON.stringify({
         type: WS_CONNECTED,
         data: {
             key: req.headers['sec-websocket-key']
@@ -110,7 +127,7 @@ app.prepare()
             })
         )
 
-        // Configure Express behind SSL proxy: https://expressjs.com/en/guide/behind-proxies.html 
+        // Configure Express behind SSL proxy: https://expressjs.com/en/guide/behind-proxies.html
         // Also set "proxy_set_header X-Forwarded-Proto https;" in NGINX config
         server.set('trust proxy', true)
 
@@ -127,7 +144,7 @@ app.prepare()
             return nextHandler(req, res)
         })
 
-        //if (isDevelopment) 
+        //if (isDevelopment)
             server.get("/_next/*", (req, res) => {
                 return nextHandler(req, res)
             })
@@ -139,9 +156,9 @@ app.prepare()
         // Setup API client for use by getServerSideProps()
         server.use(async (req, _, next) => {
             const token = getUserToken(req)
-            req.api = new PortalAPI({ 
-                baseUrl: process.env.API_BASE_URL, 
-                token: token ? token.token : null 
+            req.api = new PortalAPI({
+                baseUrl: process.env.API_BASE_URL,
+                token: token ? token.token : null
             })
             next()
         })
@@ -163,7 +180,7 @@ app.prepare()
         })
 
         // Public UI pages
-        server.get(["/signup", "/register"], (req, res) => {  
+        server.get(["/signup", "/register"], (req, res) => {
             app.render(req, res, "/welcome", { signup: 1 })
         })
 
@@ -171,11 +188,11 @@ app.prepare()
             app.render(req, res, "/welcome", { forgot: 1 })
         })
 
-        server.get("/password", (req, res) => { 
+        server.get("/password", (req, res) => {
             app.render(req, res, "/password")
         })
 
-        server.get("/confirm_email", (req, res) => { 
+        server.get("/confirm_email", (req, res) => {
             app.render(req, res, "/confirm_email")
         })
 
@@ -183,7 +200,7 @@ app.prepare()
         server.use('/api', require('./api/public'))
         if (isDevelopment) server.use('/api/tests', require('./api/tests'))
 
-        // Restricted API routes 
+        // Restricted API routes
         server.use('/api/users', requireAuth, require('./api/users'))
         server.use('/api/services', requireAuth, require('./api/services'))
         server.use('/api/workshops', requireAuth, require('./api/workshops'))
