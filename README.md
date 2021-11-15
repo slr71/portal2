@@ -42,9 +42,19 @@ createuser portal_db_reader
 createdb portal
 ```
 
-### Restore from dump (optional)
+### Create empty database or Restore from dump
 ```
+# Create empty database
+psql -d portal -f ./portal.sql
+
+# Restore from dump (portal_dumpl.sql must be generated)
 psql -d portal -f portal_dump.sql
+```
+
+### Import GRID institutions (for newly created database)
+Download latest GRID database from https://www.grid.ac/downloads
+```
+src/scripts/import_grid_institutions.py /path/to/grid.csv
 ```
 
 ## Install code and dependencies
