@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import argparse
 import sys
 import psycopg2
 import csv
@@ -13,14 +14,14 @@ def dice_coefficient(a, b):
     if not len(a) or not len(b): return 0.0
     if len(a) == 1:  a=a+u'.'
     if len(b) == 1:  b=b+u'.'
-    
+
     a_bigram_list=[]
     for i in range(len(a)-1):
       a_bigram_list.append(a[i:i+2])
     b_bigram_list=[]
     for i in range(len(b)-1):
       b_bigram_list.append(b[i:i+2])
-      
+
     a_bigrams = set(a_bigram_list)
     b_bigrams = set(b_bigram_list)
     overlap = len(a_bigrams & b_bigrams)
@@ -35,18 +36,23 @@ def fetch_user_institutions(db):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print('GRID .csv file path required')
-        exit(-1)
-    GRID_FILE_PATH = sys.argv[1]
+    parser = argparse.ArgumentParser(description='map grid institutions')
+    parser.add_argument('--host', default='', help='the database host name or IP address')
+    parser.add_argument('--port', type=int, default=5432, help='the database port number')
+    parser.add_argument('--user', default='portal', help='the database username')
+    parser.add_argument('--database', default='portal', help='the database name')
+    parser.add_argument('path', nargs=1, help='path of token data')
+    args = parser.parse_args()
+
+    GRID_FILE_PATH = args.path[0]
 
     # Too generic, can't be mapped to a particular institution
-    EXCLUDED_VALUES = [ 
-        'university', 'universidad', 'high school', 'community college', 'medical center', 'research center', 'science research', 
-        'university of science', 'university of technology', 'university of science and technology' 
+    EXCLUDED_VALUES = [
+        'university', 'universidad', 'high school', 'community college', 'medical center', 'research center', 'science research',
+        'university of science', 'university of technology', 'university of science and technology'
     ]
 
-    conn = psycopg2.connect(host='', dbname='portal')
+    conn = psycopg2.connect(host=args.host, port=args.port, user=args.user, dbname=args.database)
 
     # Fetch institutions from DB
     userInstitutions = fetch_user_institutions(conn)
