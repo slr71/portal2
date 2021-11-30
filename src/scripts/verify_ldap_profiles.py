@@ -22,9 +22,13 @@ if __name__ == "__main__":
   parser.add_argument('-lu', '--ldapuser', help='LDAP username')
   parser.add_argument('-lp', '--ldappass', help='LDAP password')
   parser.add_argument('-u', '--update', action='store_true', help="Update mismatched attributes in LDAP")
+  parser.add_argument('--host', default='', help='the database host name or IP address')
+  parser.add_argument('--port', type=int, default=5432, help='the database port number')
+  parser.add_argument('--user', default='portal', help='the database username')
+  parser.add_argument('--database', default='portal', help='the database name')
   args = parser.parse_args()
 
-  conn = psycopg2.connect(host='', dbname='portal')
+  conn = psycopg2.connect(host=args.host, port=args.port, user=args.user, dbname=args.database)
   users = fetch_users(conn)
   userIndex = {}
   for u in users:
