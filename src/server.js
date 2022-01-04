@@ -209,7 +209,7 @@ app.prepare()
         server.use('/api/*', (_, res) => res.status(404).send('Resource not found'))
 
         // Require auth on all routes/page after this
-        if (process.env.DEBUG_USER) server.use(keycloakClient.protect())
+        /*if (process.env.DEBUG_USER)*/ server.use(keycloakClient.protect())
 
         // Restricted UI pages
         server.get("/forms*", (req, res) => { // alias "/requests" as "/forms" for old links on cyverse.org
