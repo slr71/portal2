@@ -6,7 +6,8 @@ RUN apt-get update && \
     wget -qO - https://packages.irods.org/irods-signing-key.asc | apt-key add - && \
     echo "deb [arch=amd64] https://packages.irods.org/apt/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/renci-irods.list && \
     apt-get update && \
-    apt-get install -y irods-icommands
+    apt-get install -y irods-icommands && \
+    apt-get install ldap-utils
 
 # Install NodeJS.
 RUN wget -qO - https://deb.nodesource.com/setup_14.x | bash - && \

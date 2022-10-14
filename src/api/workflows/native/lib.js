@@ -123,12 +123,12 @@ function ldapCreateUser(user) {
     const uidNumber = user.id + process.env.UID_NUMBER_OFFSET;
 
     // username and occupation name will be shell safe values but others should be escaped
-    return run(`echo "dn: uid=${user.username},ou=People,dc=iplantcollaborative,dc=org\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: ${escapeShell(user.first_name)}\nsn: ${escapeShell(user.last_name)}\ncn: ${escapeShell(user.first_name + ' ' + user.last_name)}\nuid: ${user.username}\nmail: ${escapeShell(user.email)}\ndepartmentNumber: ${escapeShell(user.department)}\no: ${escapeShell(user.institution)}\ntitle: ${user.occupation.name}\nhomeDirectory: /home/${user.username}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: ${uidNumber}\nshadowLastChange:${daysSinceEpoch}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H ${process.env.LDAP_HOST} -D ${process.env.LDAP_ADMIN} -w ${process.env.LDAP_PASSWORD} -o nettimeout=5`);
+    return run(`echo "dn: uid=${user.username},ou=People,${process.env.LDAP_BASE_DN}\nobjectClass: posixAccount\nobjectClass: shadowAccount\nobjectClass: inetOrgPerson\ngivenName: ${escapeShell(user.first_name)}\nsn: ${escapeShell(user.last_name)}\ncn: ${escapeShell(user.first_name + ' ' + user.last_name)}\nuid: ${user.username}\nmail: ${escapeShell(user.email)}\ndepartmentNumber: ${escapeShell(user.department)}\no: ${escapeShell(user.institution)}\ntitle: ${user.occupation.name}\nhomeDirectory: /home/${user.username}\nloginShell: /bin/bash\ngidNumber: 10013\nuidNumber: ${uidNumber}\nshadowLastChange:${daysSinceEpoch}\nshadowMin: 1\nshadowMax: 730\nshadowInactive: 10\nshadowWarning: 10" | ldapadd -H ${process.env.LDAP_HOST} -D ${process.env.LDAP_ADMIN} -w ${process.env.LDAP_PASSWORD} -o nettimeout=5`);
 }
 
 function ldapModify(username, attribute, value) {
     // username and attribute will be shell safe values but value should be escaped
-    return run(`echo "dn: uid=${username},ou=People,dc=iplantcollaborative,dc=org\nreplace: ${attribute}\n${attribute}: ${escapeShell(value)}" | ldapmodify -H ${process.env.LDAP_HOST} -D ${process.env.LDAP_ADMIN} -w ${process.env.LDAP_PASSWORD} -o nettimeout=5`);
+    return run(`echo "dn: uid=${username},ou=People,${process.env.LDAP_BASE_DN}\nreplace: ${attribute}\n${attribute}: ${escapeShell(value)}" | ldapmodify -H ${process.env.LDAP_HOST} -D ${process.env.LDAP_ADMIN} -w ${process.env.LDAP_PASSWORD} -o nettimeout=5`);
 }
 
 function ldapChangePassword(username, password) {
@@ -138,12 +138,12 @@ function ldapChangePassword(username, password) {
         "-w", process.env.LDAP_PASSWORD,
         "-s", password,
         "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
-        `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
+        `uid=${username},ou=People,${process.env.LDAP_BASE_DN}`
     ]);
 }
 
 function ldapAddUserToGroup(username, group) {
-    return run(`echo "dn: cn=${group},ou=Groups,dc=iplantcollaborative,dc=org\nchangetype: modify\nadd: memberUid\nmemberUid: ${username}" | ldapmodify -H ${process.env.LDAP_HOST} -D ${process.env.LDAP_ADMIN} -w ${process.env.LDAP_PASSWORD} -o nettimeout=5`);
+    return run(`echo "dn: cn=${group},ou=Groups,${process.env.LDAP_BASE_DN}\nchangetype: modify\nadd: memberUid\nmemberUid: ${username}" | ldapmodify -H ${process.env.LDAP_HOST} -D ${process.env.LDAP_ADMIN} -w ${process.env.LDAP_PASSWORD} -o nettimeout=5`);
 }
 
 function ldapDeleteUser(username) {
@@ -152,7 +152,7 @@ function ldapDeleteUser(username) {
         "-D", process.env.LDAP_ADMIN,
         "-w", process.env.LDAP_PASSWORD,
         "-o", "nettimeout=5", // shorten the network timeout, default 30s causes API requests to timeout
-        `uid=${username},ou=People,dc=iplantcollaborative,dc=org`
+        `uid=${username},ou=People,${process.env.LDAP_BASE_DN}`
     ]);
 }
 
@@ -174,8 +174,8 @@ function irodsChangePassword(username, password) {
 
 // See https://cyverse.atlassian.net/browse/UP-82
 async function irodsSafeDeleteHome(username) {
-    await runICommands([ 'irm', '-rf', '/iplant/trash/home/' + username ]);
-    await runICommands([ 'imv', '/iplant/home/' + username, '/iplant/trash/home/uportal_admin2/' ]);
+    await runICommands([ 'irm', '-rf', `/${process.env["IRODS_ZONE_NAME"]}/trash/home/` + username ]);
+    await runICommands([ 'imv', `/${process.env["IRODS_ZONE_NAME"]}/home/` + username, `/${process.env["IRODS_ZONE_NAME"]}/trash/home/uportal_admin2/` ]);
 }
 
 function irodsDeleteUser(username) {
