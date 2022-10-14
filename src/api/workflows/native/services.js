@@ -49,7 +49,7 @@ async function serviceRegistrationWorkflow(request) {
 
     // IRODS: create service directory
     if (cfg.irodsPath) {
-        const fullPath = `/iplant/home/${user.username}/${cfg.irodsPath}`
+        const fullPath = `/${process.env["IRODS_ZONE_NAME"]}/home/${user.username}/${cfg.irodsPath}`
         await irodsMkDir(fullPath);
         await irodsChMod('inherit', '', fullPath);
         await irodsChMod('own', user.username, fullPath);

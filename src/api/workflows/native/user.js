@@ -14,7 +14,7 @@ async function userCreationWorkflow(user) {
     await ldapChangePassword(user.username, user.password);
 
     // LDAP: add user to groups
-    await ldapAddUserToGroup(user.username, "iplant-everyone");
+    await ldapAddUserToGroup(user.username, process.env["LDAP_EVERYONE_GROUP"]);
     await ldapAddUserToGroup(user.username, "community");
 
     // IRODS: create user
@@ -24,8 +24,8 @@ async function userCreationWorkflow(user) {
     await irodsChangePassword(user.username, user.password);
 
     // IRODS: grant access to user directory 
-    await irodsChMod("own", "ipcservices", `/iplant/home/${user.username}`);
-    await irodsChMod("own", "rodsadmin", `/iplant/home/${user.username}`);
+    await irodsChMod("own", "ipcservices", `/${process.env["IRODS_ZONE_NAME"]}/home/${user.username}`);
+    await irodsChMod("own", "rodsadmin", `/${process.env["IRODS_ZONE_NAME"]}/home/${user.username}`);
 
     // Mailchimp: subscribe user to newsletter 
     if (process.env.MAILCHIMP_ENABLED)
