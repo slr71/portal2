@@ -23,8 +23,11 @@ async function userCreationWorkflow(user) {
     // IRODS: set user password
     await irodsChangePassword(user.username, user.password);
 
-    // IRODS: grant access to user directory 
-    await irodsChMod("own", "ipcservices", `/${process.env["IRODS_ZONE_NAME"]}/home/${user.username}`);
+    // IRODS: grant access to user directory
+    if (process.env.IRODS_IPCSERVICES_ENABLED === "true")
+        await irodsChMod("own", "ipcservices", `/${process.env["IRODS_ZONE_NAME"]}/home/${user.username}`);
+
+    // IRODS: grant access to user directory
     await irodsChMod("own", "rodsadmin", `/${process.env["IRODS_ZONE_NAME"]}/home/${user.username}`);
 
     // Mailchimp: subscribe user to newsletter 

@@ -1,6 +1,6 @@
 // cURL is used for HTTP requests instead of native request because many of these tasks were ported from Argo workflows
-
-const { exec, execFile } = require('child_process');
+const fs = require("fs")
+const { exec, execFile, execSync } = require('child_process');
 var crypto = require('crypto');
 
 // Escape args with escapeShell() or use runFile() instead
@@ -79,8 +79,27 @@ const useLocalICommands = function() {
 const initializeICommands = function() {
     let cache = {initialized: false};
     return async function() {
+        // if the file does not exist HOME/.irods/irods_environment.json
+        if (!fs.existsSync(process.env.HOME+'/.irods/irods_environment.json')){
+
+            var irodsEnvironment = {
+                'irods_host': process.env.IRODS_HOST,
+                'irods_zone_name': process.env.IRODS_ZONE_NAME,
+                'irods_port': parseInt(process.env.IRODS_PORT),
+                'irods_user_name': process.env.IRODS_USER_NAME
+            }
+            dictstring = JSON.stringify(irodsEnvironment);
+            try {
+                if (!fs.existsSync(process.env.HOME+'/.irods')){
+                    fs.mkdirSync(process.env.HOME+'/.irods');
+                }
+                await fs.promises.writeFile(process.env.HOME+'/.irods/irods_environment.json', dictstring);
+              } catch (err) {
+                console.error(err);
+              }
+        }
         if (!cache['initialized']) {
-            await runFile("iinit", [process.env.IRODS_PASSWORD]);
+            execSync("iinit", {input: process.env.IRODS_PASSWORD})
             cache['initialized'] = true;
         }
     };
