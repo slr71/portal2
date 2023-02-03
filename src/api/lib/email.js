@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const sendmail = require('sendmail')({ silent: false, smtpHost: process.env["SMTP_HOST"] });
+const sendmail = require('sendmail')({ silent: false, devPort: process.env["SMTP_PORT"], smtpHost: process.env["SMTP_HOST"] });
 const { logger } = require('./logging');
 const { UI_WORKSHOPS_URL, UI_REQUESTS_URL, UI_SERVICES_URL, UI_PASSWORD_URL, UI_CONFIRM_EMAIL_URL } = require('../../constants');
 
