@@ -4,7 +4,7 @@ Someone has requested to link this email address to their CyVerse account. You c
 
 ${ACTIVATE_URL}
 
-If you did NOT request having this email address linked to your account, please notify CyVerse Support at support@cyverse.org.
+If you did NOT request having this email address linked to your account, please notify CyVerse Support at ${SUPPORT_EMAIL}.
 
 Happy Researching,
 

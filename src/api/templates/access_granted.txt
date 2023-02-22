@@ -4,7 +4,7 @@ Your request for access to ${SERVICE_NAME} has been approved. You can now launch
 
 ${SERVICE_URL}
 
-If you encounter any issues, or have any questions, please contact support@cyverse.org.
+If you encounter any issues, or have any questions, please contact ${SUPPORT_EMAIL}.
 
 Happy Researching,
 
