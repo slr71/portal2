@@ -44,7 +44,7 @@ export default function Custom404() {
             {" "}
             Let's get you back to{" "}
             <a
-              href="https://www.cyverse.org"
+              href="/"
               style={{ textDecoration: "none" }}
             >
               CyVerse
