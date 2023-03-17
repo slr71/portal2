@@ -87,7 +87,7 @@ const menuItems = [
             },
             {
                 label: 'FAQ',
-                path: config.FAQ_URL,
+                path: config.FAQ_URL || "https://learning.cyverse.org/projects/faq",
                 description:
                     'Answers to frequenty asked questions about CyVerse.',
                 category: 'support',
