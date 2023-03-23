@@ -6,6 +6,7 @@ const { UI_WORKSHOPS_URL, UI_REQUESTS_URL, UI_SERVICES_URL, UI_PASSWORD_URL, UI_
 
 const TIME_BETWEEN_EMAILS = 30 * 1000 // rate limit to one email sent per 30 seconds
 let nextEmailSendTime = 0
+const SUPPORT_EMAIL = process.env.SUPPORT_EMAIL
 
 function queueEmail(cfg) {
     const now = Date.now();
@@ -80,7 +81,8 @@ function emailNewAccountConfirmation(email, hmac) {
             templateName: 'email_confirmation_signup',
             fields: {
                 "ACTIVATE_URL": confirmationUrl,
-                "FORMS_URL": UI_REQUESTS_URL
+                "FORMS_URL": UI_REQUESTS_URL,
+                "SUPPORT_EMAIL": SUPPORT_EMAIL
             }
         })
     );
@@ -97,6 +99,7 @@ async function emailNewEmailConfirmation(email, hmac) {
             templateName: 'add_email_confirmation',
             fields: {
                 "ACTIVATE_URL": confirmationUrl,
+                "SUPPORT_EMAIL": SUPPORT_EMAIL
             }
         })
     );
@@ -113,7 +116,8 @@ async function emailPasswordReset(emailAddress, hmac) {
             templateName: 'password_reset',
             fields: {
                 "PASSWORD_RESET_URL": resetUrl,
-                "USERNAME": emailAddress.user.username
+                "USERNAME": emailAddress.user.username,
+                "SUPPORT_EMAIL": SUPPORT_EMAIL
             }
         })
     );
@@ -133,7 +137,8 @@ async function emailServiceAccessGranted(request) {
             templateName: 'access_granted',
             fields: {
                 "SERVICE_NAME": service.name,
-                "SERVICE_URL": serviceUrl
+                "SERVICE_URL": serviceUrl,
+                "SUPPORT_EMAIL": SUPPORT_EMAIL
             }
         })
     );
@@ -163,7 +168,8 @@ async function emailWorkshopEnrollmentRequest(request) {
                 "EMAIL": user.email,
                 "INSTITUTION": user.institution,
                 "COUNTRY": user.region.country.name,
-                "WORKSHOP_ENROLLMENT_REQUEST_URL": workshopEnrollmentRequestUrl
+                "WORKSHOP_ENROLLMENT_REQUEST_URL": workshopEnrollmentRequestUrl,
+                "SUPPORT_EMAIL": SUPPORT_EMAIL
             }
         })
     );
@@ -183,7 +189,8 @@ function emailWorkshopEnrollmentConfirmation(request) {
             templateName: 'workshop_enrollment',
             fields: {
                 "WORKSHOP_NAME": workshop.title,
-                "WORKSHOP_URL": workshopUrl
+                "WORKSHOP_URL": workshopUrl,
+                "SUPPORT_EMAIL": SUPPORT_EMAIL
             }
         })
     );

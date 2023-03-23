@@ -12,7 +12,7 @@ Please click the link below to review the request, and either approve or deny it
 
 ${WORKSHOP_ENROLLMENT_REQUEST_URL}
 
-If you encounter any issues reviewing the request, or have a suggestion about how to improve the review process, please contact support@cyverse.org.
+If you encounter any issues reviewing the request, or have a suggestion about how to improve the review process, please contact ${SUPPORT_EMAIL}.
 
 Thanks!
 

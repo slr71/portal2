@@ -4,7 +4,7 @@ You are now enrolled in the ${WORKSHOP_NAME} workshop and have access to all req
 
 ${WORKSHOP_URL}
 
-If you encounter any issues, or have any questions, please contact support@cyverse.org.
+If you encounter any issues, or have any questions, please contact ${SUPPORT_EMAIL}.
 
 Happy Learning,
 

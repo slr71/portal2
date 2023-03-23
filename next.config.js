@@ -27,6 +27,7 @@ const PUBLIC_PARAMS = [
   'INTERCOM_TOKEN',
   'INTERCOM_COMPANY_ID',
   'TERRAIN_URL',
+  'FAQ_URL'
 ]
 
 // Verify that required configuration params are set

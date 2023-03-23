@@ -251,7 +251,7 @@ const getForms = ({ user, countries, regions, institutions, institutionKeyword, 
       ]
     },
     { title: "Password",
-      subtitle: <>Reset your password <a href="https://user.cyverse.org/forgot">here</a> if you have forgotten it</>,
+      subtitle: <>Reset your password <a href="/forgot">here</a> if you have forgotten it</>,
       autosave: false,
       hideReviewMode: true,
       submitHandler: changeHandler,

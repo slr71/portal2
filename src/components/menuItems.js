@@ -20,6 +20,9 @@ import SvgForumIcon from './svg/forumIcon'
 import SvgStatusIcon from './svg/statusIcon'
 import SvgRocketIcon from './svg/rocketIcon'
 
+import getConfig from "next/config"
+const config = getConfig().publicRuntimeConfig
+
 const menuItems = [
     {
         label: 'Services',
@@ -84,7 +87,7 @@ const menuItems = [
             },
             {
                 label: 'FAQ',
-                path: 'https://learning.cyverse.org/projects/faq',
+                path: config.FAQ_URL || "https://learning.cyverse.org/projects/faq",
                 description:
                     'Answers to frequenty asked questions about CyVerse.',
                 category: 'support',
