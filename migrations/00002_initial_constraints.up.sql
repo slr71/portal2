@@ -1099,7 +1099,7 @@ ALTER TABLE ONLY public.warden_atmospherestudentrequest
     ADD CONSTRAINT warden_atmospherestudentrequest_user_id_key UNIQUE (user_id);
 
 --
---  indexes
+-- create indexes
 --
 
 CREATE INDEX IF NOT EXISTS "IDX_session_expire"
@@ -1467,7 +1467,7 @@ CREATE INDEX IF NOT EXISTS warden_atmosphereinternationalrequest_60f75a15
     USING btree (funding_source_id);
 
 --
--- foreign keys
+-- create foreign keys
 --
 
 ALTER TABLE ONLY public.api_poweredservicepoweredbyoption
