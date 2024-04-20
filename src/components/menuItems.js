@@ -65,7 +65,7 @@ const menuItems = [
             },
             {
                 label: 'Webinars',
-                path: 'https://learning.cyverse.org/en/latest/webinars.html',
+                path: 'https://www.youtube.com/@CyverseOrgProject',
                 description:
                     'Browse webinars on how to use CyVerse services.',
                 category: 'learn',
