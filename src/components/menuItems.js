@@ -86,10 +86,9 @@ const menuItems = [
                 icon: <SvgWikiIcon />,
             },
             {
-                label: 'FAQ',
-                path: config.FAQ_URL || "https://learning.cyverse.org/projects/faq",
-                description:
-                    'Answers to frequenty asked questions about CyVerse.',
+                label: 'Tour',
+                path: config.TOUR_URL || "https://learning.cyverse.org/mooc/",
+                description: 'A self-guided tour of CyVerse.',
                 category: 'support',
                 icon: <SvgForumIcon />,
             },
