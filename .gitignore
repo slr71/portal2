@@ -3,3 +3,4 @@ src/config.json
 .idea
 .next/
 node_modules/
+echo "**/.DS_Store" >> .gitignore
