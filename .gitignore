@@ -3,4 +3,5 @@ src/config.json
 .idea
 .next/
 node_modules/
-**/.DS_Store
+**/.DS_Store.nvmrc
+find-missing-react.js

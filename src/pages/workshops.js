@@ -1,3 +1,4 @@
+import React from 'react'
 import { Grid, Link, Box, Divider, Typography, Button, makeStyles } from '@material-ui/core'
 import { Event as EventIcon, VisibilityOff as VisibilityOffIcon } from '@material-ui/icons'
 import { DateRange, Layout, SummaryCard } from '../components'

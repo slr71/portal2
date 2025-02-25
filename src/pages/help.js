@@ -1,3 +1,4 @@
+import React from 'react'
 import getConfig from "next/config"
 import { Grid, Link, Box, Divider, Typography } from '@material-ui/core'
 import { Layout, intercomShow, getMenuItem } from '../components'

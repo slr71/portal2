@@ -1,3 +1,4 @@
+import React from 'react'
 import Markdown from 'markdown-to-jsx'
 import { makeStyles, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@material-ui/core'
 import { DateSpan } from './DateRange'

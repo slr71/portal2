@@ -1,3 +1,4 @@
+import React from 'react'
 import {
     Dashboard as DashboardIcon,
     List as ListIcon,

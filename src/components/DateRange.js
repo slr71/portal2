@@ -1,3 +1,4 @@
+import React from 'react'
 import { format } from 'date-fns'
 
 const DateRange = ({ date1, date2, hideTime }) => {

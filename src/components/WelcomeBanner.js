@@ -1,3 +1,4 @@
+import React from 'react'
 import { Paper, Grid, Box, Button, Typography } from '@material-ui/core'
 import BannerImage from './svg/bannerImage'
 import { makeStyles } from '@material-ui/core/styles'
