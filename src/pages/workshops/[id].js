@@ -3,18 +3,19 @@ import { useRouter } from 'next/router'
 import { useState, useEffect } from 'react'
 import getConfig from "next/config"
 import Markdown from 'markdown-to-jsx'
-import { makeStyles, Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse, Chip } from '@material-ui/core'
-import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@material-ui/icons'
-import Autocomplete from '@material-ui/lab/Autocomplete'
+import { Container, Paper, Grid, Box, Tabs, Tab, Typography, Tooltip, Button, IconButton, CircularProgress, Link, TextField, List, ListItem, ListItemText, ListItemAvatar, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Collapse, Chip } from '@mui/material'
+import { Person as PersonIcon, Delete as DeleteIcon, KeyboardArrowUp as KeyboardArrowUpIcon, KeyboardArrowDown as KeyboardArrowDownIcon } from '@mui/icons-material'
+import Autocomplete from '@mui/material/Autocomplete'
+import { makeStyles } from '../styles/tss'
 import DateFnsUtils from '@date-io/date-fns'
-import { MuiPickersUtilsProvider, KeyboardDatePicker, KeyboardDateTimePicker } from '@material-ui/pickers'
+import { LocalizationProvider, DatePicker, DateTimePicker } from '@mui/x-date-pickers'
 import { Layout, DateRange, DateSpan, TabPanel, UpdateForm, FormDialog, ContactsEditor, ServicesList, AddServiceDialog } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { useError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 const { WS_WORKSHOP_ENROLLMENT_REQUEST_STATUS_UPDATE } = require('../../constants')
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   },
@@ -52,7 +53,7 @@ const Workshop = (props) => {
 const WorkshopViewer = (props) => {
   const config = getConfig().publicRuntimeConfig
   const workshop = props.workshop
-  const classes = useStyles()
+  const { classes } = useStyles()
   const api = useAPI()
   const [user] = useUser()
   const [_, setError] = useError()
@@ -99,7 +100,7 @@ const WorkshopViewer = (props) => {
     <div>
       <Paper elevation={3} className={classes.paper}>
         <Grid container spacing={4}>
-          <Grid container item xs={12} justify="space-between">
+          <Grid container item xs={12} justifyContent="space-between">
             <Grid item>
               <Box display="flex">
                 <Typography component="h1" variant="h4" gutterBottom>{workshop.title}</Typography>
@@ -464,7 +465,7 @@ const WorkshopEditor = (props) => {
 }
 
 const GeneralSettings = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <Paper elevation={3} className={classes.paper}>
@@ -512,7 +513,7 @@ const GeneralSettings = (props) => {
 }
 
 const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [user] = useUser()
   //const [errors, setErrors] = useState({})
   const isEditor = user.is_staff || isHost(user, workshop)
@@ -535,47 +536,41 @@ const EnrollmentPeriod = ({ enrollment_begins, enrollment_ends, submitHandler })
         Date range for when users can enroll in the workshop.
       </Typography>
       <br />
-      <MuiPickersUtilsProvider utils={DateFnsUtils}>
-        <Grid container justify="space-around">
-          <KeyboardDatePicker
+      <LocalizationProvider utils={DateFnsUtils}>
+        <Grid container justifyContent="space-around">
+          <DatePicker
             disabled={!isEditor}
-            variant="inline"
-            format="MM/dd/yyyy"
+            inputFormat="MM/dd/yyyy"
             margin="normal"
-            style={{width: '45%'}}
+            sx={{width: '45%'}}
             id="enrollment_begins"
             label="Enrollment Begins (MST)"
             helperText="This is the earliest that users with an authorized email will be able to enroll and get access to the workshop services."
             value={enrollment_begins}
             onChange={(value) => handleChange({'enrollment_begins': value})}
-            KeyboardButtonProps={{
-              'aria-label': 'change date',
-            }}
+            renderInput={(params) => <TextField {...params} />}
           />
-          <KeyboardDatePicker
+          <DatePicker
             disabled={!isEditor}
-            variant="inline"
-            format="MM/dd/yyyy"
+            inputFormat="MM/dd/yyyy"
             margin="normal"
-            style={{width: '45%'}}
+            sx={{width: '45%'}}
             id="enrollment_ends"
             label="Enrollment Ends (MST)"
             helperText="After this date users will not be able to enroll in the workshop, even if their email is authorized."
             value={enrollment_ends}
             onChange={(value) => handleChange({'enrollment_ends': value})}
-            KeyboardButtonProps={{
-              'aria-label': 'change date',
-            }}
+            renderInput={(params) => <TextField {...params} />}
           />
         </Grid>
-      </MuiPickersUtilsProvider>
+      </LocalizationProvider>
     </Paper>
   )
 }
 
 //FIXME similar to EnrollmentPeriod, move into shared component
 const WorkshopPeriod = ({ start_date, end_date, enrollment_begins, submitHandler }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [user] = useUser()
   const [errors, setErrors] = useState({})
   const isEditor = user.is_staff || isHost(user, workshop)
@@ -625,14 +620,13 @@ const WorkshopPeriod = ({ start_date, end_date, enrollment_begins, submitHandler
         Date range for when users will attend the workshop.
       </Typography>
       <br />
-      <MuiPickersUtilsProvider utils={DateFnsUtils}>
-        <Grid container justify="space-around">
-          <KeyboardDateTimePicker
+      <LocalizationProvider utils={DateFnsUtils}>
+        <Grid container justifyContent="space-around">
+          <DateTimePicker
             disabled={!isEditor}
-            variant="inline"
-            format="MM/dd/yyyy hh:mm a"
+            inputFormat="MM/dd/yyyy hh:mm a"
             margin="normal"
-            style={{width: '45%'}}
+            sx={{width: '45%'}}
             id="start_date"
             label="Workshop Begins (MST)"
             error={!!errors["start_date"]}
@@ -640,16 +634,13 @@ const WorkshopPeriod = ({ start_date, end_date, enrollment_begins, submitHandler
             value={start_date}
             minDate={enrollment_begins}
             onChange={(value) => handleChange({'start_date': value})}
-            KeyboardButtonProps={{
-              'aria-label': 'change date',
-            }}
+            renderInput={(params) => <TextField {...params} />}
           />
-          <KeyboardDateTimePicker
+          <DateTimePicker
             disabled={!isEditor}
-            variant="inline"
-            format="MM/dd/yyyy hh:mm a"
+            inputFormat="MM/dd/yyyy hh:mm a"
             margin="normal"
-            style={{width: '45%'}}
+            sx={{width: '45%'}}
             id="end_date"
             label="Workshop Ends (MST)"
             error={!!errors["end_date"]}
@@ -657,18 +648,16 @@ const WorkshopPeriod = ({ start_date, end_date, enrollment_begins, submitHandler
             value={end_date}
             minDate={enrollment_begins}
             onChange={(value) => handleChange({'end_date': value})}
-            KeyboardButtonProps={{
-              'aria-label': 'change date',
-            }}
+            renderInput={(params) => <TextField {...params} />}
           />
         </Grid>
-      </MuiPickersUtilsProvider>
+      </LocalizationProvider>
     </Paper>
   )
 }
 
 const Host = ({ owner, submitHandler }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [user] = useUser()
   const [dialogOpen, setDialogOpen] = useState(false)
 
@@ -681,7 +670,7 @@ const Host = ({ owner, submitHandler }) => {
           NOTE: this field can only be changed by CyVerse staff.
         </Typography>
         <br />
-        <Grid container justify="space-between" alignItems="center">
+        <Grid container justifyContent="space-between" alignItems="center">
           <Grid item>
             <Link href={`/administrative/users/${owner.id}`}>
               <ListItem>
@@ -722,7 +711,7 @@ const Host = ({ owner, submitHandler }) => {
 }
 
 const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [user] = useUser()
   const [dialogOpen, setDialogOpen] = useState(false)
   const isEditable = user.is_staff || isHost(user, workshop)
@@ -738,7 +727,7 @@ const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
         <br />
         <List>
           {organizers.map((organizer, index) => (
-            <Grid container key={index} justify="space-between" alignItems="center">
+            <Grid container key={index} justifyContent="space-between" alignItems="center">
               <Grid item>
                 <Link href={`/administrative/users/${organizer.id}`}>
                   <ListItem>
@@ -788,7 +777,7 @@ const Organizers = ({ organizers, owner, submitHandler, deleteHandler }) => {
 }
 
 const Services = ({ workshop, services, submitHandler, deleteHandler }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
@@ -823,13 +812,13 @@ const Services = ({ workshop, services, submitHandler, deleteHandler }) => {
 }
 
 const Participants = ({ participants, submitHandler, deleteHandler }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return (  
     <div>      
       <Paper elevation={3} className={classes.paper}>
-        <Grid container justify="space-between">
+        <Grid container justifyContent="space-between">
           <Grid item>
             <Typography component="h1" variant="h4">Participants {participants && participants.length > 0 && <Chip label={participants.length} />}</Typography>
             <Typography variant="subtitle1" color="textSecondary">
@@ -892,13 +881,13 @@ const Participants = ({ participants, submitHandler, deleteHandler }) => {
 }
 
 const Emails = ({ emails, submitHandler, deleteHandler }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return ( 
     <div>       
       <Paper elevation={3} className={classes.paper}>
-        <Grid container justify="space-between">
+        <Grid container justifyContent="space-between">
           <Grid item style={{width:'70%'}}>
             <Typography component="h1" variant="h4">Pre-approvals {emails && emails.length > 0 && <Chip label={emails.length} />}</Typography>
             <Typography variant="subtitle1" color="textSecondary">
@@ -965,7 +954,7 @@ const Emails = ({ emails, submitHandler, deleteHandler }) => {
 }
 
 const Requests = ({ requests, submitHandler }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [myUser] = useUser()
 
   const Status = ({ value }) => {

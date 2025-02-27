@@ -1,15 +1,15 @@
 import React from 'react'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, AppBar, Toolbar, Box, Paper, Typography, Link, Button, IconButton, TextField, Avatar, List, ListItem, ListItemText, ListItemAvatar, ListItemSecondaryAction, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
-import { Person as PersonIcon, Mail as MailIcon, Delete as DeleteIcon } from '@material-ui/icons'
+import { Container, AppBar, Toolbar, Box, Paper, Typography, Link, Button, IconButton, TextField, Avatar, List, ListItem, ListItemText, ListItemAvatar, ListItemSecondaryAction, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
+import { Person as PersonIcon, Mail as MailIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { Layout, UpdateForm, MailingListForm, MainLogo } from '../components'
 import { isEmail, isEmpty } from 'validator'
 import { useUser } from '../contexts/user'
 import { useAPI } from '../contexts/api'
 import { useError } from '../contexts/error'
 import { sortCountries } from '../lib/misc'
+import { makeStyles } from '../styles/tss'
 const properties = require('../user-properties.json')
 
 const countries = properties.countries.sort(sortCountries)
@@ -21,7 +21,7 @@ for (const r of properties.regions) {
 }
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   },
@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const Account = () => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const router = useRouter()
   const api = useAPI()
   const [_, setError] = useError()
@@ -178,11 +178,11 @@ const Account = () => {
 }
 
 const ReviewWrapper = (props) => {
-  if (props.reviewMode) {
-    const classes = useStyles()
-    const api = useAPI()
-    const [user] = useUser()
+  const { classes } = useStyles()
+  const api = useAPI()
+  const [user] = useUser()
 
+  if (props.reviewMode) {
     const redirect = async () => {
       await api.updateUser(user.id, { updated_at: Date.now() })
       window.open(props.redirectUrl, "_self")
@@ -288,7 +288,7 @@ const getForms = ({ user, countries, regions, institutions, institutionKeyword, 
         <MailingListForm 
           emails={user.emails} 
           title="Mailing List Subscriptions" 
-          subtitle="Select which service-related email notifications you’d like to receive" 
+          subtitle="Select which service-related email notifications you'd like to receive" 
         />
     },
     { title: "Institution / Research",

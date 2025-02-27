@@ -2,19 +2,20 @@ import React from 'react'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { isEmpty, isEmail } from 'validator'
-import { Link, Box, Grid, Typography, TextField, Button, LinearProgress, makeStyles} from '@material-ui/core'
+import { Link, Box, Grid, Typography, TextField, Button, LinearProgress } from '@mui/material'
 import { MainLogo, Wizard, WelcomeAnimation, honeypotId } from '../components'
 import { useAPI } from '../contexts/api'
 import { sortCountries } from '../lib/misc'
+import { makeStyles } from '../styles/tss'
 const properties = require('../user-properties.json')
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   //MOBILE STYLES
   boxWelcome: {
     paddingTop:'30%',
     [theme.breakpoints.down('md')]:
     {paddingTop:'10%',},
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       paddingTop:'5%',
     },
   },
@@ -32,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.down('sm')]:
     {fontSize:"1.7rem",
       marginTop:"5%"},
-      [theme.breakpoints.down('xs')]:
+    [theme.breakpoints.down('sm')]:
     {fontSize:"1.3rem",
       marginTop:"5%"},
   },
@@ -69,7 +70,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const Welcome = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <div>
@@ -86,8 +87,8 @@ const Welcome = (props) => {
 }
 
 const Left = () => {
-  const classes = useStyles()
-return (
+  const { classes } = useStyles()
+  return (
     <div>
         <Box className={classes.logo}>
             <MainLogo size="large" />
@@ -107,11 +108,11 @@ return (
             </Typography>
         </Box>
     </div>
-)
+  )
 }
 
 const Right = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const router = useRouter()
   const query = router && router.query ? router.query : {}
 
@@ -154,7 +155,7 @@ const Right = (props) => {
 }
 
 const ForgotPassword = ({ startTimeHMAC, cancelHandler }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const api = useAPI()
 
   const [email, setEmail] = useState()
@@ -204,7 +205,7 @@ const ForgotPassword = ({ startTimeHMAC, cancelHandler }) => {
     }
   }
 
-  const backButton = <Link onClick={cancelHandler}>Back to Sign-in / Sign-Up</Link>
+  const backButton = <Link component="button" onClick={cancelHandler}>Back to Sign-in / Sign-Up</Link>
 
   if (isSubmitted && !submitError) {
     return (
@@ -280,7 +281,7 @@ const ForgotPassword = ({ startTimeHMAC, cancelHandler }) => {
 }
 
 const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const api = useAPI()
   const [error, setError] = useState()
 
