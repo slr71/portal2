@@ -1,6 +1,6 @@
 import React, {useEffect, createRef} from "react"
 import lottie from 'lottie-web'
-//import { makeStyles } from '@material-ui/core'
+// import { makeStyles } from '../styles/tss'
 import animation from '../animations/scientist.json'
 
 import styles from '../../src/styles/animation.module.css'

@@ -1,9 +1,9 @@
 import React, {useEffect, createRef} from "react"
 import lottie from 'lottie-web'
-import { makeStyles } from '@material-ui/core'
+import { makeStyles } from '../styles/tss'
 import animation from '../animations/erroranimation.json'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   animationBox: {
     maxWidth:'560px',
     margin: '0 auto',
@@ -14,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
 const Animation = () => {
   let animationContainer = createRef();
   
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   useEffect(() => {
     lottie.loadAnimation({

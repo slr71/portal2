@@ -1,7 +1,8 @@
 import React from 'react'
 import Link from "next/link"
 import { useRouter } from 'next/router'
-import { ListItem, ListItemIcon, ListItemText, makeStyles } from '@material-ui/core'
+import { ListItem, ListItemIcon, ListItemText } from '@mui/material'
+import { makeStyles } from '../styles/tss'
 import { menuItems } from './menuItems'
 
 const useStyles = makeStyles((theme) => ({
@@ -11,12 +12,12 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const NavButton = props => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <div>
-      <Link href={props.path}>
-        <ListItem button selected={props.selected} className={classes.listItem}>
+      <Link href={props.path} passHref>
+        <ListItem button selected={props.selected} className={classes.listItem} component="a">
           <ListItemIcon>
             {props.icon}
           </ListItemIcon>

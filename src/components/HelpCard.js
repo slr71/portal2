@@ -6,10 +6,10 @@ import {
     CardActions,
     Typography,
     Avatar,
-} from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+} from '@mui/material'
+import { makeStyles } from '../styles/tss'
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles()(theme => ({
     avatar: {
         backgroundColor: '#ffff',
         color: '#0971ab',
@@ -42,7 +42,7 @@ const HelpCard = ({
     action,
 }) => {
     // use icon or iconUrl but not both
-    const classes = useStyles()
+    const { classes } = useStyles()
 
     return (
         <Card>

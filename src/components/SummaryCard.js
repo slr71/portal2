@@ -1,8 +1,8 @@
 import React from 'react'
-import { Card, CardHeader, CardContent, CardActions, Typography, Avatar } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Card, CardHeader, CardContent, CardActions, Typography, Avatar } from '@mui/material'
+import { makeStyles } from '../styles/tss'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   title: {
     lineHeight: '1.1',
     fontSize: '1.4em',
@@ -25,7 +25,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const SummaryCard = ({ title, subtitle, description, iconUrl, icon, action, largeHeader }) => { // use icon or iconUrl but not both
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <Card>

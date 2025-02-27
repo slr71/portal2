@@ -1,10 +1,10 @@
 import React from 'react'
-import { Grid, Box, Breadcrumbs, Link, Typography } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Grid, Box, Breadcrumbs, Link, Typography } from '@mui/material'
+import { makeStyles } from '../styles/tss'
 import { useRouter } from 'next/router'
 import { menuItems } from './menuItems.js'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   title: {
     fontSize: "1.5em",
     marginLeft: "0.5em"
@@ -22,7 +22,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const BreadcrumbsMenu = ({ parts, title }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   if (parts.length <= 1)
     return <></>
@@ -48,7 +48,7 @@ const TopBar = (props) => {
 
   return (
     <Box px={4} pt={1.15} className={classes.box}>
-      <Grid container justify="space-between">
+      <Grid container justifyContent="space-between">
         <Grid item>
           {props.back 
             ? <Link color="inherit" href={backUrl}>Back</Link>
@@ -56,7 +56,7 @@ const TopBar = (props) => {
               ? <BreadcrumbsMenu parts={parts} title={props.title} />
               : <div style={{display: 'flex', alignItems: 'center'}}>
                   {menuItem && menuItem.icon}
-                  <Typography className={classes.title} nowrap='true'>{props.title}</Typography>
+                  <Typography className={classes.title} noWrap>{props.title}</Typography>
                 </div>
           }
         </Grid>
