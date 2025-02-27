@@ -1,15 +1,15 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Switch, FormControlLabel, Typography, CircularProgress, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
-import Autocomplete from '@material-ui/lab/Autocomplete'
+import { Grid, Box, Button, Stepper, Step, StepLabel, MenuItem, TextField, Switch, FormControlLabel, Typography, CircularProgress, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
+import Autocomplete from '@mui/material/Autocomplete'
+import { makeStyles } from '../styles/tss'
 import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
 import { isEmail, isNumeric, isAlphanumeric, isLowercase, isDate, isEmpty } from 'validator'
 import { validatePassword } from '../lib/misc'
 import { CheckboxWithLabel } from "formik-material-ui"
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   formStepper: {
     [theme.breakpoints.down('xs')]: {
       display:'none',},
@@ -126,7 +126,7 @@ const UpdateForm = ({ title, subtitle, fields, autosave, validate, onSubmit }) =
       {({ handleChange, handleBlur, handleSubmit, submitCount, isSubmitting, isValid, values, errors, touched, dirty }) => (
         <Form>
           {title &&
-            <Grid container justify="space-between" style={{height: '3em'}}>
+            <Grid container justifyContent="space-between" style={{height: '3em'}}>
               <Grid item>
                 <Typography component="div" variant="h5">{title}</Typography>
               </Grid>
@@ -230,7 +230,7 @@ const Wizard = ({ form, initialValues, validate, onSelect, onSubmit }) => {
 const FormStepper = ({activeStep, steps}) => {
   if (steps.length <= 1)
     return (<></>)
-const classes = useStyles()
+const { classes } = useStyles()
   return (
     <Stepper className={classes.formStepper}>
       {steps.map((title, index) => (
@@ -263,7 +263,7 @@ const SwitchField = (props) => (
 )
 
 const FormField = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const commonProps = {
     id: props.id.toString(),
@@ -371,7 +371,7 @@ const FormField = (props) => {
         }} 
         onInputChange={(event, value) => event && props.onInputChange && props.onInputChange(props.id, value)}
         options={options}
-        filterOptions={option => option} // disable built-in filter (needed for "only first 100 results shown" option in institutions dropdown)
+        filterOptions={x => x} // disable built-in filter (needed for "only first 100 results shown" option in institutions dropdown)
         getOptionSelected={(option, value) => option && value && option.id == value.id}
         getOptionDisabled={(option) => option && option.disabled}
         getOptionLabel={(option) => option && option.name ? option.name : ''}
