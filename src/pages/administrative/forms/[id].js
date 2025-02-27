@@ -1,13 +1,14 @@
 import React from 'react'
-import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, Grid, makeStyles } from '@material-ui/core'
+import { Container, Box, Paper, Divider, Typography, Button, Tab, Tabs, TextField, Grid } from '@mui/material'
 import { Layout, UpdateForm } from '../../../components'
 import { useAPI } from '../../../contexts/api'
 import { useError, withGetServerSideError} from '../../../contexts/error'
-import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
-import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import { makeStyles } from '../../../styles/tss'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   root: {
     flexGrow: 1,
     display: 'flex',
@@ -26,7 +27,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const FormEditor = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const api = useAPI()
   const [_, setError] = useError()
 
@@ -141,7 +142,7 @@ const FormEditor = (props) => {
         <br />
         <Paper elevation={3} className={classes.paper} style={{height: height + "em"}}>
           <Box m={3}>
-            <Grid container justify="space-between">
+            <Grid container justifyContent="space-between">
               <Grid item>
                 <TextField 
                   margin="none" 
@@ -218,7 +219,7 @@ const SectionTabPanel = ({ section, value, index, onUpdate, onDelete, onAddField
       {value === index && (
         <div>
           <Box mb={5}>
-            <Grid container justify="space-between" my={2}>
+            <Grid container justifyContent="space-between" my={2}>
               <Grid item>
                 <Typography component="h1" variant="h5" gutterBottom>Section</Typography>
               </Grid>
@@ -281,7 +282,7 @@ const FieldEditor = props => {
 
   return (
     <Box my={3} flexGrow={1}>
-      <Grid container justify="space-between" my={2}>
+      <Grid container justifyContent="space-between" my={2}>
         <Grid item>
           <Typography component="h1" variant="h6" gutterBottom>Field #{props.index+1}</Typography>
         </Grid>

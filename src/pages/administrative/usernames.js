@@ -1,21 +1,21 @@
 import React from 'react'
 import { useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Typography, TextField, Button, IconButton, TableContainer, Table, TableBody, TableRow, TableCell, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
-import DeleteIcon from '@material-ui/icons/Delete'
+import { Container, Paper, Grid, Typography, TextField, Button, IconButton, TableContainer, Table, TableBody, TableRow, TableCell, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
+import DeleteIcon from '@mui/icons-material/Delete'
 import Layout from '../../components/Layout'
 import { useAPI } from '../../contexts/api'
 import { useError, withGetServerSideError } from '../../contexts/error'
+import { makeStyles } from '../../styles/tss'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   }
 }))
 
 const RestrictedUsernames = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const api = useAPI()
   const [_, setError] = useError()
 
@@ -60,7 +60,7 @@ const RestrictedUsernames = (props) => {
       <Container maxWidth='lg'>
         <br />
         <Paper elevation={3} className={classes.paper}>
-          <Grid container justify="space-between">
+          <Grid container justifyContent="space-between">
             <Grid item>
               <Typography component="h1" variant="h4">Restricted Usernames</Typography>
             </Grid>

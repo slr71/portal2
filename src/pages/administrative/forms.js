@@ -2,21 +2,21 @@ import React from 'react'
 import { useState } from 'react'
 import Link from "next/link"
 import { useRouter } from 'next/router'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Button, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
+import { Container, Paper, Grid, Button, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@mui/material'
 import { Layout, FormDialog } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { withGetServerSideError } from '../../contexts/error'
+import { makeStyles } from '../../styles/tss'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   }
 }))
 
 const Forms = props => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const router = useRouter()
   const api = useAPI()
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -34,7 +34,7 @@ const Forms = props => {
       <Container maxWidth='lg'>
         <br />
         <Paper elevation={3} className={classes.paper}>
-          <Grid container justify="space-between">
+          <Grid container justifyContent="space-between">
             <Grid item>
               <Typography component="h1" variant="h4" gutterBottom>Forms</Typography>
             </Grid>
@@ -78,8 +78,8 @@ const FormTable = props => (
     <Table>
       <TableBody>
         {props.forms.map(form => (
-          <Link key={form.id} href={`/administrative/forms/${form.id}`}>
-            <TableRow hover style={{cursor: 'pointer'}}>
+          <Link key={form.id} href={`/administrative/forms/${form.id}`} passHref>
+            <TableRow hover style={{cursor: 'pointer'}} component="a">
               <TableCell>{form.name}</TableCell>
             </TableRow>
           </Link>

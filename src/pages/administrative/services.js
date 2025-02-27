@@ -1,19 +1,19 @@
 import React from 'react'
 import Link from "next/link"
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
+import { makeStyles } from '../../styles/tss'
+import { Container, Paper, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@mui/material'
 import { Layout } from '../../components'
 import { withGetServerSideError } from '../../contexts/error'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   }
 }))
 
 const Services = props => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <Layout breadcrumbs>
@@ -33,15 +33,15 @@ const ServicesTable = ({ services }) => (
     <Table>
       <TableBody>
         {services.map((service, index) => (
-          <Link key={index} href={`/services/${service.id}`}>
-            <TableRow hover style={{cursor: 'pointer'}}>
-              <TableCell>
+          <TableRow key={index} hover style={{cursor: 'pointer'}}>
+            <TableCell>
+              <Link href={`/services/${service.id}`} passHref style={{ textDecoration: 'none' }}>
                 <div>
                   <b>{service.name}</b>
                 </div>
-              </TableCell>
-            </TableRow>
-          </Link>
+              </Link>
+            </TableCell>
+          </TableRow>
         ))}
       </TableBody>
     </Table>

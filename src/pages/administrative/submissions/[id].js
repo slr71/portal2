@@ -1,11 +1,11 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, FormControlLabel, TextField, Checkbox } from '@material-ui/core'
+import { Container, Grid, FormControlLabel, TextField, Checkbox } from '@mui/material'
 import { Layout, Section, User, Conversations } from '../../../components'
 import { withGetServerSideError } from '../../../contexts/error'
+import { makeStyles } from '../../../styles/tss'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   box: {
     marginBottom: '2em'
   },

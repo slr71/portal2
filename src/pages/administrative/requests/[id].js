@@ -1,13 +1,13 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Box, Typography, Button, Divider } from '@material-ui/core'
+import { Container, Grid, Box, Typography, Button, Divider } from '@mui/material'
 import { Layout, Section, User, Conversations } from '../../../components'
 import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useAPI } from '../../../contexts/api'
 import { useUser } from '../../../contexts/user'
+import { makeStyles } from '../../../styles/tss'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   box: {
     marginBottom: '2em'
   },
@@ -60,7 +60,7 @@ const AccessRequest = (props) => {
 }
 
 const Questions = ({ questions, answers }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const answersByQuestionId = {}
   answers.forEach(a => answersByQuestionId[a.access_request_question_id] = a)
@@ -123,7 +123,7 @@ const Actions = ({ request, updateHandler }) => {
 }
 
 const History = ({ logs }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <Section title="History">
