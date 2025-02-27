@@ -2,10 +2,10 @@ import React from 'react'
 import clsx from 'clsx'
 import getConfig from "next/config"
 import { useRouter } from 'next/router'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline, Snackbar, Hidden } from '@material-ui/core'
-import { Alert, AlertTitle } from '@material-ui/lab'
-import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, AccountCircle as PersonIcon } from '@material-ui/icons'
+import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline, Snackbar, Hidden } from '@mui/material'
+import { Alert, AlertTitle } from '@mui/material'
+import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, AccountCircle as PersonIcon } from '@mui/icons-material'
+import { makeStyles } from '../styles/tss'
 import SideBar from './SideBar'
 import TopBar from './TopBar'
 import MainLogo from './MainLogo'
@@ -17,7 +17,7 @@ import { useError } from '../contexts/error'
 
 const drawerWidth = 235
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   root: {
     display: 'flex',
   },
@@ -124,7 +124,7 @@ function Copyright() {
 
 export default function Dashboard(props) {
   const config = getConfig().publicRuntimeConfig
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [user, setUser] = useUser()
   const api = useAPI()
   const [error, setError] = useError()

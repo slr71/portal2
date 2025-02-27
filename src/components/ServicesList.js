@@ -1,6 +1,6 @@
 import React from 'react'
-import { makeStyles, Grid, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, IconButton } from '@material-ui/core'
-import { Delete as DeleteIcon } from '@material-ui/icons'
+import { Grid, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, IconButton } from '@mui/material'
+import { Delete as DeleteIcon } from '@mui/icons-material'
 const inlineIcons = require('../inline_icons.json')
 
 const ServicesList = ({ services, onDelete }) => (
@@ -10,7 +10,7 @@ const ServicesList = ({ services, onDelete }) => (
       const icon_url = service.icon_url in inlineIcons ? inlineIcons[service.icon_url] : service.icon_url
 
       return (
-        <Grid container key={index} justify="space-between" alignItems="center">
+        <Grid container key={index} justifyContent="space-between" alignItems="center">
           <Grid item>
             <Link underline='none' href={service.service_url}>
               <ListItem>
