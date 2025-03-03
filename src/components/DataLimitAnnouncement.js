@@ -1,6 +1,6 @@
 import React from 'react'
-import { Box, Paper, Typography, Link } from '@material-ui/core'
-import { Warning as WarningIcon } from '@material-ui/icons'
+import { Box, Paper, Typography, Link } from '@mui/material'
+import { Warning as WarningIcon } from '@mui/icons-material'
 
 const DataLimitAnnouncement = () => {
   return (

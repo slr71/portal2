@@ -5,7 +5,7 @@ import { useRouter } from 'next/router'
 import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline, Snackbar, Hidden } from '@mui/material'
 import { Alert, AlertTitle } from '@mui/material'
 import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, AccountCircle as PersonIcon } from '@mui/icons-material'
-import { makeStyles } from '../styles/tss'
+import { makeStyles } from '../styles/tss' 
 import SideBar from './SideBar'
 import TopBar from './TopBar'
 import MainLogo from './MainLogo'
@@ -20,6 +20,7 @@ const drawerWidth = 235
 const useStyles = makeStyles()((theme) => ({
   root: {
     display: 'flex',
+    backgroundColor: '#EEEEEE', 
   },
   toolbar: {
     paddingRight: 24, // keep right padding when drawer closed
@@ -81,20 +82,21 @@ const useStyles = makeStyles()((theme) => ({
     width: theme.spacing(9)
   },
   appBarSpacer: {
-      ...theme.mixins.toolbar,
+    ...theme.mixins.toolbar,
   },
   content: {
     flexGrow: 1,
     height: '100vh',
     overflow: 'auto',
+    backgroundColor: '#EEEEEE',
   },
   container: {
     paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(5),
     paddingLeft: theme.spacing(5),
     paddingRight: theme.spacing(5),
-    backgroundColor: '#EEEEEE',
-    maxWidth: '100%',
+    width: '100%', 
+    maxWidth: 'none', 
     [theme.breakpoints.down('md')]: {
       paddingLeft: theme.spacing(4),
       paddingRight: theme.spacing(4),
@@ -174,13 +176,14 @@ export default function Dashboard(props) {
             color="inherit"
             onClick={() => handleDrawerEvent(true)}
             className={clsx(classes.menuButton, drawerOpen && classes.menuButtonHidden)}
+            size="large"
           >
             <MenuIcon />
           </IconButton>
           <MainLogo size="medium" />
           <div style={{flexGrow: 1}} />
           {config.INTERCOM_ENABLED && <CustomIntercom />}
-          <Hidden xsDown implementation="css">
+          <Hidden smDown>
             <Tooltip title="Manage your account">
               <Button
                 variant="text"
@@ -193,14 +196,14 @@ export default function Dashboard(props) {
               </Button>
             </Tooltip>
           </Hidden>
-          <Hidden smUp implementation="css">
-            <IconButton className={classes.appBarIcon} href="/account">
+          <Hidden smUp>
+            <IconButton className={classes.appBarIcon} href="/account" size="large">
               <PersonIcon />
             </IconButton>
           </Hidden>
         </Toolbar>
       </AppBar>
-      <Hidden xsDown implementation="css">
+      <Hidden smDown>
         <Drawer
           variant="permanent"
           classes={{
@@ -209,7 +212,7 @@ export default function Dashboard(props) {
           open={drawerOpen}
         >
           <div className={classes.toolbarIcon}>
-            <IconButton onClick={() => handleDrawerEvent(false)}>
+            <IconButton onClick={() => handleDrawerEvent(false)} size="large">
               <ChevronLeftIcon className={classes.appBarIcon} />
             </IconButton>
           </div>
@@ -217,7 +220,7 @@ export default function Dashboard(props) {
           <SideBar open={drawerOpen} showStaff={user && user.is_staff}/>
         </Drawer>
       </Hidden>
-      <Hidden smUp implementation="css">
+      <Hidden mdUp>
         <Drawer
           variant="permanent"
           classes={{
@@ -232,7 +235,7 @@ export default function Dashboard(props) {
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <TopBar title={props.title} breadcrumbs={props.breadcrumbs} back={props.back} actions={props.actions} />
-        <Container className={classes.container}>
+        <Container className={classes.container} disableGutters maxWidth={false}>
           {props.children}
           <Box pt={10}>
             <Copyright />

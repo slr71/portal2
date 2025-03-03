@@ -1,8 +1,7 @@
-import React from 'react'
 import { useState } from 'react'
 import cookie from 'cookie'
-import { Link, Grid, Button, IconButton, Divider, Box, Typography } from '@material-ui/core'
-import { Launch as LaunchIcon, HelpOutlineOutlined as HelpIcon } from '@material-ui/icons'
+import { Link, Grid, Button, IconButton, Divider, Box, Typography } from '@mui/material'
+import { Launch as LaunchIcon, HelpOutlineOutlined as HelpIcon } from '@mui/icons-material'
 import { Layout, SummaryCard, WelcomeBanner } from '../components'
 import { useUser } from '../contexts/user'
 import { WELCOME_BANNER_COOKIE } from '../constants'
@@ -113,7 +112,7 @@ const Service = ({ id, name, description, icon_url, service_url, launch }) => {
     icon_url = inlineIcons[icon_url] // replace with inline image data
 
   return (
-    <Link underline='none' href={`services/${id}`}>
+    <Link underline='none' href={`services/${id}`} sx={{ textDecoration: 'none' }}>
       <SummaryCard 
         title={name} 
         description={description} 
@@ -125,9 +124,19 @@ const Service = ({ id, name, description, icon_url, service_url, launch }) => {
 }
 
 export async function getServerSideProps({ req }) {
-  const services = await req.api.services()
-  const cookies = cookie.parse(req.headers.cookie || '');
-  return { props: { services, cookies } }
+  try {
+    const services = await req.api.services()
+    const cookies = cookie.parse(req.headers.cookie || '');
+    return { props: { services, cookies } }
+  } catch (error) {
+    console.error('Error in getServerSideProps:', error);
+    return { 
+      props: { 
+        services: [],
+        cookies: cookie.parse(req.headers.cookie || '')
+      } 
+    }
+  }
 }
 
 export default Services

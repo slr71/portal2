@@ -5,9 +5,16 @@ import { ListItem, ListItemIcon, ListItemText } from '@mui/material'
 import { makeStyles } from '../styles/tss'
 import { menuItems } from './menuItems'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   listItem: {
-    marginBottom: '1em'
+    marginBottom: '1em',
+    color: 'white'
+  },
+  icon: {
+    color: 'white'
+  },
+  text: {
+    color: 'white'
   }
 }))
 
@@ -18,10 +25,10 @@ const NavButton = props => {
     <div>
       <Link href={props.path} passHref>
         <ListItem button selected={props.selected} className={classes.listItem} component="a">
-          <ListItemIcon>
+          <ListItemIcon className={classes.icon}>
             {props.icon}
           </ListItemIcon>
-          <ListItemText primary={props.label} />
+          <ListItemText primary={props.label} className={classes.text} />
         </ListItem>
       </Link>
     </div>

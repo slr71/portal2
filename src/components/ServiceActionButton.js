@@ -1,6 +1,6 @@
 import React from 'react'
-import { Button, Tooltip } from '@material-ui/core'
-import LaunchIcon from '@material-ui/icons/Launch';
+import { Button, Tooltip } from '@mui/material'
+import LaunchIcon from '@mui/icons-material/Launch';
 
 const ServiceActionButton = ({ status, service, requestAccessHandler }) => {
   // Request status can be: 'granted', 'denied', 'approved', 'pending'

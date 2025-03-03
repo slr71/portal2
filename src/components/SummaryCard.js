@@ -20,11 +20,14 @@ const useStyles = makeStyles()((theme) => ({
     '-webkit-line-clamp': 2,
     '-webkit-box-orient': 'vertical',
     overflow: 'hidden',
-    minHeight: '2.5em'
+    textOverflow: 'ellipsis',
+    height: '3em', 
+    lineHeight: '1.5em', 
+    marginBottom: '0.5em'
   }
 }))
 
-const SummaryCard = ({ title, subtitle, description, iconUrl, icon, action, largeHeader }) => { // use icon or iconUrl but not both
+const SummaryCard = ({ title, subtitle, description, iconUrl, icon, action, largeHeader }) => {
   const { classes } = useStyles()
 
   return (

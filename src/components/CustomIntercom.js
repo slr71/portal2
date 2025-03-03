@@ -5,14 +5,15 @@
 
 import React from 'react'
 import getConfig from "next/config"
-import { makeStyles, Badge, Button, IconButton, Tooltip, Hidden } from "@material-ui/core"
-import { Person as PersonIcon, LiveHelp as LiveHelpIcon } from "@material-ui/icons"
+import { Badge, Button, IconButton, Tooltip } from "@mui/material"
+import { styled } from '@mui/material/styles'
+import { Person as PersonIcon, LiveHelp as LiveHelpIcon } from "@mui/icons-material"
 import { useUser } from '../contexts/user'
+import { useMediaQuery } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 
-const useStyles = makeStyles((theme) => ({
-  icon: {
-    color: "white",
-  }
+const IconStyled = styled('div')(({ theme }) => ({
+  color: "white",
 }))
 
 function CustomIntercom() {
@@ -22,7 +23,8 @@ function CustomIntercom() {
     return <></>
   }
   
-  const classes = useStyles()
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [user] = useUser()
   const [unreadCount, setUnreadCount] = React.useState(0)
 
@@ -70,7 +72,7 @@ function CustomIntercom() {
 
   return (
     <>
-      <Hidden xsDown implementation="css">
+      {!isMobile ? (
         <Tooltip title="Chat with CyVerse Support">
           <Button
             variant="text"
@@ -82,12 +84,11 @@ function CustomIntercom() {
             Help
           </Button>
         </Tooltip>
-      </Hidden>
-      <Hidden smUp implementation="css">
+      ) : (
         <IconButton onClick={intercomShow}>
-          <PersonIcon className={classes.icon} />
+          <PersonIcon sx={{ color: "white" }} />
         </IconButton>
-      </Hidden>
+      )}
     </>
   )
 }
