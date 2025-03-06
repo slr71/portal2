@@ -15,20 +15,44 @@ const useStyles = makeStyles()((theme) => ({
   },
   text: {
     color: 'white'
+  },
+  selected: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    },
+    borderLeft: '4px solid white',
+    paddingLeft: '12px',
+  },
+  selectedIcon: {
+    color: 'white',
+    minWidth: '46px', // Adjust this value to compensate for the border
+  },
+  selectedText: {
+    color: 'white',
+    fontWeight: 'bold',
   }
 }))
 
 const NavButton = props => {
   const { classes } = useStyles()
+  const isSelected = props.selected
 
   return (
     <div>
       <Link href={props.path} passHref>
-        <ListItem button selected={props.selected} className={classes.listItem} component="a">
-          <ListItemIcon className={classes.icon}>
+        <ListItem 
+          button 
+          component="a"
+          className={`${classes.listItem} ${isSelected ? classes.selected : ''}`}
+        >
+          <ListItemIcon className={isSelected ? classes.selectedIcon : classes.icon}>
             {props.icon}
           </ListItemIcon>
-          <ListItemText primary={props.label} className={classes.text} />
+          <ListItemText 
+            primary={props.label} 
+            className={isSelected ? classes.selectedText : classes.text} 
+          />
         </ListItem>
       </Link>
     </div>

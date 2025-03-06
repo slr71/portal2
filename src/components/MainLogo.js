@@ -3,9 +3,9 @@ import { makeStyles } from '../styles/tss'
 
 const useStyles = makeStyles()((theme) => ({
   medium: {
-    width: '13em',
+    width: '11em',
     [theme.breakpoints.down('xs')]: {
-      width:'9em',},
+      width:'11em',},
   },
   large: {
     width: '55%'
