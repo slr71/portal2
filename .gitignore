@@ -3,4 +3,4 @@ src/config.json
 .idea
 .next/
 node_modules/
-**/.DS_Store.nvmrc
+**/.DS_Store
