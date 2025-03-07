@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:18.04
 
 # Install iRODS iCommands.
 RUN apt-get update && \
@@ -10,7 +10,7 @@ RUN apt-get update && \
     apt-get install ldap-utils
 
 # Install NodeJS.
-RUN wget -qO - https://deb.nodesource.com/setup_14.x | bash - && \
+RUN wget -qO - https://deb.nodesource.com/setup_16.x | bash - && \
     apt-get install -y nodejs
 
 # Copy the source to the build directory.
