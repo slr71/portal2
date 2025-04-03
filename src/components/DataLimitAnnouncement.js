@@ -1,3 +1,4 @@
+import React from 'react'
 import { Box, Paper, Typography, Link } from '@material-ui/core'
 import { Warning as WarningIcon } from '@material-ui/icons'
 

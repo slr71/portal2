@@ -1,3 +1,4 @@
+import React from 'react'
 import { Grid, Link, Box, Typography } from '@material-ui/core'
 import { Layout, SummaryCard, getMenuItem } from '../components'
 

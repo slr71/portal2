@@ -1,3 +1,4 @@
+import React from 'react'
 import { useState, useEffect } from 'react'
 import getConfig from "next/config"
 import Markdown from 'markdown-to-jsx'

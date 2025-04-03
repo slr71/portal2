@@ -1,3 +1,4 @@
+import React from 'react'
 import { makeStyles, Grid, Link, List, ListItem, ListItemText, ListItemAvatar, Avatar, IconButton } from '@material-ui/core'
 import { Delete as DeleteIcon } from '@material-ui/icons'
 const inlineIcons = require('../inline_icons.json')

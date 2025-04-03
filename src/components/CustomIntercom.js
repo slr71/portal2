@@ -3,6 +3,7 @@
  *  Based on Sonora module of same name
  */
 
+import React from 'react'
 import getConfig from "next/config"
 import { makeStyles, Badge, Button, IconButton, Tooltip, Hidden } from "@material-ui/core"
 import { Person as PersonIcon, LiveHelp as LiveHelpIcon } from "@material-ui/icons"
