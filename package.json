@@ -70,16 +70,13 @@
     "sendmail": "^1.6.1",
     "sequelize": "^6.5.0",
     "sha256": "^0.2.0",
-    "uuid": "^8.3.2",
     "validator": "^13.5.2",
     "winston": "^3.3.3",
     "ws": "^7.4.3"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^12.3.4",
-    "glob": "^8.1.0",
     "nodemon": "^2.0.22",
-    "prettier": "^2.8.8",
-    "rimraf": "^4.4.1"
+    "prettier": "^2.8.8"
   }
 }
