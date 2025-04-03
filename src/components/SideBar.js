@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from "next/link"
 import { useRouter } from 'next/router'
-import { ListItem, ListItemIcon, ListItemText } from '@mui/material'
+import { ListItemButton, ListItemIcon, ListItemText } from '@mui/material'
 import { makeStyles } from '../styles/tss'
 import { menuItems } from './menuItems'
 
@@ -26,7 +26,7 @@ const useStyles = makeStyles()((theme) => ({
   },
   selectedIcon: {
     color: 'white',
-    minWidth: '46px', // Adjust this value to compensate for the border
+    minWidth: '46px',
   },
   selectedText: {
     color: 'white',
@@ -41,8 +41,7 @@ const NavButton = props => {
   return (
     <div>
       <Link href={props.path} passHref>
-        <ListItem 
-          button 
+        <ListItemButton 
           component="a"
           className={`${classes.listItem} ${isSelected ? classes.selected : ''}`}
         >
@@ -53,7 +52,7 @@ const NavButton = props => {
             primary={props.label} 
             className={isSelected ? classes.selectedText : classes.text} 
           />
-        </ListItem>
+        </ListItemButton>
       </Link>
     </div>
   )
