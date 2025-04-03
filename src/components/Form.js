@@ -7,7 +7,7 @@ import { useFormikContext, Formik, Form, Field } from 'formik'
 import debounce from 'just-debounce-it'
 import { isEmail, isNumeric, isAlphanumeric, isLowercase, isDate, isEmpty } from 'validator'
 import { validatePassword } from '../lib/misc'
-import { CheckboxWithLabel } from "formik-material-ui"
+import FormikCheckboxWithLabel from './FormikCheckboxWithLabel';
 
 const useStyles = makeStyles()((theme) => ({
   formStepper: {
