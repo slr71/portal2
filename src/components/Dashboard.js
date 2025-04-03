@@ -2,7 +2,7 @@ import React from 'react'
 import clsx from 'clsx'
 import getConfig from "next/config"
 import { useRouter } from 'next/router'
-import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline, Snackbar, Hidden } from '@mui/material'
+import { Container, Box, Divider, Button, IconButton, Typography, Tooltip, Toolbar, AppBar, Drawer, CssBaseline, Snackbar, useMediaQuery } from '@mui/material'
 import { Alert, AlertTitle } from '@mui/material'
 import { Menu as MenuIcon, ChevronLeft as ChevronLeftIcon, AccountCircle as PersonIcon } from '@mui/icons-material'
 import { makeStyles } from '../styles/tss' 
@@ -132,6 +132,9 @@ export default function Dashboard(props) {
   const [error, setError] = useError()
   const router = useRouter()
 
+  const isSmallScreen = useMediaQuery(theme => theme.breakpoints.down('sm'));
+  const isMediumScreen = useMediaQuery(theme => theme.breakpoints.down('md'));
+
   const [drawerOpen, setDrawerOpen] = React.useState(!user.settings || user.settings.drawerOpen)
 
   // const [cookies, setCookie] = useCookies([ACCOUNT_UPDATE_REMINDER_COOKIE])
@@ -183,7 +186,8 @@ export default function Dashboard(props) {
           <MainLogo size="medium" />
           <div style={{flexGrow: 1}} />
           {config.INTERCOM_ENABLED && <CustomIntercom />}
-          <Hidden smDown>
+          
+          {!isSmallScreen ? (
             <Tooltip title="Manage your account">
               <Button
                 variant="text"
@@ -195,15 +199,15 @@ export default function Dashboard(props) {
                 Account
               </Button>
             </Tooltip>
-          </Hidden>
-          <Hidden smUp>
+          ) : (
             <IconButton className={classes.appBarIcon} href="/account" size="large">
               <PersonIcon />
             </IconButton>
-          </Hidden>
+          )}
         </Toolbar>
       </AppBar>
-      <Hidden smDown>
+      
+      {!isSmallScreen && (
         <Drawer
           variant="permanent"
           classes={{
@@ -219,8 +223,9 @@ export default function Dashboard(props) {
           <Divider />
           <SideBar open={drawerOpen} showStaff={user && user.is_staff}/>
         </Drawer>
-      </Hidden>
-      <Hidden mdUp>
+      )}
+      
+      {isMediumScreen && (
         <Drawer
           variant="permanent"
           classes={{
@@ -231,7 +236,8 @@ export default function Dashboard(props) {
           <Divider />
           <SideBar open={false} showStaff={user && user.is_staff}/>
         </Drawer>
-      </Hidden>
+      )}
+      
       <main className={classes.content}>
         <div className={classes.appBarSpacer} />
         <TopBar title={props.title} breadcrumbs={props.breadcrumbs} back={props.back} actions={props.actions} />
