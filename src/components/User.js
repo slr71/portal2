@@ -1,10 +1,10 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { Card, CardHeader, CardContent, Box, Button, Typography, Link } from '@material-ui/core'
+import { makeStyles } from '../styles/tss' 
+import { Card, CardHeader, CardContent, Box, Button, Typography, Link } from '@mui/material'
 import { DateSpan } from './DateRange'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   box: {
     marginBottom: '2em'
   },
@@ -15,7 +15,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const User = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   if (props.summaryOnly) {
     return (
@@ -74,7 +74,7 @@ const User = (props) => {
         <CardHeader title="Mailing List Subscriptions" />
         <CardContent>
         {props.emails && props.emails.map(email => (
-          <div>
+          <div key={email.email}>
             <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
             <Box ml={2}>
               {email.mailing_lists && email.mailing_lists.length > 0 

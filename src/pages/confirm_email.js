@@ -1,10 +1,11 @@
 import React from 'react'
-import { Grid, Box, Button, Typography, makeStyles } from '@material-ui/core'
+import { Grid, Box, Button, Typography } from '@mui/material'
 import { MainLogo } from '../components'
 import { withGetServerSideError } from '../contexts/error'
+import { makeStyles } from '../styles/tss'
 
 //FIXME Duplicated in welcome.js
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   grid: {
     height: "100vh",
     width: "50vw",
@@ -19,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const ConfirmEmail = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <div>
@@ -75,7 +76,6 @@ const Right = ({ confirmed, response }) => {
           variant="contained" 
           color="primary" 
           size="large" 
-          display="flex" 
           href="/login"
           style={{width: "10em"}}
         >

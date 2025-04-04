@@ -1,5 +1,5 @@
 import React from 'react'
-import { Grid, Link, Box, Typography } from '@material-ui/core'
+import { Grid, Link, Box, Typography } from '@mui/material'
 import { Layout, SummaryCard, getMenuItem } from '../components'
 
 const Administrative = () => {
@@ -11,7 +11,7 @@ const Administrative = () => {
         <Grid container spacing={4}>
           {menuItem.items.map((item, index) =>
             <Grid item key={index} xs={12} sm={12} md={6} lg={4} xl={3}>
-              <Link underline='none' href={item.path}>
+              <Link underline='none' href={item.path} sx={{ textDecoration: 'none' }}>
                 <SummaryCard
                   icon={item.icon}
                   title={item.label}

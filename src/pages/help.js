@@ -1,13 +1,13 @@
 import React from 'react'
 import getConfig from "next/config"
-import { Grid, Link, Box, Divider, Typography } from '@material-ui/core'
+import { Grid, Link, Box, Divider, Typography } from '@mui/material'
 import { Layout, intercomShow, getMenuItem } from '../components'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '../styles/tss'
 import HelpCard from "../components/HelpCard"
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles()((theme) => ({
     helpLink: {
-        [theme.breakpoints.down('xs')]: { display: 'none' },
+        [theme.breakpoints.down('sm')]: { display: 'none' },
     },
 }))
 
@@ -16,7 +16,7 @@ const Help = () => {
     const help = getMenuItem('Help')
     const supportItems = help.items.filter(item => item.category == 'support')
     const learnItems = help.items.filter(item => item.category == 'learn')
-    const classes = useStyles()
+    const { classes } = useStyles()
     const chatLink = (
         <Link onClick={intercomShow} className={classes.helpLink}>
             Need help? Click here to chat live with CyVerse Support!
@@ -53,7 +53,7 @@ const Help = () => {
                 </Grid>
             </Box>
             <Box mt={4}>
-                <Typography variant="h6" mt={4}>
+                <Typography variant="h6">
                     Support
                 </Typography>
                 <Divider />

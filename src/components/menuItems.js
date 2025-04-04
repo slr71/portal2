@@ -10,7 +10,7 @@ import {
     PersonAdd as PersonAddIcon,
     Edit as EditIcon,
     Inbox as InboxIcon,
-} from '@material-ui/icons'
+} from '@mui/icons-material'
 
 import SvgLearnIcon from './svg/learnIcon'
 import SvgCalIcon from './svg/calendarIcon'
@@ -60,7 +60,7 @@ const menuItems = [
                 label: 'CyVerse Learning',
                 path: 'https://learning.cyverse.org/en/latest/tutorials.html',
                 description:
-                    'Explore our learning materials in the popular “Read the Docs” formatting.',
+                    'Explore our learning materials in the popular "Read the Docs" formatting.',
                 icon: <SvgLearnIcon />,
                 category: 'learn',
             },

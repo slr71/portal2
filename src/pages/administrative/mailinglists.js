@@ -1,21 +1,21 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Button, IconButton, Typography, TableContainer, Table, TableHead, TableBody, TableRow, TableCell } from '@material-ui/core'
-import { Delete as DeleteIcon } from '@material-ui/icons'
+import { Container, Paper, Grid, Button, IconButton, Typography, TableContainer, Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material'
+import { Delete as DeleteIcon } from '@mui/icons-material'
 import { Layout, FormDialog } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { useError } from '../../contexts/error'
+import { makeStyles } from '../../styles/tss'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   }
 }))
 
 const MailingLists = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const api = useAPI()
   const [_, setError] = useError()
   const [lists, setLists] = useState(props.lists)
@@ -66,7 +66,7 @@ const MailingLists = (props) => {
       <Container maxWidth='lg'>
         <br />
         <Paper elevation={3} className={classes.paper}>
-          <Grid container justify="space-between">
+          <Grid container justifyContent="space-between">
             <Grid item>
               <Typography component="h1" variant="h4" gutterBottom>Mailing Lists</Typography>
             </Grid>

@@ -2,21 +2,21 @@ import React from 'react'
 import { useState } from 'react'
 import Link from "next/link"
 import { useRouter } from 'next/router'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Button, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@material-ui/core'
+import { makeStyles } from '../../styles/tss'
+import { Container, Paper, Grid, Button, Typography, TableContainer, Table, TableBody, TableRow, TableCell } from '@mui/material'
 import { Layout, FormDialog, DateRange } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { withGetServerSideError } from '../../contexts/error'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   }
 }))
 
 const Workshops = props => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const router = useRouter()
   const api = useAPI()
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -35,7 +35,7 @@ const Workshops = props => {
       <Container maxWidth='lg'>
         <br />
         <Paper elevation={3} className={classes.paper}>
-          <Grid container justify="space-between">
+          <Grid container justifyContent="space-between">
             <Grid item>
               <Typography component="h1" variant="h4" gutterBottom>Workshops</Typography>
             </Grid>
@@ -79,9 +79,9 @@ const WorkshopTable = ({ workshops }) => (
     <Table>
       <TableBody>
         {workshops.map(workshop => (
-          <Link key={workshop.id} href={`/workshops/${workshop.id}`}>
-            <TableRow hover style={{cursor: 'pointer'}}>
-              <TableCell>
+          <TableRow key={workshop.id} hover style={{cursor: 'pointer'}}>
+            <TableCell>
+              <Link href={`/workshops/${workshop.id}`} passHref style={{ textDecoration: 'none', color: 'inherit' }}>
                 <div>
                   <b>{workshop.title}</b>
                 </div>
@@ -91,9 +91,9 @@ const WorkshopTable = ({ workshops }) => (
                 <div>
                   Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
                 </div>
-              </TableCell>
-            </TableRow>
-          </Link>
+              </Link>
+            </TableCell>
+          </TableRow>
         ))}
       </TableBody>
     </Table>

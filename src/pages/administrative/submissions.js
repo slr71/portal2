@@ -1,14 +1,14 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
 import Link from "next/link"
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
+import { Container, Paper, Grid, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@mui/material'
 import { Layout, DateSpan } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { withGetServerSideError } from '../../contexts/error'
+import { makeStyles } from '../../styles/tss'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   }
@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
 //TODO move pagination code into shared component
 const FormSubmissions = props => {
   const api = useAPI()
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
@@ -63,7 +63,7 @@ const FormSubmissions = props => {
       <Container maxWidth='lg'>
         <br />
         <Paper elevation={3} className={classes.paper}>
-          <Grid container justify="space-between">
+          <Grid container justifyContent="space-between">
             <Grid item>
               <Typography component="h1" variant="h4">Form Submissions</Typography>
             </Grid>
@@ -94,8 +94,8 @@ const FormSubmissionTable = ({ rows, rowsPerPage, count, page, handleChangePage,
         </TableHead>
       <TableBody>
         {rows.map(submission => (
-          <Link key={submission.id} href={`/administrative/submissions/${submission.id}`}>
-            <TableRow hover style={{cursor: 'pointer'}}>
+          <Link key={submission.id} href={`/administrative/submissions/${submission.id}`} passHref>
+            <TableRow hover style={{cursor: 'pointer'}} component="a">
               <TableCell>{submission.form.name}</TableCell>
               <TableCell>{submission.user.username}</TableCell>
               <TableCell>{submission.user.email}</TableCell>
@@ -113,8 +113,8 @@ const FormSubmissionTable = ({ rows, rowsPerPage, count, page, handleChangePage,
               rowsPerPage={rowsPerPage}
               count={count}
               page={page}
-              onChangePage={handleChangePage}
-              onChangeRowsPerPage={handleChangeRowsPerPage}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
             />
           </TableRow>
         </TableFooter>

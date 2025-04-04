@@ -1,17 +1,18 @@
 import React from 'react'
 import Markdown from 'markdown-to-jsx'
-import { makeStyles, List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@material-ui/core'
+import { List, ListItem, ListItemText, ListItemAvatar, Avatar } from '@mui/material'
+import { makeStyles } from '../styles/tss'
 import { DateSpan } from './DateRange'
-import { Person as PersonIcon } from '@material-ui/icons'
+import { Person as PersonIcon } from '@mui/icons-material'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   box: {
     marginBottom: '2em'
   },
 }))
 
 const Conversations = ({ conversations }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <div>
@@ -54,7 +55,7 @@ const ConversationPart = ({ author, part_type, assigned_to, created_at, body }) 
         secondary={(<>
           <DateSpan date={created_at*1000} />
           <br />
-          {content.map(c => <>{c}</>)}
+          {content.map((c, i) => <React.Fragment key={i}>{c}</React.Fragment>)}
         </>)}
       />
     </ListItem>

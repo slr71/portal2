@@ -1,9 +1,9 @@
 import React from 'react'
-import { Paper, Grid, Box, Button, Typography } from '@material-ui/core'
+import { Paper, Grid, Box, Button, Typography } from '@mui/material'
 import BannerImage from './svg/bannerImage'
-import { makeStyles } from '@material-ui/core/styles'
+import { makeStyles } from '../styles/tss'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
     button: {
         margin: theme.spacing(1),
     },
@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const WelcomeBanner = ({ closeHandler }) => {
-    const classes = useStyles()
+    const { classes } = useStyles()
 
     return (
         <Box mt={3}>
@@ -38,7 +38,7 @@ const WelcomeBanner = ({ closeHandler }) => {
                 <Grid
                     container
                     direction="row"
-                    justify="center"
+                    justifyContent="center"
                     alignItems="center"
                     spacing={4}
                 >

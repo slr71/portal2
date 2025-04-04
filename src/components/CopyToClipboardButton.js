@@ -1,11 +1,11 @@
 import React from 'react'
-import { IconButton } from '@material-ui/core'
-import CopyIcon from '@material-ui/icons/FileCopyOutlined'
+import { IconButton } from '@mui/material'
+import CopyIcon from '@mui/icons-material/FileCopyOutlined'
 
 export default function CopyToClipboardButton({ text }) {
   return (
     <IconButton size="small" onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(text)}}>
-      <CopyIcon style={{fontSize: '0.85em'}} />
+      <CopyIcon sx={{fontSize: '0.85em'}} />
     </IconButton>
   )
 }

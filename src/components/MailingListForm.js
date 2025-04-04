@@ -2,19 +2,19 @@ import React from 'react'
 import { useState } from 'react'
 import { useAPI } from '../contexts/api'
 import { useError } from '../contexts/error'
-import { Typography, Box, List, ListItem, ListItemText, ListItemSecondaryAction, Switch } from '@material-ui/core'
+import { Typography, Box, List, ListItem, ListItemText, ListItemSecondaryAction, Switch } from '@mui/material'
 
 const MailingListForm = ({ emails, title, subtitle, userId }) => {
   return (
     <div>
       <Typography component="div" variant="h5">{title}</Typography>
-      <Typography color="textSecondary" gutterBottom>{subtitle}</Typography>
+      <Typography color="text.secondary" gutterBottom>{subtitle}</Typography>
       {emails.map((email, index) => (
         <Box key={index}>
           <List>
             {emails.length > 1 &&
             <ListItem>
-              <Typography variant="subtitle2" color="textSecondary">{email.email}</Typography>
+              <Typography variant="subtitle2" color="text.secondary">{email.email}</Typography>
             </ListItem>
             }
             {email.mailing_lists.sort((a,b) => a.name.localeCompare(b.name)).map((list, index2) => (
@@ -56,7 +56,6 @@ const MailingListItem = ({ userId, email, list }) => {
           checked={state} 
           name={list.id.toString()}
           color="primary"
-          variant="caption"
           edge="end"
           onChange={(event) => updateSubscription(event.target.checked)}
         />

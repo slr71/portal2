@@ -1,28 +1,41 @@
 import React from 'react'
-import { Grid, Box, Breadcrumbs, Link, Typography } from '@material-ui/core'
-import { makeStyles } from '@material-ui/core/styles'
+import { Grid, Box, Breadcrumbs, Link, Typography, Paper } from '@mui/material'
+import { makeStyles } from '../styles/tss'
 import { useRouter } from 'next/router'
 import { menuItems } from './menuItems.js'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   title: {
-    fontSize: "1.5em",
-    marginLeft: "0.5em"
+    fontSize: "1.2em",
+    marginLeft: "0.5em",
+    fontWeight: "normal", 
+    color: "#000000", 
   },
   box: {
-    borderBottom: "1px solid lightgray",
-    height: "3.75em",
+    backgroundColor: '#f5f5f5',
+    padding: theme.spacing(1),
+    marginBottom: theme.spacing(1),
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
     [theme.breakpoints.down('xs')]: {
       display: 'none'
     }
   },
   breadcrumbs: {
     paddingTop: '0.35em',
+  },
+  icon: {
+    marginLeft: "0.5em",
+    color: "#000000", 
+  },
+  contentWrapper: {
+    height: '2.5rem',
+    display: 'flex',
+    alignItems: 'center',
   }
 }))
 
 const BreadcrumbsMenu = ({ parts, title }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   if (parts.length <= 1)
     return <></>
@@ -40,28 +53,34 @@ const BreadcrumbsMenu = ({ parts, title }) => {
 }
 
 const TopBar = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const menuItem = menuItems.find(item => item.label === props.title)
 
   const parts = useRouter().asPath.split("/").filter(s => s)
   const backUrl = "/" + parts.slice(0, -1).join("/")
 
   return (
-    <Box px={4} pt={1.15} className={classes.box}>
-      <Grid container justify="space-between">
+    <Box className={classes.box}>
+      <Grid container justifyContent="space-between" alignItems="center">
         <Grid item>
           {props.back 
-            ? <Link color="inherit" href={backUrl}>Back</Link>
+            ? <div className={classes.contentWrapper}>
+                <Link color="inherit" href={backUrl}>Back</Link>
+              </div>
             : props.breadcrumbs
-              ? <BreadcrumbsMenu parts={parts} title={props.title} />
-              : <div style={{display: 'flex', alignItems: 'center'}}>
-                  {menuItem && menuItem.icon}
-                  <Typography className={classes.title} nowrap='true'>{props.title}</Typography>
+              ? <div className={classes.contentWrapper}>
+                  <BreadcrumbsMenu parts={parts} title={props.title} />
+                </div>
+              : <div className={classes.contentWrapper} style={{display: 'flex', alignItems: 'center'}}>
+                  {menuItem && React.cloneElement(menuItem.icon, { className: classes.icon })}
+                  <Typography className={classes.title} noWrap>{props.title}</Typography>
                 </div>
           }
         </Grid>
         <Grid item>
-          {props.actions}
+          <div className={classes.contentWrapper}>
+            {props.actions}
+          </div>
         </Grid>
       </Grid>
     </Box>

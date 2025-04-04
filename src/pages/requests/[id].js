@@ -1,38 +1,39 @@
 import React from 'react'
 import Markdown from 'markdown-to-jsx'
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Box, Paper, Typography } from '@material-ui/core'
+import { makeStyles } from '../../../styles/tss'
+import { Container, Box, Paper, Typography } from '@mui/material'
 import { Layout, Wizard } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { useError, withGetServerSideError } from '../../contexts/error'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   formContainer: {
     maxWidth:'70vw',
-    [theme.breakpoints.down('md')]:
-      {maxWidth:'100vw',
-       },
-  },
-  formTitle:{
-    [theme.breakpoints.down('md')]:
-      {fontSize:'1.5em',
-       },
-      [theme.breakpoints.down('xs')]: {
-        fontSize:'1.5em',
-       fontWeight: '400' },
+    [theme.breakpoints.down('md')]: {
+      maxWidth:'100vw',
     },
-  paper: {
-    padding: '3em'
   },
-  [theme.breakpoints.down('md')]:
-      {padding:'1em',
-       },
+  formTitle: {
+    [theme.breakpoints.down('md')]: {
+      fontSize:'1.5em',
+    },
+    [theme.breakpoints.down('sm')]: {
+      fontSize:'1.5em',
+      fontWeight: '400' 
+    },
+  },
+  paper: {
+    padding: '3em',
+    [theme.breakpoints.down('md')]: {
+      padding:'1em',
+    },
+  }
 }))
 
 const Request = ({ form }) => {
   const allFields = form.sections.reduce((acc, s) => acc.concat(s.fields), [])
 
-  const classes = useStyles()
+  const { classes } = useStyles()
   const api = useAPI()
   const [_, setError] = useError()
 

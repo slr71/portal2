@@ -2,14 +2,15 @@ import React from 'react'
 import { useRouter } from 'next/router'
 import getConfig from "next/config"
 import { useState, useEffect } from 'react'
-import { makeStyles, Container, Grid, Box, Button, Paper, Typography, TextField, List, ListItem, ListItemAvatar, Avatar, ListItemText, ListItemSecondaryAction, Radio, RadioGroup, FormControlLabel, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
+import { Container, Grid, Box, Button, Paper, Typography, TextField, List, ListItem, ListItemAvatar, Avatar, ListItemText, ListItemSecondaryAction, Radio, RadioGroup, FormControlLabel, Backdrop, CircularProgress, Divider, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
 import { Layout, DateSpan, ConfirmationDialog, CopyToClipboardButton, ServicesList, AddServiceDialog, MailingListForm } from '../../../components'
-import { Mail as MailIcon } from '@material-ui/icons'
+import { Mail as MailIcon } from '@mui/icons-material'
 import { useAPI } from '../../../contexts/api'
 import { useError, withGetServerSideError } from '../../../contexts/error'
 import { useUser } from '../../../contexts/user'
+import { makeStyles } from '../../../styles/tss'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em',
     marginBottom: '2em'
@@ -29,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const User = ({ user, history, ldap }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const router = useRouter()
   const [me] = useUser()
   const api = useAPI()
@@ -166,7 +167,7 @@ const User = ({ user, history, ldap }) => {
             </Button>
             {' '}
             <Button 
-              style={{color: me.is_superuser ? "red" : ""}} // color="error" // not working
+              sx={{ color: me.is_superuser ? "error.main" : "" }}
               disabled={!me.is_superuser} 
               onClick={() => setShowDeleteConfirmationDialog(true)} 
             >
@@ -207,7 +208,7 @@ const User = ({ user, history, ldap }) => {
         </Paper>
 
         <Paper elevation={3} className={classes.paper}>
-          <Grid container justify="space-between">
+          <Grid container justifyContent="space-between">
             <Grid item>
               <Typography component="div" variant="h5">Services</Typography> 
             </Grid>

@@ -1,12 +1,13 @@
 import React from 'react'
 import { useState } from 'react'
 import { useAPI } from '../contexts/api'
-import { Box, Grid, Typography, Button, TextField, makeStyles } from '@material-ui/core'
+import { Box, Grid, Typography, Button, TextField } from '@mui/material'
 import { MainLogo } from '../components'
 import { validatePassword } from '../lib/misc'
+import { makeStyles } from '../styles/tss'
 
 //FIXME Duplicated in welcome.js
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   grid: {
     height: "100vh",
     width: "50vw",
@@ -21,7 +22,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const PasswordReset = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <div>
@@ -39,7 +40,7 @@ const PasswordReset = (props) => {
 
 //FIXME Duplicated in welcome.js
 const Left = () => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <div>
@@ -58,7 +59,7 @@ const Left = () => {
 }
 
 const Right = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const api = useAPI()
   const reset = 'reset' in props
   const hmac = props.code
@@ -118,7 +119,6 @@ const Right = (props) => {
             variant="contained" 
             color="primary" 
             size="large" 
-            display="flex" 
             href="/login"
           >
             Sign In
@@ -167,7 +167,6 @@ const Right = (props) => {
           variant="contained" 
           color="primary" 
           size="large" 
-          display="flex" 
           disabled={isSubmitting || !!error1 || !!error2 || !password1 || !password2 }
           onClick={() => {
             setSubmitting(true)

@@ -1,20 +1,16 @@
 import React, { useEffect, createRef } from "react";
 import lottie from "lottie-web";
-import { makeStyles } from "@material-ui/core";
+import { styled } from "@mui/material/styles";
 import animation from "../animations/error500.json";
 
-const useStyles = makeStyles((theme) => ({
-  animationBox: {
-    maxWidth: "470px",
-    margin: "0 auto",
-    marginTop: "10px",
-  },
+const AnimationBox = styled('div')(({ theme }) => ({
+  maxWidth: "470px",
+  margin: "0 auto",
+  marginTop: "10px",
 }));
 
 const Animation = () => {
   let animationContainer = createRef();
-
-  const classes = useStyles();
 
   useEffect(() => {
     lottie.loadAnimation({
@@ -26,7 +22,7 @@ const Animation = () => {
     });
   }, []);
 
-  return <div className={classes.animationBox} ref={animationContainer} />;
+  return <AnimationBox ref={animationContainer} />;
 };
 
 export default Animation;

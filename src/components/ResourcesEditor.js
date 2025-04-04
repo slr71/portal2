@@ -1,17 +1,18 @@
 import React from 'react'
 import { useState } from 'react'
-import { makeStyles, Paper, Typography, TextField, Box, Grid, List, ListItem, ListItemText, ListItemAvatar, Avatar, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@material-ui/core'
-import { MenuBook as MenuBookIcon, Delete as DeleteIcon } from '@material-ui/icons'
+import { Paper, Typography, TextField, Box, Grid, List, ListItem, ListItemText, ListItemAvatar, Avatar, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material'
+import { MenuBook as MenuBookIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { validateField } from './Form'
+import { makeStyles } from '../styles/tss'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   },
 }))
 
 const ResourcesEditor = ({ resources, submitHandler, deleteHandler }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
@@ -22,7 +23,7 @@ const ResourcesEditor = ({ resources, submitHandler, deleteHandler }) => {
       <br />
       <List>
         {resources.map((resource, index) => (
-          <Grid container key={index} justify="space-between" alignItems="center">
+          <Grid container key={index} justifyContent="space-between" alignItems="center">
             <Grid item>
               <ListItem>
                 <ListItemAvatar>

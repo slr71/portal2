@@ -1,6 +1,6 @@
 import React from 'react'
 import { useState } from 'react'
-import { Button, TextField, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions } from '@material-ui/core'
+import { Button, TextField, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material'
 
 const AddServiceDialog = ({ open, services, allServices, handleClose, handleSubmit }) => {
   const availableServices = allServices && allServices.filter(s => s.approval_key != '' && !services.some(s2 => s2.id == s.id))

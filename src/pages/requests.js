@@ -1,6 +1,6 @@
 import React from 'react'
-import { Link, Box, Grid, Divider, Typography } from '@material-ui/core'
-import { List as ListIcon } from '@material-ui/icons'
+import { Link, Box, Grid, Divider, Typography } from '@mui/material'
+import { List as ListIcon } from '@mui/icons-material'
 import { Layout, SummaryCard } from '../components'
 import { withGetServerSideError } from '../contexts/error'
 
@@ -13,9 +13,9 @@ const Requests = ({ forms }) => (
           <Typography variant="h6" component="h2">{formGroup.name}</Typography>
           {/* <Typography variant="subtitle1">{formGroup.description}</Typography> */}
           <Divider />
-          <br />
-          <RequestGrid forms={formGroup.forms.filter(f => f.is_public)} />
-          <br />
+          <Box sx={{ mt: 2, mb: 2 }}>
+            <RequestGrid forms={formGroup.forms.filter(f => f.is_public)} />
+          </Box>
         </Box>
     ))}
   </Layout>
@@ -32,7 +32,7 @@ const RequestGrid = ({ forms }) => (
 )
 
 const Request = ({ form }) => (
-  <Link underline='none' href={`requests/${form.id}`}>
+  <Link underline='none' href={`requests/${form.id}`} sx={{ textDecoration: 'none' }}>
     <SummaryCard 
       title={form.name} 
       description={form.description} 

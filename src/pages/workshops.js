@@ -1,10 +1,11 @@
 import React from 'react'
-import { Grid, Link, Box, Divider, Typography, Button, makeStyles } from '@material-ui/core'
-import { Event as EventIcon, VisibilityOff as VisibilityOffIcon } from '@material-ui/icons'
+import { Grid, Link, Box, Divider, Typography, Button } from '@mui/material'
+import { Event as EventIcon, VisibilityOff as VisibilityOffIcon } from '@mui/icons-material'
 import { DateRange, Layout, SummaryCard } from '../components'
 import { useUser } from '../contexts/user'
+import { makeStyles } from '../styles/tss'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   nowrap: {
     whiteSpace: 'nowrap'
   }
@@ -97,7 +98,7 @@ const WorkshopGrid = ({ workshops }) => (
 )
 
 const Workshop = ({ workshop }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [user] = useUser()
   const isHost = user.id == workshop.creator_id
   const isOrganizer = workshop.organizers && workshop.organizers.some(o => o.id == user.id)
@@ -108,10 +109,10 @@ const Workshop = ({ workshop }) => {
         title={workshop.title} 
         subtitle={
           <>
-            <div className={classes.noWrap}>
+            <div className={classes.nowrap}>
               Enrollment: <DateRange date1={workshop.enrollment_begins} date2={workshop.enrollment_ends} hideTime />
             </div>
-            <div className={classes.noWrap}>
+            <div className={classes.nowrap}>
               Workshop: <DateRange date1={workshop.start_date} date2={workshop.end_date} />
             </div>
           </>

@@ -1,14 +1,14 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
 import Link from "next/link"
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Paper, Grid, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination, CircularProgress } from '@material-ui/core'
+import { Container, Paper, Grid, Typography, TextField, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination, CircularProgress } from '@mui/material'
 import { Layout, DateSpan } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { withGetServerSideError } from '../../contexts/error'
+import { makeStyles } from '../../styles/tss'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   }
@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
 //TODO move pagination code into shared component
 const AccessRequests = props => {
   const api = useAPI()
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
@@ -65,7 +65,7 @@ const AccessRequests = props => {
       <Container maxWidth='lg'>
         <br />
         <Paper elevation={3} className={classes.paper}>
-          <Grid container justify="space-between">
+          <Grid container justifyContent="space-between">
             <Grid item>
               <Typography component="h1" variant="h4">Access Requests</Typography>
             </Grid>
@@ -117,8 +117,8 @@ const RequestTable = ({ rows, rowsPerPage, count, page, handleChangePage, handle
       </TableHead>
       <TableBody>
         {rows.map(request => (
-          <Link key={request.id} href={`/administrative/requests/${request.id}`}>
-            <TableRow hover style={{cursor: 'pointer'}}>
+          <Link key={request.id} href={`/administrative/requests/${request.id}`} passHref>
+            <TableRow hover style={{cursor: 'pointer'}} component="a">
               <TableCell>{request.service.name}</TableCell>
               <TableCell>{request.user.username}</TableCell>
               <TableCell>{request.user.email}</TableCell>
@@ -137,8 +137,8 @@ const RequestTable = ({ rows, rowsPerPage, count, page, handleChangePage, handle
               rowsPerPage={rowsPerPage}
               count={count}
               page={page}
-              onChangePage={handleChangePage}
-              onChangeRowsPerPage={handleChangeRowsPerPage}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
             />
           </TableRow>
         </TableFooter>

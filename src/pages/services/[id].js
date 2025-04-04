@@ -2,8 +2,8 @@ import React from 'react'
 import { useState, useEffect } from 'react'
 import getConfig from "next/config"
 import Markdown from 'markdown-to-jsx'
-import { makeStyles, Container, Grid, Link, Box, Button, IconButton, Paper, Tabs, Tab, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, MenuItem } from '@material-ui/core'
-import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon, Delete as DeleteIcon } from '@material-ui/icons'
+import { Container, Grid, Link, Box, Button, IconButton, Paper, Tabs, Tab, List, ListItem, ListItemText, ListItemAvatar, Avatar, Typography, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, TextField, MenuItem } from '@mui/material'
+import { Person as PersonIcon, List as ListIcon, MenuBook as MenuBookIcon, Delete as DeleteIcon } from '@mui/icons-material'
 import { Formik, Form } from 'formik'
 import { Layout, ServiceActionButton, TabPanel, UpdateForm, QuestionsEditor, ContactsEditor, ResourcesEditor, FormField } from '../../components'
 import { useAPI } from '../../contexts/api'
@@ -11,8 +11,9 @@ import { useError, withGetServerSideError } from '../../contexts/error'
 import { useUser } from '../../contexts/user'
 import { WS_SERVICE_ACCESS_REQUEST_STATUS_UPDATE, EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL } from '../../constants'
 import inlineIcons from '../../inline_icons.json'
+import { makeStyles } from '../../styles/tss'
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   },
@@ -38,7 +39,7 @@ const Service = (props) => {
 const ServiceViewer = (props) => {
   const config = getConfig().publicRuntimeConfig
   const service = props.service
-  const classes = useStyles()
+  const { classes } = useStyles()
   const api = useAPI()
   const [user] = useUser()
   const [_, setError] = useError()
@@ -92,7 +93,7 @@ const ServiceViewer = (props) => {
     <div>
       <Paper elevation={3} className={classes.paper}>
         <Grid container spacing={4}>
-          <Grid container item xs={12}  justify="space-between">
+          <Grid container item xs={12} justifyContent="space-between">
             <Grid item>
               <Box display='flex' flexWrap="wrap" alignSelf="flex-end">
                 <Box mr={2}>
@@ -440,7 +441,7 @@ const ServiceEditor = (props) => {
 }
 
 const GeneralSettings = (props) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <Paper elevation={3} className={classes.paper}>
@@ -500,7 +501,7 @@ const GeneralSettings = (props) => {
 }
 
 const RequestsEditor = ({ forms, allForms, submitHandler, deleteHandler }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
   const [dialogOpen, setDialogOpen] = useState(false)
 
   return (
@@ -511,7 +512,7 @@ const RequestsEditor = ({ forms, allForms, submitHandler, deleteHandler }) => {
       <br />
       <List>
         {forms.map((form, index) => (
-          <Grid container key={index} justify="space-between" alignItems="center">
+          <Grid container key={index} justifyContent="space-between" alignItems="center">
             <Grid item>
               <ListItem>
                 <ListItemAvatar>

@@ -1,14 +1,14 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
 import Link from "next/link"
-import { makeStyles } from '@material-ui/core/styles'
-import { Container, Grid, Paper, Typography, TextField, CircularProgress, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@material-ui/core'
+import { makeStyles } from '../../styles/tss'
+import { Container, Grid, Paper, Typography, TextField, CircularProgress, TableContainer, Table, TableHead, TableBody, TableFooter, TableRow, TableCell, TablePagination } from '@mui/material'
 import { Layout, CopyToClipboardButton } from '../../components'
 import { useAPI } from '../../contexts/api'
 import { withGetServerSideError } from '../../contexts/error'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '3em'
   }
@@ -17,7 +17,7 @@ const useStyles = makeStyles((theme) => ({
 //TODO move pagination code into shared component
 const Users = props => {
   const api = useAPI()
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
@@ -64,7 +64,7 @@ const Users = props => {
       <Container maxWidth='lg'>
         <br />
         <Paper elevation={3} className={classes.paper}>
-          <Grid container justify="space-between">
+          <Grid container justifyContent="space-between">
             <Grid item>
               <Typography component="h1" variant="h4" gutterBottom>Users</Typography>
             </Grid>
@@ -122,29 +122,34 @@ const UserTable = ({ rows, rowsPerPage, count, page, handleChangePage, handleCha
           const d = new Date(user.date_joined)
           const parts = user.email.split('@')
           return (
-            <Link key={index} href={`/administrative/users/${user.id}`}>
-              <TableRow hover style={{cursor: 'pointer'}}>
-                <TableCell>{user.first_name} {user.last_name}</TableCell>
-                <TableCell style={{whiteSpace:'nowrap'}}>{user.username}<CopyToClipboardButton text={user.username} /></TableCell>
-                <TableCell style={{whiteSpace:'nowrap'}}>{parts[0]}<wbr />@{parts[1]}<CopyToClipboardButton text={user.email} /></TableCell>
-                <TableCell>{user.institution}</TableCell>
-                <TableCell>{user.occupation.name}</TableCell>
-                <TableCell>{user.region.name}</TableCell>
-                <TableCell>{user.region.country.name}</TableCell>
-                {/* <TableCell style={{whiteSpace:'nowrap'}}>{(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear()}</TableCell> */}
-              </TableRow>
-            </Link>
+            <TableRow key={index} hover style={{cursor: 'pointer'}}>
+              <TableCell colSpan={7}>
+                <Link href={`/administrative/users/${user.id}`} passHref style={{ textDecoration: 'none', color: 'inherit', display: 'flex', width: '100%' }}>
+                  <Grid container>
+                    <Grid item xs={1}>{user.first_name} {user.last_name}</Grid>
+                    <Grid item xs={2} style={{whiteSpace:'nowrap'}}>{user.username}<CopyToClipboardButton text={user.username} /></Grid>
+                    <Grid item xs={2} style={{whiteSpace:'nowrap'}}>{parts[0]}<wbr />@{parts[1]}<CopyToClipboardButton text={user.email} /></Grid>
+                    <Grid item xs={2}>{user.institution}</Grid>
+                    <Grid item xs={2}>{user.occupation.name}</Grid>
+                    <Grid item xs={1}>{user.region.name}</Grid>
+                    <Grid item xs={2}>{user.region.country.name}</Grid>
+                    {/* <Grid item xs={1} style={{whiteSpace:'nowrap'}}>{(d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear()}</Grid> */}
+                  </Grid>
+                </Link>
+              </TableCell>
+            </TableRow>
           )
         })}
       </TableBody>
       <TableFooter>
         <TableRow>
           <TablePagination
+            rowsPerPageOptions={[5, 10, 25, 50]}
             rowsPerPage={rowsPerPage}
             count={count}
             page={page}
-            onChangePage={handleChangePage}
-            onChangeRowsPerPage={handleChangeRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
           />
         </TableRow>
       </TableFooter>

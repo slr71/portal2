@@ -1,9 +1,9 @@
 import React from 'react'
-import { makeStyles } from '@material-ui/core/styles'
-import { Paper, Typography } from '@material-ui/core'
+import { makeStyles } from '../styles/tss'
+import { Paper, Typography } from '@mui/material'
 
 //FIXME duplicated elsewhere
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles()((theme) => ({
   paper: {
     padding: '2em',
     marginBottom: '2em'
@@ -11,7 +11,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 
 const Section = ({ title, children }) => {
-  const classes = useStyles()
+  const { classes } = useStyles()
 
   return (
     <Paper elevation={3} className={classes.paper}>
