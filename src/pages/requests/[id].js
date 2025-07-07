@@ -1,6 +1,6 @@
 import React from 'react'
 import Markdown from 'markdown-to-jsx'
-import { makeStyles } from '../../../styles/tss'
+import { makeStyles } from '../../styles/tss'
 import { Container, Box, Paper, Typography } from '@mui/material'
 import { Layout, Wizard } from '../../components'
 import { useAPI } from '../../contexts/api'
