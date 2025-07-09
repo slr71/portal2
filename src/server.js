@@ -3,7 +3,7 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const session = require('express-session')
 const pgsimple = require('connect-pg-simple')
-const Sentry = require("@sentry/node");
+const Sentry = require('@sentry/node')
 const Keycloak = require('keycloak-connect')
 const next = require('next')
 const { logger, requestLogger, errorLogger } = require('./api/lib/logging')
@@ -20,21 +20,24 @@ const nextHandler = app.getRequestHandler()
 if (process.env.SENTRY_DSN) {
     Sentry.init({
         dsn: process.env.SENTRY_DSN,
-        environment: process.env.NODE_ENV
-    });
-}
-else {
+        environment: process.env.NODE_ENV,
+    })
+} else {
     console.log('Sentry is disabled')
 }
 
 // Build a Postgres database URL.
 function buildPostgresUrl(settings) {
-    const { host, port, database, user, password} = settings;
-    const encodedPassword = password ? encodeURIComponent(password) : '';
-    const auth = !user ? '' : !encodedPassword ? user : `${user}:${encodedPassword}`;
+    const { host, port, database, user, password } = settings
+    const encodedPassword = password ? encodeURIComponent(password) : ''
+    const auth = !user
+        ? ''
+        : !encodedPassword
+        ? user
+        : `${user}:${encodedPassword}`
     return auth
         ? `postgresql://${auth}@${host}:${port}/${database}`
-        : `postgresql://${host}:${port}/${database}`;
+        : `postgresql://${host}:${port}/${database}`
 }
 
 // Configure the session store
@@ -50,63 +53,41 @@ const sessionStore = new pgSession({
     conString: pgUrl,
     tableName: process.env.DB_SESSION_TABLE,
     ttl: process.env.SESSION_TTL,
-    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 } // 30 days
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
 })
 
 // Configure the Keycloak client
 Keycloak.prototype.accessDenied = function (request, response) {
-    console.log('Access denied, redirecting !!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-    response.redirect(process.env.UI_BASE_URL);
+    console.log('Access denied, redirecting !!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    response.redirect(process.env.UI_BASE_URL)
     //response.status(403);
     //response.end('Access denied');
-};
+}
 const keycloakClient = new Keycloak(
     { store: sessionStore },
     {
-        "realm": process.env.KEYCLOAK_REALM,
-        "auth-server-url": process.env.KEYCLOAK_AUTH_URL,
-        "ssl-required": "all",
-        "resource": process.env.KEYCLOAK_CLIENT,
-        "credentials": {
-            "secret": process.env.KEYCLOAK_SECRET
+        realm: process.env.KEYCLOAK_REALM,
+        'auth-server-url': process.env.KEYCLOAK_AUTH_URL,
+        'ssl-required': 'all',
+        resource: process.env.KEYCLOAK_CLIENT,
+        credentials: {
+            secret: process.env.KEYCLOAK_SECRET,
         },
-        "confidential-port": 0
+        'confidential-port': 0,
     }
-
 )
-
-// Configure web socket server
-const wsServer = new ws.Server({ port: process.env.WS_PORT })
-const sockets = {}
-wsServer.on('connection', (ws, req) => {
-    const username = req.url.substr(1) //TODO consider using express-ws package for routing
-    console.log(`Connection from username=${username} ip=${req.connection.remoteAddress} key=${req.headers['sec-websocket-key']}`)
-
-    sockets[username] = ws
-
-    // ws.on('message', (message) => {
-    //     console.log('Socket received:', message)
-    // })
-
-    ws.send(JSON.stringify({
-        type: WS_CONNECTED,
-        data: {
-            key: req.headers['sec-websocket-key']
-        }
-    }))
-})
 
 app.prepare()
     .then(() => {
         const server = express()
+        const expressWS = require('express-ws')(server)
 
         // Setup logging
         server.use(errorLogger)
         server.use(requestLogger)
 
         // Setup Sentry error handling
-        if (process.env.SENTRY_DSN)
-            server.use(Sentry.Handlers.requestHandler());
+        if (process.env.SENTRY_DSN) server.use(Sentry.Handlers.requestHandler())
 
         // Support CORS requests -- needed for service icon image requests
         server.use(cors())
@@ -122,8 +103,10 @@ app.prepare()
                 resave: false,
                 saveUninitialized: true,
                 cookie: {
-                    secure: process.env.SESSION_SECURE_COOKIE.toLowerCase() === 'true',
-                }
+                    secure:
+                        process.env.SESSION_SECURE_COOKIE.toLowerCase() ===
+                        'true',
+                },
             })
         )
 
@@ -135,19 +118,19 @@ app.prepare()
         server.use(keycloakClient.middleware({ logout: '/logout' }))
 
         // For "sign in" button on landing page
-        server.get("/login", keycloakClient.protect(), (_, res) => {
-            res.redirect("/")
+        server.get('/login', keycloakClient.protect(), (_, res) => {
+            res.redirect('/')
         })
 
         // Public static files
-        server.get("/*.(svg|ico|png|gif|jpg)", (req, res) => {
+        server.get('/*.(svg|ico|png|gif|jpg)', (req, res) => {
             return nextHandler(req, res)
         })
 
         //if (isDevelopment)
-            server.get("/_next/*", (req, res) => {
-                return nextHandler(req, res)
-            })
+        server.get('/_next/*', (req, res) => {
+            return nextHandler(req, res)
+        })
         //else
         //    server.get("/_next/static/*", (req, res) => {
         //        return nextHandler(req, res)
@@ -158,7 +141,7 @@ app.prepare()
             const token = getUserToken(req)
             req.api = new PortalAPI({
                 baseUrl: process.env.API_BASE_URL,
-                token: token ? token.token : null
+                token: token ? token.token : null,
             })
             next()
         })
@@ -171,29 +154,28 @@ app.prepare()
         })
 
         // Default to landing page if not logged in
-        server.get("/", keycloakClient.checkSso(), (req, res) => {
+        server.get('/', keycloakClient.checkSso(), (req, res) => {
             const token = getUserToken(req)
-            if (token)
-                res.redirect("/services")
-            else
-                app.render(req, res, "/welcome")
+            if (token) res.redirect('/services')
+            else app.render(req, res, '/welcome')
         })
 
         // Public UI pages
-        server.get(["/signup", "/register"], (req, res) => {
-            app.render(req, res, "/welcome", { signup: 1 })
+        server.get(['/signup', '/register'], (req, res) => {
+            app.render(req, res, '/welcome', { signup: 1 })
         })
 
-        server.get(["/forgot", "/password/forgot"], (req, res) => { // /password/forgot for old links from DE/CAS
-            app.render(req, res, "/welcome", { forgot: 1 })
+        server.get(['/forgot', '/password/forgot'], (req, res) => {
+            // /password/forgot for old links from DE/CAS
+            app.render(req, res, '/welcome', { forgot: 1 })
         })
 
-        server.get("/password", (req, res) => {
-            app.render(req, res, "/password")
+        server.get('/password', (req, res) => {
+            app.render(req, res, '/password')
         })
 
-        server.get("/confirm_email", (req, res) => {
-            app.render(req, res, "/confirm_email")
+        server.get('/confirm_email', (req, res) => {
+            app.render(req, res, '/confirm_email')
         })
 
         // Public API routes
@@ -205,37 +187,68 @@ app.prepare()
         server.use('/api/services', requireAuth, require('./api/services'))
         server.use('/api/workshops', requireAuth, require('./api/workshops'))
         server.use('/api/forms', requireAuth, require('./api/forms'))
-        server.use('/api/mailing_lists', requireAuth, require('./api/mailing_lists'))
-        server.use('/api/*', (_, res) => res.status(404).send('Resource not found'))
+        server.use(
+            '/api/mailing_lists',
+            requireAuth,
+            require('./api/mailing_lists')
+        )
+        server.use('/api/*', (_, res) =>
+            res.status(404).send('Resource not found')
+        )
 
         // Require auth on all routes/page after this
         /*if (process.env.DEBUG_USER)*/ server.use(keycloakClient.protect())
 
         // Restricted UI pages
-        server.get("/forms*", (req, res) => { // alias "/requests" as "/forms" for old links on cyverse.org
+        server.get('/forms*', (req, res) => {
+            // alias "/requests" as "/forms" for old links on cyverse.org
             var url = req.url.replace(/^\/forms/, '/requests')
             app.render(req, res, url)
         })
-        server.get("/workshops/:id(\\d+)/overview", (req, res) => { // aliases for old links on cyverse.org
+        server.get('/workshops/:id(\\d+)/overview', (req, res) => {
+            // aliases for old links on cyverse.org
             res.redirect(`/workshops/${req.params.id}`)
         })
-        server.get(["/services/mine", "/services/available", "/services/powered-services"], (req, res) => { // aliases for old links on cyverse.org
-            res.redirect("/services")
-        })
-        server.get("*", (req, res) => { // all other pages
+        server.get(
+            [
+                '/services/mine',
+                '/services/available',
+                '/services/powered-services',
+            ],
+            (req, res) => {
+                // aliases for old links on cyverse.org
+                res.redirect('/services')
+            }
+        )
+        server.get('*', (req, res) => {
+            // all other pages
             return nextHandler(req, res)
         })
 
-        // Catch errors
-        if (process.env.SENTRY_DSN)
-            server.use(Sentry.Handlers.errorHandler());
+        server.ws('/', function (ws, req) {
+            ws.send(
+                JSON.stringify({
+                    type: WS_CONNECTED,
+                    data: {
+                        key: req.headers['sec-websocket-key'],
+                    },
+                })
+            )
+        })
 
-        server.listen(process.env.SERVER_PORT, (err) => {
+        // Catch errors
+        if (process.env.SENTRY_DSN) server.use(Sentry.Handlers.errorHandler())
+
+        server.listen(process.env.SERVER_PORT, err => {
             if (err) throw err
             if (isDevelopment)
                 console.log('!!!!!!!!! RUNNING IN DEV MODE !!!!!!!!!!')
             if (process.env.DEBUG_USER)
-                console.log('!!!!!!!!! EMULATING USER', process.env.DEBUG_USER, '!!!!!!!!!!')
+                console.log(
+                    '!!!!!!!!! EMULATING USER',
+                    process.env.DEBUG_USER,
+                    '!!!!!!!!!!'
+                )
             console.log(`Ready on port ${process.env.SERVER_PORT}`)
         })
     })
