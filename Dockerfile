@@ -26,7 +26,6 @@ RUN npx browserslist@latest --update-db && \
 
 # Expose the HTTP and WS listen ports.
 EXPOSE 3000
-EXPOSE 3001
 
 # Set the entrypoint.
 ENTRYPOINT ["portal2"]
