@@ -408,7 +408,7 @@ const ServiceEditor = props => {
             const formsByGroup = await api.forms()
             const forms = formsByGroup
                 .map(s => s.forms)
-                .reduce((acc, forms) => acc.concat(forms))
+                .reduce((acc, forms) => acc.concat(forms), [])
                 .sort((a, b) => (a.name > b.name ? 1 : -1))
             setForms(forms)
         }
@@ -712,7 +712,7 @@ const AddRequestDialog = ({
     handleClose,
     handleSubmit,
 }) => {
-    const availableForms = allForms.filter(
+    const availableForms = (allForms || []).filter(
         f => !forms.some(f2 => f2.id == f.id)
     )
     const [selected, setSelected] = useState()
