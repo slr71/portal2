@@ -100,7 +100,11 @@ const Right = props => {
             else setSubmitted(true)
         } catch (error) {
             console.log('Password reset error occurred')
-            setPageError(error.response.data)
+            // Network-level failures have no response object
+            setPageError(error.response ? error.response.data : error.message)
+        } finally {
+            // Re-enable the submit button so a failed attempt can be retried
+            setSubmitting(false)
         }
     }
 
