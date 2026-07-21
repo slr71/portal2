@@ -2,9 +2,15 @@ const router = require('express').Router()
 const { logger } = require('./lib/logging')
 const {
     emailNewAccountConfirmation,
+    emailNewEmailConfirmation,
     emailPasswordReset,
 } = require('./lib/email')
-const { decodeHMAC, generateToken, decodeToken } = require('./lib/hmac')
+const {
+    decodeHMAC,
+    generateHMAC,
+    generateToken,
+    decodeToken,
+} = require('./lib/hmac')
 const { asyncHandler } = require('./lib/auth')
 const { encodePassword } = require('./lib/password')
 const config = require('./lib/config')
@@ -250,11 +256,29 @@ router.put(
                 logger.error('Error assigning email address to mailing list')
         } else logger.error('Mailing list not found: "announce"')
 
-        res.status(200).json(newUser)
-
-        // Send confirmation email (after the response as to not delay it)
         const hmac = generateToken(emailAddress.id)
-        await emailNewAccountConfirmation(newUser.email, hmac)
+        const skipEmailConfirmation =
+            config.getFeatures()?.disableRequireNewUserEmailConfirmation ===
+            true
+
+        // Respond first, then send the confirmation email so it doesn't delay
+        // the response
+        if (skipEmailConfirmation) {
+            // Return the set-password token so the UI can proceed without the
+            // email round-trip; still send a verify-this-address email so the
+            // user can confirm ownership later
+            res.status(200).json({
+                ...newUser.toJSON(),
+                password_token: hmac,
+            })
+            await emailNewEmailConfirmation(
+                newUser.email,
+                generateHMAC(emailAddress.id)
+            )
+        } else {
+            res.status(200).json(newUser)
+            await emailNewAccountConfirmation(newUser.email, hmac)
+        }
     })
 )
 
@@ -299,15 +323,20 @@ router.put(
 
         //TODO check that there is a password reset request for this HMAC
 
-        // Confirm email address
-        emailAddress.verified = true
-        emailAddress.primary = true
-        emailAddress.save()
-
         // Fetch user unscoped so password is present
         const user = await User.unscoped().findByPk(emailAddress.user_id, {
             include: ['occupation'],
         })
+
+        // Confirm email address. When email confirmation is disabled, new
+        // users reach this endpoint without an emailed link, so ownership is
+        // unproven -- leave unverified (they can confirm via /confirm_email).
+        const skipVerify =
+            config.getFeatures()?.disableRequireNewUserEmailConfirmation ===
+                true && user.password === ''
+        if (!skipVerify) emailAddress.verified = true
+        emailAddress.primary = true
+        emailAddress.save()
 
         // Log password set/reset
         const newPasswordReset = PasswordReset.create({

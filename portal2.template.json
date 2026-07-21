@@ -50,6 +50,7 @@
     "warningText": "Your profile needs attention"
   },
   "features": {
+    "disableRequireNewUserEmailConfirmation": false,
     "intercomEnabled": false
   },
   "sentry": {

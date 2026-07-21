@@ -65,7 +65,9 @@ function validateStartupConfiguration() {
 
         // Test feature flags
         const features = config.getFeatures()
-        logger.info(`Feature flags: Intercom=${features.intercomEnabled}`)
+        logger.info(
+            `Feature flags: Intercom=${features.intercomEnabled} DisableRequireNewUserEmailConfirmation=${features.disableRequireNewUserEmailConfirmation}`
+        )
 
         // Test optional integrations
         const sentryConfig = config.getSentryConfig()
