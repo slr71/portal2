@@ -325,6 +325,7 @@ const ForgotPassword = ({ startTimeHMAC, cancelHandler }) => {
 const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
     const { classes } = useStyles()
     const api = useAPI()
+    const router = useRouter()
     const [error, setError] = useState()
 
     const [institutions, setInstitutions] = useState([])
@@ -401,7 +402,10 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
             const newUser = await api.createUser(submission)
             if (!newUser || typeof newUser != 'object')
                 setError('An error occurred')
-            else {
+            else if (newUser.password_token) {
+                // Email confirmation not required -- go straight to set-password
+                router.push(`/password?code=${newUser.password_token}`)
+            } else {
                 setUser(newUser)
                 setSubmitted(true)
             }
