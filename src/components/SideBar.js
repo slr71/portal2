@@ -40,28 +40,23 @@ const NavButton = props => {
 
     return (
         <div>
-            <Link href={props.path}>
-                <ListItemButton
-                    component="a"
-                    className={`${classes.listItem} ${
-                        isSelected ? classes.selected : ''
-                    }`}
+            <ListItemButton
+                component={Link}
+                href={props.path}
+                className={`${classes.listItem} ${
+                    isSelected ? classes.selected : ''
+                }`}
+            >
+                <ListItemIcon
+                    className={isSelected ? classes.selectedIcon : classes.icon}
                 >
-                    <ListItemIcon
-                        className={
-                            isSelected ? classes.selectedIcon : classes.icon
-                        }
-                    >
-                        {props.icon}
-                    </ListItemIcon>
-                    <ListItemText
-                        primary={props.label}
-                        className={
-                            isSelected ? classes.selectedText : classes.text
-                        }
-                    />
-                </ListItemButton>
-            </Link>
+                    {props.icon}
+                </ListItemIcon>
+                <ListItemText
+                    primary={props.label}
+                    className={isSelected ? classes.selectedText : classes.text}
+                />
+            </ListItemButton>
         </div>
     )
 }
