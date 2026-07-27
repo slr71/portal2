@@ -1,26 +1,23 @@
 import React from 'react'
-import { Field } from 'formik'
 import { Checkbox, FormControlLabel } from '@mui/material'
 
-const FormikCheckboxWithLabel = ({ name, label, ...props }) => {
+// Drop-in replacement for formik-material-ui's CheckboxWithLabel. Used as the
+// `component` of a Formik <Field>, which supplies `field`/`form` as props and
+// consumes `name` itself, and passes the label as `Label={{ label, ...rest }}`.
+const FormikCheckboxWithLabel = ({
+    field,
+    form,
+    Label = {},
+    defaultValue,
+    ...props
+}) => {
+    const { label, ...labelProps } = Label
     return (
-        <Field name={name}>
-            {({ field, form }) => (
-                <FormControlLabel
-                    control={
-                        <Checkbox
-                            {...field}
-                            checked={field.value}
-                            onChange={e => {
-                                form.setFieldValue(name, e.target.checked)
-                            }}
-                            {...props}
-                        />
-                    }
-                    label={label}
-                />
-            )}
-        </Field>
+        <FormControlLabel
+            control={<Checkbox {...props} {...field} checked={!!field.value} />}
+            label={label}
+            {...labelProps}
+        />
     )
 }
 

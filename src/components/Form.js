@@ -59,8 +59,12 @@ const initialValues = fields =>
     }, {})
 
 const validateField = (field, value) => {
-    if ((field.is_required || field.required) && isEmpty(value))
-        return 'This field is required'
+    const required = field.is_required || field.required
+    // Checkboxes are only satisfied when actually checked; isEmpty() would
+    // accept an unchecked box because `false` is a non-empty value.
+    if (field.type == 'boolean' || field.type == 'toggle')
+        return required && value !== true ? 'This field is required' : null
+    if (required && isEmpty(value)) return 'This field is required'
     if (field.type == 'email' && !isEmail(value))
         return 'A valid email address is required'
     if (field.type == 'number' && (!isNumeric(value) || value <= 0))
@@ -88,7 +92,9 @@ const validateFields = async (fields, values, customValidator) => {
     let errors = {}
     for (let field of fields) {
         const id = field.id
-        const value = id in values ? '' + values[id] : '' // force to string type
+        const raw = id in values ? values[id] : ''
+        // force to string type, except booleans so checkbox state survives
+        const value = typeof raw === 'boolean' ? raw : '' + raw
 
         let error = validateField(field, value)
         if (!error && customValidator)
