@@ -192,7 +192,7 @@ async function makeRequest(method, endpoint, data = null, options = {}) {
                     `Portal-conductor request data:`,
                     JSON.stringify(
                         data,
-                        () => {
+                        (key, value) => {
                             return key.toLowerCase().includes('password')
                                 ? '********'
                                 : value
