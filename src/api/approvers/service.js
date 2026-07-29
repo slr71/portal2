@@ -215,7 +215,9 @@ async function sendVICESignupMessage(request, responseMessage) {
         throw 'service:sendVICESignupMessage: Missing required property'
 
     const body = getVICEConversationBody(service.questions, request.answers)
-    const linkText = `This request can be viewed at ${EXT_ADMIN_VICE_ACCESS_REQUEST_URL}`
+    const linkText = EXT_ADMIN_VICE_ACCESS_REQUEST_URL
+        ? `This request can be viewed at ${EXT_ADMIN_VICE_ACCESS_REQUEST_URL}`
+        : null
 
     if (intercom) {
         const [conversation, message] = await intercom.startConversation(
@@ -229,7 +231,8 @@ async function sendVICESignupMessage(request, responseMessage) {
             intercom_conversation_id: conversation.id,
         })
 
-        await intercom.addNoteToConversation(conversation.id, linkText)
+        if (linkText)
+            await intercom.addNoteToConversation(conversation.id, linkText)
         await intercom.replyToConversation(conversation.id, responseMessage)
         await intercom.assignConversation(
             conversation.id,

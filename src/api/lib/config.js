@@ -136,6 +136,7 @@ class ConfigManager {
             ['terrain.url', this._config.terrain?.url],
             ['portalConductor.url', this._config.portalConductor?.url],
             ['sentry.dsn', this._config.sentry?.dsn],
+            ['external.deBaseUrl', this._config.external?.deBaseUrl],
         ]
 
         optionalUrls.forEach(([name, url]) => {
@@ -225,6 +226,15 @@ class ConfigManager {
     getUiConfig() {
         this.init()
         return this._config.ui
+    }
+
+    /**
+     * Get external service configuration
+     * @returns {Object} External configuration object
+     */
+    getExternalConfig() {
+        this.init()
+        return this._config.external || {}
     }
 
     /**

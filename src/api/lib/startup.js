@@ -63,6 +63,15 @@ function validateStartupConfiguration() {
             )
         }
 
+        const externalConfig = config.getExternalConfig()
+        if (externalConfig.deBaseUrl) {
+            logger.info(`DE URL configured: ${externalConfig.deBaseUrl}`)
+        } else {
+            logger.warn(
+                'DE URL not configured - staff notifications will omit the link to the DE admin page'
+            )
+        }
+
         // Test feature flags
         const features = config.getFeatures()
         logger.info(
