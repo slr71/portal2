@@ -190,7 +190,15 @@ async function makeRequest(method, endpoint, data = null, options = {}) {
             if (data) {
                 logger.debug(
                     `Portal-conductor request data:`,
-                    JSON.stringify(data, null, 2)
+                    JSON.stringify(
+                        data,
+                        () => {
+                            return key.toLowerCase().includes('password')
+                                ? '********'
+                                : value
+                        },
+                        2
+                    )
                 )
             }
             const response = await axios(requestConfig)
