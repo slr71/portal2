@@ -418,14 +418,32 @@ router.post(
 
         if (!email) return res.status(400).send('Missing email')
 
-        let emailAddress = await EmailAddress.findOne({
-            where: { email },
+        // Signup lowercases before storing, but the column is a plain varchar
+        // with no normalizing hook and the data predates this app, so match
+        // case-insensitively on both sides. The column has to be qualified:
+        // include: ['user'] joins account_user, which also has an email column.
+        const matches = await EmailAddress.findAll({
+            where: lowerEqualTo('account_emailaddress.email', email),
             include: ['user'],
         })
-        if (!emailAddress)
+        if (!matches.length)
             return res
                 .status(404)
                 .send('Email address not associated with an account')
+
+        // The unique constraint is case-sensitive, so addresses differing only
+        // in case can belong to different users. Prefer the exact match rather
+        // than mailing a reset link for whichever row happened to come back.
+        let emailAddress = matches.find(match => match.email === email)
+        if (!emailAddress) {
+            if (matches.length > 1)
+                return res
+                    .status(409)
+                    .send(
+                        'Multiple accounts use that email address, please contact support'
+                    )
+            emailAddress = matches[0]
+        }
 
         // Detect bots using page load time
         if (!pltHMAC) return res.status(400).send('Missing HMAC')
@@ -449,7 +467,7 @@ router.post(
             user_id: emailAddress.user.id,
             username: emailAddress.user.username,
             email_address_id: emailAddress.id,
-            email: email,
+            email: emailAddress.email,
             key: hmac,
         })
         if (!passwordResetRequest)

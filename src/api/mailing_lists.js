@@ -214,8 +214,10 @@ router.post(
         const userId = targetUserId || req.user.id
         const emailAddress = await EmailAddress.findOne({
             where: {
-                email: email,
-                user_id: userId,
+                [sequelize.Op.and]: [
+                    lowerEqualTo('email', email),
+                    { user_id: userId },
+                ],
             },
         })
         if (!emailAddress)
