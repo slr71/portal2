@@ -188,7 +188,10 @@ async function makeRequest(method, endpoint, data = null, options = {}) {
                 }): ${method} ${requestConfig.url}`
             )
             if (data) {
-                logger.debug(`Portal-conductor request data:`, data)
+                logger.debug(
+                    `Portal-conductor request data:`,
+                    JSON.stringify(data, null, 2)
+                )
             }
             const response = await axios(requestConfig)
             logger.debug(`Portal-conductor response: ${response.status}`)
