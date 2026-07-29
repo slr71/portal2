@@ -765,6 +765,7 @@ export async function getServerSideProps({ req, query }) {
             EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL,
         } = require('../../constants/server')
         const config = require('../../api/lib/config')
+        const { joinUrl } = require('../../api/lib/url')
 
         if (!req.api) {
             throw new Error('API not available on request object')
@@ -779,33 +780,60 @@ export async function getServerSideProps({ req, query }) {
 
         let viceStatus = null
 
-        // Special case: fetch VICE access request status
+        // Special case: fetch VICE access request status. This only decides how
+        // the access-request control renders, so a failure here degrades to an
+        // unknown status rather than taking the whole page down with a 404.
         if (service.name == 'DE - VICE') {
-            const user = await req.api.user()
-            const terrainConfig = config.getTerrainConfig()
+            try {
+                const user = await req.api.user()
+                const terrainConfig = config.getTerrainConfig()
 
-            // Get Terrain token
-            let resp = await fetch(`${terrainConfig.url}/token/keycloak`, {
-                headers: {
-                    Authorization:
-                        'Basic ' +
-                        Buffer.from(
-                            terrainConfig.user + ':' + terrainConfig.password
-                        ).toString('base64'),
-                },
-            })
-            let data = await resp.json()
+                // Get Terrain token
+                let resp = await fetch(
+                    joinUrl(terrainConfig.url, 'token/keycloak'),
+                    {
+                        headers: {
+                            Authorization:
+                                'Basic ' +
+                                Buffer.from(
+                                    terrainConfig.user +
+                                        ':' +
+                                        terrainConfig.password
+                                ).toString('base64'),
+                        },
+                    }
+                )
+                if (!resp.ok)
+                    throw new Error(
+                        `terrain token request failed: ${resp.status}`
+                    )
+                let data = await resp.json()
 
-            // Get concurrent jobs setting
-            resp = await fetch(
-                `${EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL}/${user.username}`,
-                {
-                    headers: { Authorization: `Bearer ${data.access_token}` },
-                }
-            )
-            data = await resp.json()
-            viceStatus =
-                data && data.concurrent_jobs && data.concurrent_jobs > 0
+                // Get concurrent jobs setting
+                resp = await fetch(
+                    joinUrl(
+                        EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL,
+                        user.username
+                    ),
+                    {
+                        headers: {
+                            Authorization: `Bearer ${data.access_token}`,
+                        },
+                    }
+                )
+                if (!resp.ok)
+                    throw new Error(
+                        `terrain concurrent-job-limits request failed: ${resp.status}`
+                    )
+                data = await resp.json()
+                viceStatus =
+                    data && data.concurrent_jobs && data.concurrent_jobs > 0
+            } catch (error) {
+                console.error(
+                    'Could not determine VICE access status; the service page will render without it:',
+                    error
+                )
+            }
         }
 
         return { props: { service, viceStatus } }
