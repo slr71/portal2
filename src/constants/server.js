@@ -1,6 +1,7 @@
 // Server-side constants that use configuration
 // NOTE: this module can only be used server-side due to use of configuration manager
 const config = require('../api/lib/config')
+const { joinUrl } = require('../api/lib/url')
 
 const uiConfig = config.getUiConfig()
 const terrainConfig = config.getTerrainConfig()
@@ -17,6 +18,12 @@ module.exports = {
     UI_ACCOUNT_REVIEW_URL: `${uiConfig.baseUrl}/account?reviewMode=1`,
 
     // External URLs
-    EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL: `${terrainConfig.url}/admin/settings/concurrent-job-limits`,
+    // joinUrl, not interpolation: terrain.url is commonly configured with a
+    // trailing slash, and terrain answers a doubled slash with Jetty's HTML
+    // error page rather than JSON.
+    EXT_ADMIN_VICE_ACCESS_REQUEST_API_URL: joinUrl(
+        terrainConfig.url,
+        'admin/settings/concurrent-job-limits'
+    ),
     EXT_ADMIN_VICE_ACCESS_REQUEST_URL: 'https://de.cyverse.org/admin/vice',
 }
