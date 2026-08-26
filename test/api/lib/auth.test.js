@@ -26,6 +26,7 @@ const {
     getUser,
     isAdmin,
     requireAdmin,
+    requireUser,
     requireAuth,
     asyncHandler,
 } = require('../../../src/api/lib/auth')
@@ -211,6 +212,92 @@ describe('requireAdmin', () => {
             assert.equal(nexted, false)
         })
     }
+})
+
+describe('requireUser', () => {
+    test('calls next for a user already on the request', async () => {
+        const req = { user: MEMBER }
+        const res = makeRes()
+        let nexted = false
+
+        await requireUser(req, res, () => (nexted = true))
+
+        assert.equal(nexted, true)
+        assert.equal(res.code, undefined)
+        assert.equal(findOneCalls.length, 0)
+    })
+
+    test('loads the user when the request has none', async () => {
+        findOne = async () => fakeUser(MEMBER)
+        const req = makeReq('member')
+        const res = makeRes()
+        let nexted = false
+
+        await requireUser(req, res, () => (nexted = true))
+
+        assert.equal(nexted, true)
+        assert.deepEqual(req.user, MEMBER)
+        assert.equal(findOneCalls.length, 1)
+    })
+
+    test('does not require staff', async () => {
+        const res = makeRes()
+        let nexted = false
+
+        await requireUser({ user: MEMBER }, res, () => (nexted = true))
+
+        assert.equal(nexted, true)
+        assert.equal(res.code, undefined)
+    })
+
+    test('rejects an anonymous request with 401', async () => {
+        const res = makeRes()
+        let nexted = false
+
+        await requireUser({}, res, () => (nexted = true))
+
+        assert.equal(res.code, 401)
+        assert.equal(res.body, 'Unauthorized')
+        assert.equal(nexted, false)
+    })
+
+    test('rejects a token whose username has no portal record with 401', async () => {
+        // The case requireAuth cannot catch: the token is valid, so getUserID
+        // succeeds, but no account_user row means req.user is never populated.
+        findOne = async () => null
+        const res = makeRes()
+        let nexted = false
+
+        await requireUser(makeReq('ghost'), res, () => (nexted = true))
+
+        assert.equal(res.code, 401)
+        assert.equal(res.body, 'Unauthorized')
+        assert.equal(nexted, false)
+    })
+
+    test('lets requireAuth-style tokens through only with a portal record', async () => {
+        // Same request, both middlewares: requireAuth admits it, requireUser
+        // does not.
+        findOne = async () => null
+        const authRes = makeRes()
+        let authNexted = false
+        await requireAuth(makeReq('ghost'), authRes, () => (authNexted = true))
+
+        const userRes = makeRes()
+        let userNexted = false
+        await requireUser(makeReq('ghost'), userRes, () => (userNexted = true))
+
+        assert.equal(authNexted, true)
+        assert.equal(authRes.code, undefined)
+        assert.equal(userNexted, false)
+        assert.equal(userRes.code, 401)
+    })
+
+    test('tolerates a missing next callback', async () => {
+        await assert.doesNotReject(() =>
+            requireUser({ user: MEMBER }, makeRes())
+        )
+    })
 })
 
 describe('requireAuth', () => {

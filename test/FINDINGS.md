@@ -157,24 +157,97 @@ responses (`400`, `404`, `401`, `422`, with and without `detail`) all throw, the
 
 ---
 
-## 5. Handlers downstream of `getUser` assume `req.user` is set
+## 5. Handlers downstream of `getUser` assume `req.user` is set — RESOLVED
 
-**No test coverage.** Unlike the findings above, this one is not pinned by a
-test — reproducing it means exercising express routes end to end, which the unit
-suite does not do. Recorded here because it was observed while resolving #3.
+**Resolution:** added a `requireUser` middleware to `src/api/lib/auth.js` and
+switched the 28 routes that read `req.user` without another gate over to it.
 
 `getUser` populates `req.user` when it can and calls `next()` either way; it is
-not an authorization gate. Several routes use it without a following
-`requireAuth`/`requireAdmin` and then assume the field is present:
+not an authorization gate. Routes that used it and then assumed the field was
+present produced a `TypeError` (an `asyncHandler` `500`) for any request without
+a matching portal user, or, for `/mine`, a `200` with an empty body.
 
-- `src/api/users.js:110` — `router.get('/mine', getUser, ...)` calls
-  `res.status(200).json(req.user)`. With no user this sends `200` with an empty
-  body rather than `401`.
-- `src/api/users.js:154` — the `/:usernameOrId/status` handler dereferences
-  `req.user.is_staff` directly, throwing a `TypeError` that `asyncHandler`
-  converts into a `500`.
+`requireAuth` is **not** a sufficient fix. It checks only that a token was
+presented:
 
-This predates #3 and is reachable today by any request with no token at all, not
-only by the unmatched-token case that #3 fixed. A fix would either add
-`requireAuth` to the routes that need a user, or have the handlers check
-`req.user` before dereferencing it.
+```js
+const requireAuth = async (req, res, next) => {
+    if (!getUserID(req)) res.status(401).send('Unauthorized')
+    else if (next) next()
+}
+```
+
+A token whose username has no `account_user` row passes it and still leaves
+`req.user` unset — the same case #3 addressed. `requireUser` mirrors the
+existing `requireAdmin`, which already loaded the user and rejected when it was
+absent:
+
+```js
+const requireUser = async (req, res, next) => {
+    if (!req.user) await getUser(req)
+    if (!req.user) res.status(401).send('Unauthorized')
+    else if (next) next()
+}
+```
+
+**Behavior change:** these routes now answer `401` instead of `500` (or, for
+`/mine`, instead of an empty `200`). No legitimate traffic is affected — every
+one of the 28 dereferenced `req.user`, directly or through
+`hasHostAccess`/`hasOrganizerAccess`, which read `user.id`. None could serve an
+anonymous caller before; they crashed.
+
+Routes still on `getUser` are either gated by `requireAdmin` (which loads the
+user itself) or never read `req.user`.
+
+Covered by `test/api/lib/auth.test.js` → `requireUser`, including a case that
+runs the same ghost-token request through both middlewares and asserts
+`requireAuth` admits it while `requireUser` rejects it.
+
+---
+
+## 6. Permission checks call `findOne` without `await`, so they never deny
+
+**Not fixed — this changes who can reach several endpoints and wants a
+deliberate decision.** Found while resolving #5.
+
+`src/api/workshops.js:31`:
+
+```js
+function hasOrganizerAccess(workshop, user) {
+    return (
+        hasHostAccess(workshop, user) ||
+        WorkshopOrganizer.findOne({
+            where: { workshop_id: workshop.id, organizer_id: user.id },
+        })
+    )
+}
+```
+
+`findOne` is not awaited, so when `hasHostAccess` is false the function returns
+a **Promise**, which is always truthy. Every caller is shaped
+`if (!hasOrganizerAccess(...)) return res.status(403)`, so the `403` is never
+sent. Verified with a stub that returns `null` for a user who is neither host,
+staff, nor organizer: the helper returns `[object Promise]` and `!verdict` is
+`false`.
+
+There are **13 call sites** in `workshops.js`, covering participants, emails,
+organizers, contacts, services, and enrollment requests. In effect any
+authenticated user can act on any workshop.
+
+The same pattern is in `src/api/users.js:49`, inside the
+staff/host/organizer check on `GET /users`:
+
+```js
+if (!req.user || !req.user.is_staff) {
+    if (!Workshop.findOne({ where: { creator_id: req.user.id } })) {
+```
+
+`Workshop.findOne` is likewise unawaited, so the nested `403` is unreachable and
+any authenticated non-staff user can list and search all users. (Before #5 this
+block had a second problem: it dereferenced `req.user.id` inside the branch that
+tests for `!req.user`. `requireUser` makes `req.user` guaranteed, so that
+particular crash is gone, but the missing `await` remains.)
+
+Fixing it means making both helpers `async` and awaiting them at every call
+site. That is mechanical, but it starts denying users who currently get through,
+so it should land as its own reviewable, separately-revertable change.

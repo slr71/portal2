@@ -46,6 +46,15 @@ const requireAdmin = async (req, res, next) => {
     else if (next) next()
 }
 
+// Requires an authenticated user that also has a portal account. requireAuth
+// only proves a token was presented; a token whose username has no
+// account_user row still leaves req.user unset.
+const requireUser = async (req, res, next) => {
+    if (!req.user) await getUser(req)
+    if (!req.user) res.status(401).send('Unauthorized')
+    else if (next) next()
+}
+
 const requireAuth = async (req, res, next) => {
     if (!getUserID(req)) res.status(401).send('Unauthorized')
     else if (next) next()
@@ -63,6 +72,7 @@ module.exports = {
     getUser,
     isAdmin,
     requireAdmin,
+    requireUser,
     requireAuth,
     asyncHandler,
 }

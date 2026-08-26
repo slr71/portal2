@@ -13,7 +13,12 @@ const AccessRequestAnswer = models.api_accessrequestanswer
 const { approveRequest, grantRequest } = require('./approvers/service')
 const intercom = require('./lib/intercom')
 const { notifyClientOfServiceRequestStatusChange } = require('./lib/ws')
-const { getUser, requireAdmin, asyncHandler } = require('./lib/auth')
+const {
+    getUser,
+    requireUser,
+    requireAdmin,
+    asyncHandler,
+} = require('./lib/auth')
 
 const poweredServiceQuery = [
     sequelize.literal(
@@ -150,7 +155,7 @@ router.get(
 // Create new access request
 router.put(
     '/:id(\\d+)/requests',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const serviceId = req.params.id
         const answers = req.body.answers // [ { questionId, value } ]

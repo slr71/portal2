@@ -1,5 +1,5 @@
 const router = require('express').Router()
-const { getUser, requireAdmin, asyncHandler } = require('./lib/auth')
+const { requireUser, requireAdmin, asyncHandler } = require('./lib/auth')
 const { emailNewEmailConfirmation } = require('./lib/email')
 const { generateHMAC } = require('./lib/hmac')
 const { ldapModify } = require('./workflows/native/lib.js')
@@ -21,7 +21,7 @@ const lowerEqualTo = (key, val) =>
 // Can be submitted again for existing email address to resend confirmation email
 router.put(
     '/email_addresses',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const email = req.body.email // email address
 
@@ -83,7 +83,7 @@ router.put(
 // Only used to change "primary" setting currently
 router.post(
     '/email_addresses/:id(\\d+)',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const id = req.params.id
         const setPrimary = req.body.setPrimary
@@ -117,7 +117,7 @@ router.post(
 
 router.delete(
     '/email_addresses/:id(\\d+)',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const id = req.params.id
 
@@ -196,7 +196,7 @@ router.delete(
  */
 router.post(
     '/:id(\\d+)/subscriptions',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const id = req.params.id // mailing list id
         const email = req.body.email // email address
