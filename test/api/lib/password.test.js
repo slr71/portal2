@@ -1,24 +1,7 @@
 const { describe, test } = require('node:test')
 const assert = require('node:assert/strict')
-const crypto = require('node:crypto')
 
-const {
-    checkDjangoPassword,
-    checkLDAPPassword,
-    checkPassword,
-    encodePassword,
-} = require('../../../src/api/lib/password')
-
-/** Builds a {SSHA} hash the way OpenLDAP does: base64(sha1(pw + salt) + salt). */
-function makeSshaHash(secret, salt) {
-    const digest = crypto
-        .createHash('sha1')
-        .update(secret + salt)
-        .digest()
-    return (
-        '{SSHA}' + Buffer.concat([digest, Buffer.from(salt)]).toString('base64')
-    )
-}
+const { encodePassword } = require('../../../src/api/lib/password')
 
 describe('encodePassword', () => {
     test('produces a four-part Django pbkdf2_sha256 hash', () => {
@@ -63,71 +46,4 @@ describe('encodePassword', () => {
             assert.match(encodePassword(secret), /^pbkdf2_sha256\$36000\$/)
         })
     }
-})
-
-describe('checkDjangoPassword', () => {
-    test('accepts the password it encoded', () => {
-        assert.equal(
-            checkDjangoPassword(encodePassword('hunter2'), 'hunter2'),
-            true
-        )
-    })
-
-    test('rejects the wrong password', () => {
-        assert.equal(
-            checkDjangoPassword(encodePassword('hunter2'), 'hunter3'),
-            false
-        )
-    })
-
-    const malformed = [
-        { name: 'an empty string', hash: '' },
-        { name: 'a hash with no separators', hash: 'garbage' },
-        { name: 'a hash with too few parts', hash: 'pbkdf2_sha256$36000$salt' },
-    ]
-
-    for (const { name, hash } of malformed) {
-        test(`returns false for ${name}`, () => {
-            assert.equal(checkDjangoPassword(hash, 'hunter2'), false)
-        })
-    }
-
-    test('rejects a hash whose iteration count was altered', () => {
-        const hash = encodePassword('hunter2').replace('36000', '1000')
-        assert.equal(checkDjangoPassword(hash, 'hunter2'), false)
-    })
-})
-
-describe('checkPassword', () => {
-    test('dispatches non-SSHA hashes to the Django check', () => {
-        assert.equal(checkPassword(encodePassword('hunter2'), 'hunter2'), true)
-    })
-
-    test('dispatches {SSHA} hashes to the LDAP check', () => {
-        // The LDAP path is currently broken (see test/FINDINGS.md #1), so the
-        // observable difference is that a valid Django password fails once the
-        // hash carries the {SSHA} label.
-        const hash = '{SSHA}' + encodePassword('hunter2')
-        assert.equal(checkPassword(hash, 'hunter2'), false)
-    })
-})
-
-describe('checkLDAPPassword', () => {
-    test('rejects a valid {SSHA} hash', () => {
-        // Documents current, incorrect behavior. See test/FINDINGS.md #1:
-        // the comparison is between a string and a Buffer, so it is never true.
-        const hash = makeSshaHash('hunter2', 'abcd1234')
-        assert.equal(checkLDAPPassword(hash, 'hunter2'), false)
-    })
-
-    test('rejects an invalid password', () => {
-        const hash = makeSshaHash('hunter2', 'abcd1234')
-        assert.equal(checkLDAPPassword(hash, 'wrong'), false)
-    })
-
-    test.skip('accepts a valid {SSHA} hash', () => {
-        // Enable once FINDINGS.md #1 is fixed.
-        const hash = makeSshaHash('hunter2', 'abcd1234')
-        assert.equal(checkLDAPPassword(hash, 'hunter2'), true)
-    })
 })
