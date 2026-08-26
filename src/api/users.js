@@ -1,6 +1,12 @@
 const router = require('express').Router()
 const { logger } = require('./lib/logging')
-const { requireAdmin, isAdmin, getUser, asyncHandler } = require('./lib/auth')
+const {
+    requireAdmin,
+    requireUser,
+    isAdmin,
+    getUser,
+    asyncHandler,
+} = require('./lib/auth')
 const config = require('./lib/config')
 const { generateToken } = require('./lib/hmac')
 const { emailPasswordReset } = require('./lib/email')
@@ -35,7 +41,7 @@ const likeAny = (key, vals) =>
 // Get/search all users (STAFF AND WORKSHOP ORGANIZER ONLY)
 router.get(
     '/',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         // Check permission
         if (!req.user || !req.user.is_staff) {
@@ -107,7 +113,7 @@ router.get(
 )
 
 // Get current user based on token
-router.get('/mine', getUser, (req, res) => {
+router.get('/mine', requireUser, (req, res) => {
     res.status(200).json(req.user)
 })
 
@@ -151,7 +157,7 @@ router.get(
 // For Profile Update Reminder: https://cyverse.atlassian.net/wiki/spaces/CNS/pages/1166475265/Profile+Update+Reminder
 router.get(
     '/:usernameOrId(\\w+)/status',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const usernameOrId = req.params.usernameOrId
 
@@ -397,7 +403,7 @@ router.post(
  */
 router.post(
     '/:id(\\d+)',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const id = req.params.id
         const fields = req.body
@@ -485,7 +491,7 @@ router.post(
  */
 router.post(
     '/password',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const fields = req.body
         if (!fields || !('password' in fields) || !('oldPassword' in fields))
@@ -685,7 +691,7 @@ router.post(
 // Delete user (SUPERUSER ONLY)
 router.delete(
     '/:id(\\d+)',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const id = req.params.id
 

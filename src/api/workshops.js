@@ -1,5 +1,10 @@
 const router = require('express').Router()
-const { getUser, requireAdmin, asyncHandler } = require('./lib/auth')
+const {
+    getUser,
+    requireUser,
+    requireAdmin,
+    asyncHandler,
+} = require('./lib/auth')
 const { logger } = require('./lib/logging')
 const config = require('./lib/config')
 const sequelize = require('sequelize')
@@ -279,7 +284,7 @@ router.put(
 // Update workshop
 router.post(
     '/:id(\\d+)',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const id = req.params.id
         const fields = req.body
@@ -360,7 +365,7 @@ router.post(
 // Get workshop participants (enrollees)
 router.get(
     '/:id(\\d+)/participants',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const workshop = await Workshop.findByPk(req.params.id, {
             include: [
@@ -394,7 +399,7 @@ router.get(
 // Add participant to workshop (enroll user)
 router.put(
     '/:id(\\d+)/participants',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const userId = req.body.userId
         if (!userId) return res.status(400).send('Missing user id')
@@ -446,7 +451,7 @@ router.put(
 // Remove participant from workshop
 router.delete(
     '/:workshopId(\\d+)/participants/:userId(\\d+)',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const workshop = await Workshop.findByPk(req.params.workshopId)
         if (!workshop) return res.status(404).send('Workshop not found')
@@ -471,7 +476,7 @@ router.delete(
 // Get workshop emails (pre-approved for enrollment)
 router.get(
     '/:id(\\d+)/emails',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const workshop = await Workshop.findByPk(req.params.id, {
             include: [
@@ -496,7 +501,7 @@ router.get(
 // Add email to workshop (pre-approve for enrollment)
 router.put(
     '/:id(\\d+)/emails',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const workshop = await Workshop.findByPk(req.params.id)
         if (!workshop) return res.status(404).send('Workshop not found')
@@ -518,7 +523,7 @@ router.put(
 // Remove email from workshop
 router.delete(
     '/:workshopId(\\d+)/emails/:email(\\S+)',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const workshop = await Workshop.findByPk(req.params.workshopId)
         if (!workshop) return res.status(404).send('Workshop not found')
@@ -543,7 +548,7 @@ router.delete(
 // Add organizer to workshop
 router.put(
     '/:id(\\d+)/organizers',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const userId = req.body.userId
         if (!userId) return res.status(400).send('Missing user id')
@@ -568,7 +573,7 @@ router.put(
 // Remove organizer from workshop
 router.delete(
     '/:workshopId(\\d+)/organizers/:userId(\\d+)',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const workshop = await Workshop.findByPk(req.params.workshopId)
         if (!workshop) return res.status(404).send('Workshop not found')
@@ -593,7 +598,7 @@ router.delete(
 // Add contact to workshop
 router.put(
     '/:id(\\d+)/contacts',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const name = req.body.name
         const email = req.body.email
@@ -631,7 +636,7 @@ router.put(
 // Remove contact from workshop
 router.delete(
     '/:workshopId(\\d+)/contacts/:email(\\S+)',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const workshop = await Workshop.findByPk(req.params.workshopId, {
             include: [
@@ -666,7 +671,7 @@ router.delete(
 // Add service to workshop
 router.put(
     '/:id(\\d+)/services',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const serviceId = req.body.serviceId
         if (!serviceId) return res.status(400).send('Missing service id')
@@ -710,7 +715,7 @@ router.put(
 // Remove service from workshop
 router.delete(
     '/:workshopId(\\d+)/services/:serviceId(\\d+)',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const workshop = await Workshop.findByPk(req.params.workshopId, {
             include: [
@@ -745,7 +750,7 @@ router.delete(
 // Get workshop enrollment requests
 router.get(
     '/:id(\\d+)/requests',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const workshopId = req.params.id
 
@@ -796,7 +801,7 @@ router.get(
 // Create new enrollment request
 router.put(
     '/:id(\\d+)/requests',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const workshopId = req.params.id
 
@@ -859,7 +864,7 @@ router.put(
 // Update enrollment request status
 router.post(
     '/requests/:id(\\d+)',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const requestId = req.params.id
         const status = req.body.status

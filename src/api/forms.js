@@ -1,5 +1,10 @@
 const router = require('express').Router()
-const { requireAdmin, getUser, asyncHandler } = require('./lib/auth')
+const {
+    requireAdmin,
+    requireUser,
+    getUser,
+    asyncHandler,
+} = require('./lib/auth')
 const sequelize = require('sequelize')
 const models = require('./models')
 const User = models.account_user
@@ -185,7 +190,7 @@ function getFormFieldValueKey(type) {
 // Create new form submission
 router.put(
     '/:id(\\d+)/submissions',
-    getUser,
+    requireUser,
     asyncHandler(async (req, res) => {
         const formId = req.params.id
         const fields = req.body
