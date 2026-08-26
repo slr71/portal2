@@ -164,10 +164,12 @@ pm2 startup   # Follow the instructions output by this command
 ### Available Scripts
 
 ```bash
-npm run dev      # Start development server with hot reload
-npm run build    # Build production application
-npm start        # Start production server
-npm run format   # Format code with Prettier
+npm run dev        # Start development server with hot reload
+npm run build      # Build production application
+npm start          # Start production server
+npm test           # Run the unit test suite
+npm run test:watch # Run the unit test suite in watch mode
+npm run format     # Format code with Prettier
 ```
 
 ## Docker Development
@@ -192,6 +194,47 @@ Create a `portal2.json` file for container deployment with all required settings
 
 ## Development
 
+### Testing
+
+Unit tests use Node's built-in test runner (`node:test`) — there are no test
+dependencies to install.
+
+```bash
+npm test            # Run everything
+npm run test:watch  # Re-run on change
+
+# Run a single file
+node --test test/api/lib/hmac.test.js
+
+# Run only tests whose name matches a pattern. Node reads --test-name-pattern
+# only before the file list, so this cannot go through `npm test --`.
+node --test --test-name-pattern='retries' $(find test -name '*.test.js')
+```
+
+The `CONFIG_PATH` in the `npm test` script points the config loader at the test
+fixture. Nothing currently depends on it — the helpers pass the fixture path
+explicitly — but it keeps a future test that imports a config-reading module
+from silently falling back to your real `portal2.json`.
+
+The suite is self-contained: it needs no database, no portal-conductor, and no
+`portal2.json`. Tests bind to `test/fixtures/portal2.test.json` and stub the
+Sequelize models, and the portal-conductor client is exercised against a local
+HTTP server on `127.0.0.1`.
+
+Tests live in `test/`, mirroring the `src/` layout. Shared setup is in
+`test/helpers/`:
+
+| Helper | Purpose |
+| --- | --- |
+| `config.js` | Builds temporary config files and reloads the config singleton |
+| `models.js` | Stubs `src/api/models` so Sequelize is never constructed |
+| `logging.js` | Silences the logger and cuts its dependency on the models |
+| `httpServer.js` | A local HTTP server that records requests and replays responses |
+
+Some tests pin behavior that is known to be wrong, so the suite passes on a
+clean checkout. Each is commented and paired with a `test.skip` stub asserting
+the correct behavior; see [test/FINDINGS.md](test/FINDINGS.md).
+
 ### Project Structure
 
 ```
@@ -200,6 +243,7 @@ Create a `portal2.json` file for container deployment with all required settings
 │   ├── api/               # API routes
 │   ├── models/            # Sequelize database models
 │   └── ...
+├── test/                  # Unit tests, mirroring src/
 ├── pages/                 # Next.js pages
 ├── public/                # Static assets
 ├── .next/                 # Next.js build output (generated)
