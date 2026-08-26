@@ -21,10 +21,18 @@ const getUser = async (req, _, next) => {
     const userId = getUserID(req)
     if (userId) {
         const user = await User.findOne({ where: { username: userId } })
-        if (!user)
-            // should never happen
-            return
-        req.user = JSON.parse(JSON.stringify(user.get({ plain: true })))
+        if (user) {
+            req.user = JSON.parse(JSON.stringify(user.get({ plain: true })))
+        } else {
+            // Required at call time: logging.js imports getUserID from this
+            // module, so a top-level import leaves that binding undefined.
+            const { logger } = require('./logging')
+            logger.warn(
+                `No account_user row for authenticated username "${userId}"; ` +
+                    'the Keycloak account has probably outlived its portal user ' +
+                    'record. Continuing with the request unauthenticated.'
+            )
+        }
     }
     if (next) next()
 }
