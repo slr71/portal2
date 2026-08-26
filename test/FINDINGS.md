@@ -62,9 +62,12 @@ partial config, and a corrected file initializes cleanly on retry.
 
 ---
 
-## 3. `getUser` hangs the request when the token has no matching user
+## 3. `getUser` hangs the request when the token has no matching user — RESOLVED
 
-**`src/api/lib/auth.js:24-26`**
+**Resolution:** `getUser` now logs the mismatch and calls `next()`, leaving
+`req.user` unset, instead of returning early.
+
+The old code was:
 
 ```js
 const user = await User.findOne({ where: { username: userId } })
@@ -73,22 +76,28 @@ if (!user)
     return
 ```
 
-The early `return` skips `next()`. Used directly as express middleware — for
-example `router.get('/mine', getUser, ...)` at `src/api/users.js:110`, and
-`router.get('/', getUser, ...)` at `src/api/users.js:38` — a valid Keycloak
-token for a username absent from `account_user` produces a request that never
-responds. No status, no error, no log line: the client waits until it times out.
+The early `return` skipped `next()`. A valid Keycloak token for a username with
+no `account_user` row produced a request that never responded — no status, no
+error, no log line — until the client timed out. `getUser` guards roughly 45
+endpoints across `users.js`, `services.js`, `workshops.js`, `forms.js`, and
+`mailing_lists.js`, so the reach was wide. The `// should never happen` comment
+assumed Keycloak and `account_user` cannot drift apart; a portal user deleted
+while its Keycloak account survives does exactly that.
 
-The `// should never happen` comment assumes Keycloak and `account_user` cannot
-drift apart. They can: a user deleted from the portal database whose Keycloak
-account survives hits this path with a valid token.
+The logger is required at call time rather than at the top of the module.
+`logging.js` imports `getUserID` from `lib/auth`, so a top-level import creates a
+cycle that leaves that binding undefined — verified: it produces
+`Warning: Accessing non-existent property 'getUserID' of module exports inside
+circular dependency`, which would break `getLoggableUserID` on every logged
+request. `lib/startup.js` requires `logging` lazily for the same reason.
 
-**Suggested fix:** log the mismatch with its probable cause and call `next()`,
-leaving `req.user` unset so the downstream authorization check produces a 401 or
-403.
+**Scope note:** this makes a request with an unmatched token behave exactly like
+a request with no token at all, which already reached handlers with `req.user`
+unset. It does not make those handlers robust — see #5.
 
-- Pinned by: `test/api/lib/auth.test.js` → `does not call next when the token has no matching user`
-- Stub: `calls next when the token has no matching user`
+Covered by `test/api/lib/auth.test.js` → `getUser`: `next()` is called with
+`req.user` unset, a warning naming the username and its probable cause is
+emitted, and no warning is emitted on the normal path.
 
 ---
 
@@ -130,3 +139,27 @@ error that carries it, or by exposing a variant that returns the response.
 - Related coverage: `rethrows a server error rather than reporting a bad password`
   asserts the behavior that must be preserved by any fix — a conductor outage
   must never read as a wrong password.
+
+---
+
+## 5. Handlers downstream of `getUser` assume `req.user` is set
+
+**No test coverage.** Unlike the findings above, this one is not pinned by a
+test — reproducing it means exercising express routes end to end, which the unit
+suite does not do. Recorded here because it was observed while resolving #3.
+
+`getUser` populates `req.user` when it can and calls `next()` either way; it is
+not an authorization gate. Several routes use it without a following
+`requireAuth`/`requireAdmin` and then assume the field is present:
+
+- `src/api/users.js:110` — `router.get('/mine', getUser, ...)` calls
+  `res.status(200).json(req.user)`. With no user this sends `200` with an empty
+  body rather than `401`.
+- `src/api/users.js:154` — the `/:usernameOrId/status` handler dereferences
+  `req.user.is_staff` directly, throwing a `TypeError` that `asyncHandler`
+  converts into a `500`.
+
+This predates #3 and is reachable today by any request with no token at all, not
+only by the unmatched-token case that #3 fixed. A fix would either add
+`requireAuth` to the routes that need a user, or have the handlers check
+`req.user` before dereferencing it.

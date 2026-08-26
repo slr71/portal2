@@ -2,6 +2,7 @@ const { describe, test, beforeEach } = require('node:test')
 const assert = require('node:assert/strict')
 
 const { stubModels, makeRes, makeReq } = require('../../helpers/models')
+const { stubLogging } = require('../../helpers/logging')
 
 let findOne = async () => null
 let findOneCalls = []
@@ -16,6 +17,8 @@ stubModels({
         },
     },
 })
+
+const { calls: logCalls } = stubLogging()
 
 const {
     getUserToken,
@@ -36,6 +39,7 @@ const MEMBER = { id: 2, username: 'member', is_staff: false }
 beforeEach(() => {
     findOne = async () => null
     findOneCalls = []
+    for (const level of Object.keys(logCalls)) logCalls[level].length = 0
 })
 
 describe('getUserToken', () => {
@@ -111,21 +115,7 @@ describe('getUser', () => {
         assert.equal(findOneCalls.length, 0)
     })
 
-    test('does not call next when the token has no matching user', async () => {
-        // Documents current, incorrect behavior. See test/FINDINGS.md #3:
-        // used directly as express middleware this leaves the request hanging.
-        findOne = async () => null
-        const req = makeReq('ghost')
-        let nexted = false
-
-        await getUser(req, null, () => (nexted = true))
-
-        assert.equal(req.user, undefined)
-        assert.equal(nexted, false)
-    })
-
-    test.skip('calls next when the token has no matching user', async () => {
-        // Enable once FINDINGS.md #3 is fixed.
+    test('calls next without a user when the token has no matching user', async () => {
         findOne = async () => null
         const req = makeReq('ghost')
         let nexted = false
@@ -133,6 +123,26 @@ describe('getUser', () => {
         await getUser(req, null, () => (nexted = true))
 
         assert.equal(nexted, true)
+        assert.equal(req.user, undefined)
+    })
+
+    test('warns with a probable cause when the token has no matching user', async () => {
+        findOne = async () => null
+
+        await getUser(makeReq('ghost'), null, () => {})
+
+        assert.equal(logCalls.warn.length, 1)
+        const message = logCalls.warn[0][0]
+        assert.match(message, /ghost/)
+        assert.match(message, /Keycloak/)
+    })
+
+    test('does not warn when the user is found', async () => {
+        findOne = async () => fakeUser(STAFF)
+
+        await getUser(makeReq('admin'), null, () => {})
+
+        assert.equal(logCalls.warn.length, 0)
     })
 
     test('tolerates a missing next callback', async () => {
