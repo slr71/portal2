@@ -1,5 +1,6 @@
 const { describe, test } = require('node:test')
 const assert = require('node:assert/strict')
+const fs = require('node:fs')
 
 const { baseConfig, writeConfig, loadConfig } = require('../../helpers/config')
 
@@ -246,27 +247,36 @@ describe('type and format validation', () => {
 })
 
 describe('init() after a validation failure', () => {
-    test('succeeds silently and leaves the invalid config loaded', () => {
-        // Documents current, incorrect behavior. See test/FINDINGS.md #2:
-        // _initialized is set before _validateConfig runs, so the second call
-        // short-circuits and the process continues on a config that failed
-        // validation.
+    test('keeps rejecting an invalid config', () => {
         const config = load(c => delete c.db.host)
+        const expected = { message: /Missing required configuration: db\.host/ }
 
-        assert.throws(() => config.init(), {
-            message: /Missing required configuration: db\.host/,
-        })
-        assert.doesNotThrow(() => config.init())
-        assert.equal(config.getDbConfig().host, undefined)
+        assert.throws(() => config.init(), expected)
+        assert.throws(() => config.init(), expected)
     })
 
-    test.skip('keeps rejecting an invalid config', () => {
-        // Enable once FINDINGS.md #2 is fixed.
+    test('does not expose the invalid config through a getter', () => {
         const config = load(c => delete c.db.host)
 
-        assert.throws(() => config.init())
         assert.throws(() => config.init(), {
             message: /Missing required configuration: db\.host/,
         })
+        assert.throws(() => config.getDbConfig(), {
+            message: /Missing required configuration: db\.host/,
+        })
+    })
+
+    test('succeeds once the underlying file is corrected', () => {
+        const invalid = baseConfig()
+        delete invalid.db.host
+        const configPath = writeConfig(invalid)
+        const config = loadConfig(configPath)
+
+        assert.throws(() => config.init())
+
+        fs.writeFileSync(configPath, JSON.stringify(baseConfig()))
+
+        assert.doesNotThrow(() => config.init())
+        assert.equal(config.getDbConfig().host, baseConfig().db.host)
     })
 })

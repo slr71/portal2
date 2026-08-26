@@ -25,8 +25,10 @@ class ConfigManager {
             // Load configuration from JSON file
             this._config = this._loadFromJsonFile()
 
-            this._initialized = true
             this._validateConfig()
+            // Set last so a failed validation leaves the manager uninitialized
+            // and the next init() retries instead of short-circuiting.
+            this._initialized = true
         } catch (error) {
             throw new Error(`Failed to load configuration: ${error.message}`)
         }
