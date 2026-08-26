@@ -101,9 +101,14 @@ emitted, and no warning is emitted on the normal path.
 
 ---
 
-## 4. `validateLdapPassword` detects rejected credentials by substring-matching an error message
+## 4. `validateLdapPassword` detects rejected credentials by substring-matching an error message — RESOLVED
 
-**`src/api/workflows/native/services/utils.js:97-104`**
+**Resolution:** the catch block is gone. `validateLdapPassword` now decides
+solely on the documented `{valid: bool}` response body, and every error
+propagates. `makeRequest` additionally attaches `status` and `cause` to the error
+it throws, so callers can classify by code rather than by message text.
+
+The old code inspected the message `makeRequest` had built:
 
 ```js
 if (
@@ -114,31 +119,41 @@ if (
 ) {
     return false
 }
-throw error
 ```
 
-The message it inspects is built by `makeRequest`, which prefers
-`error.response.data.detail` over the axios message. When portal-conductor
-returns a `400` with no `detail`, the fallback message is axios's
-`Request failed with status code 400`, the substring matches, and the function
-correctly returns `false`. When the same `400` carries a descriptive detail —
-`{"detail": "password does not match"}` — the status code is no longer anywhere
-in the message, the match fails, and the function **throws**. A wrong password
-then surfaces as a 500 instead of a clean rejection.
+That message prefers `error.response.data.detail` over the axios message, so a
+`400` carrying a descriptive detail lost the status code from the string
+entirely and the function threw instead of returning `false`.
 
-The classification is coupled to prose that portal-conductor is free to change,
-in a repo that does not control it. It also cuts the other way: a `500` whose
-detail happened to contain "400" would be read as a rejected password.
+**The original diagnosis here was incomplete.** It proposed classifying on
+`error.response.status` while keeping `400`/`404` mapped to `false`. Checking
+portal-conductor shows that no error status has ever meant "rejected
+credentials":
 
-**Suggested fix:** classify on `error.response.status` rather than the message.
-That requires `makeRequest` to preserve the status — either by rethrowing an
-error that carries it, or by exposing a variant that returns the response.
+- Go (`api/users.go`, since the 2026-06-09 rewrite): `ValidateCredentials`
+  returns `(false, nil)` for `LDAPResultInvalidCredentials`, for an empty
+  password, and for an unknown user, and the handler writes
+  `200 {"valid": false}`.
+- Python (`handlers/user_management.py`, before that): returns
+  `{"valid": False}` for `ldap.INVALID_CREDENTIALS` and for a missing user DN;
+  its docstring says it raises "if validation fails due to system errors".
 
-- Pinned by: `test/api/workflows/native/services/utils.test.js` → `throws for a 400 whose detail does not mention the status`
-- Stub: `returns false for a 400 whose detail does not mention the status`
-- Related coverage: `rethrows a server error rather than reporting a bad password`
-  asserts the behavior that must be preserved by any fix — a conductor outage
-  must never read as a wrong password.
+So in both generations the branch could only ever fire on a genuine fault —
+conductor unreachable, LDAP down, portal2's own basic-auth credentials to the
+conductor wrong (`401 "Incorrect username or password"`, which is about
+portal2's credentials, not the end user's), a malformed body (`422`), or a
+missing route (`404`, i.e. version skew). Every one of those was being reported
+to the user as an incorrect password.
+
+The single caller, `src/api/users.js:500`, is inside `asyncHandler`, so a fault
+now surfaces as a `500` rather than a misleading `400 "Incorrect password"`.
+A wrong password still returns `false` and still yields `400 "Incorrect
+password"`, because that path never involved an error at all.
+
+Covered by `test/api/workflows/native/services/utils.test.js`: a table of error
+responses (`400`, `404`, `401`, `422`, with and without `detail`) all throw, the
+`{valid: ...}` cases are unchanged, and `makeRequest` carries `status`/`cause`
+(`undefined` status for a network error, which has no response).
 
 ---
 
