@@ -1,0 +1,91 @@
+{
+  "db": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "portal_test_db",
+    "user": "portal_test_user",
+    "password": "portal_test_password",
+    "logging": false,
+    "sessionTable": "session"
+  },
+  "server": {
+    "port": 3000,
+    "isDevelopment": false
+  },
+  "session": {
+    "secret": "test-session-secret",
+    "ttl": 86400,
+    "secureCookie": true
+  },
+  "keycloak": {
+    "realm": "test-realm",
+    "authUrl": "https://keycloak.test.invalid/auth",
+    "client": "test-client-id",
+    "secret": "test-client-secret"
+  },
+  "portalConductor": {
+    "url": "http://127.0.0.1:1",
+    "retries": 0,
+    "auth": {
+      "username": "test-conductor-user",
+      "password": "test-conductor-password"
+    },
+    "ssl": {
+      "rejectUnauthorized": false
+    }
+  },
+  "terrain": {
+    "url": "https://terrain.test.invalid",
+    "user": "test-terrain-user",
+    "password": "test-terrain-password"
+  },
+  "ui": {
+    "baseUrl": "http://localhost:3000",
+    "wsBaseUrl": "ws://localhost:3001"
+  },
+  "profile": {
+    "updatePeriod": 365,
+    "warningPeriod": 30,
+    "updateText": "Please update your profile",
+    "warningText": "Your profile needs attention"
+  },
+  "features": {
+    "disableRequireNewUserEmailConfirmation": false,
+    "intercomEnabled": false
+  },
+  "sentry": {
+    "dsn": "https://test-key@sentry.test.invalid/1"
+  },
+  "intercom": {
+    "appId": "test-intercom-app-id",
+    "token": "test-intercom-token",
+    "companyId": "test-intercom-company-id",
+    "adminUserPortalBotId": "test-admin-user-portal-bot-id",
+    "adminTier1AtmosphereId": "test-admin-tier1-atmosphere-id",
+    "adminTier1ScienceTeamId": "test-admin-tier1-science-team-id",
+    "adminTier1DataWatchId": "test-admin-tier1-data-watch-id"
+  },
+  "bcc": {
+    "newAccountConfirmation": "admin@test.invalid",
+    "passwordChangeRequest": "admin@test.invalid",
+    "serviceAccessGranted": "admin@test.invalid",
+    "workshopEnrollmentRequest": "admin@test.invalid"
+  },
+  "external": {
+    "tourUrl": "https://learning.test.invalid/mooc/",
+    "googleAnalyticsId": "test-google-analytics-id"
+  },
+  "security": {
+    "hmacKey": "test-hmac-key",
+    "uidNumberOffset": 2831
+  },
+  "smtp": {
+    "from": "support@test.invalid"
+  },
+  "support": {
+    "email": "support@test.invalid"
+  },
+  "honeypot": {
+    "divisor": 7
+  }
+}

@@ -430,4 +430,10 @@ module.exports = {
     logServiceRegistrationError,
     makeRequest,
     validateLdapPassword,
+    getPortalConductorUrl,
+    getPortalConductorAuth,
+    getPortalConductorSslConfig,
+    getRetryCount,
+    getBackoffDelay,
+    isRetryableError,
 }
