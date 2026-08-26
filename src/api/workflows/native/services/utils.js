@@ -76,35 +76,20 @@ function isRetryableError(error) {
 }
 
 /**
- * Validate user credentials against LDAP via portal-conductor
+ * Validate user credentials against LDAP via portal-conductor.
  * @param {string} username - Username to validate
  * @param {string} password - Password to validate
- * @returns {Promise<boolean>} True if credentials are valid
+ * @returns {Promise<boolean>} True if the credentials are valid
+ * @throws {Error} If the check could not be performed
  */
 async function validateLdapPassword(username, password) {
-    try {
-        // Call the portal-conductor validation endpoint
-        const response = await makeRequest(
-            'POST',
-            `users/${username}/validate`,
-            {
-                password: password,
-            }
-        )
-        return response.valid === true
-    } catch (error) {
-        // If the error is 404 (endpoint not found) or 400 (invalid credentials), return false
-        if (
-            error.message &&
-            (error.message.includes('404') ||
-                error.message.includes('400') ||
-                error.message.includes('Invalid credentials'))
-        ) {
-            return false
-        }
-        // For other errors, rethrow as they indicate system issues
-        throw error
-    }
+    // Portal-conductor reports a rejected credential as 200 {valid: false}, so
+    // any error here means the check itself failed -- letting it propagate
+    // keeps an outage from being reported to the user as a wrong password.
+    const response = await makeRequest('POST', `users/${username}/validate`, {
+        password: password,
+    })
+    return response.valid === true
 }
 
 /**
@@ -246,13 +231,18 @@ async function makeRequest(method, endpoint, data = null, options = {}) {
     }
 
     // If we reach here, all retry attempts failed
-    throw new Error(
+    const conductorError = new Error(
         `Portal-conductor API error: ${
             lastError.response?.data?.detail ||
             lastError.message ||
             'Unknown error'
-        }`
+        }`,
+        { cause: lastError }
     )
+    // Carry the status so callers can classify by code instead of by matching
+    // the message text; undefined for network errors, which have no response.
+    conductorError.status = lastError.response?.status
+    throw conductorError
 }
 
 /**

@@ -358,15 +358,36 @@ describe('makeRequest', () => {
         })
     })
 
+    test('attaches the HTTP status to the thrown error', async t => {
+        const { utils } = await withConductor(t, { status: 503, body: {} })
+
+        await assert.rejects(
+            () => utils.makeRequest('GET', 'ping'),
+            err => err.status === 503
+        )
+    })
+
+    test('attaches the original error as the cause', async t => {
+        const { utils } = await withConductor(t, { status: 503, body: {} })
+
+        await assert.rejects(
+            () => utils.makeRequest('GET', 'ping'),
+            err => err.cause && err.cause.response.status === 503
+        )
+    })
+
     test('rejects when the conductor is unreachable', async t => {
         const server = await startServer({ status: 200 })
         const url = server.url
         await server.close()
 
         const utils = loadUtils(c => (c.portalConductor.url = url))
-        await assert.rejects(() => utils.makeRequest('GET', 'ping'), {
-            message: /Portal-conductor API error/,
-        })
+        await assert.rejects(
+            () => utils.makeRequest('GET', 'ping'),
+            err =>
+                /Portal-conductor API error/.test(err.message) &&
+                err.status === undefined
+        )
     })
 })
 
@@ -407,49 +428,34 @@ describe('validateLdapPassword', () => {
         assert.deepEqual(server.requests[0].body, { password: 'hunter2' })
     })
 
-    const rejected = [
-        { name: 'a 400 with no detail', status: 400 },
-        { name: 'a 404 with no detail', status: 404 },
+    // Portal-conductor reports rejected credentials as 200 {valid: false} --
+    // in both the Go and the earlier Python implementation -- so a non-2xx from
+    // this route always means the check itself failed.
+    const faults = [
+        { name: 'a 400 with no detail', status: 400, body: {} },
+        { name: 'a 404 with no detail', status: 404, body: {} },
+        {
+            name: 'a 400 whose detail mentions credentials',
+            status: 400,
+            body: { detail: 'Invalid credentials' },
+        },
+        {
+            name: 'a 400 with a descriptive detail',
+            status: 400,
+            body: { detail: 'password does not match' },
+        },
+        { name: 'a 401 from the conductor itself', status: 401, body: {} },
+        { name: 'a 422 validation error', status: 422, body: {} },
     ]
 
-    for (const { name, status } of rejected) {
-        test(`returns false for ${name}`, async t => {
-            const { utils } = await withConductor(t, { status, body: {} })
-            assert.equal(
-                await utils.validateLdapPassword('bob', 'hunter2'),
-                false
+    for (const { name, status, body } of faults) {
+        test(`throws for ${name}`, async t => {
+            const { utils } = await withConductor(t, { status, body })
+            await assert.rejects(() =>
+                utils.validateLdapPassword('bob', 'hunter2')
             )
         })
     }
-
-    test('returns false when the detail says the credentials are invalid', async t => {
-        const { utils } = await withConductor(t, {
-            status: 400,
-            body: { detail: 'Invalid credentials' },
-        })
-        assert.equal(await utils.validateLdapPassword('bob', 'hunter2'), false)
-    })
-
-    test('throws for a 400 whose detail does not mention the status', async t => {
-        // Documents current, fragile behavior. See test/FINDINGS.md #4: the
-        // rejected-credentials case is detected by substring-matching the error
-        // message, so a conductor that returns a descriptive detail turns a
-        // wrong password into a 500 instead of a clean rejection.
-        const { utils } = await withConductor(t, {
-            status: 400,
-            body: { detail: 'password does not match' },
-        })
-        await assert.rejects(() => utils.validateLdapPassword('bob', 'hunter2'))
-    })
-
-    test.skip('returns false for a 400 whose detail does not mention the status', async t => {
-        // Enable once FINDINGS.md #4 is fixed.
-        const { utils } = await withConductor(t, {
-            status: 400,
-            body: { detail: 'password does not match' },
-        })
-        assert.equal(await utils.validateLdapPassword('bob', 'hunter2'), false)
-    })
 
     test('rethrows a server error rather than reporting a bad password', async t => {
         // A conductor outage must not be indistinguishable from a wrong
