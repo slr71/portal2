@@ -46,9 +46,12 @@ ever wired up.
 
 ---
 
-## 2. `ConfigManager.init()` marks itself initialized before validating
+## 2. `ConfigManager.init()` marks itself initialized before validating — RESOLVED
 
-**`src/api/lib/config.js:26-29`**
+**Resolution:** `_initialized` is now set after `_validateConfig()` succeeds
+rather than before it runs.
+
+The old order was:
 
 ```js
 this._config = this._loadFromJsonFile()
@@ -56,23 +59,21 @@ this._initialized = true
 this._validateConfig()
 ```
 
-If `_validateConfig()` throws, `_initialized` is already `true`. Every later
-`init()` call — including the implicit one inside every getter — returns
-immediately, and the process runs on a configuration that failed validation.
-Verified: after a failed `init()` on a config missing `db.host`, a second
-`init()` succeeds silently and `getDbConfig().host` is `undefined`.
+If `_validateConfig()` threw, `_initialized` was already `true`, so every later
+`init()` — including the implicit one inside every getter — returned
+immediately and the process could run on a configuration that had failed
+validation. Verified before the fix: after a failed `init()` on a config missing
+`db.host`, a second `init()` succeeded silently and `getDbConfig().host` was
+`undefined`.
 
-Anything that catches the startup error and continues, or that reaches a getter
-before the failure propagates, gets a half-validated config instead of a hard
-stop. `validateStartupConfiguration()` (`src/api/lib/startup.js`) logs and
-rethrows, so today the process does exit — but the guard is one `try/catch` away
-from being defeated.
+No caller was relying on the old behavior. Every `config.init()` call site
+(`server.js`, `startup.js`, `lib/email.js`, `lib/intercom.js`, `lib/hmac.js`)
+lets the error propagate, so a failed validation still stops startup — it is now
+merely consistent about it.
 
-**Suggested fix:** swap the two lines so `_initialized` is set only after
-validation passes.
-
-- Pinned by: `test/api/lib/config.test.js` → `succeeds silently and leaves the invalid config loaded`
-- Stub: `keeps rejecting an invalid config`
+Covered by `test/api/lib/config.test.js` → `init() after a validation failure`:
+the error repeats on a second `init()`, getters throw rather than returning a
+partial config, and a corrected file initializes cleanly on retry.
 
 ---
 
