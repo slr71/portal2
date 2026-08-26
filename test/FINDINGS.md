@@ -1,48 +1,33 @@
 # Findings
 
-Defects the test suite surfaced. **None of these are fixed.** Each has a test
-that pins the current behavior so the suite is green on a clean checkout, plus a
-`test.skip` stub asserting the correct behavior that can be enabled once the
-defect is addressed.
+Defects the test suite surfaced. Unless marked resolved, **the defect is still
+present**: it has a test that pins the current behavior so the suite is green on
+a clean checkout, plus a `test.skip` stub asserting the correct behavior that
+can be enabled once the defect is addressed.
+
+Numbering is stable — test comments reference these by number, so a resolved
+entry stays in place rather than being removed and renumbered.
 
 ---
 
-## 1. `checkLDAPPassword` can never return true
+## 1. `checkLDAPPassword` can never return true — RESOLVED
 
-**`src/api/lib/password.js:20`**
+**Resolution:** `checkLDAPPassword`, `checkDjangoPassword`, and `checkPassword`
+were deleted. `src/api/lib/password.js` now exports only `encodePassword`.
 
-```js
-return digest == sha.digest()
-```
+The comparison was `digest == sha.digest()` — a `string` against a `Buffer`,
+which is never equal. A `{SSHA}` hash built the way OpenLDAP builds it, checked
+against the correct password, returned `false`. The same function also assigned
+four implicit globals and decoded a binary SHA-1 digest through a UTF-8
+`.toString()`, corrupting it before slicing.
 
-`digest` is a `string` (sliced out of a `Buffer.toString()`), `sha.digest()`
-returns a `Buffer`. The loose comparison stringifies the Buffer as
-comma-separated byte values, so it never matches. Verified: a `{SSHA}` hash
-built the way OpenLDAP builds it, checked against the correct password, returns
-`false`.
-
-Two further problems in the same function:
-
-- `digest_salt_b64`, `digest_salt`, `digest`, and `salt` are assigned without
-  `const`/`let`, making them implicit globals. Under strict mode the function
-  would throw instead of returning a wrong answer.
-- The hash is decoded with `.toString()` (UTF-8), which corrupts the binary
-  SHA-1 digest before it is sliced. Even with the comparison fixed, the byte
-  handling needs `Buffer` slicing rather than string slicing.
-
-**Reachability:** currently none. `grep` shows `checkPassword`,
-`checkLDAPPassword`, and `checkDjangoPassword` have no callers — only
-`encodePassword` is used (`src/api/public.js:350`, `src/api/users.js:507`,
-`src/api/users.js:663`). LDAP credential checks now go through
-`validateLdapPassword` against portal-conductor.
-
-**Suggested action:** delete the three `check*` functions, or fix and cover them
-if a local fallback path is still wanted. Deleting is the smaller change and
-removes a function that would silently reject every valid password if it were
-ever wired up.
-
-- Pinned by: `test/api/lib/password.test.js` → `checkLDAPPassword rejects a valid {SSHA} hash`
-- Stub: `accepts a valid {SSHA} hash`
+Deleting rather than fixing was the right call: the three functions had no
+callers. `d6cbe26` ("Use LDAP as the source of truth for the user password reset
+form", 2025-09-22) replaced the one `checkPassword` call site with
+`validateLdapPassword`, which checks credentials against portal-conductor, and
+left the functions behind. Password verification has gone through
+portal-conductor ever since; `encodePassword` remains the only part still in
+use, writing the Django-format hash to `account_user.password`.
 
 ---
 
