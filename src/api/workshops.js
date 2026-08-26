@@ -23,19 +23,7 @@ const AccessRequest = models.api_accessrequest
 const { approveRequest, grantRequest } = require('./approvers/workshop')
 const serviceApprovers = require('./approvers/service')
 const { notifyClientOfWorkshopRequestStatusChange } = require('./lib/ws')
-
-function hasHostAccess(workshop, user) {
-    return workshop.creator_id == user.id || user.is_staff
-}
-
-function hasOrganizerAccess(workshop, user) {
-    return (
-        hasHostAccess(workshop, user) ||
-        WorkshopOrganizer.findOne({
-            where: { workshop_id: workshop.id, organizer_id: user.id },
-        })
-    )
-}
+const { hasHostAccess, hasOrganizerAccess } = require('./lib/workshopAccess')
 
 async function processParticipantsInBackground(workshop, service) {
     try {
@@ -326,7 +314,7 @@ router.post(
         if (!workshop) return res.status(404).send('Workshop not found')
 
         // Check permission
-        if (!hasOrganizerAccess(workshop, req.user))
+        if (!(await hasOrganizerAccess(workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         // Verify and update fields
@@ -389,7 +377,7 @@ router.get(
         if (!workshop) return res.status(404).send('Workshop not found')
 
         // Check permission -- only workshop host/organizer and staff
-        if (!hasOrganizerAccess(workshop, req.user))
+        if (!(await hasOrganizerAccess(workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         return res.status(200).json(workshop.users)
@@ -415,7 +403,7 @@ router.put(
         if (!workshop) return res.status(404).send('Workshop not found')
 
         // Check permission -- only workshop host/organizer and staff
-        if (!hasOrganizerAccess(workshop, req.user))
+        if (!(await hasOrganizerAccess(workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         // Add to participants //FIXME also done in grantRequest() below
@@ -457,7 +445,7 @@ router.delete(
         if (!workshop) return res.status(404).send('Workshop not found')
 
         // Check permission -- only workshop host/organizer and staff
-        if (!hasOrganizerAccess(workshop, req.user))
+        if (!(await hasOrganizerAccess(workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         const participant = await WorkshopParticipant.findOne({
@@ -491,7 +479,7 @@ router.get(
         if (!workshop) return res.status(404).send('Workshop not found')
 
         // Check permission -- only workshop host/organizer and staff
-        if (!hasOrganizerAccess(workshop, req.user))
+        if (!(await hasOrganizerAccess(workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         return res.status(200).json(workshop.emails)
@@ -507,7 +495,7 @@ router.put(
         if (!workshop) return res.status(404).send('Workshop not found')
 
         // Check permission -- only workshop host/organizer and staff
-        if (!hasOrganizerAccess(workshop, req.user))
+        if (!(await hasOrganizerAccess(workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         const [email, created] = await WorkshopEmail.findOrCreate({
@@ -529,7 +517,7 @@ router.delete(
         if (!workshop) return res.status(404).send('Workshop not found')
 
         // Check permission -- only workshop host/organizer and staff
-        if (!hasOrganizerAccess(workshop, req.user))
+        if (!(await hasOrganizerAccess(workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         const email = await WorkshopEmail.findOne({
@@ -619,7 +607,7 @@ router.put(
         if (!workshop) return res.status(404).send('Workshop not found')
 
         // Check permission -- only workshop host/organizer and staff
-        if (!hasOrganizerAccess(workshop, req.user))
+        if (!(await hasOrganizerAccess(workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         const [contact, created] = await WorkshopContact.findOrCreate({
@@ -652,7 +640,7 @@ router.delete(
         if (!workshop) return res.status(404).send('Workshop not found')
 
         // Check permission -- only workshop host/organizer and staff
-        if (!hasOrganizerAccess(workshop, req.user))
+        if (!(await hasOrganizerAccess(workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         const contact = await WorkshopContact.findOne({
@@ -694,7 +682,7 @@ router.put(
         if (!service) return res.status(404).send('Service not found')
 
         // Check permission -- only workshop host/organizer or staff
-        if (!hasOrganizerAccess(workshop, req.user))
+        if (!(await hasOrganizerAccess(workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         const [workshopService, created] = await WorkshopService.findOrCreate({
@@ -759,7 +747,7 @@ router.get(
         if (!workshop) return res.status(404).send('Workshop not found')
 
         // Check permission -- only workshop host/organizer or staff
-        if (!hasOrganizerAccess(workshop, req.user))
+        if (!(await hasOrganizerAccess(workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         const requests = await WorkshopEnrollmentRequest.findAll({
@@ -888,7 +876,7 @@ router.post(
         if (!request) return res.status(404).send('Request not found')
 
         // Check permission -- only workshop host/organizer or staff
-        if (!hasOrganizerAccess(request.workshop, req.user))
+        if (!(await hasOrganizerAccess(request.workshop, req.user)))
             return res.status(403).send('Permission denied')
 
         // Update request

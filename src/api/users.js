@@ -43,20 +43,18 @@ router.get(
     '/',
     requireUser,
     asyncHandler(async (req, res) => {
-        // Check permission
-        if (!req.user || !req.user.is_staff) {
-            // staff
-            if (!Workshop.findOne({ where: { creator_id: req.user.id } })) {
-                // workshop host
-                if (
-                    !WorkshopOrganizer.findOne({
-                        where: { organizer_id: req.user.id },
-                    })
-                ) {
-                    // workshop organizer
-                    return res.status(403).send('Permission denied')
-                }
-            }
+        // Staff, workshop hosts, and listed workshop organizers may search
+        // users; organizers need it to add workshop participants.
+        if (!req.user.is_staff) {
+            const isHost = await Workshop.findOne({
+                where: { creator_id: req.user.id },
+            })
+            const isOrganizer =
+                isHost ||
+                (await WorkshopOrganizer.findOne({
+                    where: { organizer_id: req.user.id },
+                }))
+            if (!isOrganizer) return res.status(403).send('Permission denied')
         }
 
         const offset = req.query.offset

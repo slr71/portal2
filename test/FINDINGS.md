@@ -205,49 +205,36 @@ runs the same ghost-token request through both middlewares and asserts
 
 ---
 
-## 6. Permission checks call `findOne` without `await`, so they never deny
+## 6. Permission checks call `findOne` without `await`, so they never deny — RESOLVED
 
-**Not fixed — this changes who can reach several endpoints and wants a
-deliberate decision.** Found while resolving #5.
+**Resolution:** `hasOrganizerAccess` is now `async`, awaits its lookup, and
+returns a real boolean; all 12 call sites in `workshops.js` await it. The
+equivalent check on `GET /users` in `users.js` awaits both of its lookups.
 
-`src/api/workshops.js:31`:
+The helper returned `hasHostAccess(...) || WorkshopOrganizer.findOne(...)`. With
+no `await`, a user who was neither host nor staff got the **promise** back, which
+is always truthy. Every caller is shaped
+`if (!hasOrganizerAccess(...)) return res.status(403)`, so the `403` was
+unreachable and any authenticated user could act on any workshop —
+participants, emails, organizers, contacts, services, and enrollment requests.
+The same unawaited `Workshop.findOne` in `users.js` made the `403` on
+`GET /users` unreachable, letting any authenticated non-staff user list and
+search all users.
 
-```js
-function hasOrganizerAccess(workshop, user) {
-    return (
-        hasHostAccess(workshop, user) ||
-        WorkshopOrganizer.findOne({
-            where: { workshop_id: workshop.id, organizer_id: user.id },
-        })
-    )
-}
-```
+Confirmed intent: only the workshop host, staff, or a listed organizer may
+modify a workshop. That is what the code now enforces.
 
-`findOne` is not awaited, so when `hasHostAccess` is false the function returns
-a **Promise**, which is always truthy. Every caller is shaped
-`if (!hasOrganizerAccess(...)) return res.status(403)`, so the `403` is never
-sent. Verified with a stub that returns `null` for a user who is neither host,
-staff, nor organizer: the helper returns `[object Promise]` and `!verdict` is
-`false`.
+The two helpers moved to `src/api/lib/workshopAccess.js`. In `workshops.js` they
+sat above a 900-line router that pulls in email, intercom, and websocket
+modules, which made the security-critical predicate effectively untestable.
 
-There are **13 call sites** in `workshops.js`, covering participants, emails,
-organizers, contacts, services, and enrollment requests. In effect any
-authenticated user can act on any workshop.
+`hasHostAccess` was left synchronous — it only compares fields and was never
+part of the defect.
 
-The same pattern is in `src/api/users.js:49`, inside the
-staff/host/organizer check on `GET /users`:
-
-```js
-if (!req.user || !req.user.is_staff) {
-    if (!Workshop.findOne({ where: { creator_id: req.user.id } })) {
-```
-
-`Workshop.findOne` is likewise unawaited, so the nested `403` is unreachable and
-any authenticated non-staff user can list and search all users. (Before #5 this
-block had a second problem: it dereferenced `req.user.id` inside the branch that
-tests for `!req.user`. `requireUser` makes `req.user` guaranteed, so that
-particular crash is gone, but the missing `await` remains.)
-
-Fixing it means making both helpers `async` and awaiting them at every call
-site. That is mechanical, but it starts denying users who currently get through,
-so it should land as its own reviewable, separately-revertable change.
+Covered by `test/api/lib/workshopAccess.test.js`. Because the defect was at the
+**call sites** rather than in the helper, and no unit test of the helper can
+catch an unawaited caller, that file also checks `workshops.js` source directly
+and fails if any `hasOrganizerAccess(` call is not awaited. Both forms of the
+bug were reintroduced to confirm the tests catch them: the unawaited helper
+fails 3 tests, and removing a single `await` from one call site fails the source
+check.
