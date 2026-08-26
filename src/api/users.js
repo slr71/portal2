@@ -200,20 +200,25 @@ router.get(
         const services = await models.api_service.findAll()
         const workshops = await models.api_workshop.findAll()
         const forms = await models.api_form.findAll()
+        // Each collection is fetched with its own query: joining five hasMany
+        // associations in one statement returns their cartesian product, which
+        // for a user with a long history is large enough to exhaust the heap.
         const user = await User.findByPk(req.params.id, {
             include: [
-                'password_reset_requests',
-                'password_resets',
-                'form_submissions',
+                { association: 'password_reset_requests', separate: true },
+                { association: 'password_resets', separate: true },
+                { association: 'form_submissions', separate: true },
                 {
                     model: models.api_accessrequest,
                     as: 'access_requests',
                     include: ['logs'],
+                    separate: true,
                 },
                 {
                     model: models.api_workshopenrollmentrequest,
                     as: 'enrollment_requests',
                     include: ['logs'],
+                    separate: true,
                 },
             ],
         })
