@@ -230,6 +230,16 @@ class ConfigManager {
     }
 
     /**
+     * Get CORS configuration. Optional; defaults to an empty object so the
+     * allowlist falls back to the UI origin alone.
+     * @returns {Object} CORS configuration object
+     */
+    getCorsConfig() {
+        this.init()
+        return this._config.cors || {}
+    }
+
+    /**
      * Get profile configuration
      * @returns {Object} Profile configuration object
      */

@@ -62,6 +62,18 @@ describe('a valid configuration', () => {
         // No explicit init() call.
         assert.equal(load().getDbConfig().name, baseConfig().db.name)
     })
+
+    test('getCorsConfig defaults to {} when the section is absent', () => {
+        // The base config has no `cors` key; the getter must not return
+        // undefined so callers can read allowedOrigins safely.
+        assert.deepEqual(load().getCorsConfig(), {})
+    })
+
+    test('getCorsConfig returns the cors section when present', () => {
+        const cfg = baseConfig()
+        cfg.cors = { allowedOrigins: ['https://cyverse.org'] }
+        assert.deepEqual(loadConfig(writeConfig(cfg)).getCorsConfig(), cfg.cors)
+    })
 })
 
 describe('isDevelopment', () => {

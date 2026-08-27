@@ -43,6 +43,9 @@
     "baseUrl": "http://localhost:3000",
     "wsBaseUrl": "ws://localhost:3001"
   },
+  "cors": {
+    "allowedOrigins": []
+  },
   "profile": {
     "updatePeriod": 365,
     "warningPeriod": 30,
