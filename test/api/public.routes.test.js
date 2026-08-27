@@ -1,6 +1,9 @@
 const { describe, test } = require('node:test')
 const assert = require('node:assert/strict')
 
+const express = require('express')
+const http = require('node:http')
+
 const { loadRoute, invokeRoute } = require('../helpers/routes')
 
 const R = spec => require.resolve('../../src/api/' + spec)
@@ -177,5 +180,64 @@ describe('M5: reset_password does not reveal whether an account exists', () => {
         )
         assert.equal(unknown.code, known.code)
         assert.equal(unknown.body, known.body)
+    })
+})
+
+// Finding #1: the public router is mounted at /api, so a blanket rate-limit
+// middleware would also throttle authenticated requests that fall through to
+// /api/users, /api/services, etc. The limiters are applied per public route
+// instead. These tests mount the router the way server.js does and drive it
+// over real HTTP.
+async function withServer(app, fn) {
+    const server = http.createServer(app)
+    await new Promise(resolve => server.listen(0, resolve))
+    try {
+        return await fn(server.address().port)
+    } finally {
+        await new Promise(resolve => server.close(resolve))
+    }
+}
+
+describe('finding #1: rate limiter is scoped to public routes only', () => {
+    test('authenticated fall-through traffic is never 429ed by the public limiter', async () => {
+        const app = express()
+        app.use(express.json())
+        app.use('/api', loadPublicRouter(null))
+        // Anything the public router does not handle falls through here, the way
+        // /api/users etc. do in server.js.
+        app.use('/api', (req, res) => res.status(200).json({ authed: true }))
+
+        await withServer(app, async port => {
+            // Well past the public budget (100/min); none should be limited.
+            for (let i = 0; i < 120; i++) {
+                const r = await fetch(`http://127.0.0.1:${port}/api/users/mine`)
+                assert.equal(
+                    r.status,
+                    200,
+                    `fall-through request ${i + 1} must not be rate-limited`
+                )
+            }
+        })
+    })
+
+    test('a public route is still rate-limited', async () => {
+        const app = express()
+        app.use(express.json())
+        app.use('/api', loadPublicRouter(null))
+
+        await withServer(app, async port => {
+            let got429 = false
+            for (let i = 0; i < 130 && !got429; i++) {
+                const r = await fetch(
+                    `http://127.0.0.1:${port}/api/users/properties`
+                )
+                if (r.status === 429) got429 = true
+            }
+            assert.equal(
+                got429,
+                true,
+                'publicLimiter should 429 past its budget'
+            )
+        })
     })
 })
