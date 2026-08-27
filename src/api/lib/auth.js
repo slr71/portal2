@@ -37,6 +37,11 @@ const getUser = async (req, _, next) => {
     if (next) next()
 }
 
+// A non-superuser must not act on a superuser account (password resets,
+// permission changes). Superusers may act on any account.
+const canModifyUser = (actor, target) =>
+    !!actor && !!target && (actor.is_superuser || !target.is_superuser)
+
 const isAdmin = req => req && req.user && req.user.is_staff
 
 const requireAdmin = async (req, res, next) => {
@@ -71,6 +76,7 @@ module.exports = {
     getUserID,
     getUser,
     isAdmin,
+    canModifyUser,
     requireAdmin,
     requireUser,
     requireAuth,

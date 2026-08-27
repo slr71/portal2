@@ -4,6 +4,7 @@ const {
     requireAdmin,
     requireUser,
     isAdmin,
+    canModifyUser,
     getUser,
     asyncHandler,
 } = require('./lib/auth')
@@ -546,6 +547,9 @@ router.post(
         let hmac = req.body.hmac // optional
 
         const user = await User.unscoped().findByPk(req.params.id)
+        if (!user) return res.status(404).send('User not found')
+        if (!canModifyUser(req.user, user))
+            return res.status(403).send('Permission denied')
 
         const emailAddress = await EmailAddress.findOne({
             where: {
@@ -593,6 +597,8 @@ router.post(
             include: ['occupation'],
         })
         if (!user) return res.status(404).send('User not found')
+        if (!canModifyUser(req.user, user))
+            return res.status(403).send('Permission denied')
 
         logger.info(
             `Admin password reset initiated for user ${user.username} by ${req.user.username}`

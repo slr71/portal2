@@ -25,6 +25,7 @@ const {
     getUserID,
     getUser,
     isAdmin,
+    canModifyUser,
     requireAdmin,
     requireUser,
     requireAuth,
@@ -166,6 +167,70 @@ describe('isAdmin', () => {
     for (const { name, req, expected } of cases) {
         test(`returns ${expected} for ${name}`, () => {
             assert.equal(!!isAdmin(req), expected)
+        })
+    }
+})
+
+describe('canModifyUser', () => {
+    const SUPER = { id: 1, is_staff: true, is_superuser: true }
+    const STAFF_ONLY = { id: 2, is_staff: true, is_superuser: false }
+    const MEMBER_TARGET = { id: 3, is_staff: false, is_superuser: false }
+
+    const cases = [
+        {
+            name: 'superuser acting on a superuser',
+            actor: SUPER,
+            target: SUPER,
+            expected: true,
+        },
+        {
+            name: 'superuser acting on staff',
+            actor: SUPER,
+            target: STAFF_ONLY,
+            expected: true,
+        },
+        {
+            name: 'superuser acting on a member',
+            actor: SUPER,
+            target: MEMBER_TARGET,
+            expected: true,
+        },
+        {
+            name: 'staff acting on a member',
+            actor: STAFF_ONLY,
+            target: MEMBER_TARGET,
+            expected: true,
+        },
+        {
+            name: 'staff acting on other staff',
+            actor: STAFF_ONLY,
+            target: STAFF_ONLY,
+            expected: true,
+        },
+        // The C2 fix: a non-superuser must not act on a superuser account.
+        {
+            name: 'staff acting on a superuser',
+            actor: STAFF_ONLY,
+            target: SUPER,
+            expected: false,
+        },
+        {
+            name: 'a missing actor',
+            actor: null,
+            target: MEMBER_TARGET,
+            expected: false,
+        },
+        {
+            name: 'a missing target',
+            actor: SUPER,
+            target: null,
+            expected: false,
+        },
+    ]
+
+    for (const { name, actor, target, expected } of cases) {
+        test(`${name} -> ${expected}`, () => {
+            assert.equal(canModifyUser(actor, target), expected)
         })
     }
 })
