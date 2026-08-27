@@ -44,3 +44,34 @@ describe('isValidUsername', () => {
         })
     }
 })
+
+describe('conductor path encoding completeness', () => {
+    const fs = require('node:fs')
+    const path = require('node:path')
+    // A '/${identifier}' path segment (slash immediately before the
+    // interpolation) is an HTTP path sink and must be encoded; log messages and
+    // JSON bodies interpolate the same names without a leading slash.
+    const BARE_SEGMENT =
+        /\/\$\{(?:user\.)?(username|groupname|listname|email|attribute|analysisId)\}/
+    const files = [
+        'users.js',
+        'async.js',
+        'workflows/native/user.js',
+        'workflows/native/services/utils.js',
+    ]
+
+    for (const f of files) {
+        test(`${f} encodes every identifier used as a path segment`, () => {
+            const src = fs.readFileSync(
+                path.join(__dirname, '..', '..', '..', 'src', 'api', f),
+                'utf8'
+            )
+            const match = src.match(BARE_SEGMENT)
+            assert.equal(
+                match,
+                null,
+                match && `unencoded path segment: ${match[0]}`
+            )
+        })
+    }
+})

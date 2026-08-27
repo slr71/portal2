@@ -609,7 +609,9 @@ router.post(
             try {
                 const existsResponse = await makeRequest(
                     'GET',
-                    `datastore/users/${user.username}/exists`
+                    `datastore/users/${encodeURIComponent(
+                        user.username
+                    )}/exists`
                 )
                 if (existsResponse.exists) {
                     logger.info(
@@ -651,15 +653,19 @@ router.post(
 
             // Step 2: Reset password across all systems
             logger.info(`Resetting password for user ${user.username}`)
-            await makeRequest('POST', `users/${user.username}/password`, {
-                password: password,
-            })
+            await makeRequest(
+                'POST',
+                `users/${encodeURIComponent(user.username)}/password`,
+                {
+                    password: password,
+                }
+            )
 
             // Step 3: Validate the new password works
             logger.info(`Validating new password for user ${user.username}`)
             const validationResponse = await makeRequest(
                 'POST',
-                `users/${user.username}/validate`,
+                `users/${encodeURIComponent(user.username)}/validate`,
                 {
                     password: password,
                 }
