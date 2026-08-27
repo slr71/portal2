@@ -87,5 +87,8 @@
   },
   "honeypot": {
     "divisor": 7
+  },
+  "mailchimp": {
+    "webhookKey": "your-mailchimp-webhook-key"
   }
 }

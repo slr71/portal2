@@ -14,6 +14,7 @@ const {
 const { asyncHandler } = require('./lib/auth')
 const { encodePassword } = require('./lib/password')
 const { isValidUsername } = require('./lib/validate')
+const { verifyWebhookKey } = require('./lib/webhookAuth')
 const config = require('./lib/config')
 const serviceApprovers = require('./approvers/service')
 const {
@@ -54,7 +55,18 @@ const like = (key, val) =>
 router.post(
     '/mailchimp/unsubscribe',
     asyncHandler(async (req, res) => {
-        console.log(req.body)
+        // Mailchimp does not sign webhooks; the webhook URL must carry the
+        // configured shared secret as ?key=... . Fail closed if it's absent.
+        const mailchimp = config.getAll().mailchimp
+        if (
+            !verifyWebhookKey(mailchimp && mailchimp.webhookKey, req.query.key)
+        ) {
+            logger.warn(
+                'Mailchimp webhook rejected: missing/invalid key. The webhook ' +
+                    'URL must include the configured ?key= secret (mailchimp.webhookKey).'
+            )
+            return res.status(401).send('Unauthorized')
+        }
 
         if (
             !req.body ||
