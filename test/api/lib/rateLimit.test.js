@@ -1,7 +1,10 @@
 const { describe, test } = require('node:test')
 const assert = require('node:assert/strict')
 
-const { createRateLimiter } = require('../../../src/api/lib/rateLimit')
+const {
+    createRateLimiter,
+    createFixedWindowCounter,
+} = require('../../../src/api/lib/rateLimit')
 
 function makeRes() {
     return {
@@ -91,5 +94,62 @@ describe('createRateLimiter', () => {
         t = 2000 // both windows expired
         limiter.cleanup()
         assert.equal(limiter.size(), 0)
+    })
+})
+
+describe('createFixedWindowCounter', () => {
+    test('allows up to max, then reports not allowed', () => {
+        const c = createFixedWindowCounter({
+            windowMs: 1000,
+            max: 3,
+            now: () => 0,
+        })
+        for (let i = 1; i <= 3; i++) {
+            const r = c.check('k')
+            assert.equal(r.allowed, true)
+            assert.equal(r.count, i)
+        }
+        const over = c.check('k')
+        assert.equal(over.allowed, false)
+        assert.equal(over.count, 4)
+    })
+
+    test('refreshes the budget after the window elapses', () => {
+        let t = 0
+        const c = createFixedWindowCounter({
+            windowMs: 1000,
+            max: 1,
+            now: () => t,
+        })
+        assert.equal(c.check('k').allowed, true)
+        assert.equal(c.check('k').allowed, false)
+        t = 1000
+        assert.equal(c.check('k').allowed, true) // new window
+    })
+
+    test('counts are independent per key', () => {
+        const c = createFixedWindowCounter({
+            windowMs: 1000,
+            max: 1,
+            now: () => 0,
+        })
+        assert.equal(c.check('a').allowed, true)
+        assert.equal(c.check('a').allowed, false)
+        assert.equal(c.check('b').allowed, true) // b independent of a
+    })
+
+    test('cleanup drops expired keys', () => {
+        let t = 0
+        const c = createFixedWindowCounter({
+            windowMs: 1000,
+            max: 5,
+            now: () => t,
+        })
+        c.check('a')
+        c.check('b')
+        assert.equal(c.size(), 2)
+        t = 2000
+        c.cleanup()
+        assert.equal(c.size(), 0)
     })
 })
