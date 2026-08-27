@@ -1,8 +1,7 @@
 const crypto = require('crypto')
 
-// pbkdf2_sha256 work factor. Raised from the legacy 36000 toward current OWASP
-// guidance. The count is stored in each hash, so existing hashes stay verifiable
-// and new hashes simply cost more to crack.
+// pbkdf2_sha256 work factor (OWASP-guided). Stored in each hash, so hashes
+// written with different counts remain independently verifiable.
 const ITERATIONS = 600000
 const SALT_LENGTH = 12
 const SALT_CHARS =
