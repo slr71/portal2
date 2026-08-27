@@ -111,7 +111,9 @@ router.get(
 
         try {
             const response = await axios.get(
-                `${conductorUrl}/async/analyses/${analysisId}/details`,
+                `${conductorUrl}/async/analyses/${encodeURIComponent(
+                    analysisId
+                )}/details`,
                 axiosConfig
             )
 

@@ -86,9 +86,13 @@ async function validateLdapPassword(username, password) {
     // Portal-conductor reports a rejected credential as 200 {valid: false}, so
     // any error here means the check itself failed -- letting it propagate
     // keeps an outage from being reported to the user as a wrong password.
-    const response = await makeRequest('POST', `users/${username}/validate`, {
-        password: password,
-    })
+    const response = await makeRequest(
+        'POST',
+        `users/${encodeURIComponent(username)}/validate`,
+        {
+            password: password,
+        }
+    )
     return response.valid === true
 }
 
@@ -254,7 +258,9 @@ async function makeRequest(method, endpoint, data = null, options = {}) {
 async function addUserToLdapGroup(username, groupname) {
     return await makeRequest(
         'POST',
-        `ldap/users/${username}/groups/${groupname}`
+        `ldap/users/${encodeURIComponent(username)}/groups/${encodeURIComponent(
+            groupname
+        )}`
     )
 }
 
@@ -264,7 +270,10 @@ async function addUserToLdapGroup(username, groupname) {
  * @returns {Promise<string[]>} List of group names
  */
 async function getUserLdapGroups(username) {
-    return await makeRequest('GET', `ldap/users/${username}/groups`)
+    return await makeRequest(
+        'GET',
+        `ldap/users/${encodeURIComponent(username)}/groups`
+    )
 }
 
 /**
@@ -276,7 +285,9 @@ async function getUserLdapGroups(username) {
 async function removeUserFromLdapGroup(username, groupname) {
     return await makeRequest(
         'DELETE',
-        `ldap/users/${username}/groups/${groupname}`
+        `ldap/users/${encodeURIComponent(username)}/groups/${encodeURIComponent(
+            groupname
+        )}`
     )
 }
 
@@ -295,7 +306,7 @@ async function registerDatastoreService(username, irodsPath, irodsUser = null) {
 
     return await makeRequest(
         'POST',
-        `datastore/users/${username}/services`,
+        `datastore/users/${encodeURIComponent(username)}/services`,
         requestData
     )
 }
@@ -307,9 +318,13 @@ async function registerDatastoreService(username, irodsPath, irodsUser = null) {
  * @returns {Promise<Object>} Response data
  */
 async function addToMailingList(listname, email) {
-    return await makeRequest('POST', `mailinglists/${listname}/members`, {
-        email,
-    })
+    return await makeRequest(
+        'POST',
+        `mailinglists/${encodeURIComponent(listname)}/members`,
+        {
+            email,
+        }
+    )
 }
 
 /**
@@ -321,7 +336,9 @@ async function addToMailingList(listname, email) {
 async function removeFromMailingList(listname, email) {
     return await makeRequest(
         'DELETE',
-        `mailinglists/${listname}/members/${email}`
+        `mailinglists/${encodeURIComponent(
+            listname
+        )}/members/${encodeURIComponent(email)}`
     )
 }
 
@@ -332,9 +349,13 @@ async function removeFromMailingList(listname, email) {
  * @returns {Promise<Object>} Response data
  */
 async function setJobLimits(username, limit) {
-    return await makeRequest('POST', `terrain/users/${username}/job-limits`, {
-        limit,
-    })
+    return await makeRequest(
+        'POST',
+        `terrain/users/${encodeURIComponent(username)}/job-limits`,
+        {
+            limit,
+        }
+    )
 }
 
 /**
@@ -343,7 +364,10 @@ async function setJobLimits(username, limit) {
  * @returns {Promise<Object>} LDAP user information
  */
 async function getUserLdapInfo(username) {
-    return await makeRequest('GET', `ldap/users/${username}`)
+    return await makeRequest(
+        'GET',
+        `ldap/users/${encodeURIComponent(username)}`
+    )
 }
 
 /**
@@ -356,7 +380,9 @@ async function getUserLdapInfo(username) {
 async function modifyUserLdapAttribute(username, attribute, value) {
     return await makeRequest(
         'PUT',
-        `ldap/users/${username}/attributes/${attribute}`,
+        `ldap/users/${encodeURIComponent(
+            username
+        )}/attributes/${encodeURIComponent(attribute)}`,
         {
             value,
         }

@@ -464,3 +464,35 @@ describe('validateLdapPassword', () => {
         await assert.rejects(() => utils.validateLdapPassword('bob', 'hunter2'))
     })
 })
+
+describe('conductor path encoding (C3)', () => {
+    test('encodes a username so it cannot traverse the conductor path', async t => {
+        const { server, utils } = await withConductor(t, {
+            status: 200,
+            body: {},
+        })
+        // A username containing slashes/dot-dot must not change the target path.
+        await utils.getUserLdapInfo('../../ldap/admin')
+
+        assert.equal(server.requests.length, 1)
+        assert.equal(
+            server.requests[0].url,
+            '/ldap/users/..%2F..%2Fldap%2Fadmin'
+        )
+        // No segment of the resolved path is a bare traversal token.
+        assert.ok(!server.requests[0].url.split('/').includes('..'))
+    })
+
+    test('encodes an email in a mailing-list member path', async t => {
+        const { server, utils } = await withConductor(t, {
+            status: 200,
+            body: {},
+        })
+        await utils.removeFromMailingList('announce', 'a@b.example')
+
+        assert.equal(
+            server.requests[0].url,
+            '/mailinglists/announce/members/a%40b.example'
+        )
+    })
+})
