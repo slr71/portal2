@@ -170,7 +170,13 @@ router.put(
         // Detect bots using page load time
         if (!fields['plt']) return res.status(400).send('Missing HMAC')
 
-        const pageLoadTime = decodeHMAC(fields['plt'])
+        let pageLoadTime
+        try {
+            pageLoadTime = decodeHMAC(fields['plt'])
+        } catch (error) {
+            logger.debug('HMAC decode failed:', error.message)
+            return res.status(400).send('Invalid HMAC')
+        }
         if (isNaN(pageLoadTime)) return res.status(400).send('Invalid HMAC')
         const timeExpired = Date.now() - pageLoadTime
         if (
@@ -303,7 +309,8 @@ router.put(
         try {
             emailId = decodeToken(fields.hmac)
         } catch (error) {
-            return res.status(400).send(error.message)
+            logger.debug('users/password token decode failed:', error.message)
+            return res.status(400).send('Invalid or expired token')
         }
 
         // Fetch email address
@@ -448,7 +455,13 @@ router.post(
         // Detect bots using page load time
         if (!pltHMAC) return res.status(400).send('Missing HMAC')
 
-        const pageLoadTime = decodeHMAC(pltHMAC)
+        let pageLoadTime
+        try {
+            pageLoadTime = decodeHMAC(pltHMAC)
+        } catch (error) {
+            logger.debug('HMAC decode failed:', error.message)
+            return res.status(400).send('Invalid HMAC')
+        }
         if (isNaN(pageLoadTime)) return res.status(400).send('Invalid HMAC')
         const timeExpired = Date.now() - pageLoadTime
         console.log('timeExpired', timeExpired)
@@ -487,7 +500,13 @@ router.post(
         if (!hmac) return res.status(400).send('Missing HMAC')
 
         // Decode HMAC
-        const key = decodeHMAC(hmac)
+        let key
+        try {
+            key = decodeHMAC(hmac)
+        } catch (error) {
+            logger.debug('HMAC decode failed:', error.message)
+            return res.status(400).send('Invalid HMAC')
+        }
         const emailId = parseInt(key)
         if (isNaN(emailId)) return res.status(400).send('Invalid HMAC')
 
