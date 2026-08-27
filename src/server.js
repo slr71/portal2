@@ -9,6 +9,7 @@ const next = require('next')
 const { logger, requestLogger, errorLogger } = require('./api/lib/logging')
 const { WS_CONNECTED } = require('./constants/client')
 const { getUserID, getUserToken, requireAuth } = require('./api/lib/auth')
+const { securityHeaders } = require('./api/lib/securityHeaders')
 const PortalAPI = require('./lib/apiClient')
 const ws = require('ws')
 const config = require('./api/lib/config')
@@ -94,6 +95,9 @@ app.prepare()
         const server = express()
         const expressWS = require('express-ws')(server)
         const sockets = {} // Track websocket connections by username
+
+        // Security headers on every response (applied first)
+        server.use(securityHeaders)
 
         // Setup logging
         server.use(errorLogger)
