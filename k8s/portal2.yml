@@ -34,6 +34,13 @@ spec:
                       - user-portal
               topologyKey: kubernetes.io/hostname
       restartPolicy: Always
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001 # the image's nodejs user (Dockerfile)
+        runAsGroup: 1001
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
       volumes:
         - name: config-volume
           secret:
@@ -45,6 +52,11 @@ spec:
         - name: portal
           image: harbor.cyverse.org/de/portal2
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           env:
             - name: TZ
               valueFrom:
