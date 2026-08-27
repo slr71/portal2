@@ -11,6 +11,7 @@ const silentLogger = { debug: noop, info: noop, warn: noop, error: noop }
 // Controlled by each test.
 let targetUser = null
 let appliedScope = null
+let makeRequestImpl = async () => ({})
 
 function loadUsersRouter() {
     return loadRoute(R('users.js'), {
@@ -43,7 +44,7 @@ function loadUsersRouter() {
         [R('workflows/native/services/utils.js')]: {
             validateLdapPassword: async () => true,
             getUserLdapInfo: async () => ({}),
-            makeRequest: async () => ({}),
+            makeRequest: (...args) => makeRequestImpl(...args),
         },
     })
 }
@@ -67,6 +68,7 @@ const reqAs = (user, params, body) => ({
 beforeEach(() => {
     targetUser = null
     appliedScope = null
+    makeRequestImpl = async () => ({})
 })
 
 describe('C2: staff cannot reset a superuser', () => {
@@ -237,5 +239,28 @@ describe('M8: user-lookup scope allowlist', () => {
         const res = await lookup('profile')
         assert.equal(res.code, 200)
         assert.equal(appliedScope, 'profile')
+    })
+})
+
+describe('L5: admin_password_reset does not leak internal error detail', () => {
+    test('a conductor failure returns a generic 500, not the raw detail', async () => {
+        targetUser = MEMBER
+        // The conductor error carries a detail the client must never see.
+        makeRequestImpl = async () => {
+            throw new Error(
+                'Portal-conductor API error: internal db constraint xyz_pkey'
+            )
+        }
+        const res = await invokeRoute(
+            loadUsersRouter(),
+            'POST',
+            '/:id(\\d+)/admin_password_reset',
+            reqAs(SUPERUSER, { id: '7' }, { password: 'newpass' })
+        )
+        assert.equal(res.code, 500)
+        const body = JSON.stringify(res.body)
+        assert.match(body, /Password reset failed/)
+        assert.equal(body.includes('Portal-conductor'), false)
+        assert.equal(body.includes('xyz_pkey'), false)
     })
 })

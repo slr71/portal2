@@ -18,12 +18,7 @@ const FormSubmissionConversation = models.api_formsubmissionconversation
 const { UI_ADMIN_FORM_SUBMISSION_URL } = require('../constants/server')
 const { emailGenericMessage } = require('./lib/email')
 const intercom = require('./lib/intercom')
-
-//TODO move into module
-const like = (key, val) =>
-    sequelize.where(sequelize.fn('lower', sequelize.col(key)), {
-        [sequelize.Op.like]: '%' + val.toLowerCase() + '%',
-    })
+const { like, parsePagination } = require('./lib/query')
 
 // Get all forms
 router.get(
@@ -74,8 +69,7 @@ router.get(
     '/submissions',
     requireAdmin,
     asyncHandler(async (req, res) => {
-        const offset = req.query.offset
-        const limit = req.query.limit || 10
+        const { limit, offset } = parsePagination(req.query)
         const keyword = req.query.keyword
 
         const where = keyword

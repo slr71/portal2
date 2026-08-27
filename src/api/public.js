@@ -69,10 +69,7 @@ const lowerEqualTo = (key, val) =>
         sequelize.fn('lower', sequelize.col(key)),
         val.toLowerCase()
     )
-const like = (key, val) =>
-    sequelize.where(sequelize.fn('lower', sequelize.col(key)), {
-        [sequelize.Op.like]: '%' + val.toLowerCase() + '%',
-    })
+const { like } = require('./lib/query')
 
 // Mailchimp unsubscribe webhook
 // Configured here: https://us10.admin.mailchimp.com/lists/tools/webhooks-edit?id=174785&hookId=1
