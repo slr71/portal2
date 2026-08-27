@@ -47,8 +47,11 @@ class ConfigManager {
             const configData = fs.readFileSync(this._configPath, 'utf8')
             const config = JSON.parse(configData)
 
-            // Add computed values
-            config.server.isDevelopment = process.env.NODE_ENV !== 'production'
+            // Development mode is opt-in: only an explicit NODE_ENV=development
+            // enables it. Any other value -- including unset -- is treated as
+            // production so a misconfigured deploy cannot fail open and mount
+            // the test routes or leak stack traces. (`npm run dev` sets it.)
+            config.server.isDevelopment = process.env.NODE_ENV === 'development'
 
             return config
         } catch (error) {
@@ -76,6 +79,7 @@ class ConfigManager {
             ['keycloak.client', this._config.keycloak?.client],
             ['keycloak.secret', this._config.keycloak?.secret],
             ['ui.baseUrl', this._config.ui?.baseUrl],
+            ['security.hmacKey', this._config.security?.hmacKey],
         ]
 
         // Portal conductor password is required if portal conductor config exists
