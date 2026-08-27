@@ -42,6 +42,10 @@ function validateStartupConfiguration() {
         const uiConfig = config.getUiConfig()
         logger.info(`UI configuration validated: ${uiConfig.baseUrl}`)
 
+        // Test security configuration (hmacKey presence; value not logged)
+        config.getSecurityConfig()
+        logger.info('Security configuration validated: HMAC key present')
+
         // Test optional external service configurations
         const portalConductorConfig = config.getPortalConductorConfig()
         if (portalConductorConfig.url) {

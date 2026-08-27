@@ -94,24 +94,30 @@ router.post(
         if (emailAddress.user_id != req.user.id && !req.user.is_staff)
             return res.status(403).send('Permission denied')
 
+        // Apply the change to the email's owner, not the caller, so a staff
+        // member fixing another user's primary email mutates that user's
+        // account (and LDAP entry) rather than their own.
+        let owner = null
         if (setPrimary) {
-            const user = await User.findByPk(req.user.id, {
+            owner = await User.findByPk(emailAddress.user_id, {
                 include: ['emails'],
             })
-            user.email = emailAddress.email
-            user.save()
-            for (const e of user.emails) {
+            // Guard against an orphaned email address (owner row deleted).
+            if (!owner) return res.status(404).send('User not found')
+            owner.email = emailAddress.email
+            await owner.save()
+            for (const e of owner.emails) {
                 e.primary = e.id == id
                 await e.save()
             }
         }
 
-        emailAddress.reload()
+        await emailAddress.reload()
         res.status(200).send(emailAddress)
 
-        // Update LDAP (do this after response as to not delay it)
+        // Update LDAP (after the response so it doesn't delay it)
         if (setPrimary)
-            await ldapModify(req.user.username, 'mail', emailAddress.email)
+            await ldapModify(owner.username, 'mail', emailAddress.email)
     })
 )
 

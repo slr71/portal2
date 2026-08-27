@@ -2,6 +2,8 @@ const fs = require('fs')
 const path = require('path')
 const config = require('./config')
 const { logger } = require('./logging')
+const { renderTemplate } = require('./emailTemplate')
+const { createFixedWindowCounter } = require('./rateLimit')
 const { makeRequest } = require('../workflows/native/services/utils')
 const {
     UI_WORKSHOPS_URL,
@@ -20,12 +22,44 @@ const TIME_BETWEEN_EMAILS = 30 * 1000 // rate limit to one email sent per 30 sec
 let nextEmailSendTime = 0
 const SUPPORT_EMAIL = supportConfig.email
 
-async function queueEmail(cfg) {
+// Per-recipient cap. Mail is serialized through one global queue, so repeated
+// sends to a single address (e.g. hammering the unauthenticated password-reset
+// endpoint) would otherwise push the global send time arbitrarily far out and
+// starve everyone else's mail. Capping per recipient bounds that abuse; a
+// dropped over-cap message is logged rather than queued.
+const RECIPIENT_EMAIL_MAX = 5
+const RECIPIENT_EMAIL_WINDOW_MS = 10 * 60 * 1000
+const recipientCounter = createFixedWindowCounter({
+    windowMs: RECIPIENT_EMAIL_WINDOW_MS,
+    max: RECIPIENT_EMAIL_MAX,
+    cleanupIntervalMs: RECIPIENT_EMAIL_WINDOW_MS,
+})
+
+/** Reports whether another email may be sent to `to`, counting this attempt. */
+function withinRecipientEmailCap(to) {
+    return recipientCounter.check(String(to)).allowed
+}
+
+// The per-recipient cap is opt-in per call (rateLimited) and applied only to
+// the unauthenticated, user-triggered confirmation/reset emails -- the flows an
+// attacker can aim at one address. Staff/organizer notifications (enrollment
+// requests, access grants) legitimately arrive many-per-recipient and must not
+// be dropped, so they are queued without the cap.
+async function queueEmail(cfg, { rateLimited = false } = {}) {
+    if (rateLimited && !withinRecipientEmailCap(cfg.to)) {
+        const windowMin = RECIPIENT_EMAIL_WINDOW_MS / 60000
+        logger.warn(
+            `queueEmail: over per-recipient cap (${RECIPIENT_EMAIL_MAX}/${windowMin}min) for ` +
+                `${cfg.to}; dropping "${cfg.subject}" (likely repeated reset/confirmation requests).`
+        )
+        return false
+    }
+
     const now = Date.now()
     nextEmailSendTime = Math.max(now, nextEmailSendTime + TIME_BETWEEN_EMAILS)
     const delay = nextEmailSendTime - now
 
-    setTimeout(
+    const timer = setTimeout(
         async () => {
             try {
                 await sendEmailViaConductor(cfg)
@@ -38,10 +72,12 @@ async function queueEmail(cfg) {
         },
         delay + 100 // add small delay so log message can appear first
     )
+    if (timer.unref) timer.unref() // don't keep the process alive for a queued send
 
     logger.debug(
         `queueEmail: queued ${cfg.to} "${cfg.subject}" for ${delay / 1000}s`
     )
+    return true
 }
 
 async function sendEmailViaConductor(cfg) {
@@ -90,11 +126,10 @@ function renderEmail({ to, bcc, subject, templateName, fields, message }) {
                 `${templateName}.${ext}`
             )
             if (fs.existsSync(templatePath)) {
-                body[ext] = fs.readFileSync(templatePath, 'utf8').toString()
-                for (f in fields) {
-                    const regex = new RegExp('\\$\\{' + f + '\\}', 'gi')
-                    body[ext] = body[ext].replace(regex, fields[f])
-                }
+                const template = fs
+                    .readFileSync(templatePath, 'utf8')
+                    .toString()
+                body[ext] = renderTemplate(template, fields, ext === 'html')
                 if (!body[ext]) throw 'Empty email template'
                 break // only load txt template if html template doesn't exist
             }
@@ -136,7 +171,8 @@ function emailNewAccountConfirmation(email, hmac) {
                 FORMS_URL: UI_REQUESTS_URL,
                 SUPPORT_EMAIL: SUPPORT_EMAIL,
             },
-        })
+        }),
+        { rateLimited: true }
     )
 }
 
@@ -153,7 +189,8 @@ async function emailNewEmailConfirmation(email, hmac) {
                 ACTIVATE_URL: confirmationUrl,
                 SUPPORT_EMAIL: SUPPORT_EMAIL,
             },
-        })
+        }),
+        { rateLimited: true }
     )
 }
 
@@ -174,7 +211,8 @@ async function emailPasswordReset(emailAddress, hmac) {
                 USERNAME: emailAddress.user.username,
                 SUPPORT_EMAIL: SUPPORT_EMAIL,
             },
-        })
+        }),
+        { rateLimited: true }
     )
 }
 
@@ -274,4 +312,8 @@ module.exports = {
     emailWorkshopEnrollmentRequest,
     emailWorkshopEnrollmentConfirmation,
     emailGenericMessage,
+    queueEmail,
+    withinRecipientEmailCap,
+    RECIPIENT_EMAIL_MAX,
+    RECIPIENT_EMAIL_WINDOW_MS,
 }

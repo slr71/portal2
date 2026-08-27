@@ -52,7 +52,11 @@ const ConversationPart = ({
     let content = []
     if (body)
         // assume part_type is "note" or "comment"
-        content.push(<Markdown>{body}</Markdown>)
+        content.push(
+            <Markdown options={{ disableParsingRawHTML: true }}>
+                {body}
+            </Markdown>
+        )
     if (part_type && ['assignment', 'default_assignment'].includes(part_type))
         content.push(`Assigned to ${assigned_to.name} (${assigned_to.type})`)
 

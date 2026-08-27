@@ -81,7 +81,11 @@ const Request = ({ form }) => {
                         </Typography>
                         {form.explanation !== form.description && (
                             <Typography color="textSecondary">
-                                <Markdown>{form.explanation}</Markdown>
+                                <Markdown
+                                    options={{ disableParsingRawHTML: true }}
+                                >
+                                    {form.explanation}
+                                </Markdown>
                             </Typography>
                         )}
                     </Box>

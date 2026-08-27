@@ -22,7 +22,7 @@ const intercom =
         : null // Intercom disabled
 
 if (!intercom) {
-    console.log('Intercom is disabled')
+    logger.info('Intercom is disabled')
 }
 
 async function createUser(user) {

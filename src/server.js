@@ -9,6 +9,12 @@ const next = require('next')
 const { logger, requestLogger, errorLogger } = require('./api/lib/logging')
 const { WS_CONNECTED } = require('./constants/client')
 const { getUserID, getUserToken, requireAuth } = require('./api/lib/auth')
+const { securityHeaders } = require('./api/lib/securityHeaders')
+const { corsOptionsFromConfig } = require('./api/lib/corsOptions')
+const {
+    regenerateSessionOnLogin,
+    installLogoutSessionDestroy,
+} = require('./api/lib/sessionSecurity')
 const PortalAPI = require('./lib/apiClient')
 const ws = require('ws')
 const config = require('./api/lib/config')
@@ -95,6 +101,9 @@ app.prepare()
         const expressWS = require('express-ws')(server)
         const sockets = {} // Track websocket connections by username
 
+        // Security headers on every response (applied first)
+        server.use(securityHeaders)
+
         // Setup logging
         server.use(errorLogger)
         server.use(requestLogger)
@@ -102,8 +111,16 @@ app.prepare()
         // Setup Sentry error handling
         if (sentryConfig.dsn) server.use(Sentry.Handlers.requestHandler())
 
-        // Support CORS requests -- needed for service icon image requests
-        server.use(cors())
+        // CORS restricted to an allowlist (the UI origin plus configured
+        // extras); credentials are never reflected cross-origin.
+        server.use(
+            cors(
+                corsOptionsFromConfig({
+                    uiBaseUrl: config.getUiConfig().baseUrl,
+                    allowedOrigins: config.getCorsConfig().allowedOrigins,
+                })
+            )
+        )
 
         // Support JSON encoded request bodies
         server.use(bodyParser.json())
@@ -117,6 +134,11 @@ app.prepare()
                 saveUninitialized: true,
                 cookie: {
                     secure: sessionConfig.secureCookie,
+                    // Lax is the strongest setting compatible with Keycloak's
+                    // redirect login (the cookie must ride the top-level GET
+                    // navigation back from the IdP); it blocks the session
+                    // cookie on cross-site subrequests (CSRF).
+                    sameSite: 'lax',
                 },
             })
         )
@@ -127,6 +149,10 @@ app.prepare()
 
         // Configure Keycloak
         server.use(keycloakClient.middleware({ logout: '/logout' }))
+
+        // Rotate the session ID after login; destroy it on logout (fixation)
+        installLogoutSessionDestroy(keycloakClient)
+        server.use(regenerateSessionOnLogin)
 
         // Setup API client for use by getServerSideProps() - MOVED HERE to ensure it runs for all requests
         server.use(async (req, _, next) => {

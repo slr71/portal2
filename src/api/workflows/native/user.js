@@ -51,7 +51,7 @@ async function userPasswordUpdateWorkflow(user) {
     try {
         const response = await makeRequest(
             'POST',
-            `users/${user.username}/password`,
+            `users/${encodeURIComponent(user.username)}/password`,
             {
                 password: user.password,
             }
@@ -86,7 +86,7 @@ async function userDeletionWorkflow(user) {
         // 3. Submit async analysis to delete datastore files
         const response = await makeRequest(
             'DELETE',
-            `async/users/${user.username}`
+            `async/users/${encodeURIComponent(user.username)}`
         )
         logger.info(
             `User async deletion request successful for ${user.username}. Analysis ID: ${response.analysis_id}`

@@ -27,19 +27,14 @@ const poweredServiceQuery = [
     'is_powered',
 ]
 
-//TODO move into module
-const like = (key, val) =>
-    sequelize.where(sequelize.fn('lower', sequelize.col(key)), {
-        [sequelize.Op.like]: '%' + val.toLowerCase() + '%',
-    })
+const { like, parsePagination } = require('./lib/query')
 
 // Get all service access requests (STAFF ONLY)
 router.get(
     '/requests',
     requireAdmin,
     asyncHandler(async (req, res) => {
-        const offset = req.query.offset
-        const limit = req.query.limit || 10
+        const { limit, offset } = parsePagination(req.query)
         const keyword = req.query.keyword
 
         const where = keyword

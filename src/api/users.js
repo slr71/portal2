@@ -4,10 +4,13 @@ const {
     requireAdmin,
     requireUser,
     isAdmin,
+    canModifyUser,
     getUser,
     asyncHandler,
 } = require('./lib/auth')
 const config = require('./lib/config')
+const { isValidPermission, isValidUserScope } = require('./lib/validate')
+const { intercomUserHash } = require('./lib/intercomHash')
 const { generateToken } = require('./lib/hmac')
 const { emailPasswordReset } = require('./lib/email')
 const { encodePassword } = require('./lib/password')
@@ -31,12 +34,7 @@ const EmailAddress = models.account_emailaddress
 const Workshop = models.api_workshop
 const WorkshopOrganizer = models.api_workshoporganizer
 const { UI_ACCOUNT_REVIEW_URL } = require('../constants/server')
-
-//TODO move into module
-const likeAny = (key, vals) =>
-    sequelize.where(sequelize.fn('lower', sequelize.col(key)), {
-        [sequelize.Op.like]: { [sequelize.Op.any]: vals.map(k => `%${k}%`) },
-    })
+const { likeAny, parsePagination } = require('./lib/query')
 
 // Get/search all users (STAFF AND WORKSHOP ORGANIZER ONLY)
 router.get(
@@ -57,8 +55,7 @@ router.get(
             if (!isOrganizer) return res.status(403).send('Permission denied')
         }
 
-        const offset = req.query.offset
-        const limit = req.query.limit || 10
+        const { limit, offset } = parsePagination(req.query)
         const keyword = req.query.keyword
         const keywords =
             keyword &&
@@ -112,7 +109,15 @@ router.get(
 
 // Get current user based on token
 router.get('/mine', requireUser, (req, res) => {
-    res.status(200).json(req.user)
+    // Attach the Intercom identity-verification hash (computed here so the
+    // secret stays server-side); omitted when no secret is configured.
+    const user = { ...req.user }
+    const hash = intercomUserHash(
+        user.username,
+        config.getIntercomConfig()?.identitySecret
+    )
+    if (hash) user.intercom_user_hash = hash
+    res.status(200).json(user)
 })
 
 // Get restricted usernames (MUST come before /:usernameOrId route)
@@ -136,6 +141,8 @@ router.get(
     asyncHandler(async (req, res) => {
         const usernameOrId = req.params.usernameOrId
         const scope = req.query.scope || 'defaultScope'
+        if (!isValidUserScope(scope))
+            return res.status(400).send('Invalid scope')
 
         const user = await User.scope(scope).findOne({
             where: sequelize.or(
@@ -361,6 +368,8 @@ router.post(
     requireAdmin,
     asyncHandler(async (req, res) => {
         const permission = req.body.permission
+        if (!isValidPermission(permission))
+            return res.status(400).send('Invalid permission')
 
         const user = await User.findByPk(req.params.id)
         if (!user) return res.status(404).send('User not found')
@@ -546,6 +555,9 @@ router.post(
         let hmac = req.body.hmac // optional
 
         const user = await User.unscoped().findByPk(req.params.id)
+        if (!user) return res.status(404).send('User not found')
+        if (!canModifyUser(req.user, user))
+            return res.status(403).send('Permission denied')
 
         const emailAddress = await EmailAddress.findOne({
             where: {
@@ -593,6 +605,8 @@ router.post(
             include: ['occupation'],
         })
         if (!user) return res.status(404).send('User not found')
+        if (!canModifyUser(req.user, user))
+            return res.status(403).send('Permission denied')
 
         logger.info(
             `Admin password reset initiated for user ${user.username} by ${req.user.username}`
@@ -603,7 +617,9 @@ router.post(
             try {
                 const existsResponse = await makeRequest(
                     'GET',
-                    `datastore/users/${user.username}/exists`
+                    `datastore/users/${encodeURIComponent(
+                        user.username
+                    )}/exists`
                 )
                 if (existsResponse.exists) {
                     logger.info(
@@ -645,15 +661,19 @@ router.post(
 
             // Step 2: Reset password across all systems
             logger.info(`Resetting password for user ${user.username}`)
-            await makeRequest('POST', `users/${user.username}/password`, {
-                password: password,
-            })
+            await makeRequest(
+                'POST',
+                `users/${encodeURIComponent(user.username)}/password`,
+                {
+                    password: password,
+                }
+            )
 
             // Step 3: Validate the new password works
             logger.info(`Validating new password for user ${user.username}`)
             const validationResponse = await makeRequest(
                 'POST',
-                `users/${user.username}/validate`,
+                `users/${encodeURIComponent(user.username)}/validate`,
                 {
                     password: password,
                 }
@@ -678,9 +698,11 @@ router.post(
             logger.error(
                 `Admin password reset failed for ${user.username}: ${error.message}`
             )
+            // The detailed error (incl. any conductor detail) is logged above;
+            // the client gets a generic message.
             res.status(500).json({
                 success: false,
-                message: `Password reset failed: ${error.message}`,
+                message: 'Password reset failed',
             })
         }
     })

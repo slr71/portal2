@@ -38,10 +38,8 @@ function MyApp(props) {
         Component,
         emotionCache = clientSideEmotionCache,
         pageProps,
-        kauth,
         user,
         baseUrl,
-        token,
     } = props
 
     // Added to handle errors from API during SSR
@@ -72,7 +70,7 @@ function MyApp(props) {
             <Sentry.ErrorBoundary fallback={'An error has occurred'}>
                 <ThemeProvider theme={theme}>
                     <CssBaseline />
-                    <APIProvider baseUrl={baseUrl} token={token}>
+                    <APIProvider baseUrl={baseUrl}>
                         <UserProvider user={user}>
                             <Head>
                                 <title>User Portal - CyVerse</title>
@@ -100,9 +98,10 @@ MyApp.getInitialProps = async ({ Component, ctx }) => {
     const req = ctx.req
     const api = req && req.api
     return {
-        kauth: req && req.kauth,
         baseUrl: api && api.baseUrl,
-        token: api && api.token,
+        // The bearer token / Keycloak grant are deliberately NOT returned to the
+        // client: they would be serialized into __NEXT_DATA__. Browser API calls
+        // authenticate via the same-origin session cookie instead.
         user: api && api.token ? await api.user() : null,
         pageProps: Component.getInitialProps
             ? await Component.getInitialProps(ctx)

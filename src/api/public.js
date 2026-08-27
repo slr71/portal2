@@ -13,6 +13,10 @@ const {
 } = require('./lib/hmac')
 const { asyncHandler } = require('./lib/auth')
 const { encodePassword } = require('./lib/password')
+const { isValidUsername } = require('./lib/validate')
+const { verifyWebhookKey } = require('./lib/webhookAuth')
+const { pickSignupFields } = require('./lib/signup')
+const { createRateLimiter } = require('./lib/rateLimit')
 const config = require('./lib/config')
 const serviceApprovers = require('./approvers/service')
 const {
@@ -31,6 +35,29 @@ const PasswordResetRequest = models.account_passwordresetrequest
 const EmailAddressToMailingList = models.api_emailaddressmailinglist
 const MailingList = models.api_mailinglist
 
+// Rate-limit the public (unauthenticated) endpoints to blunt token-oracle and
+// enumeration abuse. The health check is exempt so probes aren't throttled, and
+// /exists (the availability typeahead) gets its own, more generous bucket: the
+// signup form validates it per keystroke, so lumping it with the sensitive
+// endpoints could let a single user's typing exhaust the shared budget and 429
+// the actual signup. A 429 on /exists only degrades the availability hint --
+// the signup POST re-checks uniqueness server-side regardless.
+const publicLimiter = createRateLimiter({
+    windowMs: 60 * 1000,
+    max: 100,
+    cleanupIntervalMs: 5 * 60 * 1000,
+})
+const existsLimiter = createRateLimiter({
+    windowMs: 60 * 1000,
+    max: 300,
+    cleanupIntervalMs: 5 * 60 * 1000,
+})
+// The rate limiters are applied per-route below rather than as a blanket
+// router.use: this router is mounted at /api (server.js), so a path-less
+// middleware here would also run for requests that fall through to the
+// authenticated routers (/api/users, /api/services, ...) and let normal
+// authenticated traffic consume the public budget and get 429'd.
+
 // Health/readiness check endpoint
 router.get('/ready', (req, res) => {
     res.status(200).json({ status: 'ready' })
@@ -42,18 +69,27 @@ const lowerEqualTo = (key, val) =>
         sequelize.fn('lower', sequelize.col(key)),
         val.toLowerCase()
     )
-const like = (key, val) =>
-    sequelize.where(sequelize.fn('lower', sequelize.col(key)), {
-        [sequelize.Op.like]: '%' + val.toLowerCase() + '%',
-    })
+const { like } = require('./lib/query')
 
 // Mailchimp unsubscribe webhook
 // Configured here: https://us10.admin.mailchimp.com/lists/tools/webhooks-edit?id=174785&hookId=1
 // Called when a user or admin unsubscribes from newsletter
 router.post(
     '/mailchimp/unsubscribe',
+    publicLimiter,
     asyncHandler(async (req, res) => {
-        console.log(req.body)
+        // Mailchimp does not sign webhooks; the webhook URL must carry the
+        // configured shared secret as ?key=... . Fail closed if it's absent.
+        const mailchimp = config.getAll().mailchimp
+        if (
+            !verifyWebhookKey(mailchimp && mailchimp.webhookKey, req.query.key)
+        ) {
+            logger.warn(
+                'Mailchimp webhook rejected: missing/invalid key. The webhook ' +
+                    'URL must include the configured ?key= secret (mailchimp.webhookKey).'
+            )
+            return res.status(401).send('Unauthorized')
+        }
 
         if (
             !req.body ||
@@ -86,6 +122,7 @@ router.post(
 // Used by Mailchimp to verify correct configuration
 router.get(
     '/mailchimp/unsubscribe',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         res.status(200).json({ status: `success` })
     })
@@ -94,6 +131,7 @@ router.get(
 // Check for existing username and/or email address
 router.post(
     '/exists',
+    existsLimiter,
     asyncHandler(async (req, res) => {
         let fields = req.body
         let result = {}
@@ -118,7 +156,7 @@ router.post(
             result.email = !!emailAddress
         }
 
-        console.log(result)
+        logger.debug('existence check result:', result)
 
         res.status(200).json(result)
     })
@@ -127,6 +165,7 @@ router.post(
 // Create user
 router.put(
     '/users',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         let fields = req.body
         const MINIMUM_TIME_ON_PAGE = 1000 * 30 // 30 seconds
@@ -134,6 +173,8 @@ router.put(
 
         if (!('username' in fields))
             return res.status(400).send('Missing required field')
+        if (!isValidUsername(fields['username']))
+            return res.status(400).send('Invalid username')
 
         // Check for existing username
         const user = await User.findOne({
@@ -170,7 +211,13 @@ router.put(
         // Detect bots using page load time
         if (!fields['plt']) return res.status(400).send('Missing HMAC')
 
-        const pageLoadTime = decodeHMAC(fields['plt'])
+        let pageLoadTime
+        try {
+            pageLoadTime = decodeHMAC(fields['plt'])
+        } catch (error) {
+            logger.debug('HMAC decode failed:', error.message)
+            return res.status(400).send('Invalid HMAC')
+        }
         if (isNaN(pageLoadTime)) return res.status(400).send('Invalid HMAC')
         const timeExpired = Date.now() - pageLoadTime
         if (
@@ -209,27 +256,32 @@ router.put(
         })
         if (user2 || emails) return res.status(400).send('Email already in use')
 
-        // Set defaults
-        fields['password'] = ''
-        fields['email'] = fields['email'].toLowerCase()
-        fields['is_superuser'] = false
-        fields['is_staff'] = false
-        fields['is_active'] = true
-        fields['has_verified_email'] = false
-        fields['participate_in_study'] = true
-        fields['subscribe_to_newsletter'] = true
-        fields['orcid_id'] = ''
-        fields['updated_at'] = Date.now()
-
-        // Special case: automatically set "institution" based on for backward compatibility
+        // Special case: automatically set "institution" for backward compatibility
         const institution = await models.account_institution_grid.findByPk(
             fields['grid_institution_id']
         )
-        fields['institution'] = institution.name
+
+        // Build from an allowlist of user-settable columns plus server-controlled
+        // defaults, so columns like id/last_login/date_joined/user_institution_id/
+        // settings cannot be mass-assigned from the request body.
+        const userData = pickSignupFields(fields)
+        Object.assign(userData, {
+            email: fields['email'].toLowerCase(),
+            institution: institution.name,
+            password: '',
+            is_superuser: false,
+            is_staff: false,
+            is_active: true,
+            has_verified_email: false,
+            participate_in_study: true,
+            subscribe_to_newsletter: true,
+            orcid_id: '',
+            updated_at: Date.now(),
+        })
 
         // Create user
-        logger.info('Creating user', fields['username'])
-        let newUser = await User.create(fields)
+        logger.info('Creating user', userData['username'])
+        let newUser = await User.create(userData)
         if (!newUser) return res.status(500).send('Error creating user')
 
         // Create primary email address
@@ -293,6 +345,7 @@ router.put(
  */
 router.put(
     '/users/password',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         const fields = req.body
         if (!fields || !('password' in fields) || !fields.hmac)
@@ -303,7 +356,8 @@ router.put(
         try {
             emailId = decodeToken(fields.hmac)
         } catch (error) {
-            return res.status(400).send(error.message)
+            logger.debug('users/password token decode failed:', error.message)
+            return res.status(400).send('Invalid or expired token')
         }
 
         // Fetch email address
@@ -410,6 +464,7 @@ router.put(
 // Send reset password link
 router.post(
     '/users/reset_password',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         const email = req.body.email
         const pltHMAC = req.body.hmac
@@ -417,6 +472,27 @@ router.post(
         const MAXIMUM_TIME_ON_PAGE = 1000 * 60 * 60 // one hour
 
         if (!email) return res.status(400).send('Missing email')
+
+        // Anti-bot page-load check first, so it applies before -- and uniformly
+        // with -- the account lookup, which must not reveal whether the email
+        // belongs to an account.
+        if (!pltHMAC) return res.status(400).send('Missing HMAC')
+        let pageLoadTime
+        try {
+            pageLoadTime = decodeHMAC(pltHMAC)
+        } catch (error) {
+            logger.debug('HMAC decode failed:', error.message)
+            return res.status(400).send('Invalid HMAC')
+        }
+        if (isNaN(pageLoadTime)) return res.status(400).send('Invalid HMAC')
+        const timeExpired = Date.now() - pageLoadTime
+        if (
+            timeExpired < MINIMUM_TIME_ON_PAGE ||
+            timeExpired >= MAXIMUM_TIME_ON_PAGE
+        )
+            return res
+                .status(400)
+                .send('Reset window expired, please reload page and try again')
 
         // Signup lowercases before storing, but the column is a plain varchar
         // with no normalizing hook and the data predates this app, so match
@@ -426,68 +502,56 @@ router.post(
             where: lowerEqualTo('account_emailaddress.email', email),
             include: ['user'],
         })
-        if (!matches.length)
-            return res
-                .status(404)
-                .send('Email address not associated with an account')
 
         // The unique constraint is case-sensitive, so addresses differing only
-        // in case can belong to different users. Prefer the exact match rather
-        // than mailing a reset link for whichever row happened to come back.
+        // in case can belong to different users; prefer the exact match.
         let emailAddress = matches.find(match => match.email === email)
-        if (!emailAddress) {
-            if (matches.length > 1)
-                return res
-                    .status(409)
-                    .send(
-                        'Multiple accounts use that email address, please contact support'
-                    )
-            emailAddress = matches[0]
-        }
+        if (!emailAddress && matches.length === 1) emailAddress = matches[0]
+        if (!emailAddress && matches.length > 1)
+            logger.warn(
+                'reset_password: multiple accounts match an email (case-variant duplicates); not sending a reset link'
+            )
 
-        // Detect bots using page load time
-        if (!pltHMAC) return res.status(400).send('Missing HMAC')
-
-        const pageLoadTime = decodeHMAC(pltHMAC)
-        if (isNaN(pageLoadTime)) return res.status(400).send('Invalid HMAC')
-        const timeExpired = Date.now() - pageLoadTime
-        console.log('timeExpired', timeExpired)
-        if (
-            timeExpired < MINIMUM_TIME_ON_PAGE ||
-            timeExpired >= MAXIMUM_TIME_ON_PAGE
-        )
-            return res
-                .status(400)
-                .send('Reset window expired, please reload page and try again')
-
-        // Generate HMAC for confirmation email code
-        const hmac = generateToken(emailAddress.id)
-
-        const passwordResetRequest = PasswordResetRequest.create({
-            user_id: emailAddress.user.id,
-            username: emailAddress.user.username,
-            email_address_id: emailAddress.id,
-            email: emailAddress.email,
-            key: hmac,
-        })
-        if (!passwordResetRequest)
-            return res.status(500).send('Error creating password reset request')
-
+        // Respond identically whether or not the account exists (no
+        // enumeration), before doing the email work so timing does not leak.
         res.status(200).send('success')
 
-        // Send email after response as to not delay it
-        await emailPasswordReset(emailAddress, hmac)
+        if (!emailAddress) return
+
+        const hmac = generateToken(emailAddress.id)
+        try {
+            await PasswordResetRequest.create({
+                user_id: emailAddress.user.id,
+                username: emailAddress.user.username,
+                email_address_id: emailAddress.id,
+                email: emailAddress.email,
+                key: hmac,
+            })
+            await emailPasswordReset(emailAddress, hmac)
+        } catch (error) {
+            logger.error(
+                'reset_password: failed to send reset email:',
+                error.message
+            )
+        }
     })
 )
 
 router.post(
     '/confirm_email',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         const hmac = req.body.hmac
         if (!hmac) return res.status(400).send('Missing HMAC')
 
         // Decode HMAC
-        const key = decodeHMAC(hmac)
+        let key
+        try {
+            key = decodeHMAC(hmac)
+        } catch (error) {
+            logger.debug('HMAC decode failed:', error.message)
+            return res.status(400).send('Invalid HMAC')
+        }
         const emailId = parseInt(key)
         if (isNaN(emailId)) return res.status(400).send('Invalid HMAC')
 
@@ -565,6 +629,7 @@ router.post(
 // To update the file:  curl -s http://localhost:3000/api/users/properties | jq > user-properties.json
 router.get(
     '/users/properties',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         const opts = { attributes: { exclude: ['created_at', 'updated_at'] } }
         const keys = [
@@ -598,6 +663,7 @@ router.get(
 
 router.get(
     '/users/properties/institutions',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         const keyword = req.query.keyword // search term
         const limit = req.query.limit // max number of results or blank for all

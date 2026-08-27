@@ -14,6 +14,7 @@
  */
 
 const bcrypt = require('bcrypt')
+const { readSecret } = require('./readSecret')
 
 /**
  * Generate a bcrypt hash for the given password
@@ -26,39 +27,29 @@ function generatePasswordHash(password) {
 }
 
 /**
- * Main function
+ * Main function. Reads the password from the PASSWORD env var or stdin (never
+ * argv, so it isn't exposed in `ps`/shell history) and never echoes it back.
  */
-function main() {
-    // Check command line arguments
-    if (process.argv.length !== 3) {
-        console.error('Usage: node src/scripts/hash_password.js <password>')
-        console.error('Generates a bcrypt hash for the given password')
-        process.exit(1)
-    }
+async function main() {
+    const password = await readSecret({
+        envVar: 'PASSWORD',
+        prompt: 'Password: ',
+    })
 
-    const password = process.argv[2]
-
-    if (!password || password.trim().length === 0) {
-        console.error('Error: Password cannot be empty')
+    if (!password) {
+        console.error(
+            'Error: no password provided (set PASSWORD or pipe via stdin)'
+        )
         process.exit(1)
     }
 
     try {
         const hash = generatePasswordHash(password)
-        console.log(`Bcrypt hash for '${password}': ${hash}`)
-        console.log('')
-        console.log('Copy this hash to your portal2.json configuration file:')
-        console.log(`"portalConductor": {`)
-        console.log(`  "auth": {`)
-        console.log(`    "username": "admin",`)
-        console.log(`    "password": "${hash}"`)
-        console.log(`  }`)
-        console.log(`}`)
-        console.log('')
-        console.log(
-            'Remember to set the PORTAL_CONDUCTOR_PASSWORD environment variable'
-        )
-        console.log(`to the original password: ${password}`)
+        console.log(hash)
+        console.error('')
+        console.error('Copy this hash to portalConductor.auth.password in your')
+        console.error('portal2.json, and set PORTAL_CONDUCTOR_PASSWORD to the')
+        console.error('original password.')
     } catch (error) {
         console.error(`Error generating hash: ${error.message}`)
         process.exit(1)

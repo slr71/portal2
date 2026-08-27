@@ -13,9 +13,6 @@ function loadHmac(mutate) {
     return loadModule(HMAC_MODULE, writeConfig(config))
 }
 
-/** assert.throws helper for the plain strings hmac.js throws. */
-const throwsValue = expected => err => err === expected
-
 describe('generateHMAC / decodeHMAC', () => {
     const payloads = [
         { name: 'an ASCII string', value: 'hello world' },
@@ -37,44 +34,65 @@ describe('generateHMAC / decodeHMAC', () => {
         assert.equal(decodeHMAC(generateHMAC(42)), '42')
     })
 
-    test('produces hex output', () => {
+    test('produces iv:tag:ciphertext hex output', () => {
         const { generateHMAC } = loadHmac()
-        assert.match(generateHMAC('hello'), /^[0-9a-f]+$/)
+        assert.match(generateHMAC('hello'), /^[0-9a-f]+:[0-9a-f]+:[0-9a-f]*$/)
     })
 
-    test('is deterministic for the same plaintext', () => {
-        // The IV is derived from the key, so identical plaintext encrypts to
-        // identical ciphertext. See the FIXME in src/api/lib/hmac.js.
-        const { generateHMAC } = loadHmac()
-        assert.equal(generateHMAC('hello'), generateHMAC('hello'))
+    test('is non-deterministic (random IV per message)', () => {
+        // The whole point of the fix: identical plaintext must not produce
+        // identical ciphertext, and both must still decode.
+        const { generateHMAC, decodeHMAC } = loadHmac()
+        const a = generateHMAC('hello')
+        const b = generateHMAC('hello')
+        assert.notEqual(a, b)
+        assert.equal(decodeHMAC(a), 'hello')
+        assert.equal(decodeHMAC(b), 'hello')
     })
 
-    test('produces different ciphertext under a different key', () => {
-        const a = loadHmac(c => (c.security.hmacKey = 'key-one'))
-        const first = a.generateHMAC('hello')
-        const b = loadHmac(c => (c.security.hmacKey = 'key-two'))
-        assert.notEqual(b.generateHMAC('hello'), first)
-    })
-
-    test('cannot decode a value encrypted under a different key', () => {
+    test('rejects a value encrypted under a different key', () => {
         const a = loadHmac(c => (c.security.hmacKey = 'key-one'))
         const encrypted = a.generateHMAC('hello')
         const b = loadHmac(c => (c.security.hmacKey = 'key-two'))
-        assert.throws(() => b.decodeHMAC(encrypted))
+        assert.throws(() => b.decodeHMAC(encrypted), /Invalid token/)
     })
 
-    const badInputs = [
-        { name: 'tampered ciphertext', mangle: h => flipHexChar(h) },
-        { name: 'truncated ciphertext', mangle: h => h.slice(0, h.length - 8) },
-        { name: 'non-hex input', mangle: () => 'zzzz' },
+    const tampered = [
+        {
+            name: 'a flipped ciphertext byte',
+            mangle: h => {
+                const p = h.split(':')
+                p[2] = flipHexChar(p[2])
+                return p.join(':')
+            },
+        },
+        {
+            name: 'a flipped auth-tag byte',
+            mangle: h => {
+                const p = h.split(':')
+                p[1] = flipHexChar(p[1])
+                return p.join(':')
+            },
+        },
+        {
+            name: 'a flipped IV byte',
+            mangle: h => {
+                const p = h.split(':')
+                p[0] = flipHexChar(p[0])
+                return p.join(':')
+            },
+        },
+        { name: 'wrong number of parts', mangle: () => 'aa:bb' },
+        { name: 'a short IV', mangle: () => 'aa:' + 'bb'.repeat(16) + ':cc' },
+        { name: 'non-hex input', mangle: () => 'zz:zz:zz' },
         { name: 'an empty string', mangle: () => '' },
     ]
 
-    for (const { name, mangle } of badInputs) {
-        test(`throws on ${name}`, () => {
+    for (const { name, mangle } of tampered) {
+        test(`rejects ${name}`, () => {
             const { generateHMAC, decodeHMAC } = loadHmac()
-            const encrypted = generateHMAC(JSON.stringify({ key: 1 }))
-            assert.throws(() => decodeHMAC(mangle(encrypted)))
+            const encrypted = generateHMAC('a message here')
+            assert.throws(() => decodeHMAC(mangle(encrypted)), /Invalid token/)
         })
     }
 })
@@ -109,46 +127,50 @@ describe('generateToken / decodeToken', () => {
         const token = generateToken(7)
 
         now += THREE_DAYS + 1
-        assert.throws(() => decodeToken(token), throwsValue('Expired HMAC'))
+        assert.throws(() => decodeToken(token), /Expired token/)
     })
 
-    test('rejects a payload that is not an object', () => {
+    // Every malformed/tampered/incomplete payload must collapse to the same
+    // 'Invalid token' error — no distinguishable classes (no padding oracle).
+    test('rejects a tampered token uniformly', () => {
+        const { generateToken, decodeToken } = loadHmac()
+        const token = generateToken(7)
+        const parts = token.split(':')
+        parts[2] = flipHexChar(parts[2])
+        assert.throws(() => decodeToken(parts.join(':')), /Invalid token/)
+    })
+
+    test('rejects a payload with no key', () => {
         const { generateHMAC, decodeToken } = loadHmac()
-        const token = generateHMAC(JSON.stringify(42))
-        assert.throws(() => decodeToken(token), throwsValue('Invalid HMAC (1)'))
+        const token = generateHMAC(JSON.stringify({ expires: 4102444800000 }))
+        assert.throws(() => decodeToken(token), /Invalid token/)
     })
 
-    const incomplete = [
-        { name: 'no key', payload: { expires: 4102444800000 } },
-        { name: 'no expires', payload: { key: 1 } },
-        { name: 'neither field', payload: { other: true } },
-    ]
-
-    for (const { name, payload } of incomplete) {
-        test(`rejects a payload with ${name}`, () => {
-            const { generateHMAC, decodeToken } = loadHmac()
-            const token = generateHMAC(JSON.stringify(payload))
-            assert.throws(
-                () => decodeToken(token),
-                throwsValue('Invalid HMAC (2)')
-            )
-        })
-    }
+    test('rejects a payload with no expires', () => {
+        const { generateHMAC, decodeToken } = loadHmac()
+        const token = generateHMAC(JSON.stringify({ key: 1 }))
+        assert.throws(() => decodeToken(token), /Invalid token/)
+    })
 
     test('rejects a non-numeric expiry', () => {
         const { generateHMAC, decodeToken } = loadHmac()
         const token = generateHMAC(JSON.stringify({ key: 1, expires: 'soon' }))
-        assert.throws(() => decodeToken(token), throwsValue('Invalid HMAC (3)'))
+        assert.throws(() => decodeToken(token), /Invalid token/)
     })
 
-    test('rejects malformed JSON inside a valid ciphertext', () => {
+    test('rejects a valid-auth payload that is not JSON', () => {
         const { generateHMAC, decodeToken } = loadHmac()
         const token = generateHMAC('not json')
-        assert.throws(() => decodeToken(token), SyntaxError)
+        assert.throws(() => decodeToken(token), /Invalid token/)
     })
 })
 
 describe('key derivation', () => {
+    // security.hmacKey is a required config key, so an absent/empty key is
+    // rejected at config validation. hmac ops must surface that config error
+    // rather than a generic token failure or silently-wrong output.
+    const CONFIG_ERROR = /Missing required configuration: security\.hmacKey/
+
     const missing = [
         {
             name: 'security.hmacKey is absent',
@@ -167,12 +189,21 @@ describe('key derivation', () => {
     for (const { name, mutate } of missing) {
         test(`throws when ${name}`, () => {
             const { generateHMAC } = loadHmac(mutate)
-            assert.throws(
-                () => generateHMAC('hello'),
-                throwsValue('Missing HMAC_KEY in config')
-            )
+            assert.throws(() => generateHMAC('hello'), CONFIG_ERROR)
         })
     }
+
+    test('decodeHMAC propagates the missing-key config error', () => {
+        const { decodeHMAC } = loadHmac(c => delete c.security.hmacKey)
+        assert.throws(() => decodeHMAC('aa:bb:cc'), CONFIG_ERROR)
+    })
+
+    test('decodeToken surfaces a missing key as a config error, not Invalid token', () => {
+        // Guards the fix: decodeToken must not mask the config error as a
+        // generic token failure.
+        const { decodeToken } = loadHmac(c => delete c.security.hmacKey)
+        assert.throws(() => decodeToken('aa:bb:cc'), CONFIG_ERROR)
+    })
 })
 
 function flipHexChar(hex) {

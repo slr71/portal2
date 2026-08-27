@@ -148,14 +148,14 @@ describe('configuration accessors', () => {
 
     const sslCases = [
         {
-            name: 'defaults to false when the ssl section is absent',
+            name: 'defaults to true when the ssl section is absent',
             mutate: c => delete c.portalConductor.ssl,
-            expected: false,
+            expected: true,
         },
         {
-            name: 'defaults to false when rejectUnauthorized is absent',
+            name: 'defaults to true when rejectUnauthorized is absent',
             mutate: c => (c.portalConductor.ssl = {}),
-            expected: false,
+            expected: true,
         },
         {
             name: 'preserves an explicit true',
@@ -184,6 +184,35 @@ describe('configuration accessors', () => {
             c => (c.portalConductor.ssl.ca = 'test-ca')
         )
         assert.equal(getPortalConductorSslConfig().ca, 'test-ca')
+    })
+
+    test('getPortalConductorHttpsAgent verifies by default', () => {
+        const { getPortalConductorHttpsAgent } = loadUtils(
+            c => delete c.portalConductor.ssl
+        )
+        assert.equal(
+            getPortalConductorHttpsAgent().options.rejectUnauthorized,
+            true
+        )
+    })
+
+    test('getPortalConductorHttpsAgent honors an explicit opt-out', () => {
+        const { getPortalConductorHttpsAgent } = loadUtils(
+            c => (c.portalConductor.ssl = { rejectUnauthorized: false })
+        )
+        assert.equal(
+            getPortalConductorHttpsAgent().options.rejectUnauthorized,
+            false
+        )
+    })
+
+    test('getPortalConductorHttpsAgent passes a custom CA to the agent', () => {
+        const { getPortalConductorHttpsAgent } = loadUtils(
+            c => (c.portalConductor.ssl = { ca: 'test-ca-pem' })
+        )
+        const agent = getPortalConductorHttpsAgent()
+        assert.equal(agent.options.ca, 'test-ca-pem')
+        assert.equal(agent.options.rejectUnauthorized, true)
     })
 })
 
@@ -462,5 +491,37 @@ describe('validateLdapPassword', () => {
         // password.
         const { utils } = await withConductor(t, { status: 500, body: {} })
         await assert.rejects(() => utils.validateLdapPassword('bob', 'hunter2'))
+    })
+})
+
+describe('conductor path encoding (C3)', () => {
+    test('encodes a username so it cannot traverse the conductor path', async t => {
+        const { server, utils } = await withConductor(t, {
+            status: 200,
+            body: {},
+        })
+        // A username containing slashes/dot-dot must not change the target path.
+        await utils.getUserLdapInfo('../../ldap/admin')
+
+        assert.equal(server.requests.length, 1)
+        assert.equal(
+            server.requests[0].url,
+            '/ldap/users/..%2F..%2Fldap%2Fadmin'
+        )
+        // No segment of the resolved path is a bare traversal token.
+        assert.ok(!server.requests[0].url.split('/').includes('..'))
+    })
+
+    test('encodes an email in a mailing-list member path', async t => {
+        const { server, utils } = await withConductor(t, {
+            status: 200,
+            body: {},
+        })
+        await utils.removeFromMailingList('announce', 'a@b.example')
+
+        assert.equal(
+            server.requests[0].url,
+            '/mailinglists/announce/members/a%40b.example'
+        )
     })
 })

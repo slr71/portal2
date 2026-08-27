@@ -11,7 +11,7 @@ import {
     Button,
     LinearProgress,
 } from '@mui/material'
-import { MainLogo, Wizard, WelcomeAnimation, honeypotId } from '../components'
+import { MainLogo, Wizard, WelcomeAnimation } from '../components'
 import { useAPI } from '../contexts/api'
 import { sortCountries } from '../lib/misc'
 import { makeStyles } from '../styles/tss'
@@ -225,10 +225,10 @@ const ForgotPassword = ({ startTimeHMAC, cancelHandler }) => {
         if (isEmpty(value)) return 'This field is required'
         if (!isEmail(value)) return 'Please enter a valid email address'
 
-        const res = await api.checkEmail(value)
-        if (res && !res.email)
-            return 'Email address not associated with an account'
-
+        // Deliberately do NOT check whether the email maps to an account here:
+        // that would re-introduce the enumeration the reset endpoint now avoids.
+        // The backend sends a link only if an account exists and responds
+        // identically either way.
         return null
     }
 
@@ -403,8 +403,22 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
             if (!newUser || typeof newUser != 'object')
                 setError('An error occurred')
             else if (newUser.password_token) {
-                // Email confirmation not required -- go straight to set-password
-                router.push(`/password?code=${newUser.password_token}`)
+                // Email confirmation not required -- go straight to set-password.
+                // Hand the token to /password via sessionStorage instead of the
+                // URL, which would land in history / referrer / analytics. Only
+                // navigate if the write succeeded, since this branch sends no
+                // set-password email to fall back on.
+                try {
+                    sessionStorage.setItem(
+                        'password_token',
+                        newUser.password_token
+                    )
+                    router.push('/password?setup=1')
+                } catch (e) {
+                    setError(
+                        'Could not continue to set your password. Please try again.'
+                    )
+                }
             } else {
                 setUser(newUser)
                 setSubmitted(true)
@@ -519,7 +533,6 @@ const getForm = ({
                 fields: [
                     {
                         id: firstNameId,
-                        honeypot: true, // tells Wizard to generate a duplicate honey pot field
                         name: 'First Name',
                         type: 'text',
                         required: true,
@@ -527,7 +540,6 @@ const getForm = ({
                     },
                     {
                         id: lastNameId,
-                        honeypot: true, // tells Wizard to generate a duplicate honey pot field
                         name: 'Last Name',
                         type: 'text',
                         required: true,
@@ -652,10 +664,11 @@ const getForm = ({
 
 export async function getServerSideProps() {
     const { generateHMAC } = require('../api/lib/hmac')
+    const { honeypotFieldId } = require('../api/lib/honeypot')
 
     const startTimeHMAC = generateHMAC(Date.now()) // for securing create user and password reset
-    const firstNameId = honeypotId(1)
-    const lastNameId = honeypotId(2)
+    const firstNameId = honeypotFieldId(1)
+    const lastNameId = honeypotFieldId(2)
 
     return {
         props: {

@@ -62,13 +62,29 @@ describe('a valid configuration', () => {
         // No explicit init() call.
         assert.equal(load().getDbConfig().name, baseConfig().db.name)
     })
+
+    test('getCorsConfig defaults to {} when the section is absent', () => {
+        // The base config has no `cors` key; the getter must not return
+        // undefined so callers can read allowedOrigins safely.
+        assert.deepEqual(load().getCorsConfig(), {})
+    })
+
+    test('getCorsConfig returns the cors section when present', () => {
+        const cfg = baseConfig()
+        cfg.cors = { allowedOrigins: ['https://cyverse.org'] }
+        assert.deepEqual(loadConfig(writeConfig(cfg)).getCorsConfig(), cfg.cors)
+    })
 })
 
 describe('isDevelopment', () => {
+    // Development mode is opt-in: only an explicit 'development' enables it, so
+    // an unset or unexpected NODE_ENV fails safe to production.
     const cases = [
-        { nodeEnv: 'production', expected: false },
         { nodeEnv: 'development', expected: true },
-        { nodeEnv: undefined, expected: true },
+        { nodeEnv: 'production', expected: false },
+        { nodeEnv: undefined, expected: false },
+        { nodeEnv: 'staging', expected: false },
+        { nodeEnv: 'test', expected: false },
     ]
 
     for (const { nodeEnv, expected } of cases) {
@@ -124,6 +140,7 @@ describe('required keys', () => {
         'keycloak.client',
         'keycloak.secret',
         'ui.baseUrl',
+        'security.hmacKey',
     ]
 
     for (const key of required) {
@@ -210,6 +227,21 @@ describe('type and format validation', () => {
             name: 'a malformed sentry.dsn',
             mutate: c => (c.sentry.dsn = 'not-a-url'),
             message: /sentry\.dsn must be a valid URL if provided/,
+        },
+        {
+            name: 'a non-numeric honeypot.divisor',
+            mutate: c => (c.honeypot.divisor = '7'),
+            message: /honeypot\.divisor must be a number greater than 2/,
+        },
+        {
+            name: 'a honeypot.divisor of 2 (collides with last_name modulus)',
+            mutate: c => (c.honeypot.divisor = 2),
+            message: /honeypot\.divisor must be a number greater than 2/,
+        },
+        {
+            name: 'a missing honeypot.divisor',
+            mutate: c => delete c.honeypot.divisor,
+            message: /honeypot\.divisor must be a number greater than 2/,
         },
     ]
 

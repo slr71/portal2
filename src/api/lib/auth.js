@@ -6,7 +6,6 @@ const getUserToken = req => {
         req && req.kauth && req.kauth.grant && req.kauth.grant.access_token
             ? req.kauth.grant.access_token
             : null //req?.kauth?.grant?.access_token
-    // console.log('keycloak token:', keycloakToken != null)
     return keycloakToken
 }
 
@@ -36,6 +35,11 @@ const getUser = async (req, _, next) => {
     }
     if (next) next()
 }
+
+// A non-superuser must not act on a superuser account (password resets,
+// permission changes). Superusers may act on any account.
+const canModifyUser = (actor, target) =>
+    !!actor && !!target && (actor.is_superuser || !target.is_superuser)
 
 const isAdmin = req => req && req.user && req.user.is_staff
 
@@ -71,6 +75,7 @@ module.exports = {
     getUserID,
     getUser,
     isAdmin,
+    canModifyUser,
     requireAdmin,
     requireUser,
     requireAuth,

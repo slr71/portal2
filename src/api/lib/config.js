@@ -47,8 +47,11 @@ class ConfigManager {
             const configData = fs.readFileSync(this._configPath, 'utf8')
             const config = JSON.parse(configData)
 
-            // Add computed values
-            config.server.isDevelopment = process.env.NODE_ENV !== 'production'
+            // Development mode is opt-in: only an explicit NODE_ENV=development
+            // enables it. Any other value -- including unset -- is treated as
+            // production so a misconfigured deploy cannot fail open and mount
+            // the test routes or leak stack traces. (`npm run dev` sets it.)
+            config.server.isDevelopment = process.env.NODE_ENV === 'development'
 
             return config
         } catch (error) {
@@ -76,6 +79,7 @@ class ConfigManager {
             ['keycloak.client', this._config.keycloak?.client],
             ['keycloak.secret', this._config.keycloak?.secret],
             ['ui.baseUrl', this._config.ui?.baseUrl],
+            ['security.hmacKey', this._config.security?.hmacKey],
         ]
 
         // Portal conductor password is required if portal conductor config exists
@@ -118,6 +122,16 @@ class ConfigManager {
         // Validate server port is a number
         if (this._config.server?.port && isNaN(this._config.server.port)) {
             errors.push('server.port must be a number')
+        }
+
+        // The honeypot divisor is load-bearing for signup: field ids are
+        // encoded as id % divisor === modulus and decoded the same way, so it
+        // must be a number greater than the largest modulus (2 = last_name) or
+        // encoded ids collide with the honeypot slot (0) and reject real
+        // signups. Fail fast rather than break signups silently.
+        const divisor = this._config.honeypot?.divisor
+        if (typeof divisor !== 'number' || divisor <= 2) {
+            errors.push('honeypot.divisor must be a number greater than 2')
         }
 
         // Validate URLs
@@ -228,6 +242,16 @@ class ConfigManager {
     getUiConfig() {
         this.init()
         return this._config.ui
+    }
+
+    /**
+     * Get CORS configuration. Optional; defaults to an empty object so the
+     * allowlist falls back to the UI origin alone.
+     * @returns {Object} CORS configuration object
+     */
+    getCorsConfig() {
+        this.init()
+        return this._config.cors || {}
     }
 
     /**
