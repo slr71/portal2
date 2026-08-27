@@ -9,6 +9,13 @@ const {
 } = require('./workflows/native/services/utils')
 
 function createAxiosConfig(auth) {
+    // Fail fast with an actionable message rather than sending an unauthed
+    // request that conductor rejects as a generic 401. (Startup config
+    // validation also requires these when the conductor URL is set.)
+    if (!auth || !auth.username || !auth.password)
+        throw new Error(
+            'Portal-conductor credentials not configured in portal2.json (portalConductor.auth.username/password)'
+        )
     return {
         auth,
         timeout: 30000,
