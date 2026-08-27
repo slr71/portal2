@@ -51,7 +51,7 @@ async function userPasswordUpdateWorkflow(user) {
     try {
         const response = await makeRequest(
             'POST',
-            `users/${user.username}/password`,
+            `users/${encodeURIComponent(user.username)}/password`,
             {
                 password: user.password,
             }

@@ -13,6 +13,7 @@ const {
 } = require('./lib/hmac')
 const { asyncHandler } = require('./lib/auth')
 const { encodePassword } = require('./lib/password')
+const { isValidUsername } = require('./lib/validate')
 const config = require('./lib/config')
 const serviceApprovers = require('./approvers/service')
 const {
@@ -134,6 +135,8 @@ router.put(
 
         if (!('username' in fields))
             return res.status(400).send('Missing required field')
+        if (!isValidUsername(fields['username']))
+            return res.status(400).send('Invalid username')
 
         // Check for existing username
         const user = await User.findOne({
