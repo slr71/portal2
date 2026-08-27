@@ -69,3 +69,41 @@ describe('C3: signup rejects invalid usernames', () => {
         assert.equal(res.body, 'Missing required field')
     })
 })
+
+describe('H7: Mailchimp webhook requires the shared key', () => {
+    const post = (router, query, body) =>
+        invokeRoute(router, 'POST', '/mailchimp/unsubscribe', {
+            query,
+            body,
+            params: {},
+        })
+
+    const unsubBody = { type: 'unsubscribe', data: { email: 'u@example.test' } }
+
+    test('rejects a request with no key (401)', async () => {
+        const router = loadPublicRouter(null)
+        const res = await post(router, {}, unsubBody)
+        assert.equal(res.code, 401)
+    })
+
+    test('rejects a request with a wrong key (401)', async () => {
+        const router = loadPublicRouter(null)
+        const res = await post(router, { key: 'wrong' }, unsubBody)
+        assert.equal(res.code, 401)
+    })
+
+    test('accepts the configured key and processes the unsubscribe', async () => {
+        // fixture mailchimp.webhookKey = 'test-webhook-key'
+        const saved = []
+        const user = {
+            subscribe_to_newsletter: true,
+            save: async function () {
+                saved.push(this.subscribe_to_newsletter)
+            },
+        }
+        const router = loadPublicRouter(user)
+        const res = await post(router, { key: 'test-webhook-key' }, unsubBody)
+        assert.equal(res.code, 200)
+        assert.deepEqual(saved, [false]) // unsubscribed
+    })
+})
