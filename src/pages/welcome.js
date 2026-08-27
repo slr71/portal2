@@ -11,7 +11,7 @@ import {
     Button,
     LinearProgress,
 } from '@mui/material'
-import { MainLogo, Wizard, WelcomeAnimation, honeypotId } from '../components'
+import { MainLogo, Wizard, WelcomeAnimation } from '../components'
 import { useAPI } from '../contexts/api'
 import { sortCountries } from '../lib/misc'
 import { makeStyles } from '../styles/tss'
@@ -666,10 +666,11 @@ const getForm = ({
 
 export async function getServerSideProps() {
     const { generateHMAC } = require('../api/lib/hmac')
+    const { honeypotFieldId } = require('../api/lib/honeypot')
 
     const startTimeHMAC = generateHMAC(Date.now()) // for securing create user and password reset
-    const firstNameId = honeypotId(1)
-    const lastNameId = honeypotId(2)
+    const firstNameId = honeypotFieldId(1)
+    const lastNameId = honeypotFieldId(2)
 
     return {
         props: {

@@ -14,7 +14,6 @@ import {
     FormControls,
     FormDialog,
     validateField,
-    honeypotId,
 } from './Form'
 import Section from './Section'
 import ServiceActionButton from './ServiceActionButton'
@@ -49,7 +48,6 @@ export {
     FormControls,
     FormDialog,
     getMenuItem,
-    honeypotId,
     intercomShow,
     Layout,
     MailingListForm,

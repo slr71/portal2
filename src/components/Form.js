@@ -20,7 +20,6 @@ import {
 import Autocomplete from '@mui/material/Autocomplete'
 import { Field, Form, Formik, useFormikContext } from 'formik'
 import debounce from 'just-debounce-it'
-import getConfig from 'next/config'
 import React, { useEffect, useState } from 'react'
 import {
     isAlphanumeric,
@@ -348,12 +347,6 @@ const FormStepper = ({ activeStep, steps }) => {
     )
 }
 
-const honeypotId = modulus => {
-    const config = getConfig().publicRuntimeConfig
-    const divisor = parseInt(config.HONEYPOT_DIVISOR) || 7
-    return (divisor * Math.floor(Math.random() * 1000) + modulus).toString()
-}
-
 const SwitchField = props => (
     <>
         <br />
@@ -525,8 +518,6 @@ const FormField = props => {
         )
     }
 
-    const fakeId = honeypotId(0) // 0 indicates that this is a honeypot field
-
     return (
         // type is 'char' or 'text'
         <>
@@ -633,7 +624,6 @@ export {
     FormDialog,
     FormField,
     FormStepper,
-    honeypotId,
     UpdateForm,
     validateField,
     Wizard,
