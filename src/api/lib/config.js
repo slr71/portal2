@@ -124,6 +124,16 @@ class ConfigManager {
             errors.push('server.port must be a number')
         }
 
+        // The honeypot divisor is load-bearing for signup: field ids are
+        // encoded as id % divisor === modulus and decoded the same way, so it
+        // must be a number greater than the largest modulus (2 = last_name) or
+        // encoded ids collide with the honeypot slot (0) and reject real
+        // signups. Fail fast rather than break signups silently.
+        const divisor = this._config.honeypot?.divisor
+        if (typeof divisor !== 'number' || divisor <= 2) {
+            errors.push('honeypot.divisor must be a number greater than 2')
+        }
+
         // Validate URLs
         const urlFields = [
             ['ui.baseUrl', this._config.ui?.baseUrl],

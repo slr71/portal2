@@ -533,7 +533,6 @@ const getForm = ({
                 fields: [
                     {
                         id: firstNameId,
-                        honeypot: true, // tells Wizard to generate a duplicate honey pot field
                         name: 'First Name',
                         type: 'text',
                         required: true,
@@ -541,7 +540,6 @@ const getForm = ({
                     },
                     {
                         id: lastNameId,
-                        honeypot: true, // tells Wizard to generate a duplicate honey pot field
                         name: 'Last Name',
                         type: 'text',
                         required: true,
