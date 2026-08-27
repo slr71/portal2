@@ -225,10 +225,10 @@ const ForgotPassword = ({ startTimeHMAC, cancelHandler }) => {
         if (isEmpty(value)) return 'This field is required'
         if (!isEmail(value)) return 'Please enter a valid email address'
 
-        const res = await api.checkEmail(value)
-        if (res && !res.email)
-            return 'Email address not associated with an account'
-
+        // Deliberately do NOT check whether the email maps to an account here:
+        // that would re-introduce the enumeration the reset endpoint now avoids.
+        // The backend sends a link only if an account exists and responds
+        // identically either way.
         return null
     }
 
