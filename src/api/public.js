@@ -15,6 +15,7 @@ const { asyncHandler } = require('./lib/auth')
 const { encodePassword } = require('./lib/password')
 const { isValidUsername } = require('./lib/validate')
 const { verifyWebhookKey } = require('./lib/webhookAuth')
+const { pickSignupFields } = require('./lib/signup')
 const config = require('./lib/config')
 const serviceApprovers = require('./approvers/service')
 const {
@@ -230,27 +231,32 @@ router.put(
         })
         if (user2 || emails) return res.status(400).send('Email already in use')
 
-        // Set defaults
-        fields['password'] = ''
-        fields['email'] = fields['email'].toLowerCase()
-        fields['is_superuser'] = false
-        fields['is_staff'] = false
-        fields['is_active'] = true
-        fields['has_verified_email'] = false
-        fields['participate_in_study'] = true
-        fields['subscribe_to_newsletter'] = true
-        fields['orcid_id'] = ''
-        fields['updated_at'] = Date.now()
-
-        // Special case: automatically set "institution" based on for backward compatibility
+        // Special case: automatically set "institution" for backward compatibility
         const institution = await models.account_institution_grid.findByPk(
             fields['grid_institution_id']
         )
-        fields['institution'] = institution.name
+
+        // Build from an allowlist of user-settable columns plus server-controlled
+        // defaults, so columns like id/last_login/date_joined/user_institution_id/
+        // settings cannot be mass-assigned from the request body.
+        const userData = pickSignupFields(fields)
+        Object.assign(userData, {
+            email: fields['email'].toLowerCase(),
+            institution: institution.name,
+            password: '',
+            is_superuser: false,
+            is_staff: false,
+            is_active: true,
+            has_verified_email: false,
+            participate_in_study: true,
+            subscribe_to_newsletter: true,
+            orcid_id: '',
+            updated_at: Date.now(),
+        })
 
         // Create user
-        logger.info('Creating user', fields['username'])
-        let newUser = await User.create(fields)
+        logger.info('Creating user', userData['username'])
+        let newUser = await User.create(userData)
         if (!newUser) return res.status(500).send('Error creating user')
 
         // Create primary email address
