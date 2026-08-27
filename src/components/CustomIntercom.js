@@ -91,6 +91,9 @@ function CustomIntercom() {
             app_id: config.INTERCOM_APP_ID,
             email: user.email,
             user_id: user.username,
+            // Identity Verification: HMAC computed server-side (in /users/mine).
+            // Undefined when no secret is configured, leaving boot unverified.
+            user_hash: user.intercom_user_hash,
             created_at: Date.now(),
             company: {
                 id: config.INTERCOM_COMPANY_ID,

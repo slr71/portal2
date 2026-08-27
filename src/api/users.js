@@ -10,6 +10,7 @@ const {
 } = require('./lib/auth')
 const config = require('./lib/config')
 const { isValidPermission, isValidUserScope } = require('./lib/validate')
+const { intercomUserHash } = require('./lib/intercomHash')
 const { generateToken } = require('./lib/hmac')
 const { emailPasswordReset } = require('./lib/email')
 const { encodePassword } = require('./lib/password')
@@ -108,7 +109,15 @@ router.get(
 
 // Get current user based on token
 router.get('/mine', requireUser, (req, res) => {
-    res.status(200).json(req.user)
+    // Attach the Intercom identity-verification hash (computed here so the
+    // secret stays server-side); omitted when no secret is configured.
+    const user = { ...req.user }
+    const hash = intercomUserHash(
+        user.username,
+        config.getIntercomConfig()?.identitySecret
+    )
+    if (hash) user.intercom_user_hash = hash
+    res.status(200).json(user)
 })
 
 // Get restricted usernames (MUST come before /:usernameOrId route)
