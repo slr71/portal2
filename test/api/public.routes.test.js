@@ -107,3 +107,75 @@ describe('H7: Mailchimp webhook requires the shared key', () => {
         assert.deepEqual(saved, [false]) // unsubscribed
     })
 })
+
+describe('M5: reset_password does not reveal whether an account exists', () => {
+    let emailSent
+    function loadForReset(matches) {
+        emailSent = false
+        return loadRoute(R('public.js'), {
+            [R('lib/logging.js')]: { logger: silentLogger },
+            [R('lib/email.js')]: {
+                emailNewAccountConfirmation: noop,
+                emailNewEmailConfirmation: noop,
+                emailPasswordReset: async () => {
+                    emailSent = true
+                },
+            },
+            [R('lib/hmac.js')]: {
+                decodeHMAC: () => Date.now() - 10000, // valid, within window
+                generateHMAC: noop,
+                generateToken: () => 'RESET-TOKEN',
+                decodeToken: noop,
+            },
+            [R('lib/password.js')]: { encodePassword: noop },
+            [R('approvers/service.js')]: {
+                approveRequest: noop,
+                grantRequest: noop,
+            },
+            [R('workflows/native/user.js')]: {
+                userCreationWorkflow: noop,
+                userPasswordUpdateWorkflow: noop,
+            },
+            [R('models/index.js')]: {
+                account_emailaddress: { findAll: async () => matches },
+                account_passwordresetrequest: { create: async () => ({}) },
+            },
+        })
+    }
+
+    const post = router =>
+        invokeRoute(router, 'POST', '/users/reset_password', {
+            body: { email: 'user@example.test', hmac: 'plt' },
+            query: {},
+            params: {},
+        })
+
+    test('an unknown email returns 200 success and sends no email', async () => {
+        const res = await post(loadForReset([]))
+        assert.equal(res.code, 200)
+        assert.equal(res.body, 'success')
+        assert.equal(emailSent, false)
+    })
+
+    test('a known email returns the same 200 success and sends the email', async () => {
+        const match = {
+            email: 'user@example.test',
+            user: { id: 1, username: 'bob' },
+        }
+        const res = await post(loadForReset([match]))
+        assert.equal(res.code, 200)
+        assert.equal(res.body, 'success')
+        assert.equal(emailSent, true)
+    })
+
+    test('the response is byte-identical for known vs unknown (no enumeration)', async () => {
+        const unknown = await post(loadForReset([]))
+        const known = await post(
+            loadForReset([
+                { email: 'user@example.test', user: { id: 1, username: 'b' } },
+            ])
+        )
+        assert.equal(unknown.code, known.code)
+        assert.equal(unknown.body, known.body)
+    })
+})

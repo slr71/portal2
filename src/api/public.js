@@ -470,36 +470,10 @@ router.post(
 
         if (!email) return res.status(400).send('Missing email')
 
-        // Signup lowercases before storing, but the column is a plain varchar
-        // with no normalizing hook and the data predates this app, so match
-        // case-insensitively on both sides. The column has to be qualified:
-        // include: ['user'] joins account_user, which also has an email column.
-        const matches = await EmailAddress.findAll({
-            where: lowerEqualTo('account_emailaddress.email', email),
-            include: ['user'],
-        })
-        if (!matches.length)
-            return res
-                .status(404)
-                .send('Email address not associated with an account')
-
-        // The unique constraint is case-sensitive, so addresses differing only
-        // in case can belong to different users. Prefer the exact match rather
-        // than mailing a reset link for whichever row happened to come back.
-        let emailAddress = matches.find(match => match.email === email)
-        if (!emailAddress) {
-            if (matches.length > 1)
-                return res
-                    .status(409)
-                    .send(
-                        'Multiple accounts use that email address, please contact support'
-                    )
-            emailAddress = matches[0]
-        }
-
-        // Detect bots using page load time
+        // Anti-bot page-load check first, so it applies before -- and uniformly
+        // with -- the account lookup, which must not reveal whether the email
+        // belongs to an account.
         if (!pltHMAC) return res.status(400).send('Missing HMAC')
-
         let pageLoadTime
         try {
             pageLoadTime = decodeHMAC(pltHMAC)
@@ -509,7 +483,6 @@ router.post(
         }
         if (isNaN(pageLoadTime)) return res.status(400).send('Invalid HMAC')
         const timeExpired = Date.now() - pageLoadTime
-        console.log('timeExpired', timeExpired)
         if (
             timeExpired < MINIMUM_TIME_ON_PAGE ||
             timeExpired >= MAXIMUM_TIME_ON_PAGE
@@ -518,23 +491,46 @@ router.post(
                 .status(400)
                 .send('Reset window expired, please reload page and try again')
 
-        // Generate HMAC for confirmation email code
-        const hmac = generateToken(emailAddress.id)
-
-        const passwordResetRequest = PasswordResetRequest.create({
-            user_id: emailAddress.user.id,
-            username: emailAddress.user.username,
-            email_address_id: emailAddress.id,
-            email: emailAddress.email,
-            key: hmac,
+        // Signup lowercases before storing, but the column is a plain varchar
+        // with no normalizing hook and the data predates this app, so match
+        // case-insensitively on both sides. The column has to be qualified:
+        // include: ['user'] joins account_user, which also has an email column.
+        const matches = await EmailAddress.findAll({
+            where: lowerEqualTo('account_emailaddress.email', email),
+            include: ['user'],
         })
-        if (!passwordResetRequest)
-            return res.status(500).send('Error creating password reset request')
 
+        // The unique constraint is case-sensitive, so addresses differing only
+        // in case can belong to different users; prefer the exact match.
+        let emailAddress = matches.find(match => match.email === email)
+        if (!emailAddress && matches.length === 1) emailAddress = matches[0]
+        if (!emailAddress && matches.length > 1)
+            logger.warn(
+                'reset_password: multiple accounts match an email (case-variant duplicates); not sending a reset link'
+            )
+
+        // Respond identically whether or not the account exists (no
+        // enumeration), before doing the email work so timing does not leak.
         res.status(200).send('success')
 
-        // Send email after response as to not delay it
-        await emailPasswordReset(emailAddress, hmac)
+        if (!emailAddress) return
+
+        const hmac = generateToken(emailAddress.id)
+        try {
+            await PasswordResetRequest.create({
+                user_id: emailAddress.user.id,
+                username: emailAddress.user.username,
+                email_address_id: emailAddress.id,
+                email: emailAddress.email,
+                key: hmac,
+            })
+            await emailPasswordReset(emailAddress, hmac)
+        } catch (error) {
+            logger.error(
+                'reset_password: failed to send reset email:',
+                error.message
+            )
+        }
     })
 )
 
