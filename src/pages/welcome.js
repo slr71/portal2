@@ -403,8 +403,18 @@ const SignUp = ({ startTimeHMAC, firstNameId, lastNameId }) => {
             if (!newUser || typeof newUser != 'object')
                 setError('An error occurred')
             else if (newUser.password_token) {
-                // Email confirmation not required -- go straight to set-password
-                router.push(`/password?code=${newUser.password_token}`)
+                // Email confirmation not required -- go straight to set-password.
+                // Hand the token to /password via sessionStorage instead of the
+                // URL, which would land in history / referrer / analytics.
+                try {
+                    sessionStorage.setItem(
+                        'password_token',
+                        newUser.password_token
+                    )
+                } catch (e) {
+                    // sessionStorage unavailable; user can still use the emailed link
+                }
+                router.push('/password?setup=1')
             } else {
                 setUser(newUser)
                 setSubmitted(true)
