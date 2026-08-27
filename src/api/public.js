@@ -36,15 +36,27 @@ const EmailAddressToMailingList = models.api_emailaddressmailinglist
 const MailingList = models.api_mailinglist
 
 // Rate-limit the public (unauthenticated) endpoints to blunt token-oracle and
-// enumeration abuse; the health check is exempt so probes aren't throttled.
+// enumeration abuse. The health check is exempt so probes aren't throttled, and
+// /exists (the availability typeahead) gets its own, more generous bucket: the
+// signup form validates it per keystroke, so lumping it with the sensitive
+// endpoints could let a single user's typing exhaust the shared budget and 429
+// the actual signup. A 429 on /exists only degrades the availability hint --
+// the signup POST re-checks uniqueness server-side regardless.
 const publicLimiter = createRateLimiter({
     windowMs: 60 * 1000,
     max: 100,
     cleanupIntervalMs: 5 * 60 * 1000,
 })
-router.use((req, res, next) =>
-    req.path === '/ready' ? next() : publicLimiter(req, res, next)
-)
+const existsLimiter = createRateLimiter({
+    windowMs: 60 * 1000,
+    max: 300,
+    cleanupIntervalMs: 5 * 60 * 1000,
+})
+router.use((req, res, next) => {
+    if (req.path === '/ready') return next()
+    if (req.path === '/exists') return existsLimiter(req, res, next)
+    return publicLimiter(req, res, next)
+})
 
 // Health/readiness check endpoint
 router.get('/ready', (req, res) => {
