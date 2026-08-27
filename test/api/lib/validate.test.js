@@ -5,6 +5,8 @@ const {
     isValidUsername,
     isValidPermission,
     PERMISSIONS,
+    isValidUserScope,
+    USER_SCOPES,
 } = require('../../../src/api/lib/validate')
 
 describe('isValidUsername', () => {
@@ -68,6 +70,28 @@ describe('isValidPermission', () => {
     for (const { name, v } of invalid) {
         test(`rejects ${name}`, () => {
             assert.equal(isValidPermission(v), false)
+        })
+    }
+})
+
+describe('isValidUserScope', () => {
+    for (const s of USER_SCOPES) {
+        test(`accepts ${JSON.stringify(s)}`, () => {
+            assert.equal(isValidUserScope(s), true)
+        })
+    }
+
+    const invalid = [
+        { name: 'empty', v: '' },
+        { name: 'undefined', v: undefined },
+        { name: 'unknown scope', v: 'withPassword' },
+        { name: 'an ORM method name', v: 'findAll' },
+        { name: 'wrong case', v: 'DefaultScope' },
+        { name: 'an array', v: ['defaultScope', 'evil'] },
+    ]
+    for (const { name, v } of invalid) {
+        test(`rejects ${name}`, () => {
+            assert.equal(isValidUserScope(v), false)
         })
     }
 })

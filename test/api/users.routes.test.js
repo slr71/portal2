@@ -10,6 +10,7 @@ const silentLogger = { debug: noop, info: noop, warn: noop, error: noop }
 
 // Controlled by each test.
 let targetUser = null
+let appliedScope = null
 
 function loadUsersRouter() {
     return loadRoute(R('users.js'), {
@@ -18,6 +19,12 @@ function loadUsersRouter() {
             account_user: {
                 findByPk: async () => targetUser,
                 unscoped: () => ({ findByPk: async () => targetUser }),
+                // Records the scope name the handler applied, so a test can
+                // assert the allowlisted value reached User.scope().
+                scope(name) {
+                    appliedScope = name
+                    return { findOne: async () => targetUser }
+                },
             },
             account_emailaddress: {
                 findOne: async () => ({ id: 9, email: 'm@example.test' }),
@@ -59,6 +66,7 @@ const reqAs = (user, params, body) => ({
 
 beforeEach(() => {
     targetUser = null
+    appliedScope = null
 })
 
 describe('C2: staff cannot reset a superuser', () => {
@@ -184,5 +192,50 @@ describe('M6: permission enum validation', () => {
         const res = await permit({ permission: 'superuser' }, SUPERUSER)
         assert.equal(res.code, 200)
         assert.equal(targetUser.is_superuser, true)
+    })
+})
+
+describe('M8: user-lookup scope allowlist', () => {
+    const lookup = scope =>
+        invokeRoute(loadUsersRouter(), 'GET', '/:usernameOrId(\\w+)', {
+            user: STAFF,
+            params: { usernameOrId: 'bob' },
+            query: scope === undefined ? {} : { scope },
+        })
+
+    const rejected = [
+        { name: 'an unknown scope', scope: 'withPassword' },
+        { name: 'an internal method name', scope: 'findAll' },
+        { name: 'a repeated param (array)', scope: ['defaultScope', 'evil'] },
+    ]
+    for (const { name, scope } of rejected) {
+        test(`rejects ${name} with 400 and never touches the DB`, async () => {
+            targetUser = MEMBER
+            const res = await lookup(scope)
+            assert.equal(res.code, 400)
+            assert.equal(res.body, 'Invalid scope')
+            assert.equal(appliedScope, null) // User.scope() never called
+        })
+    }
+
+    // A missing or empty scope is falsy, so `|| 'defaultScope'` coerces both to
+    // the safe default rather than rejecting.
+    for (const { name, scope } of [
+        { name: 'no scope is supplied', scope: undefined },
+        { name: 'the empty string is supplied', scope: '' },
+    ]) {
+        test(`defaults to defaultScope when ${name}`, async () => {
+            targetUser = MEMBER
+            const res = await lookup(scope)
+            assert.equal(res.code, 200)
+            assert.equal(appliedScope, 'defaultScope')
+        })
+    }
+
+    test("accepts the allowlisted 'profile' scope", async () => {
+        targetUser = MEMBER
+        const res = await lookup('profile')
+        assert.equal(res.code, 200)
+        assert.equal(appliedScope, 'profile')
     })
 })
