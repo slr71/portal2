@@ -33,12 +33,7 @@ const EmailAddress = models.account_emailaddress
 const Workshop = models.api_workshop
 const WorkshopOrganizer = models.api_workshoporganizer
 const { UI_ACCOUNT_REVIEW_URL } = require('../constants/server')
-
-//TODO move into module
-const likeAny = (key, vals) =>
-    sequelize.where(sequelize.fn('lower', sequelize.col(key)), {
-        [sequelize.Op.like]: { [sequelize.Op.any]: vals.map(k => `%${k}%`) },
-    })
+const { likeAny, parsePagination } = require('./lib/query')
 
 // Get/search all users (STAFF AND WORKSHOP ORGANIZER ONLY)
 router.get(
@@ -59,8 +54,7 @@ router.get(
             if (!isOrganizer) return res.status(403).send('Permission denied')
         }
 
-        const offset = req.query.offset
-        const limit = req.query.limit || 10
+        const { limit, offset } = parsePagination(req.query)
         const keyword = req.query.keyword
         const keywords =
             keyword &&
@@ -695,9 +689,11 @@ router.post(
             logger.error(
                 `Admin password reset failed for ${user.username}: ${error.message}`
             )
+            // The detailed error (incl. any conductor detail) is logged above;
+            // the client gets a generic message.
             res.status(500).json({
                 success: false,
-                message: `Password reset failed: ${error.message}`,
+                message: 'Password reset failed',
             })
         }
     })
