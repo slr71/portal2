@@ -153,7 +153,7 @@ router.post(
             result.email = !!emailAddress
         }
 
-        console.log(result)
+        logger.debug('existence check result:', result)
 
         res.status(200).json(result)
     })

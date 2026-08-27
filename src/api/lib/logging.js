@@ -3,9 +3,19 @@ const { combine, timestamp, label, printf, colorize } = format
 const expressWinston = require('express-winston')
 const { getUserID } = require('./auth')
 
-//TODO move to config file
-const logLevel = 'debug'
-const logLabel = process.env.NODE_ENV === 'production' ? 'PROD' : 'DEV'
+// Log level is opt-in verbose: LOG_LEVEL wins if set, otherwise only an
+// explicit NODE_ENV=development gets 'debug'; everything else (production, or
+// an unset/unexpected value) defaults to 'info' so production isn't verbose.
+function resolveLogLevel(env = process.env) {
+    return env.LOG_LEVEL || (env.NODE_ENV === 'development' ? 'debug' : 'info')
+}
+
+function resolveLogLabel(env = process.env) {
+    return env.NODE_ENV === 'development' ? 'DEV' : 'PROD'
+}
+
+const logLevel = resolveLogLevel()
+const logLabel = resolveLogLabel()
 
 const formatMeta = meta => {
     const splat = meta[Symbol.for('splat')]
@@ -68,4 +78,10 @@ const errorLogger = expressWinston.errorLogger({
     ),
 })
 
-module.exports = { logger, requestLogger, errorLogger }
+module.exports = {
+    logger,
+    requestLogger,
+    errorLogger,
+    resolveLogLevel,
+    resolveLogLabel,
+}

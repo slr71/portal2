@@ -22,6 +22,9 @@ validateStartupConfiguration()
 // Get database configuration
 const dbConfig = config.getDbConfig()
 
+// Uses console rather than the winston logger on purpose: the logger's module
+// depends on this one (logging -> auth -> models), so requiring it here would
+// create a circular import. No secrets are logged (password is omitted).
 console.log(
     'Connecting to db:',
     dbConfig.host,

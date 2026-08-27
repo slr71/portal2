@@ -205,7 +205,7 @@ async function createViceAccessRequest(request) {
         request.user,
         usage
     )
-    console.log(resp)
+    logger.debug('VICE access request submitted to Terrain:', resp)
 }
 
 async function sendVICESignupMessage(request, responseMessage) {
