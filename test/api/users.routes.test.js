@@ -16,6 +16,7 @@ function loadUsersRouter() {
         [R('lib/logging.js')]: { logger: silentLogger },
         [R('models/index.js')]: {
             account_user: {
+                findByPk: async () => targetUser,
                 unscoped: () => ({ findByPk: async () => targetUser }),
             },
             account_emailaddress: {
@@ -110,5 +111,78 @@ describe('C2: staff cannot reset a superuser', () => {
             reqAs(STAFF, { id: '999' })
         )
         assert.equal(res.code, 404)
+    })
+})
+
+describe('M6: permission enum validation', () => {
+    // A mutable member with save/reload spies, so a test can see whether the
+    // handler wrote the flags or rejected before touching the record.
+    function member() {
+        const u = {
+            id: 7,
+            username: 'bob',
+            is_staff: false,
+            is_superuser: false,
+            saved: false,
+        }
+        u.save = async () => {
+            u.saved = true
+        }
+        u.reload = async () => {}
+        return u
+    }
+
+    const permit = (body, actor) =>
+        invokeRoute(
+            loadUsersRouter(),
+            'POST',
+            '/:id(\\d+)/permission',
+            reqAs(actor || SUPERUSER, { id: '7' }, body)
+        )
+
+    const invalid = [
+        { name: 'missing permission', body: {} },
+        { name: 'empty string', body: { permission: '' } },
+        { name: 'unknown value', body: { permission: 'admin' } },
+        { name: 'misspelled staff', body: { permission: 'staf' } },
+        { name: 'null', body: { permission: null } },
+        { name: 'non-string', body: { permission: 1 } },
+    ]
+    for (const { name, body } of invalid) {
+        test(`rejects ${name} with 400 and does not mutate`, async () => {
+            targetUser = member()
+            const res = await permit(body)
+            assert.equal(res.code, 400)
+            assert.equal(res.body, 'Invalid permission')
+            // No lookup/save should have run: an invalid value must not demote.
+            assert.equal(targetUser.saved, false)
+            assert.equal(targetUser.is_staff, false)
+            assert.equal(targetUser.is_superuser, false)
+        })
+    }
+
+    test("'regular' clears both flags", async () => {
+        targetUser = member()
+        targetUser.is_staff = true
+        const res = await permit({ permission: 'regular' })
+        assert.equal(res.code, 200)
+        assert.equal(targetUser.is_staff, false)
+        assert.equal(targetUser.is_superuser, false)
+        assert.equal(targetUser.saved, true)
+    })
+
+    test("'staff' sets only is_staff", async () => {
+        targetUser = member()
+        const res = await permit({ permission: 'staff' })
+        assert.equal(res.code, 200)
+        assert.equal(targetUser.is_staff, true)
+        assert.equal(targetUser.is_superuser, false)
+    })
+
+    test("'superuser' sets is_superuser (granted by a superuser)", async () => {
+        targetUser = member()
+        const res = await permit({ permission: 'superuser' }, SUPERUSER)
+        assert.equal(res.code, 200)
+        assert.equal(targetUser.is_superuser, true)
     })
 })

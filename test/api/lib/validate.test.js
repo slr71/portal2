@@ -1,7 +1,11 @@
 const { describe, test } = require('node:test')
 const assert = require('node:assert/strict')
 
-const { isValidUsername } = require('../../../src/api/lib/validate')
+const {
+    isValidUsername,
+    isValidPermission,
+    PERMISSIONS,
+} = require('../../../src/api/lib/validate')
 
 describe('isValidUsername', () => {
     const valid = [
@@ -41,6 +45,29 @@ describe('isValidUsername', () => {
     for (const { name, v } of invalid) {
         test(`rejects ${name}`, () => {
             assert.equal(isValidUsername(v), false)
+        })
+    }
+})
+
+describe('isValidPermission', () => {
+    for (const p of PERMISSIONS) {
+        test(`accepts ${JSON.stringify(p)}`, () => {
+            assert.equal(isValidPermission(p), true)
+        })
+    }
+
+    const invalid = [
+        { name: 'empty', v: '' },
+        { name: 'undefined', v: undefined },
+        { name: 'null', v: null },
+        { name: 'unknown value', v: 'admin' },
+        { name: 'misspelled', v: 'staf' },
+        { name: 'wrong case', v: 'Staff' },
+        { name: 'non-string', v: 1 },
+    ]
+    for (const { name, v } of invalid) {
+        test(`rejects ${name}`, () => {
+            assert.equal(isValidPermission(v), false)
         })
     }
 })
