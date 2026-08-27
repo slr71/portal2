@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const config = require('./config')
 const { logger } = require('./logging')
+const { renderTemplate } = require('./emailTemplate')
 const { makeRequest } = require('../workflows/native/services/utils')
 const {
     UI_WORKSHOPS_URL,
@@ -90,11 +91,10 @@ function renderEmail({ to, bcc, subject, templateName, fields, message }) {
                 `${templateName}.${ext}`
             )
             if (fs.existsSync(templatePath)) {
-                body[ext] = fs.readFileSync(templatePath, 'utf8').toString()
-                for (f in fields) {
-                    const regex = new RegExp('\\$\\{' + f + '\\}', 'gi')
-                    body[ext] = body[ext].replace(regex, fields[f])
-                }
+                const template = fs
+                    .readFileSync(templatePath, 'utf8')
+                    .toString()
+                body[ext] = renderTemplate(template, fields, ext === 'html')
                 if (!body[ext]) throw 'Empty email template'
                 break // only load txt template if html template doesn't exist
             }
