@@ -10,6 +10,10 @@ const { logger, requestLogger, errorLogger } = require('./api/lib/logging')
 const { WS_CONNECTED } = require('./constants/client')
 const { getUserID, getUserToken, requireAuth } = require('./api/lib/auth')
 const { securityHeaders } = require('./api/lib/securityHeaders')
+const {
+    regenerateSessionOnLogin,
+    installLogoutSessionDestroy,
+} = require('./api/lib/sessionSecurity')
 const PortalAPI = require('./lib/apiClient')
 const ws = require('ws')
 const config = require('./api/lib/config')
@@ -131,6 +135,10 @@ app.prepare()
 
         // Configure Keycloak
         server.use(keycloakClient.middleware({ logout: '/logout' }))
+
+        // Rotate the session ID after login; destroy it on logout (fixation)
+        installLogoutSessionDestroy(keycloakClient)
+        server.use(regenerateSessionOnLogin)
 
         // Setup API client for use by getServerSideProps() - MOVED HERE to ensure it runs for all requests
         server.use(async (req, _, next) => {
