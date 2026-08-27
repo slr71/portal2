@@ -228,6 +228,21 @@ describe('type and format validation', () => {
             mutate: c => (c.sentry.dsn = 'not-a-url'),
             message: /sentry\.dsn must be a valid URL if provided/,
         },
+        {
+            name: 'a non-numeric honeypot.divisor',
+            mutate: c => (c.honeypot.divisor = '7'),
+            message: /honeypot\.divisor must be a number greater than 2/,
+        },
+        {
+            name: 'a honeypot.divisor of 2 (collides with last_name modulus)',
+            mutate: c => (c.honeypot.divisor = 2),
+            message: /honeypot\.divisor must be a number greater than 2/,
+        },
+        {
+            name: 'a missing honeypot.divisor',
+            mutate: c => delete c.honeypot.divisor,
+            message: /honeypot\.divisor must be a number greater than 2/,
+        },
     ]
 
     for (const { name, mutate, message } of invalid) {

@@ -47,8 +47,7 @@ const publicRuntimeConfig = {
   INTERCOM_ENABLED: getConfigValue('features.intercomEnabled'),
   INTERCOM_APP_ID: getConfigValue('intercom.appId'),
   INTERCOM_COMPANY_ID: getConfigValue('intercom.companyId'),
-  TERRAIN_URL: getConfigValue('terrain.url'),
-  HONEYPOT_DIVISOR: getConfigValue('honeypot.divisor')
+  TERRAIN_URL: getConfigValue('terrain.url')
 }
 
 // Verify required configuration
