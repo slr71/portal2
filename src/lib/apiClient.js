@@ -17,8 +17,11 @@ class PortalAPI {
     request(options) {
         if (!options.headers) options.headers = {}
         options.headers['Content-Type'] = 'application/json'
+        // Server-side callers (getServerSideProps) still pass a token; the
+        // browser has none and authenticates via the same-origin session cookie.
         if (this.token)
             options.headers['Authorization'] = `Bearer ${this.token}`
+        else options.withCredentials = true
 
         options.timeout = 30 * 1000
 

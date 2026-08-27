@@ -18,9 +18,8 @@ function useAPI() {
 // }
 
 function APIProvider(props) {
-    const [token] = React.useState(props.token)
     const [baseUrl] = React.useState(props.baseUrl)
-    return <APIContext.Provider value={{ token, baseUrl }} {...props} />
+    return <APIContext.Provider value={{ baseUrl }} {...props} />
 }
 
 export { APIProvider, useAPI }
