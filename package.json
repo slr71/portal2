@@ -4,7 +4,7 @@
     "description": "",
     "main": "src/server.js",
     "scripts": {
-        "dev": "nodemon src/server.js",
+        "dev": "NODE_ENV=development nodemon src/server.js",
         "test": "CONFIG_PATH=test/fixtures/portal2.test.json node --test --test-reporter=spec $(find test -name '*.test.js')",
         "test:watch": "CONFIG_PATH=test/fixtures/portal2.test.json node --test --watch --test-reporter=spec $(find test -name '*.test.js')",
         "build": "next build",

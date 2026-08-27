@@ -166,6 +166,11 @@ describe('generateToken / decodeToken', () => {
 })
 
 describe('key derivation', () => {
+    // security.hmacKey is a required config key, so an absent/empty key is
+    // rejected at config validation. hmac ops must surface that config error
+    // rather than a generic token failure or silently-wrong output.
+    const CONFIG_ERROR = /Missing required configuration: security\.hmacKey/
+
     const missing = [
         {
             name: 'security.hmacKey is absent',
@@ -184,29 +189,20 @@ describe('key derivation', () => {
     for (const { name, mutate } of missing) {
         test(`throws when ${name}`, () => {
             const { generateHMAC } = loadHmac(mutate)
-            assert.throws(
-                () => generateHMAC('hello'),
-                /Missing HMAC_KEY in config/
-            )
+            assert.throws(() => generateHMAC('hello'), CONFIG_ERROR)
         })
     }
 
-    test('decodeHMAC propagates a missing-key config error', () => {
+    test('decodeHMAC propagates the missing-key config error', () => {
         const { decodeHMAC } = loadHmac(c => delete c.security.hmacKey)
-        assert.throws(
-            () => decodeHMAC('aa:bb:cc'),
-            /Missing HMAC_KEY in config/
-        )
+        assert.throws(() => decodeHMAC('aa:bb:cc'), CONFIG_ERROR)
     })
 
     test('decodeToken surfaces a missing key as a config error, not Invalid token', () => {
         // Guards the fix: decodeToken must not mask the config error as a
         // generic token failure.
         const { decodeToken } = loadHmac(c => delete c.security.hmacKey)
-        assert.throws(
-            () => decodeToken('aa:bb:cc'),
-            /Missing HMAC_KEY in config/
-        )
+        assert.throws(() => decodeToken('aa:bb:cc'), CONFIG_ERROR)
     })
 })
 

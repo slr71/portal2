@@ -77,10 +77,14 @@ describe('a valid configuration', () => {
 })
 
 describe('isDevelopment', () => {
+    // Development mode is opt-in: only an explicit 'development' enables it, so
+    // an unset or unexpected NODE_ENV fails safe to production.
     const cases = [
-        { nodeEnv: 'production', expected: false },
         { nodeEnv: 'development', expected: true },
-        { nodeEnv: undefined, expected: true },
+        { nodeEnv: 'production', expected: false },
+        { nodeEnv: undefined, expected: false },
+        { nodeEnv: 'staging', expected: false },
+        { nodeEnv: 'test', expected: false },
     ]
 
     for (const { nodeEnv, expected } of cases) {
@@ -136,6 +140,7 @@ describe('required keys', () => {
         'keycloak.client',
         'keycloak.secret',
         'ui.baseUrl',
+        'security.hmacKey',
     ]
 
     for (const key of required) {
