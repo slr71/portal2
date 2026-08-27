@@ -62,6 +62,7 @@
   "intercom": {
     "appId": "your-intercom-app-id",
     "token": "your-intercom-token",
+    "identitySecret": "your-intercom-identity-verification-secret",
     "companyId": "your-intercom-company-id",
     "adminUserPortalBotId": "your-admin-user-portal-bot-id",
     "adminTier1AtmosphereId": "your-admin-tier1-atmosphere-id",

@@ -33,6 +33,9 @@ function loadUsersRouter() {
             account_passwordresetrequest: { create: () => ({ id: 1 }) },
         },
         [R('lib/hmac.js')]: { generateToken: () => 'RESET-TOKEN' },
+        [R('lib/intercomHash.js')]: {
+            intercomUserHash: () => 'INTERCOM-HASH',
+        },
         [R('lib/email.js')]: { emailPasswordReset: async () => {} },
         [R('lib/password.js')]: { encodePassword: s => 'enc:' + s },
         [R('workflows/native/lib.js')]: { ldapModify: async () => {} },
@@ -194,6 +197,20 @@ describe('M6: permission enum validation', () => {
         const res = await permit({ permission: 'superuser' }, SUPERUSER)
         assert.equal(res.code, 200)
         assert.equal(targetUser.is_superuser, true)
+    })
+})
+
+describe('L11: /mine carries the intercom_user_hash', () => {
+    test('attaches the server-computed hash to the user payload', async () => {
+        const res = await invokeRoute(loadUsersRouter(), 'GET', '/mine', {
+            user: MEMBER,
+            params: {},
+            body: {},
+            query: {},
+        })
+        assert.equal(res.code, 200)
+        assert.equal(res.body.username, 'bob')
+        assert.equal(res.body.intercom_user_hash, 'INTERCOM-HASH')
     })
 })
 
