@@ -148,14 +148,14 @@ describe('configuration accessors', () => {
 
     const sslCases = [
         {
-            name: 'defaults to false when the ssl section is absent',
+            name: 'defaults to true when the ssl section is absent',
             mutate: c => delete c.portalConductor.ssl,
-            expected: false,
+            expected: true,
         },
         {
-            name: 'defaults to false when rejectUnauthorized is absent',
+            name: 'defaults to true when rejectUnauthorized is absent',
             mutate: c => (c.portalConductor.ssl = {}),
-            expected: false,
+            expected: true,
         },
         {
             name: 'preserves an explicit true',
@@ -184,6 +184,35 @@ describe('configuration accessors', () => {
             c => (c.portalConductor.ssl.ca = 'test-ca')
         )
         assert.equal(getPortalConductorSslConfig().ca, 'test-ca')
+    })
+
+    test('getPortalConductorHttpsAgent verifies by default', () => {
+        const { getPortalConductorHttpsAgent } = loadUtils(
+            c => delete c.portalConductor.ssl
+        )
+        assert.equal(
+            getPortalConductorHttpsAgent().options.rejectUnauthorized,
+            true
+        )
+    })
+
+    test('getPortalConductorHttpsAgent honors an explicit opt-out', () => {
+        const { getPortalConductorHttpsAgent } = loadUtils(
+            c => (c.portalConductor.ssl = { rejectUnauthorized: false })
+        )
+        assert.equal(
+            getPortalConductorHttpsAgent().options.rejectUnauthorized,
+            false
+        )
+    })
+
+    test('getPortalConductorHttpsAgent passes a custom CA to the agent', () => {
+        const { getPortalConductorHttpsAgent } = loadUtils(
+            c => (c.portalConductor.ssl = { ca: 'test-ca-pem' })
+        )
+        const agent = getPortalConductorHttpsAgent()
+        assert.equal(agent.options.ca, 'test-ca-pem')
+        assert.equal(agent.options.rejectUnauthorized, true)
     })
 })
 

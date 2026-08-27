@@ -1,4 +1,5 @@
 const axios = require('axios')
+const https = require('https')
 const { logger } = require('../../../lib/logging')
 const config = require('../../../lib/config')
 const { joinUrl } = require('../../../lib/url')
@@ -112,12 +113,21 @@ function getPortalConductorAuth() {
 function getPortalConductorSslConfig() {
     const { ssl = {} } = config.getPortalConductorConfig()
     return {
+        ...ssl,
+        // Verify certificates by default; an operator must explicitly opt out
+        // (or supply ssl.ca) for a self-signed conductor. Fail closed, not open.
         rejectUnauthorized:
             ssl.rejectUnauthorized !== undefined
                 ? ssl.rejectUnauthorized
-                : false,
-        ...ssl,
+                : true,
     }
+}
+
+// https.Agent for portal-conductor honoring the configured trust settings
+// (rejectUnauthorized plus any ca/cert/key), so a self-signed conductor can be
+// trusted via a CA rather than by disabling verification.
+function getPortalConductorHttpsAgent() {
+    return new https.Agent(getPortalConductorSslConfig())
 }
 
 /**
@@ -134,7 +144,6 @@ async function makeRequest(method, endpoint, data = null, options = {}) {
     const url = joinUrl(baseUrl, endpoint)
     const maxRetries = getRetryCount()
     const auth = getPortalConductorAuth()
-    const sslConfig = getPortalConductorSslConfig()
 
     const requestConfig = {
         method,
@@ -143,12 +152,7 @@ async function makeRequest(method, endpoint, data = null, options = {}) {
             'Content-Type': 'application/json',
             ...options.headers,
         },
-        httpsAgent:
-            sslConfig.rejectUnauthorized === false
-                ? new (require('https').Agent)({
-                      rejectUnauthorized: false,
-                  })
-                : undefined,
+        httpsAgent: getPortalConductorHttpsAgent(),
         ...options,
     }
 
@@ -449,6 +453,7 @@ module.exports = {
     getPortalConductorUrl,
     getPortalConductorAuth,
     getPortalConductorSslConfig,
+    getPortalConductorHttpsAgent,
     getRetryCount,
     getBackoffDelay,
     isRetryableError,

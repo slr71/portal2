@@ -1,68 +1,19 @@
 const router = require('express').Router()
 const axios = require('axios')
-const https = require('https')
 const { logger } = require('./lib/logging')
 const { requireAdmin, asyncHandler } = require('./lib/auth')
-const config = require('./lib/config')
+const {
+    getPortalConductorUrl,
+    getPortalConductorAuth,
+    getPortalConductorHttpsAgent,
+} = require('./workflows/native/services/utils')
 
-/**
- * Get portal-conductor base URL from configuration
- */
-function getPortalConductorUrl() {
-    const { url: baseUrl } = config.getPortalConductorConfig()
-    if (!baseUrl) {
-        throw new Error(
-            'Portal-conductor URL is not configured in portal2.json (portalConductor.url)'
-        )
-    }
-    return baseUrl
-}
-
-/**
- * Get portal-conductor auth credentials from configuration
- */
-function getPortalConductorAuth() {
-    const { auth } = config.getPortalConductorConfig()
-    if (!auth || !auth.username || !auth.password) {
-        throw new Error(
-            'Portal-conductor credentials not configured in portal2.json (portalConductor.auth.username/password)'
-        )
-    }
-    return { username: auth.username, password: auth.password }
-}
-
-/**
- * Get portal-conductor SSL configuration
- */
-function getPortalConductorSslConfig() {
-    const { ssl = {} } = config.getPortalConductorConfig()
-    return {
-        rejectUnauthorized:
-            ssl.rejectUnauthorized !== undefined
-                ? ssl.rejectUnauthorized
-                : false,
-        ...ssl,
-    }
-}
-
-/**
- * Create axios config with SSL support
- */
 function createAxiosConfig(auth) {
-    const sslConfig = getPortalConductorSslConfig()
-    const axiosConfig = {
+    return {
         auth,
         timeout: 30000,
+        httpsAgent: getPortalConductorHttpsAgent(),
     }
-
-    // Add HTTPS agent if SSL config is present
-    if (!sslConfig.rejectUnauthorized) {
-        axiosConfig.httpsAgent = new https.Agent({
-            rejectUnauthorized: false,
-        })
-    }
-
-    return axiosConfig
 }
 
 // List analyses filtered by status (ADMIN ONLY)
