@@ -52,11 +52,11 @@ const existsLimiter = createRateLimiter({
     max: 300,
     cleanupIntervalMs: 5 * 60 * 1000,
 })
-router.use((req, res, next) => {
-    if (req.path === '/ready') return next()
-    if (req.path === '/exists') return existsLimiter(req, res, next)
-    return publicLimiter(req, res, next)
-})
+// The rate limiters are applied per-route below rather than as a blanket
+// router.use: this router is mounted at /api (server.js), so a path-less
+// middleware here would also run for requests that fall through to the
+// authenticated routers (/api/users, /api/services, ...) and let normal
+// authenticated traffic consume the public budget and get 429'd.
 
 // Health/readiness check endpoint
 router.get('/ready', (req, res) => {
@@ -76,6 +76,7 @@ const { like } = require('./lib/query')
 // Called when a user or admin unsubscribes from newsletter
 router.post(
     '/mailchimp/unsubscribe',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         // Mailchimp does not sign webhooks; the webhook URL must carry the
         // configured shared secret as ?key=... . Fail closed if it's absent.
@@ -121,6 +122,7 @@ router.post(
 // Used by Mailchimp to verify correct configuration
 router.get(
     '/mailchimp/unsubscribe',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         res.status(200).json({ status: `success` })
     })
@@ -129,6 +131,7 @@ router.get(
 // Check for existing username and/or email address
 router.post(
     '/exists',
+    existsLimiter,
     asyncHandler(async (req, res) => {
         let fields = req.body
         let result = {}
@@ -162,6 +165,7 @@ router.post(
 // Create user
 router.put(
     '/users',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         let fields = req.body
         const MINIMUM_TIME_ON_PAGE = 1000 * 30 // 30 seconds
@@ -341,6 +345,7 @@ router.put(
  */
 router.put(
     '/users/password',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         const fields = req.body
         if (!fields || !('password' in fields) || !fields.hmac)
@@ -459,6 +464,7 @@ router.put(
 // Send reset password link
 router.post(
     '/users/reset_password',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         const email = req.body.email
         const pltHMAC = req.body.hmac
@@ -533,6 +539,7 @@ router.post(
 
 router.post(
     '/confirm_email',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         const hmac = req.body.hmac
         if (!hmac) return res.status(400).send('Missing HMAC')
@@ -622,6 +629,7 @@ router.post(
 // To update the file:  curl -s http://localhost:3000/api/users/properties | jq > user-properties.json
 router.get(
     '/users/properties',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         const opts = { attributes: { exclude: ['created_at', 'updated_at'] } }
         const keys = [
@@ -655,6 +663,7 @@ router.get(
 
 router.get(
     '/users/properties/institutions',
+    publicLimiter,
     asyncHandler(async (req, res) => {
         const keyword = req.query.keyword // search term
         const limit = req.query.limit // max number of results or blank for all

@@ -144,4 +144,12 @@ describe('L10: set-primary mutates the email owner, not the caller', () => {
         const res = await post(STAFF, { setPrimary: true })
         assert.equal(res.code, 404)
     })
+
+    test('404 (no crash) when the email address is orphaned (owner missing)', async () => {
+        seedOwnedEmail()
+        owner = null // the email row exists but its owner was deleted
+        const res = await post(STAFF, { setPrimary: true })
+        assert.equal(res.code, 404)
+        assert.deepEqual(ldapCalls, []) // never dereferenced a null owner
+    })
 })

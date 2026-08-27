@@ -102,6 +102,8 @@ router.post(
             owner = await User.findByPk(emailAddress.user_id, {
                 include: ['emails'],
             })
+            // Guard against an orphaned email address (owner row deleted).
+            if (!owner) return res.status(404).send('User not found')
             owner.email = emailAddress.email
             await owner.save()
             for (const e of owner.emails) {

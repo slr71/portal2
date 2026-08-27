@@ -40,21 +40,26 @@ function withinRecipientEmailCap(to) {
     return recipientCounter.check(String(to)).allowed
 }
 
-async function queueEmail(cfg) {
-    if (!withinRecipientEmailCap(cfg.to)) {
+// The per-recipient cap is opt-in per call (rateLimited) and applied only to
+// the unauthenticated, user-triggered confirmation/reset emails -- the flows an
+// attacker can aim at one address. Staff/organizer notifications (enrollment
+// requests, access grants) legitimately arrive many-per-recipient and must not
+// be dropped, so they are queued without the cap.
+async function queueEmail(cfg, { rateLimited = false } = {}) {
+    if (rateLimited && !withinRecipientEmailCap(cfg.to)) {
         const windowMin = RECIPIENT_EMAIL_WINDOW_MS / 60000
         logger.warn(
             `queueEmail: over per-recipient cap (${RECIPIENT_EMAIL_MAX}/${windowMin}min) for ` +
                 `${cfg.to}; dropping "${cfg.subject}" (likely repeated reset/confirmation requests).`
         )
-        return
+        return false
     }
 
     const now = Date.now()
     nextEmailSendTime = Math.max(now, nextEmailSendTime + TIME_BETWEEN_EMAILS)
     const delay = nextEmailSendTime - now
 
-    setTimeout(
+    const timer = setTimeout(
         async () => {
             try {
                 await sendEmailViaConductor(cfg)
@@ -67,10 +72,12 @@ async function queueEmail(cfg) {
         },
         delay + 100 // add small delay so log message can appear first
     )
+    if (timer.unref) timer.unref() // don't keep the process alive for a queued send
 
     logger.debug(
         `queueEmail: queued ${cfg.to} "${cfg.subject}" for ${delay / 1000}s`
     )
+    return true
 }
 
 async function sendEmailViaConductor(cfg) {
@@ -164,7 +171,8 @@ function emailNewAccountConfirmation(email, hmac) {
                 FORMS_URL: UI_REQUESTS_URL,
                 SUPPORT_EMAIL: SUPPORT_EMAIL,
             },
-        })
+        }),
+        { rateLimited: true }
     )
 }
 
@@ -181,7 +189,8 @@ async function emailNewEmailConfirmation(email, hmac) {
                 ACTIVATE_URL: confirmationUrl,
                 SUPPORT_EMAIL: SUPPORT_EMAIL,
             },
-        })
+        }),
+        { rateLimited: true }
     )
 }
 
@@ -202,7 +211,8 @@ async function emailPasswordReset(emailAddress, hmac) {
                 USERNAME: emailAddress.user.username,
                 SUPPORT_EMAIL: SUPPORT_EMAIL,
             },
-        })
+        }),
+        { rateLimited: true }
     )
 }
 
@@ -302,6 +312,7 @@ module.exports = {
     emailWorkshopEnrollmentRequest,
     emailWorkshopEnrollmentConfirmation,
     emailGenericMessage,
+    queueEmail,
     withinRecipientEmailCap,
     RECIPIENT_EMAIL_MAX,
     RECIPIENT_EMAIL_WINDOW_MS,
