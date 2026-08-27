@@ -16,6 +16,7 @@ const { encodePassword } = require('./lib/password')
 const { isValidUsername } = require('./lib/validate')
 const { verifyWebhookKey } = require('./lib/webhookAuth')
 const { pickSignupFields } = require('./lib/signup')
+const { createRateLimiter } = require('./lib/rateLimit')
 const config = require('./lib/config')
 const serviceApprovers = require('./approvers/service')
 const {
@@ -33,6 +34,17 @@ const PasswordReset = models.account_passwordreset
 const PasswordResetRequest = models.account_passwordresetrequest
 const EmailAddressToMailingList = models.api_emailaddressmailinglist
 const MailingList = models.api_mailinglist
+
+// Rate-limit the public (unauthenticated) endpoints to blunt token-oracle and
+// enumeration abuse; the health check is exempt so probes aren't throttled.
+const publicLimiter = createRateLimiter({
+    windowMs: 60 * 1000,
+    max: 100,
+    cleanupIntervalMs: 5 * 60 * 1000,
+})
+router.use((req, res, next) =>
+    req.path === '/ready' ? next() : publicLimiter(req, res, next)
+)
 
 // Health/readiness check endpoint
 router.get('/ready', (req, res) => {
