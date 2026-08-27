@@ -9,7 +9,7 @@ const {
     asyncHandler,
 } = require('./lib/auth')
 const config = require('./lib/config')
-const { isValidPermission } = require('./lib/validate')
+const { isValidPermission, isValidUserScope } = require('./lib/validate')
 const { generateToken } = require('./lib/hmac')
 const { emailPasswordReset } = require('./lib/email')
 const { encodePassword } = require('./lib/password')
@@ -138,6 +138,8 @@ router.get(
     asyncHandler(async (req, res) => {
         const usernameOrId = req.params.usernameOrId
         const scope = req.query.scope || 'defaultScope'
+        if (!isValidUserScope(scope))
+            return res.status(400).send('Invalid scope')
 
         const user = await User.scope(scope).findOne({
             where: sequelize.or(

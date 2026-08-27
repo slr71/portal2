@@ -20,9 +20,21 @@ function isValidPermission(permission) {
     return PERMISSIONS.includes(permission)
 }
 
+// The Sequelize scopes the admin user-lookup route may apply. Both currently
+// exclude the password column; allowlisting the name (rather than passing the
+// query param straight to User.scope()) keeps a client from selecting an
+// unintended -- or future, inadvertently unsafe -- scope.
+const USER_SCOPES = ['defaultScope', 'profile']
+
+function isValidUserScope(scope) {
+    return USER_SCOPES.includes(scope)
+}
+
 module.exports = {
     isValidUsername,
     USERNAME_RE,
     isValidPermission,
     PERMISSIONS,
+    isValidUserScope,
+    USER_SCOPES,
 }
