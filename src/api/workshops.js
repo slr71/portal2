@@ -206,7 +206,9 @@ END:VEVENT
             res.write('END:VCALENDAR')
             res.end()
         } catch (error) {
-            console.log(error)
+            logger.error(
+                `Failed to generate workshop calendar: ${error.message}`
+            )
             res.end()
         }
     })

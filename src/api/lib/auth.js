@@ -6,7 +6,6 @@ const getUserToken = req => {
         req && req.kauth && req.kauth.grant && req.kauth.grant.access_token
             ? req.kauth.grant.access_token
             : null //req?.kauth?.grant?.access_token
-    // console.log('keycloak token:', keycloakToken != null)
     return keycloakToken
 }
 
