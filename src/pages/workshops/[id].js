@@ -242,7 +242,11 @@ const WorkshopViewer = props => {
                                 Details
                             </Typography>
                             <Typography color="textSecondary">
-                                <Markdown>{workshop.about}</Markdown>
+                                <Markdown
+                                    options={{ disableParsingRawHTML: true }}
+                                >
+                                    {workshop.about}
+                                </Markdown>
                             </Typography>
                         </Grid>
                     )}

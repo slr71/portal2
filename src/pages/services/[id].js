@@ -193,7 +193,13 @@ const ServiceViewer = props => {
                                     Details
                                 </Typography>
                                 <Typography color="textPrimary">
-                                    <Markdown>{service.about}</Markdown>
+                                    <Markdown
+                                        options={{
+                                            disableParsingRawHTML: true,
+                                        }}
+                                    >
+                                        {service.about}
+                                    </Markdown>
                                 </Typography>
                             </Box>
                         </Grid>
