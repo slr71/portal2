@@ -1,6 +1,7 @@
 // Pure email-template rendering, extracted so the escaping is testable without
 // loading the email module's config/conductor dependencies.
 
+/** Escapes the five HTML metacharacters for safe text/attribute interpolation. */
 function escapeHtml(value) {
     return String(value)
         .replace(/&/g, '&amp;')
