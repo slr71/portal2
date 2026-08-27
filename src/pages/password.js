@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAPI } from '../contexts/api'
 import { Box, Grid, Typography, Button, TextField } from '@mui/material'
 import { MainLogo } from '../components'
@@ -67,8 +67,22 @@ const Right = props => {
     const { classes } = useStyles()
     const api = useAPI()
     const reset = 'reset' in props
-    const hmac = props.code
     const setLabel = reset ? 'Reset' : 'Set'
+
+    // hmac comes from the URL (email links) or, for the signup set-password
+    // flow, from sessionStorage so it never appears in the URL. Read once.
+    const [hmac, setHmac] = useState(props.code)
+    useEffect(() => {
+        if (!props.code && props.setup) {
+            try {
+                const stored = sessionStorage.getItem('password_token')
+                if (stored) setHmac(stored)
+                sessionStorage.removeItem('password_token')
+            } catch (e) {
+                // sessionStorage unavailable
+            }
+        }
+    }, [props.code, props.setup])
 
     const [pageError, setPageError] = useState()
     const [password1, setPassword1] = useState()
@@ -206,8 +220,9 @@ const Right = props => {
 export async function getServerSideProps(context) {
     const props = context.req.query
 
-    // Require "code" query param
-    if (!props.code) context.res.redirect('/')
+    // Require a code (email links) or the signup setup flag (token in
+    // sessionStorage); otherwise there's nothing to set here.
+    if (!props.code && !props.setup) context.res.redirect('/')
 
     return { props }
 }
