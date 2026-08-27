@@ -94,12 +94,32 @@ describe('regenerateSessionOnLogin', () => {
 })
 
 describe('installLogoutSessionDestroy', () => {
-    test('installs a deauthenticated hook that destroys the session', () => {
+    test('destroy is deferred so keycloak-connect unstore does not throw', async () => {
+        // Mirrors keycloak-connect logout: deauthenticated(req) then a
+        // synchronous unstore that deletes req.session['keycloak-token'].
         const client = {}
         installLogoutSessionDestroy(client)
-        const session = makeSession({ [GRANT_KEY]: 'GRANT' })
-        client.deauthenticated({ session })
-        assert.ok(session._events.includes('destroy'))
+
+        let destroyed = false
+        const request = {
+            session: {
+                [GRANT_KEY]: 'GRANT',
+                destroy(cb) {
+                    delete request.session // express-session nulls it sync
+                    destroyed = true
+                    cb && cb()
+                },
+            },
+        }
+
+        client.deauthenticated(request)
+        // The unstore runs synchronously right after, on the still-present session.
+        assert.ok(request.session, 'session must survive until unstore runs')
+        assert.doesNotThrow(() => delete request.session[GRANT_KEY])
+
+        await new Promise(r => setImmediate(r))
+        assert.equal(destroyed, true)
+        assert.equal(request.session, undefined)
     })
 
     test('tolerates logout with no session', () => {

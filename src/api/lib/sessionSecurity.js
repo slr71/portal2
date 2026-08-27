@@ -25,7 +25,13 @@ function regenerateSessionOnLogin(req, res, next) {
 // Invalidate the whole session on logout rather than only clearing the grant.
 function installLogoutSessionDestroy(keycloakClient) {
     keycloakClient.deauthenticated = function (request) {
-        if (request.session) request.session.destroy(() => {})
+        // Defer: keycloak-connect's logout runs unstore (which touches
+        // request.session) synchronously right after this, and
+        // express-session's destroy() nulls request.session synchronously.
+        // Destroying now would make that unstore throw and abort the SLO
+        // redirect. Destroy on the next tick instead.
+        const session = request.session
+        if (session) setImmediate(() => session.destroy(() => {}))
     }
 }
 
