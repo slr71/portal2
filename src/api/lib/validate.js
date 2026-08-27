@@ -11,4 +11,18 @@ function isValidUsername(username) {
     return typeof username === 'string' && USERNAME_RE.test(username)
 }
 
-module.exports = { isValidUsername, USERNAME_RE }
+// The permission levels the admin UI can assign. 'regular' clears both flags;
+// requiring an explicit value keeps a missing/misspelled permission from
+// silently demoting a user instead of being rejected.
+const PERMISSIONS = ['regular', 'staff', 'superuser']
+
+function isValidPermission(permission) {
+    return PERMISSIONS.includes(permission)
+}
+
+module.exports = {
+    isValidUsername,
+    USERNAME_RE,
+    isValidPermission,
+    PERMISSIONS,
+}

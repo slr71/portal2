@@ -9,6 +9,7 @@ const {
     asyncHandler,
 } = require('./lib/auth')
 const config = require('./lib/config')
+const { isValidPermission } = require('./lib/validate')
 const { generateToken } = require('./lib/hmac')
 const { emailPasswordReset } = require('./lib/email')
 const { encodePassword } = require('./lib/password')
@@ -362,6 +363,8 @@ router.post(
     requireAdmin,
     asyncHandler(async (req, res) => {
         const permission = req.body.permission
+        if (!isValidPermission(permission))
+            return res.status(400).send('Invalid permission')
 
         const user = await User.findByPk(req.params.id)
         if (!user) return res.status(404).send('User not found')
