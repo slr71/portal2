@@ -174,6 +174,7 @@ router.put(
         try {
             pageLoadTime = decodeHMAC(fields['plt'])
         } catch (error) {
+            logger.debug('HMAC decode failed:', error.message)
             return res.status(400).send('Invalid HMAC')
         }
         if (isNaN(pageLoadTime)) return res.status(400).send('Invalid HMAC')
@@ -308,6 +309,7 @@ router.put(
         try {
             emailId = decodeToken(fields.hmac)
         } catch (error) {
+            logger.debug('users/password token decode failed:', error.message)
             return res.status(400).send('Invalid or expired token')
         }
 
@@ -457,6 +459,7 @@ router.post(
         try {
             pageLoadTime = decodeHMAC(pltHMAC)
         } catch (error) {
+            logger.debug('HMAC decode failed:', error.message)
             return res.status(400).send('Invalid HMAC')
         }
         if (isNaN(pageLoadTime)) return res.status(400).send('Invalid HMAC')
@@ -501,6 +504,7 @@ router.post(
         try {
             key = decodeHMAC(hmac)
         } catch (error) {
+            logger.debug('HMAC decode failed:', error.message)
             return res.status(400).send('Invalid HMAC')
         }
         const emailId = parseInt(key)

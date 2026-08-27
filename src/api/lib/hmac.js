@@ -70,9 +70,12 @@ function generateToken(tokenKey) {
 }
 
 function decodeToken(hmac) {
+    // decodeHMAC emits a generic 'Invalid token' on tampering and lets a real
+    // config error (missing key) propagate; only the JSON parse is guarded here.
+    const json = decodeHMAC(hmac)
     let obj
     try {
-        obj = JSON.parse(decodeHMAC(hmac))
+        obj = JSON.parse(json)
     } catch (error) {
         throw new Error('Invalid token')
     }

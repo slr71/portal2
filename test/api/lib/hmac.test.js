@@ -190,6 +190,24 @@ describe('key derivation', () => {
             )
         })
     }
+
+    test('decodeHMAC propagates a missing-key config error', () => {
+        const { decodeHMAC } = loadHmac(c => delete c.security.hmacKey)
+        assert.throws(
+            () => decodeHMAC('aa:bb:cc'),
+            /Missing HMAC_KEY in config/
+        )
+    })
+
+    test('decodeToken surfaces a missing key as a config error, not Invalid token', () => {
+        // Guards the fix: decodeToken must not mask the config error as a
+        // generic token failure.
+        const { decodeToken } = loadHmac(c => delete c.security.hmacKey)
+        assert.throws(
+            () => decodeToken('aa:bb:cc'),
+            /Missing HMAC_KEY in config/
+        )
+    })
 })
 
 function flipHexChar(hex) {
