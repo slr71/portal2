@@ -5,6 +5,7 @@ const { joinUrl } = require('../api/lib/url')
 
 const uiConfig = config.getUiConfig()
 const terrainConfig = config.getTerrainConfig()
+const externalConfig = config.getExternalConfig()
 
 module.exports = {
     // Front-end URLs
@@ -25,5 +26,10 @@ module.exports = {
         terrainConfig.url,
         'admin/settings/concurrent-job-limits'
     ),
-    EXT_ADMIN_VICE_ACCESS_REQUEST_URL: 'https://de.cyverse.org/admin/vice',
+    // The DE this portal fronts, which is not derivable from terrain.url --
+    // that is the internal service address. Null when unconfigured, so callers
+    // omit the link rather than pointing staff at another deployment's DE.
+    EXT_ADMIN_VICE_ACCESS_REQUEST_URL: externalConfig.deBaseUrl
+        ? joinUrl(externalConfig.deBaseUrl, 'admin/vice')
+        : null,
 }
