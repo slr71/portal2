@@ -96,10 +96,10 @@ app.prepare()
         const expressWS = require('express-ws')(server)
         const sockets = {} // Track websocket connections by username
 
-        // Setup logging
         // Security headers on every response (applied first)
         server.use(securityHeaders)
 
+        // Setup logging
         server.use(errorLogger)
         server.use(requestLogger)
 
